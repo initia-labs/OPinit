@@ -15,8 +15,8 @@ export default class OutputEntity {
   storageRoot: string
 
   @Column('text')
-  lastBlockHash: string
+  lastBlockHash: string // last block hash of the epoch
 
   @Column('int')
-  startBlockHeight: number
+  startBlockHeight: number // start block height of the epoch
 }

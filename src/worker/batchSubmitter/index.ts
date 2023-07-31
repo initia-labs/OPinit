@@ -1,18 +1,36 @@
-import { initORM } from './db'
+import { initORM, finalizeORM } from './db'
 import { logger } from "../../lib/logger"
 import BlueBird  from 'bluebird';
 import L2Monitoring from '../l2Monitoring';
 import { BatchSubmitter } from './batchSubmitter';
 import { WalletType, initWallet } from 'lib/wallet';
 import config from 'config';
+import { initServer, finalizeServer } from 'loader';
+import { batchController } from 'controller';
+import { once } from 'lodash'
 
-(async () => {
+async function gracefulShutdown(): Promise<void> {
+    logger.info('Closing listening port')
+    finalizeServer()
+  
+    logger.info('Closing DB connection')
+    await finalizeORM()
+  
+    logger.info('Finished')
+    process.exit(0)
+}
+
+
+async function main(): Promise<void> {
+    await initORM()
+    await initServer(batchController)
+
     const batchSubmitter = new BatchSubmitter();
     const l2Monitoring = new L2Monitoring();
     await batchSubmitter.init()
     await l2Monitoring.init()
-    await initORM()
-    initWallet(WalletType.BatchSubmitter, config.l1lcd)
+
+    // initWallet(WalletType.BatchSubmitter, config.l1lcd)
 
     for (;;) {
         try {
@@ -21,10 +39,19 @@ import config from 'config';
             } else {
                 await batchSubmitter.run();            
             }
+            // attach graceful shutdown
+            const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const
+            signals.forEach((signal) => process.on(signal, once(gracefulShutdown)))
         }catch (err) {
             logger.error(`Error in batchBot: ${err}`);
         }finally {
             await BlueBird.Promise.delay(3000)
         }
     }
-})();
+
+}
+
+if (require.main === module) {
+    main().catch(console.log)
+}
+  

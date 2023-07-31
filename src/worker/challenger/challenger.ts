@@ -5,16 +5,19 @@ import {
     MnemonicKey,
     MsgExecute,
     BCS,
-} from '@initia/minitia.js';
-import { transaction } from "../../lib/tx";
+    LCDClient,
+    TxInfo,
+    Msg
+} from '@initia/initia.js';
 import { getLatestBlockHeight } from "../../lib/rpc";
 import { DataSource } from "typeorm"
 import { OutputEntity, TxEntity } from 'orm'
-import { WithdrawalTx } from "lib/types"
+import { WithdrawalTx, DepositTx } from "lib/types"
 import { WithdrawalStorage } from "lib/storage"
 import { createOutputRoot } from "lib/util";
 import { fetchBridgeConfig } from 'lib/lcd'
 import { getDB } from "./db";
+import { delay } from 'bluebird'
 
 const bcs = BCS.getInstance()
 
@@ -29,11 +32,18 @@ export class Challenger{
 
     async init() {
         [this.dataSource] = getDB();    
-        this.challenger = new Wallet(config.l1lcd, new MnemonicKey({mnemonic: 'recycle sight world spoon leopard shine dizzy before public use jungle either arctic detail hawk output option august hedgehog menu keen night work become'}));
+        this.challenger = new Wallet(config.l1lcd, new MnemonicKey({mnemonic: config.CHALLENGER_MNEMONIC}));
         this.challengeDone = false
         const bridgeCfg = await fetchBridgeConfig()
         this.submissionInterval= parseInt(bridgeCfg.submission_interval)
         this.l2StartHeight = parseInt(bridgeCfg.starting_block_number)
+    }
+
+    public async monitorL1Deposit(){
+        this.processedHeight += 1
+        const depositTxs = this.getDepositTx(this.processedHeight) 
+        if (!depositTxs) return
+
     }
 
     // monitoring L1 deposit event and check the relayer works properly (L1 TokenBridgeInitiatedEvent)
@@ -100,7 +110,7 @@ export class Challenger{
     async makeL2OutputRoot(outputIndex: number, lastL2BlockHeight: number, storage: WithdrawalStorage): Promise<string>{ 
         const res = await axios.get(`${config.L2_LCD_URI}/cosmos/base/tendermint/v1beta1/blocks/${lastL2BlockHeight}`)
 
-        const version = outputIndex // TODO: is it right? what if output is deleted?
+        const version = outputIndex 
         const stateRoot= res['data']['block']['header']['app_hash']// app hash
         const storageRoot= storage.getMerkleRoot() // storage 
         const lastBlockHash= res['data']['block_id']['hash'] // block hash
@@ -108,13 +118,14 @@ export class Challenger{
         return challengerOutputRoot
     }
 
-    public async getDepositTx(height: number): Promise<WithdrawalTx[]|null>{
+    // monitor L1 deposit events
+    public async getDepositTx(height: number): Promise<DepositTx[]|null>{
         const res = await axios.get(`${config.L1_LCD_URI}/cosmos/tx/v1beta1/txs?events=tx.height=${height}`)
         
         const evtName = `0x1::op_bridge::TokenBridgeInitiatedEvent`
         const txResponses = res['data']['tx_responses']
         if (!txResponses) return null
-        const withdrawalTxs : WithdrawalTx[] = []
+        const depositTxs : DepositTx[] = []
         txResponses.forEach(logs => {
             logs.events.forEach(event => {
                 if (event.type !== 'move') return
@@ -125,17 +136,17 @@ export class Challenger{
                         if (!dataAttr) {
                             return null
                         }
-                        const withdrawalTx: WithdrawalTx = JSON.parse(dataAttr.value)
+                        const depositTx: DepositTx = JSON.parse(dataAttr.value)
                         
-                        withdrawalTxs.push(withdrawalTx)
+                        depositTxs.push(depositTx)
                     }
                 }
             })
         })
-        return withdrawalTxs
+        return depositTxs
     }
 
-
+    // monitor L2 withdrawal events
     public async getWithdrawalTx(height: number): Promise<WithdrawalTx[]|null>{
         const res = await axios.get(`${config.L2_LCD_URI}/cosmos/tx/v1beta1/txs?events=tx.height=${height}`)
         
@@ -229,11 +240,45 @@ export class Challenger{
             [bcs.serialize('u64', outputIndex)]
         )
 
-        await transaction(this.challenger, [executeMsg])
+        // await transaction(this.challenger, [executeMsg])
+        await sendTx(config.l1lcd, this.challenger, [executeMsg])
         this.challengeDone = true
     }
 
     public isChallengeDone(): boolean {
         return this.challengeDone
     }
+}
+
+/// Utils
+async function sendTx(client: LCDClient,sender: Wallet,  msg: Msg[]) {
+    try {
+        const signedTx = await sender.createAndSignTx({msgs:msg})
+        const broadcastResult = await client.tx.broadcast(signedTx)
+        await checkTx(client, broadcastResult.txhash)
+        return broadcastResult.txhash
+    }catch (error) {
+        console.log(error)
+        throw new Error(`Error in sendTx: ${error}`)
+    }
+}
+
+export async function checkTx(
+    lcd: LCDClient,
+    txHash: string,
+    timeout = 60000
+): Promise<TxInfo | undefined> {
+    const startedAt = Date.now()
+
+    while (Date.now() - startedAt < timeout) {
+        try {
+        const txInfo = await lcd.tx.txInfo(txHash)
+        if (txInfo) return txInfo
+        await delay(1000)
+        } catch (err) {
+        throw new Error(`Failed to check transaction status: ${err.message}`)
+        }
+    }
+
+    throw new Error('Transaction checking timed out');
 }

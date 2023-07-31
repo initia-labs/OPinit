@@ -1,17 +1,17 @@
-import { controllers } from 'controller'
+// import { controllers } from 'controller'
 import * as Koa from 'koa'
 import * as bodyParser from 'koa-body'
 import * as Router from 'koa-router'
 import * as cors from '@koa/cors'
 import { errorHandler, APIError, ErrorTypes } from 'lib/error'
 import { error } from 'lib/response'
-import { configureRoutes } from 'koa-joi-controllers'
+import { KoaController, configureRoutes } from 'koa-joi-controllers'
 
 const notFoundMiddleware: Koa.Middleware = (ctx) => {
   ctx.status = 404
 }
 
-export async function initApp(): Promise<Koa> {
+export async function initApp(controllers: KoaController[]): Promise<Koa> {
   const app = new Koa()
   app.proxy = true
   app

@@ -1,16 +1,16 @@
 import { KoaController } from 'koa-joi-controllers'
 import BatchController from './BatchController'
+import { OutputController } from './OutputController'
+import { TxController } from './TxController'
 
-export const controllers = [
-  BatchController
-]
-  .map((prototype) => {
-    const controller = new prototype()
-    controller.routes = controller.routes.filter((route) => {
-      return true
-    })
 
-    return controller
-  })
-  .filter(Boolean) as KoaController[]
-export default controllers
+export const executorController = [
+  OutputController,
+  TxController
+].map((prototype) =>  new prototype()) as KoaController[]
+
+export const batchController = [
+  BatchController,
+].map((prototype) =>  new prototype()) as KoaController[]
+
+

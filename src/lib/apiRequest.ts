@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance } from "axios";
+import { OutputEntity } from "orm";
 
 interface TxsResponse {
     limit: number;
@@ -63,81 +64,77 @@ export class APIRequest {
         }
     }
 
+    public async getOuptut(outputIndx: number): Promise<OutputEntity>{
+        return this.getQuery(`/outputs/${outputIndx}`);
+    }
+
     public async getBlock(blockHeight: number): Promise<any> {
         return this.getQuery(`/v1/blocks/${blockHeight}`);
     }
 
-    private async getChallengablePeriodTxs(query: string): Promise<Tx[]> {
-        let txsRes = await this.getQuery<TxsResponse>(query);
-        let txs = txsRes.txs;
-        const challengePeriod = new Date();
-        challengePeriod.setDate(challengePeriod.getDate() - 7);
+    // private async getChallengablePeriodTxs(query: string): Promise<Tx[]> {
+    //     let txsRes = await this.getQuery<TxsResponse>(query);
+    //     let txs = txsRes.txs;
+    //     const challengePeriod = new Date();
+    //     challengePeriod.setDate(challengePeriod.getDate() - 7);
 
-        while (txsRes.next) {
-            txsRes = await this.getQuery<TxsResponse>(`${query}&offset=${txsRes.next}`);
-            if (new Date(txsRes.txs[0].timestamp) < challengePeriod) {
-                break;
-            }
-            txs = txs.concat(txsRes.txs);
-        }
+    //     while (txsRes.next) {
+    //         txsRes = await this.getQuery<TxsResponse>(`${query}&offset=${txsRes.next}`);
+    //         if (new Date(txsRes.txs[0].timestamp) < challengePeriod) {
+    //             break;
+    //         }
+    //         txs = txs.concat(txsRes.txs);
+    //     }
 
-        return txs.filter((tx) => {
-            const timestamp = new Date(tx.timestamp);
-            return timestamp > challengePeriod
-        }).reverse();
-    }
+    //     return txs.filter((tx) => {
+    //         const timestamp = new Date(tx.timestamp);
+    //         return timestamp > challengePeriod
+    //     }).reverse();
+    // }
 
-    // get transactions not finalized yet. Defaultly, suppose challenge period is 7 days 
-    public async getChallengableTxs(startHeight?: number): Promise<Tx[]> {
-        const challengePeriod = new Date();
-        challengePeriod.setDate(challengePeriod.getDate() - 7);
-        const txs = await this.getChallengablePeriodTxs(`/v1/txs?limit=100`);
-        if (startHeight){
-            txs.filter((tx) => {
-                return Number(tx.height) >= startHeight
-            })
-        }
-        return txs;
-    }
+    // // get transactions not finalized yet. Defaultly, suppose challenge period is 7 days 
+    // public async getChallengableTxs(startHeight?: number): Promise<Tx[]> {
+    //     const challengePeriod = new Date();
+    //     challengePeriod.setDate(challengePeriod.getDate() - 7);
+    //     const txs = await this.getChallengablePeriodTxs(`/v1/txs?limit=100`);
+    //     if (startHeight){
+    //         txs.filter((tx) => {
+    //             return Number(tx.height) >= startHeight
+    //         })
+    //     }
+    //     return txs;
+    // }
 
-    public extractChallengableEvents(txs: Tx[], bridgeHexAddress: string, l2ID: string): (OutputProposedEvent| null)[]  {
-        return txs.flatMap(tx => 
-            tx.logs.flatMap(log => 
-                log.events.filter(evt => {
-                   return evt.attributes.some(
-                        attr => attr.key === "type_tag" 
-                            && attr.value === `${bridgeHexAddress}::op_output::OutputProposedEvent`
-                    )
-                })
-            )
-        )
-        .map(evt => {
-            const dataAttr = evt.attributes.find(attr => attr.key === 'data');
-            if (!dataAttr) {
-                return null
-            }
+    // public extractChallengableEvents(txs: Tx[], bridgeHexAddress: string, l2ID: string): (OutputProposedEvent| null)[]  {
+    //     return txs.flatMap(tx => 
+    //         tx.logs.flatMap(log => 
+    //             log.events.filter(evt => {
+    //                return evt.attributes.some(
+    //                     attr => attr.key === "type_tag" 
+    //                         && attr.value === `${bridgeHexAddress}::op_output::OutputProposedEvent`
+    //                 )
+    //             })
+    //         )
+    //     )
+    //     .map(evt => {
+    //         const dataAttr = evt.attributes.find(attr => attr.key === 'data');
+    //         if (!dataAttr) {
+    //             return null
+    //         }
             
-            const data = JSON.parse(dataAttr.value);
-            if (data.l2_id !== l2ID) {
-                return null 
-            }
+    //         const data = JSON.parse(dataAttr.value);
+    //         if (data.l2_id !== l2ID) {
+    //             return null 
+    //         }
             
-            return {
-                l2_id: data.l2_id,
-                output_root: data.output_root,
-                output_index: parseInt(data.output_index),
-                l2_block_number: parseInt(data.l2_block_number),
-                l1_timestamp: parseInt(data.l1_timestamp),
-            }
-        })
-        .filter(data => data !== null);
-    }
-
-    // // get all output proposal in last 7 days
-    // public async getChallengableEvents(startHeight: number): Promise<OutputProposedEvent[]> {
-    //     const challengableTxs = await this.apiRequest.getChallengableTxs(startHeight)
-    //     const challengableEvents: (OutputProposedEvent | null)[]  = this.apiRequest.extractChallengableEvents(challengableTxs, AccAddress.toHex(config.L1_BRIDGE_ADDRESS), config.L2ID)
-    //     const nonNullChallengableEvents = challengableEvents.filter(event => event !== null) as OutputProposedEvent[]
-    //     return nonNullChallengableEvents.sort((a, b) => a.output_index - b.output_index)
+    //         return {
+    //             l2_id: data.l2_id,
+    //             output_root: data.output_root,
+    //             output_index: parseInt(data.output_index),
+    //             l2_block_number: parseInt(data.l2_block_number),
+    //             l1_timestamp: parseInt(data.l1_timestamp),
+    //         }
+    //     })
+    //     .filter(data => data !== null);
     // }
 }

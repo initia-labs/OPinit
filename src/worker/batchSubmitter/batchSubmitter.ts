@@ -1,20 +1,22 @@
-import { initORM, getDB } from './db'
+import { getDB } from './db'
 import { DataSource } from "typeorm"
-import { logger } from "../../lib/logger"
-import config from "../../config"
-import { BlockBulk, getBlockBulk } from '../../lib/rpc';
-import { compressor } from '../../lib/compressor';
-import { transaction, getLatestBlockHeight } from '../../lib/tx';
-import { RecordEntity } from '../../orm';
-import * as bluebird  from 'bluebird';
-import L2Monitoring from '../l2Monitoring';
+import { logger } from "lib/logger"
+import config from "config"
+import { BlockBulk, getBlockBulk } from 'lib/rpc';
+import { compressor } from 'lib/compressor';
+import { transaction, getLatestBlockHeight } from 'lib/tx';
+import { RecordEntity } from 'orm';
 import { 
     Wallet,
     MnemonicKey,
     MsgExecute,
     BCS,
-} from '@initia/minitia.js';
+    LCDClient,
+    TxInfo,
+    Msg
+} from '@initia/initia.js';
 import { fetchBridgeConfig } from 'lib/lcd';
+import { delay } from 'bluebird'
 
 const bcs = BCS.getInstance() 
 
@@ -103,7 +105,8 @@ export class BatchSubmitter {
                     bcs.serialize('vector<u8>',batch, 100000) // TODO: get max batch size from chain
                 ]
             )
-            transaction(this.submitter, [executeMsg])
+            // transaction(this.submitter, [executeMsg])
+            await sendTx(config.l1lcd, this.submitter, [executeMsg])
         } catch (err){
             throw new Error(`Error publishing batch to L1: ${err}`)
         }
@@ -125,4 +128,39 @@ export class BatchSubmitter {
         
         return record
     }
+}
+
+
+
+/// Utils
+async function sendTx(client: LCDClient,sender: Wallet,  msg: Msg[]) {
+    try {
+        const signedTx = await sender.createAndSignTx({msgs:msg})
+        const broadcastResult = await client.tx.broadcast(signedTx)
+        await checkTx(client, broadcastResult.txhash)
+        return broadcastResult.txhash
+    }catch (error) {
+        console.log(error)
+        throw new Error(`Error in sendTx: ${error}`)
+    }
+}
+
+export async function checkTx(
+    lcd: LCDClient,
+    txHash: string,
+    timeout = 60000
+): Promise<TxInfo | undefined> {
+    const startedAt = Date.now()
+
+    while (Date.now() - startedAt < timeout) {
+        try {
+        const txInfo = await lcd.tx.txInfo(txHash)
+        if (txInfo) return txInfo
+        await delay(1000)
+        } catch (err) {
+        throw new Error(`Failed to check transaction status: ${err.message}`)
+        }
+    }
+
+    throw new Error('Transaction checking timed out');
 }

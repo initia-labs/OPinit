@@ -5,7 +5,6 @@ import { StateEntity } from 'orm'
 import { getDB } from './db'
 import { DataSource } from 'typeorm'
 import { logger } from 'lib/logger'
-import { UnifiedLCDClient } from 'lib/types'
 
 export abstract class Monitor {
   public syncedHeight: number
@@ -13,7 +12,7 @@ export abstract class Monitor {
   protected isRunning = false
 
   constructor(
-    public lcd: UnifiedLCDClient,
+    public lcd: LCDClient,
     public socket: RPCSocket
   ) {
     this.db = getDB()[0]

@@ -3,6 +3,7 @@ import { RPCSocket } from 'lib/rpc'
 import { Monitor } from './Monitor'
 import { L1Monitor } from './L1Monitor'
 import { L2Monitor } from './L2Monitor'
+import { executorController } from 'controller'
 
 import { logger } from 'lib/logger'
 import { initORM, finalizeORM } from './db'
@@ -42,7 +43,7 @@ async function gracefulShutdown(): Promise<void> {
 
 async function main(): Promise<void> {
   await initORM()
-  await initServer()
+  await initServer(executorController)
   initWallet(WalletType.Executor, config.l2lcd)
   await runBot()
 

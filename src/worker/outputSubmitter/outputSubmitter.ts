@@ -1,30 +1,27 @@
-import { BCS, Msg, MsgExecute, Wallet } from "@initia/minitia.js";
-import { createOutputRoot } from "../../lib/util";
-import { TxWallet, WalletType, getWallet, wallets } from '../../lib/wallet'
-import config from '../../config'
-import { DataSource } from "typeorm"
-import { getDB } from "./db";
-
+import { BCS, Msg, MsgExecute } from "@initia/minitia.js";
+import { TxWallet, WalletType, getWallet } from 'lib/wallet'
+import config from 'config'
+import { OutputEntity } from 'orm'
+import { APIRequest } from "lib/apiRequest";
 const bcs = BCS.getInstance() 
 
 export class OutputSubmitter {
-    private outputIndex = 0;
-    private dataSource: DataSource;
     private submitter: TxWallet;
+    private apiRequester: APIRequest;
 
     async init(){
-        [this.dataSource] = getDB()
         this.submitter = getWallet(WalletType.OutputSubmitter)
+        this.apiRequester = new APIRequest('https://minitia-executor.initia.tech') // TODO: 
     }
-    async isFinalized(outputIndex: number){
-        return await config.l1lcd.move.viewFunction<boolean>(
+
+    async getNextOutputIndex(){
+        return await config.l1lcd.move.viewFunction<number>(
             '0x1',
             'op_output',
-            'is_finalized',
+            'next_output_index',
             [config.L2ID],
-            [
-                bcs.serialize('u64', outputIndex)
-            ])
+            []
+        )
     }
 
     async proposeL2Output(outputRoot: Buffer, l2BlockHeight: number){
@@ -44,19 +41,10 @@ export class OutputSubmitter {
 
     public async run(){
         try{
-            if (await this.isFinalized(this.outputIndex)) {
-                this.outputIndex += 1 // get from db
-                return
-            }
-
-            const outputRoot = createOutputRoot(
-                this.outputIndex,
-                '',
-                '',
-                ''
-            )
+            const nextOutputIndex = await this.getNextOutputIndex()
+            const outputEntity: OutputEntity = await this.apiRequester.getOuptut(nextOutputIndex) // TODO : get output with startBlockNum
             
-            this.proposeL2Output(Buffer.from(outputRoot), this.outputIndex)
+            this.proposeL2Output(Buffer.from(outputEntity.outputRoot, 'hex'), nextOutputIndex)
         }catch(err){
             throw new Error(`Error in outputSubmitter: ${err}`)
         }

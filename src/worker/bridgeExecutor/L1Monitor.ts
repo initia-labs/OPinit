@@ -1,7 +1,7 @@
 import { logger } from 'lib/logger'
-import config from '../../config'
+import config from 'config'
 import { Monitor } from './Monitor'
-import { getCoinInfo } from '../../lib/lcd'
+import { getCoinInfo } from 'lib/lcd'
 import {
   AccAddress,
   Coin,

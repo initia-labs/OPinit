@@ -1,4 +1,5 @@
-import { AccAddress, Coin, MsgDeposit, MsgExecute, MsgPublish, MsgSend } from "@initia/minitia.js";
+// import { AccAddress, Coin, MsgDeposit, MsgExecute, MsgPublish, MsgSend } from "@initia/minitia.js";
+import { AccAddress, Coin, MsgDeposit, MsgExecute, MsgPublish, MsgSend } from "@initia/initia.js";
 import { 
     Wallet,
     MnemonicKey,
@@ -10,11 +11,12 @@ import { init } from "@sentry/node";
 import config from "config";
 import { BridgeConfig } from "lib/types";
 import { WalletType, getWallet, initWallet, wallets } from "lib/wallet";
+import { delay } from 'bluebird'
 
 const bcs = BCS.getInstance()
 const L1Client= config.l1lcd
 const L2Client= config.l2lcd
-const sender = new Wallet( L1Client, new MnemonicKey({mnemonic: 'recycle sight world spoon leopard shine dizzy before public use jungle either arctic detail hawk output option august hedgehog menu keen night work become'}))
+const sender = new Wallet(config.l1lcd, new MnemonicKey({mnemonic: 'recycle sight world spoon leopard shine dizzy before public use jungle either arctic detail hawk output option august hedgehog menu keen night work become'}))
 const bridgeAddr = '0x1'
 const L2ID = '0x56ccf33c45b99546cd1da172cf6849395bbf8573::l2::Id'
 
@@ -23,7 +25,7 @@ async function sendTx(client: LCDClient,sender: Wallet,  msg: any) {
     try {
         const signedTx = await sender.createAndSignTx({msgs:[msg]})
         const broadcastResult = await client.tx.broadcast(signedTx)
-        await pollingTx(client, broadcastResult.txhash)
+        await checkTx(client, broadcastResult.txhash)
         return broadcastResult.txhash
     }catch (error) {
         console.log(error)
@@ -31,25 +33,25 @@ async function sendTx(client: LCDClient,sender: Wallet,  msg: any) {
     }
 }
 
-async function pollingTx(lcd: LCDClient, txhash : string): Promise<void>{
-    return new Promise((resolve, reject) => {
-        const polling = setInterval(async () => {
-            let txResult: TxInfo | null = null;
-            try {
-                txResult = await lcd.tx.txInfo(txhash)        
-            }catch (error){
-                reject(error)
-                clearInterval(polling);
-            }
-
-            if (txResult) {
-                resolve();
-                clearInterval(polling);
-            }
-            
-        }, 1000);
-    })
-}
+export async function checkTx(
+    lcd: LCDClient,
+    txHash: string,
+    timeout = 60000
+  ): Promise<TxInfo | undefined> {
+    const startedAt = Date.now()
+  
+    while (Date.now() - startedAt < timeout) {
+      try {
+        const txInfo = await lcd.tx.txInfo(txHash)
+        if (txInfo) return txInfo
+        await delay(1000)
+      } catch (err) {
+        throw new Error(`Failed to check transaction status: ${err.message}`)
+      }
+    }
+    
+    throw new Error('Transaction checking timed out');
+  }
 
 
 /// outputSubmitter -> op_output/initialize

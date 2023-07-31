@@ -5,8 +5,7 @@ import { fetchBridgeConfig } from 'lib/lcd'
 import { WithdrawalStorage } from 'lib/storage'
 import { BridgeConfig, WithdrawalTx } from 'lib/types'
 import { sha3_256 } from 'lib/util'
-import { Event, LCDClient } from '@initia/minitia.js'
-import { RPCSocket } from 'lib/rpc'
+import { Event } from '@initia/minitia.js'
 import { logger } from 'lib/logger'
 
 export class L2Monitor extends Monitor {

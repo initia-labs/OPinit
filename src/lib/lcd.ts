@@ -1,7 +1,7 @@
 import { delay } from 'bluebird'
 import { LCDClient, TxInfo, Wallet, Msg } from '@initia/minitia.js'
 import { getL2Denom } from './util'
-import { BridgeConfig, UnifiedLCDClient } from './types'
+import { BridgeConfig } from './types'
 import config from '../config'
 
 export async function transaction(
@@ -47,7 +47,7 @@ export async function fetchBridgeConfig(): Promise<BridgeConfig> {
 }
 
 export async function getCoinInfo(
-  lcd: UnifiedLCDClient,
+  lcd: LCDClient,
   structTag: string,
   l2Token: Buffer
 ): Promise<CoinInfo> {
