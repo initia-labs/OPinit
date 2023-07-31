@@ -1,0 +1,11 @@
+{
+    "apps" : [
+        {
+            "name" : "output",
+            "cwd" : ".",
+            "script" : "npm run output",
+            "watch" : true,
+            "autorestart" : true
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+[package]
+name = "op"
+version = "0.0.0"
+
+[dependencies]
+MinitiaStdlib = { git = "https://github.com/initia-labs/initiavm.git", subdir = "crates/../precompile/modules/minitia_stdlib", rev = "main" }
+
+[addresses]
+std =  "0x1"
+minitia_std = "0x1"
+addr = "0xdd9fa8e2755e0dba351fb8fdb3695c391a1039d8"

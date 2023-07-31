@@ -1,0 +1,11 @@
+{
+    "apps" : [
+        {
+            "name" : "bridge-executor",
+            "cwd" : ".",
+            "script" : "npm run executor",
+            "watch" : true,
+            "autorestart" : true
+        }
+    ]
+}

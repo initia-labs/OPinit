@@ -1,0 +1,11 @@
+{
+    "apps" : [
+        {
+            "name" : "challenger",
+            "cwd" : ".",
+            "script" : "npm run challenger",
+            "watch" : true,
+            "autorestart" : true
+        }
+    ]
+}

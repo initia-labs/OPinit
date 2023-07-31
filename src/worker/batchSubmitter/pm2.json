@@ -1,0 +1,11 @@
+{
+    "apps" : [
+        {
+            "name" : "batch",
+            "cwd" : ".",
+            "script" : "npm run batch",
+            "watch" : true,
+            "autorestart" : true
+        }
+    ]
+}
