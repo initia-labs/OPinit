@@ -15,8 +15,8 @@ let monitors: Monitor[]
 
 export async function runBot(): Promise<void> {
   monitors = [
-    new L1Monitor(config.l1lcd, new RPCSocket(config.L1_RPC_URI, 10000)),
-    new L2Monitor(config.l2lcd, new RPCSocket(config.L2_RPC_URI, 10000)),
+    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000)),
+    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000)),
   ]
 
   await Promise.all(monitors.map((monitor) => {

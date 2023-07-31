@@ -1,5 +1,5 @@
 import { delay } from 'bluebird'
-import { LCDClient, TxInfo, Wallet, Msg } from '@initia/minitia.js'
+import { TxInfo, Wallet, Msg } from '@initia/minitia.js'
 import { getL2Denom } from './util'
 import { BridgeConfig } from './types'
 import config from '../config'
@@ -17,18 +17,18 @@ export async function transaction(
   })
   const broadcastResult = await wallet.lcd.tx.broadcast(signedTx)
   if (broadcastResult['code']) throw new Error(broadcastResult.raw_log)
-  return checkTx(wallet.lcd, broadcastResult.txhash)
+  return checkTx(wallet, broadcastResult.txhash)
 }
 
 export async function checkTx(
-  lcd: LCDClient,
+  wallet: Wallet,
   txHash: string,
   timeout = 60000
 ): Promise<TxInfo | undefined> {
   const startedAt = Date.now()
 
   while (Date.now() - startedAt < timeout) {
-    const txInfo = await lcd.tx.txInfo(txHash)
+    const txInfo = await wallet.lcd.tx.txInfo(txHash)
     if (txInfo) return txInfo
     await delay(1000)
   }
@@ -47,12 +47,11 @@ export async function fetchBridgeConfig(): Promise<BridgeConfig> {
 }
 
 export async function getCoinInfo(
-  lcd: LCDClient,
   structTag: string,
   l2Token: Buffer
 ): Promise<CoinInfo> {
   const address = structTag.split('::')[0]
-  const resource = await lcd.move.resource<{
+  const resource = await config.l1lcd.move.resource<{
     name: string
     symbol: string
     decimals: number

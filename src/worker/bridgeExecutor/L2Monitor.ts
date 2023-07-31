@@ -5,7 +5,6 @@ import { fetchBridgeConfig } from 'lib/lcd'
 import { WithdrawalStorage } from 'lib/storage'
 import { BridgeConfig, WithdrawalTx } from 'lib/types'
 import { sha3_256 } from 'lib/util'
-import { Event } from '@initia/minitia.js'
 import { logger } from 'lib/logger'
 
 export class L2Monitor extends Monitor {
@@ -29,13 +28,19 @@ export class L2Monitor extends Monitor {
     }
   }
 
-  public async handleEvents(events: Event[]): Promise<void> {
+  public async handleEvents(): Promise<void> {
     const lastOutput = await this.db.getRepository(OutputEntity).findAndCount({
       order: { outputIndex: 'DESC' },
       take: 1,
     })
-
     const lastIndex = lastOutput[1] == 0 ? -1 : lastOutput[0][0].outputIndex
+
+    const searchRes = await config.l2lcd.tx.search({
+      events: [
+        { key: 'tx.height', value: (this.syncedHeight + 1).toString() },
+      ],
+    })
+    const events = searchRes.txs.flatMap((tx) => tx.logs ?? []).flatMap((log) => log.events)
 
     for (const evt of events) {
       if (evt.type !== 'move') continue
@@ -77,8 +82,8 @@ export class L2Monitor extends Monitor {
     }
   }
 
-  public async handleBlock(blockHeight: number): Promise<void> {
-    if (blockHeight < this.nextBlockHeight - 1) {
+  public async handleBlock(): Promise<void> {
+    if (this.syncedHeight < this.nextBlockHeight - 1) {
       return
     }
 
@@ -87,7 +92,7 @@ export class L2Monitor extends Monitor {
       take: 1,
     })
     const lastIndex = lastOutput[1] == 0 ? -1 : lastOutput[0][0].outputIndex
-    const blockInfo = await config.l2lcd.tendermint.blockInfo(blockHeight)
+    const blockInfo = await config.l2lcd.tendermint.blockInfo(this.syncedHeight)
 
     // fetch txs and build merkle tree for withdrawal storage
     const txEntities = await this.db.getRepository(TxEntity).find({
