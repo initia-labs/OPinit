@@ -1,6 +1,5 @@
 import * as Bluebird from 'bluebird'
 import { RPCSocket } from 'lib/rpc'
-import { LCDClient, Event } from '@initia/minitia.js'
 import { StateEntity } from 'orm'
 import { getDB } from './db'
 import { DataSource } from 'typeorm'
@@ -11,10 +10,7 @@ export abstract class Monitor {
   protected db: DataSource
   protected isRunning = false
 
-  constructor(
-    public lcd: LCDClient,
-    public socket: RPCSocket
-  ) {
+  constructor(public socket: RPCSocket) {
     this.db = getDB()[0]
   }
 
@@ -42,42 +38,33 @@ export abstract class Monitor {
 
   public async monitor(): Promise<void> {
     while (this.isRunning) {
-      try{
+      try {
         const latestHeight = this.socket.latestHeight
         if (!latestHeight || this.syncedHeight >= latestHeight) continue
         logger.info(`${this.name()} height ${this.syncedHeight + 1}`)
 
-        const searchRes = await this.lcd.tx.search({
-          events: [
-            { key: 'tx.height', value: (this.syncedHeight + 1).toString() },
-          ],
-        })
-
-        const events = searchRes.txs
-          .flatMap((tx) => tx.logs ?? [])
-          .flatMap((log) => log.events)
-        
-        await this.handleEvents(events)
+        await this.handleEvents()
         this.syncedHeight += 1
-        await this.handleBlock(this.syncedHeight)
+        await this.handleBlock()
+
         // update state
         await this.db.getRepository(StateEntity).update(
           { name: this.name() },
           { height: this.syncedHeight }
         )
-      }catch(e){
+      } catch(e) {
         logger.error('Monitor runs error:', e)
-      }finally{
+      } finally {
         await Bluebird.Promise.delay(100)
       } 
     }
   }
 
   // eslint-disable-next-line
-  public async handleEvents(events: Event[]): Promise<void> {}
+  public async handleEvents(): Promise<void> {}
 
   // eslint-disable-next-line
-  public async handleBlock(height: number): Promise<void> {}
+  public async handleBlock(): Promise<void> {}
 
   // eslint-disable-next-line
   public name(): string {

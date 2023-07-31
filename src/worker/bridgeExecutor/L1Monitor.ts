@@ -5,7 +5,6 @@ import { getCoinInfo } from 'lib/lcd'
 import {
   AccAddress,
   Coin,
-  Event,
   Msg,
   MsgCreateToken,
   MsgDeposit,
@@ -20,9 +19,16 @@ export class L1Monitor extends Monitor {
     return 'l1_monitor'
   }
 
-  public async handleEvents(events: Event[]): Promise<void> {
+  public async handleEvents(): Promise<void> {
     const msgs: Msg[] = []
     const wallet: TxWallet = getWallet(WalletType.Executor)
+
+    const searchRes = await config.l1lcd.tx.search({
+      events: [
+        { key: 'tx.height', value: (this.syncedHeight + 1).toString() },
+      ],
+    })
+    const events = searchRes.txs.flatMap((tx) => tx.logs ?? []).flatMap((log) => log.events)
 
     for (const evt of events) {
       if (evt.type !== 'move') continue
@@ -42,7 +48,6 @@ export class L1Monitor extends Monitor {
         case '0x1::op_bridge::TokenRegisteredEvent': {
           // handle token registered event
           const coinInfo = await getCoinInfo(
-            config.l1lcd,
             data['l1_token'],
             Buffer.from(data['l2_token'])
           )
