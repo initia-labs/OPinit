@@ -18,7 +18,6 @@ export class OutputSubmitter {
     }
 
     async getNextOutputIndex(){
-        console.log(config.L2ID)
         return await config.l1lcd.move.viewFunction<number>(
             '0x1',
             'op_output',
@@ -82,7 +81,6 @@ async function sendTx(client: LCDClient,sender: Wallet,  msg: Msg[]) {
         await checkTx(client, broadcastResult.txhash)
         return broadcastResult.txhash
     }catch (error) {
-        console.log(error)
         throw new Error(`Error in sendTx: ${error}`)
     }
 }
