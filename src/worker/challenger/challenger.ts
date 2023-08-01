@@ -91,17 +91,20 @@ export class Challenger{
             this.L1MonitorName,
             'L1SyncedHeight',
             this.getDepositTxEvents,
-            (txs, height) => txs.map((tx) => ({
-                height: height,
-                from: tx.from,
-                to: tx.to,
-                l2_id: tx.l2_id,
-                l1_token: tx.l1_token,
-                l2_token: tx.l2_token.toString('hex'),
-                amount: tx.amount,
-                l1_sequence: tx.l1_sequence,
-                is_checked: false
-            })),
+            (txs: L1TokenBridgeInitiatedEvent[], height) => txs.map((tx) => {
+                const depositTxEntity: DepositTxEntity = {
+                    height: height,
+                    coin_type: tx.l1_token,
+                    sequence: tx.l1_sequence,
+                    from: tx.from,
+                    to: tx.to,
+                    l2_id: tx.l2_id,
+                    l2_token: tx.l2_token.toString('hex'),
+                    amount: tx.amount,
+                    is_checked: false,
+                }
+                return depositTxEntity;
+            }),
             DepositTxEntity
         );
     }
@@ -111,15 +114,18 @@ export class Challenger{
             this.L2MonitorName,
             'L2SyncedHeight',
             this.getWithdrawalTxEvents,
-            (txs, height) => txs.map((tx) => ({ 
-                height: height,
-                from: tx.from,
-                to: tx.to,
-                l2_token: tx.l2_token.toString('hex'),
-                amount: tx.amount,
-                l2_sequence: tx.l2_sequence,
-                is_checked: false
-             })),
+            (txs: L2TokenBridgeInitiatedEvent[], height) => txs.map((tx) => {
+                const withdrawalTxEntity: WithdrawalTxEntity = {
+                    height: height,
+                    coin_type: tx.l2_token.toString('hex'),
+                    sequence: tx.l2_sequence,
+                    from: tx.from,
+                    to: tx.to,
+                    amount: tx.amount,
+                    is_checked: false,
+                };
+                return  withdrawalTxEntity;
+            }),
             WithdrawalTxEntity
         );
     }

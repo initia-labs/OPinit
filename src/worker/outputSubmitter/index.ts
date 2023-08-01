@@ -1,13 +1,9 @@
 import { OutputSubmitter } from "./outputSubmitter";
-import { initORM, finalizeORM } from "./db";
 import { logger } from "lib/logger";
-import Bluebird from "bluebird";
+import { delay } from "bluebird";
 import { once } from 'lodash'
 
 async function gracefulShutdown(): Promise<void> {  
-    logger.info('Closing DB connection')
-    await finalizeORM()
-  
     logger.info('Finished')
     process.exit(0)
 }
@@ -15,7 +11,6 @@ async function gracefulShutdown(): Promise<void> {
 async function main(): Promise<void> {
     const outputSubmitter = new OutputSubmitter();
     await outputSubmitter.init()
-    await initORM()
     
     for (;;) {
         try {
@@ -27,7 +22,7 @@ async function main(): Promise<void> {
         }catch (err) {
             logger.error(`Error in outputSubmitterBot: ${err}`);
         }finally {
-            await Bluebird.Promise.delay(3000)
+            await delay(3000)
         }
     }
 }

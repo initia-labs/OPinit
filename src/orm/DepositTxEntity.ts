@@ -2,12 +2,15 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm'
 
 @Entity('deposit_tx')
 export default class DepositTxEntity {
+    @Column('int')
+    height: number
+
+    @PrimaryColumn('text')
+    coin_type: string
 
     @PrimaryColumn('int')
-    height : number
+    sequence: number
     
-    @Column('int')
-    l1_sequence: number
 
     @Column('text')
     @Index('deposit_tx_from_index')
@@ -19,9 +22,6 @@ export default class DepositTxEntity {
 
     @Column('text')
     l2_id: string
-
-    @Column('text')
-    l1_token: string
 
     @Column('text')
     l2_token: string

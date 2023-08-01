@@ -65,9 +65,11 @@ pm2 start src/worker/bridgeExecutor/pm2.json
 | L2_LCD_URI                | L2 node LCD URI                                        | http://localhost:1317            |
 | L2_RPC_URI                | L2 node RPC URI                                        | http://localhost:26657           |
 | L2ID                      | L2ID                                                   | ''                               |
-| EXECUTOR_MNEMONIC         | (optional) Mnemonic seed for executor                  | ''                               |
-| BATCH_SUBMITTER_MNEMONIC  | (optional) Mnemonic seed for submitter                 | ''                               |
-| OUTPUT_SUBMITTER_MNEMONIC | (optional) Mnemonic seed for output submitter          | ''                               |
-| CHALLENGER_MNEMONIC       | (optional) Mnemonic seed for challenger                | ''                               |
+| BATCH_PORT                | Batch submitter port                                   | 3000                             |
+| EXECUTOR_PORT             | Executor port                                          | 3001                             |
+| EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
+| BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
+| OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |
+| CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
 
 > In Batch Submitter, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample)

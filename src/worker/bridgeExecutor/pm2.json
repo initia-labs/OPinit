@@ -1,7 +1,7 @@
 {
     "apps" : [
         {
-            "name" : "bridge-executor",
+            "name" : "executor",
             "cwd" : ".",
             "script" : "npm run executor",
             "watch" : true,

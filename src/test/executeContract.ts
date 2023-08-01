@@ -90,17 +90,17 @@ async function tx(){
       //   [config.L2ID, '0x1::native_uinit::Coin'],
       //   []
       // ),
-      // new MsgExecute(
-      //   sender.key.accAddress,
-      //   '0x1',
-      //   'op_bridge',
-      //   'deposit_token',
-      //   [config.L2ID, '0x1::native_uinit::Coin'],
-      //   [
-      //     bcs.serialize('address', sender.key.accAddress),
-      //     bcs.serialize('u64', 100)
-      //   ]
-      // )
+      new MsgExecute(
+        sender.key.accAddress,
+        '0x1',
+        'op_bridge',
+        'deposit_token',
+        [config.L2ID, '0x1::native_uinit::Coin'],
+        [
+          bcs.serialize('address', sender.key.accAddress),
+          bcs.serialize('u64', 100)
+        ]
+      )
       
       // op_output/initialize
       // new MsgExecute(

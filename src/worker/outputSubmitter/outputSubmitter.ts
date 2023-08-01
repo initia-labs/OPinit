@@ -1,24 +1,38 @@
-import { BCS, Msg, MsgExecute } from "@initia/minitia.js";
-import { TxWallet, WalletType, getWallet } from 'lib/wallet'
+import { BCS, Msg, MsgExecute, Wallet, MnemonicKey, LCDClient, TxInfo } from "@initia/initia.js";
 import config from 'config'
 import { OutputEntity } from 'orm'
 import { APIRequest } from "lib/apiRequest";
+import { delay } from 'bluebird'
+import { logger } from "lib/logger";
 const bcs = BCS.getInstance() 
 
 export class OutputSubmitter {
-    private submitter: TxWallet;
+    private submitter: Wallet;
     private apiRequester: APIRequest;
+    private syncedOutputIndex: number;
 
     async init(){
-        this.submitter = getWallet(WalletType.OutputSubmitter)
-        this.apiRequester = new APIRequest('https://minitia-executor.initia.tech') // TODO: 
+        this.submitter = new Wallet(config.l1lcd, new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC}))
+        this.apiRequester = new APIRequest(config.EXECUTOR_URI)
+        this.syncedOutputIndex = -1
     }
 
     async getNextOutputIndex(){
+        console.log(config.L2ID)
         return await config.l1lcd.move.viewFunction<number>(
             '0x1',
             'op_output',
             'next_output_index',
+            [config.L2ID],
+            []
+        )
+    }
+
+    async getNextBlockHeight(){
+        return await config.l1lcd.move.viewFunction<number>(
+            '0x1',
+            'op_output',
+            'next_block_num',
             [config.L2ID],
             []
         )
@@ -32,21 +46,63 @@ export class OutputSubmitter {
             'propose_l2_output',
             [config.L2ID],
             [
-                bcs.serialize('vector<u8>', outputRoot, 10000),
+                bcs.serialize('vector<u8>', outputRoot, 33),
                 bcs.serialize('u64', l2BlockHeight)
             ]
         )
-        this.submitter.transaction([executeMsg])
+        await sendTx(config.l1lcd, this.submitter, [executeMsg])
     }
 
     public async run(){
         try{
             const nextOutputIndex = await this.getNextOutputIndex()
-            const outputEntity: OutputEntity = await this.apiRequester.getOuptut(nextOutputIndex) // TODO : get output with startBlockNum
+            const nextBlockHeight = await this.getNextBlockHeight()
+            logger.info(`current index: ${this.syncedOutputIndex} next index: ${nextOutputIndex}`)
+
+            if (nextOutputIndex <= this.syncedOutputIndex) {
+                logger.info(`waiting for next output index.`)
+                return
+            }
+            const outputEntity: OutputEntity = await this.apiRequester.getOuptut(nextOutputIndex)
             
-            this.proposeL2Output(Buffer.from(outputEntity.outputRoot, 'hex'), nextOutputIndex)
+            this.proposeL2Output(Buffer.from(outputEntity.outputRoot, 'hex'), nextBlockHeight)
+            this.syncedOutputIndex = nextOutputIndex
+            logger.info(`submitted output index: ${nextOutputIndex} output root: ${outputEntity.outputRoot}`)
         }catch(err){
             throw new Error(`Error in outputSubmitter: ${err}`)
         }
     }
+}
+
+/// Utils
+async function sendTx(client: LCDClient,sender: Wallet,  msg: Msg[]) {
+    try {
+        const signedTx = await sender.createAndSignTx({msgs:msg})
+        const broadcastResult = await client.tx.broadcast(signedTx)
+        await checkTx(client, broadcastResult.txhash)
+        return broadcastResult.txhash
+    }catch (error) {
+        console.log(error)
+        throw new Error(`Error in sendTx: ${error}`)
+    }
+}
+
+export async function checkTx(
+    lcd: LCDClient,
+    txHash: string,
+    timeout = 60000
+): Promise<TxInfo | undefined> {
+    const startedAt = Date.now()
+
+    while (Date.now() - startedAt < timeout) {
+        try {
+        const txInfo = await lcd.tx.txInfo(txHash)
+        if (txInfo) return txInfo
+        await delay(1000)
+        } catch (err) {
+        throw new Error(`Failed to check transaction status: ${err.message}`)
+        }
+    }
+
+    throw new Error('Transaction checking timed out');
 }

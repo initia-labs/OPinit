@@ -62,7 +62,7 @@ async function publishL1(){
             // opBatch.toString("base64"), 
             // bridge.toString("base64"), 
             // output.toString("base64"),
-            l2id.toString("base64")
+            // l2id.toString("base64")
         ],
         0
     )

@@ -6,8 +6,7 @@ import {
   Controller,
   Validator,
 } from 'koa-joi-controllers'
-import { ErrorTypes } from 'lib/error'
-import { success, error } from 'lib/response'
+import { success } from 'lib/response'
 import { getTx } from 'service'
 
 const Joi = Validator.Joi
