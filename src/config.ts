@@ -1,7 +1,8 @@
 import { LCDClient as MinitiaLCDClient } from '@initia/minitia.js'
 import { LCDClient as InitiaLCDClient } from '@initia/initia.js'
 const defaultConfig = {
-    SERVER_PORT: '3000',
+    EXECUTOR_PORT: '3000',
+    BATCH_PORT: '3001',
     L1_LCD_URI: 'https://stone-rest.initia.tech',
     L1_RPC_URI: 'https://stone-rpc.initia.tech',
     L2_LCD_URI: 'https://minitia-rest.initia.tech',
@@ -15,7 +16,8 @@ const defaultConfig = {
 }
 
 const {
-    SERVER_PORT,
+    EXECUTOR_PORT,
+    BATCH_PORT,
     L1_LCD_URI,
     L1_RPC_URI,
     L2_LCD_URI,
@@ -29,7 +31,8 @@ const {
 } = {...defaultConfig, ...process.env}
 
 const config = {
-    SERVER_PORT: parseInt(SERVER_PORT),
+    EXECUTOR_PORT: parseInt(EXECUTOR_PORT),
+    BATCH_PORT: parseInt(BATCH_PORT),
     L1_LCD_URI,
     L1_RPC_URI,
     L2_LCD_URI,

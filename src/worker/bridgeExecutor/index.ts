@@ -43,9 +43,9 @@ async function gracefulShutdown(): Promise<void> {
 
 async function main(): Promise<void> {
   await initORM()
-  await initServer(executorController, 3000)
+  await initServer(executorController, config.EXECUTOR_PORT )
   initWallet(WalletType.Executor, config.l2lcd)
-  await runBot()
+  // await runBot()
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const

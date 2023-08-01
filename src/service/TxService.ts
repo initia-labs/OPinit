@@ -1,22 +1,28 @@
 import { TxEntity } from 'orm'
-import { Container, Service } from 'typedi'
-import { Repository } from 'typeorm'
-import { InjectRepository } from 'typeorm-typedi-extensions'
+import { getDB } from 'worker/bridgeExecutor/db'
+import { APIError, ErrorTypes } from "lib/error";
 
-@Service()
-export class TxService {
-  constructor(
-    @InjectRepository(TxEntity) private readonly repo: Repository<TxEntity>
-  ) {}
 
-  async getTx(
-    coin_type: string,
-    sequence: number
-  ): Promise<TxEntity | null> {
-    return this.repo.findOne({ where: { coin_type, sequence } })
+export async function getTx(
+  coin_type: string,
+  sequence: number
+): Promise<TxEntity> {
+  const [db] = getDB()
+  const queryRunner = db.createQueryRunner('slave')
+  try {
+    const qb = queryRunner.manager
+      .createQueryBuilder(TxEntity, 'tx')
+      .where('tx.coin_type = :coin_type', { coin_type })
+      .andWhere('tx.sequence = :sequence', { sequence })
+
+    const tx = await qb.getOne()
+
+    if (!tx) {
+      throw new APIError(ErrorTypes.NOT_FOUND_ERROR)
+    }
+
+    return tx
+  } finally {
+    queryRunner.release()
   }
-}
-
-export function txService(): TxService {
-  return Container.get(TxService)
 }

@@ -8,13 +8,24 @@ import {
 } from 'koa-joi-controllers'
 import { ErrorTypes } from 'lib/error'
 import { success, error } from 'lib/response'
-import { txService } from 'service'
+import { getTx } from 'service'
 
 const Joi = Validator.Joi
 
 @Controller('')
 export class TxController extends KoaController {
-  @Get('/tx/:sequence')
+
+  /**
+   * 
+   * @api {get} /tx Get tx entity
+   * @apiName getTx
+   * @apiGroup Tx
+   * 
+   * @apiParam {String} [coin_type] Coin type
+   * @apiParam {Number} [sequence] Sequence
+   * 
+   */
+  @Get('/tx/:coin_type/:sequence')
   @Validate({
     query: {
       coin_type: Joi.string().description('Coin type'),
@@ -24,8 +35,6 @@ export class TxController extends KoaController {
   async getTx(ctx: Context): Promise<void> {
     const coin_type: string = ctx.query.coin_type as string
     const sequence: number = ctx.query.sequence as number
-    const tx = await txService().getTx(coin_type, sequence)
-    if (tx) success(ctx, tx)
-    else error(ctx, ErrorTypes.NOT_FOUND_ERROR)
+    success(ctx, await getTx(coin_type, sequence))
   }
 }

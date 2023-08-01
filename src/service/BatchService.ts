@@ -1,6 +1,6 @@
 import { RecordEntity } from "orm";
 import { APIError, ErrorTypes } from "lib/error";
-import { getDB } from "worker/bridgeExecutor/db";
+import { getDB } from "worker/batchSubmitter/db";
 import { decompressor } from "lib/compressor";
 
 interface GetBatchResponse {

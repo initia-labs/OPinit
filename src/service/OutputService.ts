@@ -1,20 +1,24 @@
 import { OutputEntity } from 'orm'
-import { Container, Service } from 'typedi'
-import { Repository } from 'typeorm'
-import { InjectRepository } from 'typeorm-typedi-extensions'
+import { getDB } from 'worker/bridgeExecutor/db'
+import { APIError, ErrorTypes } from "lib/error";
 
-@Service()
-export class OutputService {
-  constructor(
-    @InjectRepository(OutputEntity)
-    private readonly repo: Repository<OutputEntity>
-  ) {}
+export async function getOutput(outputIndex: number): Promise<OutputEntity> {
+  const [db] = getDB()
+  const queryRunner = db.createQueryRunner('slave')
 
-  async getOutput(outputIndex: number): Promise<OutputEntity | null> {
-    return this.repo.findOne({ where: { outputIndex } })
+  try {
+    const qb = queryRunner.manager
+      .createQueryBuilder(OutputEntity, 'output')
+      .where('output.outputIndex = :outputIndex', { outputIndex })
+
+    const output = await qb.getOne()
+
+    if (!output) {
+      throw new APIError(ErrorTypes.NOT_FOUND_ERROR)
+    }
+
+    return output
+  } finally {
+    queryRunner.release()
   }
-}
-
-export function outputService(): OutputService {
-  return Container.get(OutputService)
 }

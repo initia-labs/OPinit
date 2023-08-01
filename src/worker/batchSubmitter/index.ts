@@ -6,6 +6,7 @@ import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';
 import { once } from 'lodash'
+import config from 'config';
 
 async function gracefulShutdown(): Promise<void> {
     logger.info('Closing listening port')
@@ -21,14 +22,12 @@ async function gracefulShutdown(): Promise<void> {
 
 async function main(): Promise<void> {
     await initORM()
-    await initServer(batchController, 3001)
+    await initServer(batchController, config.BATCH_PORT)
 
     const batchSubmitter = new BatchSubmitter();
     const l2Monitoring = new L2Monitoring();
     await batchSubmitter.init()
     await l2Monitoring.init()
-
-    // initWallet(WalletType.BatchSubmitter, config.l1lcd)
 
     for (;;) {
         try {
