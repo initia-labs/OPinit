@@ -17,23 +17,32 @@ export class L2Monitor extends Monitor {
   }
 
   public async run(): Promise<void> {
-    try{
-      const cfg: BridgeConfig = await fetchBridgeConfig()
-      this.startBlockHeight = parseInt(cfg.starting_block_number)
-      this.submissionInterval = parseInt(cfg.submission_interval)
-      this.nextBlockHeight = this.startBlockHeight + this.submissionInterval
-      await super.run()
-    }catch(e){
-      console.log(e)
-      logger.error('L2Monitor runs error:', e)
+    try {
+      const lastOutput = await this.getLastOutputFromDB();
+      const lastStartBlockHeight = lastOutput[1] == 0 ? 0 : lastOutput[0][0].startBlockHeight;
+      const cfg: BridgeConfig = await fetchBridgeConfig();
+  
+      this.startBlockHeight = parseInt(cfg.starting_block_number);
+      this.submissionInterval = parseInt(cfg.submission_interval);
+  
+      this.nextBlockHeight = lastStartBlockHeight === 0
+        ? this.startBlockHeight + this.submissionInterval
+        : lastStartBlockHeight + this.submissionInterval;
+  
+      await super.run();
+    } catch (e) {
+      logger.error('L2Monitor runs error:', e);
     }
   }
 
-  public async handleEvents(): Promise<void> {
-    const lastOutput = await this.db.getRepository(OutputEntity).findAndCount({
+  public async getLastOutputFromDB():Promise<[OutputEntity[], number]>{
+    return await this.db.getRepository(OutputEntity).findAndCount({
       order: { outputIndex: 'DESC' },
       take: 1,
     })
+  }
+  public async handleEvents(): Promise<void> {
+    const lastOutput = await this.getLastOutputFromDB()
     const lastIndex = lastOutput[1] == 0 ? -1 : lastOutput[0][0].outputIndex
 
     const searchRes = await config.l2lcd.tx.search({
