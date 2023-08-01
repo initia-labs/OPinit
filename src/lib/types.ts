@@ -6,25 +6,7 @@ export interface BridgeConfig {
     starting_block_number: string
 }
 
-export interface DepositTx{
-    sender: string
-    receiver: string
-    l2_id: string
-    l1_token: string
-    l2_token: string
-    amount: number
-    l1_sequence: number
-}
-
 export interface WithdrawalTx {
-    sequence: number
-    sender: string
-    receiver: string
-    amount: number
-    coin_type: string
-}
-
-export interface DepositTx {
     sequence: number
     sender: string
     receiver: string

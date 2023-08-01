@@ -43,7 +43,7 @@ async function gracefulShutdown(): Promise<void> {
 
 async function main(): Promise<void> {
   await initORM()
-  await initServer(executorController)
+  await initServer(executorController, 3000)
   initWallet(WalletType.Executor, config.l2lcd)
   await runBot()
 

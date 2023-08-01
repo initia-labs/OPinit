@@ -7,4 +7,4 @@ InitiaStdlib = { git = "https://github.com/initia-labs/initiavm.git", subdir = "
 
 [addresses]
 std =  "0x1"
-addr = "0xdeabff225180fcbd7854c88e053292753e395c8b"
+addr = "0x56ccf33c45b99546cd1da172cf6849395bbf8573"

@@ -1,7 +1,7 @@
 import { Challenger } from "./challenger";
 import { initORM, finalizeORM } from "./db";
 import { logger } from "lib/logger";
-import Bluebird from "bluebird";
+import {delay} from "bluebird";
 import { once } from 'lodash'
 
 async function gracefulShutdown(): Promise<void> {  
@@ -11,25 +11,21 @@ async function gracefulShutdown(): Promise<void> {
     logger.info('Finished')
     process.exit(0)
 }
-
+    
 async function main(): Promise<void> {
+    await initORM()
+
     const challenger = new Challenger();
     await challenger.init()
-    await initORM()
-    
-    for (;;) {
-        try {
-            await challenger.run();
+    return
+    const jobs = [
+        challenger.monitorL1Deposit(),
+        challenger.monitorL2Withdrawal(),
+    ]
+    await Promise.all(jobs)
 
-            // attach graceful shutdown
-            const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const
-            signals.forEach((signal) => process.on(signal, once(gracefulShutdown)))
-        }catch (err) {
-            logger.error(`Error in challegnerBot: ${err}`);
-        }finally {
-            await Bluebird.Promise.delay(3000)
-        }
-    }
+    const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const
+    signals.forEach((signal) => process.on(signal, once(gracefulShutdown)))
 }
 
 if (require.main === module) {

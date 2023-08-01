@@ -4,7 +4,7 @@ import { logger } from "lib/logger"
 import config from "config"
 import { BlockBulk, getBlockBulk } from 'lib/rpc';
 import { compressor } from 'lib/compressor';
-import { transaction, getLatestBlockHeight } from 'lib/tx';
+import { getLatestBlockHeight } from 'lib/tx';
 import { RecordEntity } from 'orm';
 import { 
     Wallet,

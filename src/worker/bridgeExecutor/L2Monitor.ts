@@ -24,6 +24,7 @@ export class L2Monitor extends Monitor {
       this.nextBlockHeight = this.startBlockHeight + this.submissionInterval
       await super.run()
     }catch(e){
+      console.log(e)
       logger.error('L2Monitor runs error:', e)
     }
   }

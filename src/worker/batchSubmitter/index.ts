@@ -3,8 +3,6 @@ import { logger } from "../../lib/logger"
 import BlueBird  from 'bluebird';
 import L2Monitoring from '../l2Monitoring';
 import { BatchSubmitter } from './batchSubmitter';
-import { WalletType, initWallet } from 'lib/wallet';
-import config from 'config';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';
 import { once } from 'lodash'
@@ -23,7 +21,7 @@ async function gracefulShutdown(): Promise<void> {
 
 async function main(): Promise<void> {
     await initORM()
-    await initServer(batchController)
+    await initServer(batchController, 3001)
 
     const batchSubmitter = new BatchSubmitter();
     const l2Monitoring = new L2Monitoring();

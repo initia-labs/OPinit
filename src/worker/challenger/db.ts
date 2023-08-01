@@ -10,14 +10,18 @@ import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy'
 
 const debug = require('debug')('orm')
 
-import { OutputEntity } from 'orm'
+import { DepositTxEntity, OutputEntity, StateEntity, TxEntity, WithdrawalTxEntity } from 'orm'
 
 
 const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
   entities: [
-    OutputEntity
+    OutputEntity,
+    TxEntity,
+    StateEntity,
+    WithdrawalTxEntity,
+    DepositTxEntity
   ]
 }
 
