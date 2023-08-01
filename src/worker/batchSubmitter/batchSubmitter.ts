@@ -57,7 +57,7 @@ export class BatchSubmitter {
             const batch = await this.getBatch(startHeight, endHeight);
             logger.info(`[${this.batchIndex}th batch] batch is generated. start height: ${startHeight} end height: ${endHeight}`);
             const txHash = await this.publishBatchToL1(batch);
-            logger.info(`[${this.batchIndex}th batch] batch is published to L2. tx hash: ${txHash}`);
+            logger.info(`[${this.batchIndex}th batch] batch is published to L1. tx hash: ${txHash}`);
 
             await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
             logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
@@ -105,8 +105,7 @@ export class BatchSubmitter {
                     bcs.serialize('vector<u8>',batch, 100000) // TODO: get max batch size from chain
                 ]
             )
-            // transaction(this.submitter, [executeMsg])
-            await sendTx(config.l1lcd, this.submitter, [executeMsg])
+            return await sendTx(config.l1lcd, this.submitter, [executeMsg])
         } catch (err){
             throw new Error(`Error publishing batch to L1: ${err}`)
         }

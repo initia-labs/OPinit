@@ -17,8 +17,6 @@ const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
   entities: [
-    OutputEntity,
-    TxEntity,
     StateEntity,
     WithdrawalTxEntity,
     DepositTxEntity

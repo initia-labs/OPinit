@@ -1,6 +1,6 @@
 import { initORM, finalizeORM } from './db'
 import { logger } from "../../lib/logger"
-import BlueBird  from 'bluebird';
+import { delay }  from 'bluebird';
 import L2Monitoring from '../l2Monitoring';
 import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
@@ -43,7 +43,7 @@ async function main(): Promise<void> {
         }catch (err) {
             logger.error(`Error in batchBot: ${err}`);
         }finally {
-            await BlueBird.Promise.delay(3000)
+            await delay(3000)
         }
     }
 
