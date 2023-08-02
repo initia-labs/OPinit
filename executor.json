@@ -5,7 +5,8 @@
             "cwd" : ".",
             "script" : "npm run executor",
             "watch" : true,
-            "autorestart" : true
+            "autorestart" : true,
+            "args": [ "--color"]
         }
     ]
 }

@@ -1,3 +1,3 @@
 module addr::minitia {
-    struct Two {}
+    struct Four {}
 }

@@ -20,19 +20,19 @@ export class L2Monitor extends Monitor {
     return 'green'
   }
 
-
   public async run(): Promise<void> {
     try {
       const lastOutput = await this.getLastOutputFromDB();
       const lastStartBlockHeight = lastOutput[1] == 0 ? 0 : lastOutput[0][0].startBlockHeight;
+      
       const cfg: BridgeConfig = await fetchBridgeConfig();
-  
-      this.startBlockHeight = parseInt(cfg.starting_block_number);
       this.submissionInterval = parseInt(cfg.submission_interval);
-  
-      this.nextBlockHeight = lastStartBlockHeight === 0
-        ? this.startBlockHeight + this.submissionInterval
+
+      this.startBlockHeight = lastStartBlockHeight === 0
+        ? parseInt(cfg.starting_block_number)
         : lastStartBlockHeight + this.submissionInterval;
+      
+      this.nextBlockHeight = this.startBlockHeight + this.submissionInterval
   
       await super.run();
     } catch (e) {
