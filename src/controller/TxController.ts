@@ -25,14 +25,14 @@ export class TxController extends KoaController {
    */
   @Get('/tx/:coin_type/:sequence')
   @Validate({
-    query: {
+    params: {
       coin_type: Joi.string().description('Coin type'),
       sequence: Joi.number().description('Sequence')
     }
   })
   async getTx(ctx: Context): Promise<void> {
-    const coin_type: string = ctx.query.coin_type as string;
-    const sequence: number = ctx.query.sequence as number;
+    const coin_type: string = ctx.params.coin_type as string;
+    const sequence: number = ctx.params.sequence as number;
     success(ctx, await getTx(coin_type, sequence));
   }
 }

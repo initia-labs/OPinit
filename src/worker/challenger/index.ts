@@ -16,7 +16,7 @@ async function main(): Promise<void> {
 
   const challenger = new Challenger();
   await challenger.init();
-  return;
+
   const jobs = [
     challenger.monitorL1Deposit(),
     challenger.monitorL2Withdrawal()

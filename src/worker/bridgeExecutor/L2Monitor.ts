@@ -93,7 +93,7 @@ export class L2Monitor extends Monitor {
         merkleProof: []
       };
 
-      logger.info(`withdraw tx found ${tx}`);
+      logger.info(`withdraw tx found: ${tx.merkleRoot}`);
 
       await this.db.getRepository(TxEntity).save(tx);
     }
@@ -117,6 +117,7 @@ export class L2Monitor extends Monitor {
     const txEntities = await this.db.getRepository(TxEntity).find({
       where: { outputIndex: lastIndex + 1 }
     });
+    
     const txs: WithdrawalTx[] = txEntities.map((entity) => ({
       sequence: entity.sequence,
       sender: entity.sender,
