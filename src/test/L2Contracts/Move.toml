@@ -8,4 +8,4 @@ MinitiaStdlib = { git = "https://github.com/initia-labs/initiavm.git", subdir = 
 [addresses]
 std =  "0x1"
 minitia_std = "0x1"
-addr = "0xdd9fa8e2755e0dba351fb8fdb3695c391a1039d8"
+addr = "0x56ccf33c45b99546cd1da172cf6849395bbf8573"

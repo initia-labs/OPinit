@@ -1,4 +1,4 @@
-module addr::op_bridge {
+module initia_std::op_bridge {
     use std::signer;
     use std::string::{Self, String};
     use std::event::{Self, EventHandle};
@@ -11,7 +11,7 @@ module addr::op_bridge {
     use initia_std::type_info;
     use initia_std::bcs;
 
-    use addr::op_output;
+    use initia_std::op_output;
 
     //
     // Data Types
@@ -166,7 +166,9 @@ module addr::op_bridge {
 
     /// register coin to bridge store and prepare deposit store
     public entry fun register_token<L2ID, CoinType>(account: &signer) acquires BridgeStore {
-        assert!(!exists<DepositStore<L2ID, CoinType>>(signer::address_of(account)), error::already_exists(EDEPOSIT_STORE_ALREADY_EXISTS));
+        let account_addr = signer::address_of(account);
+        assert!(l2_address<L2ID>() == account_addr, error::permission_denied(EL2_ADDRESS_MISMATCH));
+        assert!(!exists<DepositStore<L2ID, CoinType>>(account_addr), error::already_exists(EDEPOSIT_STORE_ALREADY_EXISTS));
 
         // register new deposit store
         move_to(account, DepositStore<L2ID, CoinType> {
@@ -201,9 +203,9 @@ module addr::op_bridge {
 
     /// initiate l1 => l2 deposit bridge operation
     public fun initiate_token_bridge<L2ID, CoinType>(from: address, to: address, amount: Coin<CoinType>) acquires BridgeStore, DepositStore {
-        let bridge_addr = l2_address<L2ID>();
-        assert!(exists<BridgeStore<L2ID>>(bridge_addr), error::not_found(EBRIDGE_NOT_EXISTS));
-        assert!(exists<DepositStore<L2ID, CoinType>>(bridge_addr), error::not_found(EDEPOSIT_STORE_NOT_EXISTS));
+        let l2_addr = l2_address<L2ID>();
+        assert!(exists<BridgeStore<L2ID>>(l2_addr), error::not_found(EBRIDGE_NOT_EXISTS));
+        assert!(exists<DepositStore<L2ID, CoinType>>(l2_addr), error::not_found(EDEPOSIT_STORE_NOT_EXISTS));
 
         // prepare event outputs
         let l2_id = type_info::type_name<L2ID>();
@@ -211,8 +213,8 @@ module addr::op_bridge {
         let l2_token = l2_token<L2ID, CoinType>();
         let deposit_amount = coin::value<CoinType>(&amount);
 
-        let bridge_store = borrow_global_mut<BridgeStore<L2ID>>(bridge_addr);
-        let deposit_store = borrow_global_mut<DepositStore<L2ID, CoinType>>(bridge_addr);
+        let bridge_store = borrow_global_mut<BridgeStore<L2ID>>(l2_addr);
+        let deposit_store = borrow_global_mut<DepositStore<L2ID, CoinType>>(l2_addr);
         coin::merge<CoinType>(&mut deposit_store.deposits, amount);
         bridge_store.sequence = bridge_store.sequence + 1;
 

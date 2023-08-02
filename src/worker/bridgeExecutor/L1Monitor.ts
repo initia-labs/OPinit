@@ -19,17 +19,19 @@ export class L1Monitor extends Monitor {
     return 'l1_monitor'
   }
 
+  public color(): string {
+    return 'blue'
+  }
+
   public async handleEvents(): Promise<void> {
     const msgs: Msg[] = []
     const wallet: TxWallet = getWallet(WalletType.Executor)
-
     const searchRes = await config.l1lcd.tx.search({
       events: [
         { key: 'tx.height', value: (this.syncedHeight + 1).toString() },
       ],
     })
     const events = searchRes.txs.flatMap((tx) => tx.logs ?? []).flatMap((log) => log.events)
-
     for (const evt of events) {
       if (evt.type !== 'move') continue
 
@@ -89,10 +91,11 @@ export class L1Monitor extends Monitor {
     }
 
     if (msgs.length > 0) {
+      console.log(msgs)
       await wallet
         .transaction(msgs)
         .then((info) => logger.info(`Tx submitted: ${info?.txhash}`))
-        .catch((err) => logger.error(err))
+        .catch((err) => console.log(err))
     }
   }
 }

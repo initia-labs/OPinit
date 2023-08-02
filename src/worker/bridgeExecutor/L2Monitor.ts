@@ -16,6 +16,11 @@ export class L2Monitor extends Monitor {
     return 'l2_monitor'
   }
 
+  public color(): string {
+    return 'green'
+  }
+
+
   public async run(): Promise<void> {
     try {
       const lastOutput = await this.getLastOutputFromDB();

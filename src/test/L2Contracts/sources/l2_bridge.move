@@ -1,4 +1,4 @@
-module addr::op_bridge {
+module minitia_std::op_bridge {
     use std::signer;
     use std::error;
     use std::string::{String};

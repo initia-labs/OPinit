@@ -4,6 +4,7 @@ import { StateEntity } from 'orm'
 import { getDB } from './db'
 import { DataSource } from 'typeorm'
 import { logger } from 'lib/logger'
+import chalk from 'chalk'
 
 export abstract class Monitor {
   public syncedHeight: number
@@ -41,9 +42,10 @@ export abstract class Monitor {
       try {
         const latestHeight = this.socket.latestHeight
         if (!latestHeight || this.syncedHeight >= latestHeight) continue
-        logger.info(`${this.name()} height ${this.syncedHeight + 1}`)
+        logger.info(chalk[this.color()](`${this.name()} height ${this.syncedHeight + 1}`))
 
         await this.handleEvents()
+
         this.syncedHeight += 1
         await this.handleBlock()
 
@@ -52,6 +54,7 @@ export abstract class Monitor {
           { name: this.name() },
           { height: this.syncedHeight }
         )
+
       } catch(e) {
         logger.error('Monitor runs error:', e)
       } finally {
@@ -68,6 +71,11 @@ export abstract class Monitor {
 
   // eslint-disable-next-line
   public name(): string {
+    return ''
+  }
+
+  // eslint-disable-next-line
+  public color(): string {
     return ''
   }
 }

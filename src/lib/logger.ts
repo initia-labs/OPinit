@@ -1,6 +1,7 @@
 import config  from '../config'
 import * as winston from 'winston'
 import * as DailyRotateFile from 'winston-daily-rotate-file'
+import chalk from 'chalk'
 
 function pad(input: number | string, width: number, z = '0') {
   const n = typeof input === 'number' ? input.toString() : input
@@ -13,10 +14,11 @@ function getDateString() {
 }
 
 const print = winston.format.printf((info) => {
-  const log = `${getDateString()} [${info.level.toUpperCase()}]: ${info.message}`
+  const level = info.level === 'error' ? chalk.red(info.level.toUpperCase()) : chalk.green(info.level.toUpperCase());
+  const log = `${getDateString()} [${level}]: ${info.message}`;
 
-  return log
-})
+  return log;
+});
 
 function createLogger(name: string) {
   const logger = winston.createLogger({
