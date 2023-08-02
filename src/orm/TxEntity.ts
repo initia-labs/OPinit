@@ -1,31 +1,31 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm'
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('tx')
 export default class TxEntity {
   @PrimaryColumn('text')
-  coin_type: string
+  coin_type: string;
 
   @PrimaryColumn('int')
-  sequence: number
+  sequence: number;
 
   @Column('text')
   @Index('tx_sender_index')
-  sender: string
+  sender: string;
 
   @Column('text')
   @Index('tx_receiver_index')
-  receiver: string
+  receiver: string;
 
   @Column('int')
-  amount: number
+  amount: number;
 
   @Column('int')
   @Index('tx_output_index')
-  outputIndex: number
+  outputIndex: number;
 
   @Column('text')
-  merkleRoot: string
+  merkleRoot: string;
 
   @Column('text', { array: true })
-  merkleProof: string[]
+  merkleProof: string[];
 }

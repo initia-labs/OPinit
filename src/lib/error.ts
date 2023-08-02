@@ -1,5 +1,5 @@
-import * as sentry from '@sentry/node'
-import { logger } from './logger'
+import * as sentry from '@sentry/node';
+import { logger } from './logger';
 
 export enum ErrorTypes {
   // 400 Bad Request
@@ -43,57 +43,63 @@ export enum ErrorCodes {
 }
 
 // error message
-const errorMessage = {}
+const errorMessage = {};
 
 export class APIError extends Error {
-  public type: string
-  public message: string
-  public code: string
-  public wrappedError?: Error
+  public type: string;
+  public message: string;
+  public code: string;
+  public wrappedError?: Error;
 
   constructor(type: ErrorTypes, code = '', message = '', err?: Error) {
-    super(message)
-    this.name = 'APIError'
-    this.type = type || ErrorTypes.API_ERROR
-    this.code = code
-    this.message = message || errorMessage[code]
-    this.wrappedError = err
+    super(message);
+    this.name = 'APIError';
+    this.type = type || ErrorTypes.API_ERROR;
+    this.code = code;
+    this.message = message || errorMessage[code];
+    this.wrappedError = err;
   }
 }
 
-export function errorHandler(callback: (ctx, type: string, code?: string, message?: string) => void) {
+export function errorHandler(
+  callback: (ctx, type: string, code?: string, message?: string) => void
+) {
   return async (ctx, next) => {
     try {
-      await next()
+      await next();
     } catch (err) {
       if (err instanceof APIError) {
         if (err.type === ErrorTypes.LCD_ERROR && err.wrappedError) {
-          ctx.statusCode = (err.wrappedError as any).statusCode
-          ctx.body = (err.wrappedError as any).body
+          ctx.statusCode = (err.wrappedError as any).statusCode;
+          ctx.body = (err.wrappedError as any).body;
         }
 
         if (err.type === ErrorTypes.API_ERROR) {
-          logger.error(err)
-          const errForThrow = err.wrappedError || err
+          logger.error(err);
+          const errForThrow = err.wrappedError || err;
 
           sentry.withScope((scope) => {
-            scope.addEventProcessor((event) => sentry.Handlers.parseRequest(event, ctx.request))
-            sentry.captureException(errForThrow)
-          })
+            scope.addEventProcessor((event) =>
+              sentry.Handlers.parseRequest(event, ctx.request)
+            );
+            sentry.captureException(errForThrow);
+          });
         }
 
-        callback(ctx, err.type, err.code, err.message)
+        callback(ctx, err.type, err.code, err.message);
       } else if (err.isJoi) {
-        callback(ctx, 'INVALID_REQUEST_ERROR', err.statusCode, err.message)
+        callback(ctx, 'INVALID_REQUEST_ERROR', err.statusCode, err.message);
       } else {
-        logger.error(err)
+        logger.error(err);
         sentry.withScope((scope) => {
-          scope.addEventProcessor((event) => sentry.Handlers.parseRequest(event, ctx.request))
-          sentry.captureException(err)
-        })
+          scope.addEventProcessor((event) =>
+            sentry.Handlers.parseRequest(event, ctx.request)
+          );
+          sentry.captureException(err);
+        });
 
-        callback(ctx, 'API_ERROR', err.code, err.message)
+        callback(ctx, 'API_ERROR', err.code, err.message);
       }
     }
-  }
+  };
 }

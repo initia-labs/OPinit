@@ -1,22 +1,22 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm'
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('output')
 export default class OutputEntity {
   @PrimaryColumn('int')
-  outputIndex: number
+  outputIndex: number;
 
   @Column('text')
-  outputRoot: string
+  outputRoot: string;
 
   @Column('text')
-  stateRoot: string
+  stateRoot: string;
 
   @Column('text')
-  storageRoot: string
+  storageRoot: string;
 
   @Column('text')
-  lastBlockHash: string // last block hash of the epoch
+  lastBlockHash: string; // last block hash of the epoch
 
   @Column('int')
-  startBlockHeight: number // start block height of the epoch
+  checkpointBlockHeight: number; // start block height of the epoch
 }

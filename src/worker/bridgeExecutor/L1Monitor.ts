@@ -1,50 +1,49 @@
-import { logger } from 'lib/logger'
-import config from 'config'
-import { Monitor } from './Monitor'
-import { getCoinInfo } from 'lib/lcd'
+import { logger } from 'lib/logger';
+import config from 'config';
+import { Monitor } from './Monitor';
+import { getCoinInfo } from 'lib/lcd';
 import {
   AccAddress,
   Coin,
   Msg,
   MsgCreateToken,
-  MsgDeposit,
-} from '@initia/minitia.js'
-import { getL2Denom, structTagToDenom } from 'lib/util'
-import { CoinEntity } from 'orm'
-import { WalletType, getWallet, TxWallet } from 'lib/wallet'
+  MsgDeposit
+} from '@initia/minitia.js';
+import { getL2Denom, structTagToDenom } from 'lib/util';
+import { CoinEntity } from 'orm';
+import { WalletType, getWallet, TxWallet } from 'lib/wallet';
 
 export class L1Monitor extends Monitor {
-
   public name(): string {
-    return 'l1_monitor'
+    return 'l1_monitor';
   }
 
   public color(): string {
-    return 'blue'
+    return 'blue';
   }
 
   public async handleEvents(): Promise<void> {
-    const msgs: Msg[] = []
-    const wallet: TxWallet = getWallet(WalletType.Executor)
+    const msgs: Msg[] = [];
+    const wallet: TxWallet = getWallet(WalletType.Executor);
     const searchRes = await config.l1lcd.tx.search({
-      events: [
-        { key: 'tx.height', value: (this.syncedHeight + 1).toString() },
-      ],
-    })
-    const events = searchRes.txs.flatMap((tx) => tx.logs ?? []).flatMap((log) => log.events)
+      events: [{ key: 'tx.height', value: (this.syncedHeight + 1).toString() }]
+    });
+    const events = searchRes.txs
+      .flatMap((tx) => tx.logs ?? [])
+      .flatMap((log) => log.events);
     for (const evt of events) {
-      if (evt.type !== 'move') continue
+      if (evt.type !== 'move') continue;
 
       const attrMap: { [key: string]: string } = evt.attributes.reduce(
         (obj, attr) => {
-          obj[attr.key] = attr.value
-          return obj
+          obj[attr.key] = attr.value;
+          return obj;
         },
         {}
-      )
+      );
 
-      const data: { [key: string]: string } = JSON.parse(attrMap['data'])
-      if (data['l2_id'] !== config.L2ID) continue
+      const data: { [key: string]: string } = JSON.parse(attrMap['data']);
+      if (data['l2_id'] !== config.L2ID) continue;
 
       switch (attrMap['type_tag']) {
         case '0x1::op_bridge::TokenRegisteredEvent': {
@@ -52,16 +51,16 @@ export class L1Monitor extends Monitor {
           const coinInfo = await getCoinInfo(
             data['l1_token'],
             Buffer.from(data['l2_token'])
-          )
-          const l2Denom = coinInfo.denom
+          );
+          const l2Denom = coinInfo.denom;
           const coin: CoinEntity = {
             l1StructTag: data['l1_token'],
             l1Denom: structTagToDenom(data['l1_token']),
             l2StructTag: `0x1::native_${l2Denom}::Coin`,
-            l2Denom,
-          }
-          
-          await this.db.getRepository(CoinEntity).save(coin)
+            l2Denom
+          };
+
+          await this.db.getRepository(CoinEntity).save(coin);
           msgs.push(
             new MsgCreateToken(
               wallet.key.accAddress,
@@ -70,12 +69,12 @@ export class L1Monitor extends Monitor {
               coinInfo.symbol,
               coinInfo.decimals
             )
-          )
-          break
+          );
+          break;
         }
         case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
           // handle token bridge initiated event
-          const denom = getL2Denom(Buffer.from(data['l2_token']))
+          const denom = getL2Denom(Buffer.from(data['l2_token']));
           msgs.push(
             new MsgDeposit(
               wallet.key.accAddress,
@@ -84,18 +83,18 @@ export class L1Monitor extends Monitor {
               new Coin(denom, data['amount']),
               Number.parseInt(data['l1_sequence'])
             )
-          )
-          break
+          );
+          break;
         }
       }
     }
 
     if (msgs.length > 0) {
-      console.log(msgs)
+      console.log(msgs);
       await wallet
         .transaction(msgs)
         .then((info) => logger.info(`Tx submitted: ${info?.txhash}`))
-        .catch((err) => console.log(err))
+        .catch((err) => console.log(err));
     }
   }
 }
