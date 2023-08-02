@@ -104,11 +104,11 @@ export class L2Monitor extends Monitor {
       return;
     }
 
-    const lastOutput = await this.db.getRepository(OutputEntity).findAndCount({
+    const lastOutput = await this.db.getRepository(OutputEntity).find({
       order: { outputIndex: 'DESC' },
       take: 1
     });
-    const lastIndex = lastOutput[1] == 0 ? -1 : lastOutput[0][0].outputIndex;
+    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
     const blockInfo = await config.l2lcd.tendermint.blockInfo(
       this.syncedHeight
     );
