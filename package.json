@@ -14,7 +14,7 @@
     "output": "ts-node -r tsconfig-paths/register ./src/worker/outputSubmitter/index.ts",
     "build": "tsc --module commonjs && webpack --mode production",
     "test": "jest",
-    "prettier": "prettier --write ./src/**/*.ts",
+    "prettier": "prettier --write ./src/**/**/**/**/*.ts",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "doc": "typedoc",
     "prepublishOnly": "npm run build"

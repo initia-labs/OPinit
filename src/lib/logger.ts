@@ -1,20 +1,26 @@
-import config  from '../config'
-import * as winston from 'winston'
-import * as DailyRotateFile from 'winston-daily-rotate-file'
-import chalk from 'chalk'
+import config from '../config';
+import * as winston from 'winston';
+import * as DailyRotateFile from 'winston-daily-rotate-file';
+import chalk from 'chalk';
 
 function pad(input: number | string, width: number, z = '0') {
-  const n = typeof input === 'number' ? input.toString() : input
-  return n.padStart(width, z)
+  const n = typeof input === 'number' ? input.toString() : input;
+  return n.padStart(width, z);
 }
 
 function getDateString() {
-  const d = new Date()
-  return `${pad(d.getMonth() + 1, 2)}-${pad(d.getDate(), 2)} ${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}`
+  const d = new Date();
+  return `${pad(d.getMonth() + 1, 2)}-${pad(d.getDate(), 2)} ${pad(
+    d.getHours(),
+    2
+  )}:${pad(d.getMinutes(), 2)}`;
 }
 
 const print = winston.format.printf((info) => {
-  const level = info.level === 'error' ? chalk.red(info.level.toUpperCase()) : chalk.green(info.level.toUpperCase());
+  const level =
+    info.level === 'error'
+      ? chalk.red(info.level.toUpperCase())
+      : chalk.green(info.level.toUpperCase());
   const log = `${getDateString()} [${level}]: ${info.message}`;
 
   return log;
@@ -23,9 +29,12 @@ const print = winston.format.printf((info) => {
 function createLogger(name: string) {
   const logger = winston.createLogger({
     level: 'info',
-    format: winston.format.combine(winston.format.errors({ stack: true }), print),
+    format: winston.format.combine(
+      winston.format.errors({ stack: true }),
+      print
+    ),
     defaultMeta: { service: 'user-service' }
-  })
+  });
 
   if (config.USE_LOG_FILE) {
     //
@@ -38,21 +47,21 @@ function createLogger(name: string) {
         filename: `logs/${name}_error.log`,
         zippedArchive: true
       })
-    )
+    );
 
     logger.add(
       new DailyRotateFile({
-        filename: `logs/${name}_combined.log`, 
-        zippedArchive: true 
+        filename: `logs/${name}_combined.log`,
+        zippedArchive: true
       })
-    )
+    );
   }
 
   if (!config.USE_LOG_FILE || process.env.HOST_ENV === 'docker') {
-    logger.add(new winston.transports.Console())
+    logger.add(new winston.transports.Console());
   }
 
-  return logger
+  return logger;
 }
 
-export const logger = createLogger('logger')
+export const logger = createLogger('logger');

@@ -1,84 +1,86 @@
-import config from 'config'
-import { CoinEntity, OutputEntity, TxEntity } from 'orm'
-import { Monitor } from './Monitor'
-import { fetchBridgeConfig } from 'lib/lcd'
-import { WithdrawalStorage } from 'lib/storage'
-import { BridgeConfig, WithdrawalTx } from 'lib/types'
-import { sha3_256 } from 'lib/util'
-import { logger } from 'lib/logger'
+import config from 'config';
+import { CoinEntity, OutputEntity, TxEntity } from 'orm';
+import { Monitor } from './Monitor';
+import { fetchBridgeConfig } from 'lib/lcd';
+import { WithdrawalStorage } from 'lib/storage';
+import { BridgeConfig, WithdrawalTx } from 'lib/types';
+import { sha3_256 } from 'lib/util';
+import { logger } from 'lib/logger';
 
 export class L2Monitor extends Monitor {
-  submissionInterval: number
-  nextBlockHeight: number
-  startBlockHeight: number
+  submissionInterval: number;
+  nextCheckpointBlockHeight: number;
 
   public name(): string {
-    return 'l2_monitor'
+    return 'l2_monitor';
   }
 
   public color(): string {
-    return 'green'
+    return 'green';
   }
 
   public async run(): Promise<void> {
     try {
       const lastOutput = await this.getLastOutputFromDB();
-      const lastStartBlockHeight = lastOutput[1] == 0 ? 0 : lastOutput[0][0].startBlockHeight;
-      
+      const lastCheckpointBlockHeight =
+        lastOutput.length == 0 ? 0 : lastOutput[0].checkpointBlockHeight;
+
       const cfg: BridgeConfig = await fetchBridgeConfig();
       this.submissionInterval = parseInt(cfg.submission_interval);
 
-      this.startBlockHeight = lastStartBlockHeight === 0
-        ? parseInt(cfg.starting_block_number)
-        : lastStartBlockHeight + this.submissionInterval;
-      
-      this.nextBlockHeight = this.startBlockHeight + this.submissionInterval
-  
+      const checkpointBlockHeight =
+        lastCheckpointBlockHeight === 0
+          ? parseInt(cfg.starting_block_number)
+          : lastCheckpointBlockHeight + this.submissionInterval;
+
+      this.nextCheckpointBlockHeight =
+        checkpointBlockHeight + this.submissionInterval;
+
       await super.run();
     } catch (e) {
       logger.error('L2Monitor runs error:', e);
     }
   }
 
-  public async getLastOutputFromDB():Promise<[OutputEntity[], number]>{
-    return await this.db.getRepository(OutputEntity).findAndCount({
+  public async getLastOutputFromDB(): Promise<OutputEntity[]> {
+    return await this.db.getRepository(OutputEntity).find({
       order: { outputIndex: 'DESC' },
-      take: 1,
-    })
+      take: 1
+    });
   }
   public async handleEvents(): Promise<void> {
-    const lastOutput = await this.getLastOutputFromDB()
-    const lastIndex = lastOutput[1] == 0 ? -1 : lastOutput[0][0].outputIndex
+    const lastOutput = await this.getLastOutputFromDB();
+    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
 
     const searchRes = await config.l2lcd.tx.search({
-      events: [
-        { key: 'tx.height', value: (this.syncedHeight + 1).toString() },
-      ],
-    })
-    const events = searchRes.txs.flatMap((tx) => tx.logs ?? []).flatMap((log) => log.events)
+      events: [{ key: 'tx.height', value: (this.syncedHeight + 1).toString() }]
+    });
+    const events = searchRes.txs
+      .flatMap((tx) => tx.logs ?? [])
+      .flatMap((log) => log.events);
 
     for (const evt of events) {
-      if (evt.type !== 'move') continue
+      if (evt.type !== 'move') continue;
 
       const attrMap: { [key: string]: string } = evt.attributes.reduce(
         (obj, attr) => {
-          obj[attr.key] = attr.value
-          return obj
+          obj[attr.key] = attr.value;
+          return obj;
         },
         {}
-      )
+      );
 
       if (attrMap['type_tag'] !== '0x1::op_bridge::TokenBridgeInitiatedEvent') {
-        continue
+        continue;
       }
 
-      const data: { [key: string]: string } = JSON.parse(attrMap['data'])
+      const data: { [key: string]: string } = JSON.parse(attrMap['data']);
       const l2Denom = Buffer.from(data['l2_token'])
         .toString()
-        .replace('native_', '')
+        .replace('native_', '');
       const coin = await this.db.getRepository(CoinEntity).findOne({
-        where: { l2Denom },
-      })
+        where: { l2Denom }
+      });
 
       const tx: TxEntity = {
         sequence: Number.parseInt(data['l2_sequence']),
@@ -88,40 +90,42 @@ export class L2Monitor extends Monitor {
         coin_type: coin?.l1StructTag ?? '',
         outputIndex: lastIndex + 1,
         merkleRoot: '',
-        merkleProof: [],
-      }
+        merkleProof: []
+      };
 
-      logger.info(`withdraw tx found ${tx}`)
+      logger.info(`withdraw tx found ${tx}`);
 
-      await this.db.getRepository(TxEntity).save(tx)
+      await this.db.getRepository(TxEntity).save(tx);
     }
   }
 
   public async handleBlock(): Promise<void> {
-    if (this.syncedHeight < this.nextBlockHeight - 1) {
-      return
+    if (this.syncedHeight < this.nextCheckpointBlockHeight - 1) {
+      return;
     }
 
-    const lastOutput = await this.db.getRepository(OutputEntity).findAndCount({
+    const lastOutput = await this.db.getRepository(OutputEntity).find({
       order: { outputIndex: 'DESC' },
-      take: 1,
-    })
-    const lastIndex = lastOutput[1] == 0 ? -1 : lastOutput[0][0].outputIndex
-    const blockInfo = await config.l2lcd.tendermint.blockInfo(this.syncedHeight)
+      take: 1
+    });
+    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+    const blockInfo = await config.l2lcd.tendermint.blockInfo(
+      this.syncedHeight
+    );
 
     // fetch txs and build merkle tree for withdrawal storage
     const txEntities = await this.db.getRepository(TxEntity).find({
-      where: { outputIndex: lastIndex + 1 },
-    })
+      where: { outputIndex: lastIndex + 1 }
+    });
     const txs: WithdrawalTx[] = txEntities.map((entity) => ({
       sequence: entity.sequence,
       sender: entity.sender,
       receiver: entity.receiver,
       amount: entity.amount,
-      coin_type: entity.coin_type,
-    }))
-    const storage = new WithdrawalStorage(txs)
-    const storageRoot = storage.getMerkleRoot()
+      coin_type: entity.coin_type
+    }));
+    const storage = new WithdrawalStorage(txs);
+    const storageRoot = storage.getMerkleRoot();
 
     // save merkle root and proof for each tx
     for (const entity of txEntities) {
@@ -130,37 +134,37 @@ export class L2Monitor extends Monitor {
         sender: entity.sender,
         receiver: entity.receiver,
         amount: entity.amount,
-        coin_type: entity.coin_type,
-      }
+        coin_type: entity.coin_type
+      };
 
-      entity.merkleRoot = storageRoot
-      entity.merkleProof = storage.getMerkleProof(tx)
-      await this.db.getRepository(TxEntity).save(entity)
+      entity.merkleRoot = storageRoot;
+      entity.merkleProof = storage.getMerkleProof(tx);
+      await this.db.getRepository(TxEntity).save(entity);
     }
 
     // get output root and save to db
-    const version = lastIndex + 1
-    const stateRoot = blockInfo.block.header.app_hash
-    const lastBlockHash = blockInfo.block_id.hash
+    const version = lastIndex + 1;
+    const stateRoot = blockInfo.block.header.app_hash;
+    const lastBlockHash = blockInfo.block_id.hash;
 
     const outputRoot = sha3_256(
       Buffer.concat([
         Buffer.from(version.toString()),
         Buffer.from(stateRoot, 'base64'),
         Buffer.from(storageRoot, 'hex'),
-        Buffer.from(lastBlockHash, 'base64'),
+        Buffer.from(lastBlockHash, 'base64')
       ])
-    ).toString('hex')
+    ).toString('hex');
     const outputEntity: OutputEntity = {
       outputIndex: lastIndex + 1,
       outputRoot,
       stateRoot,
       storageRoot,
       lastBlockHash,
-      startBlockHeight: this.nextBlockHeight - this.submissionInterval, // start block height of the epoch
-    }
-    
-    await this.db.getRepository(OutputEntity).save(outputEntity)
-    this.nextBlockHeight += this.submissionInterval
+      checkpointBlockHeight: this.nextCheckpointBlockHeight - this.submissionInterval // start block height of the epoch
+    };
+
+    await this.db.getRepository(OutputEntity).save(outputEntity);
+    this.nextCheckpointBlockHeight += this.submissionInterval;
   }
 }
