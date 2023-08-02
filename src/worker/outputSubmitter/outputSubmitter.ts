@@ -56,7 +56,8 @@ export class OutputSubmitter {
         try{
             const nextOutputIndex = await this.getNextOutputIndex()
             const nextBlockHeight = await this.getNextBlockHeight()
-            logger.info(`current index: ${this.syncedOutputIndex} next index: ${nextOutputIndex}`)
+            // logger.info(`current index: ${this.syncedOutputIndex} next index: ${nextOutputIndex}`)
+            logger.info(`next block height ${nextBlockHeight}`)
 
             if (nextOutputIndex <= this.syncedOutputIndex) {
                 logger.info(`waiting for next output index.`)
@@ -64,12 +65,14 @@ export class OutputSubmitter {
             }
             const outputEntity: OutputEntity = await this.apiRequester.getOuptut(nextOutputIndex)
             
-            this.proposeL2Output(Buffer.from(outputEntity.outputRoot, 'hex'), nextBlockHeight)
+            await this.proposeL2Output(Buffer.from(outputEntity.outputRoot, 'hex'), nextBlockHeight)
             this.syncedOutputIndex = nextOutputIndex
             logger.info(`submitted output index: ${nextOutputIndex} output root: ${outputEntity.outputRoot}`)
         }catch(err){
             throw new Error(`Error in outputSubmitter: ${err}`)
-        }
+        } finally {
+            await delay(1000)
+        } 
     }
 }
 

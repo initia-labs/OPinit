@@ -20,18 +20,18 @@ npm run batch
 If you use pm2, you can run batch submitter and server with following command.
 
 ```bash
-pm2 start src/worker/batchSubmitter/pm2.json
+pm2 start batch.json
 ```
 
 ## Output Submitter
 
 ```bash
-npm run challenger
+npm run output
 ```
 
 If you use pm2,
 ```bash
-pm2 start src/worker/outputSubmitter/pm2.json
+pm2 start output.json
 ```
 
 ## Challenger
@@ -42,18 +42,18 @@ npm run challenger
 
 If you use pm2, 
 ```bash
-pm2 start src/worker/challenger/pm2.json
+pm2 start challenger.json
 ```
 
 ## Bridge Executor
 
 ```bash
-npm run challenger
+npm run executor
 ```
 
 If you use pm2,
 ```bash
-pm2 start src/worker/bridgeExecutor/pm2.json
+pm2 start npm run executor.json
 ```
 
 # Configuration
