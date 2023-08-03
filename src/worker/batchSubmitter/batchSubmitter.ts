@@ -119,7 +119,7 @@ export class BatchSubmitter {
         'record_batch',
         [config.L2ID],
         [
-          bcs.serialize('vector<u8>', batch, 100000) // TODO: get max batch size from chain
+          bcs.serialize('vector<u8>', batch, this.submissionInterval*1000) // TODO: get max batch size from chain
         ]
       );
 
