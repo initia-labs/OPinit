@@ -44,12 +44,13 @@ export abstract class Monitor {
       try {
         const latestHeight = this.socket.latestHeight;
         if (!latestHeight || this.syncedHeight >= latestHeight) continue;
-        if ((this.syncedHeight+1) % 10 == 0 && this.syncedHeight !== 0){
+        if ((this.syncedHeight + 1) % 10 == 0 && this.syncedHeight !== 0) {
           logger.info(
-            chalk[this.color()](`${this.name()} height ${this.syncedHeight + 1}`)
+            chalk[this.color()](
+              `${this.name()} height ${this.syncedHeight + 1}`
+            )
           );
         }
-        
 
         await this.handleEvents();
 

@@ -87,7 +87,7 @@ export class L2Monitor extends Monitor {
         sender: data['from'],
         receiver: data['to'],
         amount: Number.parseInt(data['amount']),
-        coin_type: coin?.l1StructTag ?? '',
+        coinType: coin?.l1StructTag ?? '',
         outputIndex: lastIndex + 1,
         merkleRoot: '',
         merkleProof: []
@@ -117,13 +117,13 @@ export class L2Monitor extends Monitor {
     const txEntities = await this.db.getRepository(TxEntity).find({
       where: { outputIndex: lastIndex + 1 }
     });
-    
+
     const txs: WithdrawalTx[] = txEntities.map((entity) => ({
       sequence: entity.sequence,
       sender: entity.sender,
       receiver: entity.receiver,
       amount: entity.amount,
-      coin_type: entity.coin_type
+      coin_type: entity.coinType
     }));
     const storage = new WithdrawalStorage(txs);
     const storageRoot = storage.getMerkleRoot();
@@ -135,7 +135,7 @@ export class L2Monitor extends Monitor {
         sender: entity.sender,
         receiver: entity.receiver,
         amount: entity.amount,
-        coin_type: entity.coin_type
+        coin_type: entity.coinType
       };
 
       entity.merkleRoot = storageRoot;
@@ -162,7 +162,8 @@ export class L2Monitor extends Monitor {
       stateRoot,
       storageRoot,
       lastBlockHash,
-      checkpointBlockHeight: this.nextCheckpointBlockHeight - this.submissionInterval // start block height of the epoch
+      checkpointBlockHeight:
+        this.nextCheckpointBlockHeight - this.submissionInterval // start block height of the epoch
     };
 
     await this.db.getRepository(OutputEntity).save(outputEntity);

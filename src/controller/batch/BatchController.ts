@@ -5,8 +5,8 @@ import {
   Validate,
   Validator
 } from 'koa-joi-controllers';
-import { success } from '../lib/response';
-import { getBatch } from '../service/BatchService';
+import { success } from '../../lib/response';
+import { getBatch } from '../../service/BatchService';
 
 const Joi = Validator.Joi;
 

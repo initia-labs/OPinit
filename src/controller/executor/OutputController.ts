@@ -14,11 +14,18 @@ const Joi = Validator.Joi;
 export class OutputController extends KoaController {
   /**
    *
-   * @api {get} /output Get output entity
+   * @api {get} /output/:output_index Get output entity
    * @apiName getOutput
    * @apiGroup Output
    *
-   * @apiParam {Number} [outputIndex] Index for output
+   * @apiParam {Number} outputIndex output index
+   *
+   * @apiSuccess {Number} outputIndex Output index
+   * @apiSuccess {String} outputRoot Output root
+   * @apiSuccess {String} stateRoot State root
+   * @apiSuccess {String} storageRoot Storage root
+   * @apiSuccess {String} lastBlockHash Last block hash in this output
+   * @apiSuccess {Number} checkpointBlockHeight Checkpoint height for this output
    */
   @Get('/output/:output_index')
   @Validate({

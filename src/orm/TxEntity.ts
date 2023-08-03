@@ -3,7 +3,7 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 @Entity('tx')
 export default class TxEntity {
   @PrimaryColumn('text')
-  coin_type: string;
+  coinType: string;
 
   @PrimaryColumn('int')
   sequence: number;

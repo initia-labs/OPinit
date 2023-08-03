@@ -6,6 +6,10 @@ import * as cors from '@koa/cors';
 import { errorHandler, APIError, ErrorTypes } from 'lib/error';
 import { error } from 'lib/response';
 import { KoaController, configureRoutes } from 'koa-joi-controllers';
+import { createApiDocApp } from './apidoc';
+import * as mount from 'koa-mount';
+
+const API_VERSION_PREFIX = '/v1';
 
 const notFoundMiddleware: Koa.Middleware = (ctx) => {
   ctx.status = 404;
@@ -13,6 +17,9 @@ const notFoundMiddleware: Koa.Middleware = (ctx) => {
 
 export async function initApp(controllers: KoaController[]): Promise<Koa> {
   const app = new Koa();
+
+  const apiDocApp = createApiDocApp();
+
   app.proxy = true;
   app
     .use(cors())
@@ -46,6 +53,7 @@ export async function initApp(controllers: KoaController[]): Promise<Koa> {
 
   app.use(router.routes());
   app.use(router.allowedMethods());
+  app.use(mount('/apidoc', apiDocApp));
   configureRoutes(app, controllers);
   app.use(notFoundMiddleware);
 
