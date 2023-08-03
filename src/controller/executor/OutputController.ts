@@ -5,6 +5,7 @@ import {
   Controller,
   Validator
 } from 'koa-joi-controllers';
+import { ErrorCodes } from 'lib/error';
 import { success } from 'lib/response';
 import { getOutput } from 'service';
 
@@ -31,7 +32,8 @@ export class OutputController extends KoaController {
   @Validate({
     params: {
       output_index: Joi.number().description('Output index')
-    }
+    },
+    failure: ErrorCodes.INVALID_REQUEST_ERROR
   })
   async getOutput(ctx): Promise<void> {
     success(ctx, await getOutput(ctx.params.output_index));

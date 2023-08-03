@@ -7,6 +7,7 @@ import {
 } from 'koa-joi-controllers';
 import { success } from '../../lib/response';
 import { getCoin } from '../../service/CoinService';
+import { ErrorCodes } from 'lib/error';
 
 const Joi = Validator.Joi;
 
@@ -28,8 +29,9 @@ export default class CoinController extends KoaController {
   @Get('/coin/:coin_type')
   @Validate({
     params: {
-      coin_type: Joi.number().description('Coin type')
-    }
+      coin_type: Joi.string().description('Coin type')
+    },
+    failure: ErrorCodes.INVALID_REQUEST_ERROR
   })
   async getCoin(ctx): Promise<void> {
     success(ctx, await getCoin(ctx.params.coin_type));

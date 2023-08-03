@@ -6,6 +6,7 @@ import {
   Controller,
   Validator
 } from 'koa-joi-controllers';
+import { ErrorCodes } from 'lib/error';
 import { success } from 'lib/response';
 import { getTx } from 'service';
 
@@ -36,7 +37,8 @@ export class TxController extends KoaController {
     params: {
       coin_type: Joi.string().description('Coin type'),
       sequence: Joi.number().description('Sequence')
-    }
+    },
+    failure: ErrorCodes.INVALID_REQUEST_ERROR
   })
   async getTx(ctx: Context): Promise<void> {
     const coin_type: string = ctx.params.coin_type as string;
