@@ -16,6 +16,14 @@ const templateName = 'index.html';
 //   silent: true
 // }
 
+// const packageInfo = {
+//   name: 'Initia Rollup API',
+//   version: '1.0.0',
+//   description: 'Initia Rollup API Docs',
+//   title: 'Initia Rollup API Docs',
+//   url: `https://minitia-batch.initia.tech`
+// };
+
 const options = {
   simulate: true,
   src: path.join(__dirname, '..', 'controller', 'executor'),
@@ -27,7 +35,7 @@ const packageInfo = {
   version: '1.0.0',
   description: 'Initia Rollup API Docs',
   title: 'Initia Rollup API Docs',
-  url: `http://localhost:${config.EXECUTOR_PORT}`
+  url: `https://minitia-executor.initia.tech`
 };
 
 type ApiDoc = {
