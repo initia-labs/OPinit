@@ -90,7 +90,6 @@ export class L1Monitor extends Monitor {
     }
 
     if (msgs.length > 0) {
-      console.log(msgs);
       await wallet
         .transaction(msgs)
         .then((info) => logger.info(`Tx submitted: ${info?.txhash}`))
