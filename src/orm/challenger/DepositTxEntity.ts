@@ -20,6 +20,10 @@ export default class DepositTxEntity {
   @Index('deposit_tx_output_index')
   outputIndex: number;
 
+  @Column('int', { nullable: true })
+  @Index('deposit_tx_finalized_output_index')
+  finalizedOutputIndex: number | null;
+
   @Column('int')
   amount: number;
 

@@ -28,7 +28,7 @@ export class OutputSubmitter {
     );
     this.apiRequester = new APIRequest(config.EXECUTOR_URI);
     this.syncedOutputIndex = -1;
-    this.isRunning = true
+    this.isRunning = true;
   }
 
   async getNextOutputIndex() {
@@ -51,7 +51,6 @@ export class OutputSubmitter {
     );
   }
 
-
   async proposeL2Output(outputRoot: Buffer, l2BlockHeight: number) {
     const executeMsg: Msg = new MsgExecute(
       this.submitter.key.accAddress,
@@ -68,12 +67,14 @@ export class OutputSubmitter {
   }
 
   public async run() {
-    while (this.isRunning){
+    while (this.isRunning) {
       try {
         const nextOutputIndex = await this.getNextOutputIndex();
         const nextBlockHeight = await this.getNextBlockHeight();
 
-        logger.info(`next block height ${nextBlockHeight} next output index ${nextOutputIndex}`);
+        logger.info(
+          `next block height ${nextBlockHeight} next output index ${nextOutputIndex}`
+        );
 
         if (nextOutputIndex <= this.syncedOutputIndex) {
           this.logWaitingForNextOutputIndex();
@@ -83,11 +84,15 @@ export class OutputSubmitter {
           nextOutputIndex
         );
 
-        await this.processOutputEntity(outputEntity, nextOutputIndex, nextBlockHeight)
+        await this.processOutputEntity(
+          outputEntity,
+          nextOutputIndex,
+          nextBlockHeight
+        );
       } catch (err) {
-        if (err.response.data.type === ErrorTypes.NOT_FOUND_ERROR){
+        if (err.response.data.type === ErrorTypes.NOT_FOUND_ERROR) {
           this.logWaitingForNextOutputIndex();
-        } else{
+        } else {
           logger.error('OutputSubmitter runs error:', err);
         }
       } finally {
@@ -95,16 +100,25 @@ export class OutputSubmitter {
       }
     }
   }
-  
-  public async stop(){
+
+  public async stop() {
     this.isRunning = false;
   }
 
-  private async processOutputEntity(outputEntity: OutputEntity, nextOutputIndex: number, nextBlockHeight: number) {
-    await this.proposeL2Output(Buffer.from(outputEntity.outputRoot, 'hex'), nextBlockHeight);
+  private async processOutputEntity(
+    outputEntity: OutputEntity,
+    nextOutputIndex: number,
+    nextBlockHeight: number
+  ) {
+    await this.proposeL2Output(
+      Buffer.from(outputEntity.outputRoot, 'hex'),
+      nextBlockHeight
+    );
     this.syncedOutputIndex = nextOutputIndex;
-    logger.info(`submitted output index: ${nextOutputIndex} output root: ${outputEntity.outputRoot}`);
-  } 
+    logger.info(
+      `submitted output index: ${nextOutputIndex} output root: ${outputEntity.outputRoot}`
+    );
+  }
 
   private logWaitingForNextOutputIndex() {
     logger.info('waiting for next output index.');

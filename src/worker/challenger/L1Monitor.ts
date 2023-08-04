@@ -49,10 +49,11 @@ export class L1Monitor extends Monitor {
         receiver: data['to'],
         amount: Number.parseInt(data['amount']),
         outputIndex: lastIndex + 1,
+        finalizedOutputIndex: null,
         coinType: denom,
         isChecked: false
       };
-      
+
       await this.db.getRepository(DepositTxEntity).save(entity);
     }
   }

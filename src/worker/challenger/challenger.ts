@@ -1,5 +1,4 @@
-import config from '../../config';
-import axios from 'axios';
+import config from 'config';
 import {
   Wallet,
   MnemonicKey,
@@ -10,34 +9,21 @@ import {
   MsgExecute
 } from '@initia/initia.js';
 import { DataSource } from 'typeorm';
-import {
-  WithdrawalTx,
-  L2TokenBridgeInitiatedEvent,
-  L1TokenBridgeInitiatedEvent,
-  DepositTx
-} from 'lib/types';
-import { WithdrawalStorage } from 'lib/storage';
-import { createOutputRoot } from 'lib/util';
 import { getDB } from './db';
-import { getL2Denom, structTagToDenom } from 'lib/util';
 import {
-  StateEntity,
   WithdrawalTxEntity,
   DepositTxEntity,
   ChallengerOutputEntity
 } from 'orm';
-import { fetchBridgeConfig } from 'lib/lcd';
 import { delay } from 'bluebird';
 import { logger } from 'lib/logger';
 
 const bcs = BCS.getInstance();
 
 export class Challenger {
-  private challenger: Wallet
+  private challenger: Wallet;
   private isRunning = false;
   private db: DataSource;
-
-  private submissionInterval: number;
 
   async init() {
     [this.db] = getDB();
@@ -45,21 +31,73 @@ export class Challenger {
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.CHALLENGER_MNEMONIC })
     );
-
-    const bridgeCfg = await fetchBridgeConfig();
-    this.submissionInterval = parseInt(bridgeCfg.submission_interval);
   }
 
   public async run(): Promise<void> {
     while (!this.isRunning) {
-      await this.l1Challenge();
-      await this.l2Challenge();
+      try {
+        await this.l1Challenge();
+        await this.l2Challenge();
+      } catch (e) {
+        console.log(e);
+        logger.error('challenger error', e);
+      } finally {
+        await delay(1000);
+      }
     }
+  }
+
+  public async getLastOutputFromDB(): Promise<ChallengerOutputEntity[]> {
+    return await this.db.getRepository(ChallengerOutputEntity).find({
+      order: { outputIndex: 'DESC' },
+      take: 1
+    });
   }
 
   // monitoring L1 deposit event and check the relayer works properly (L1 TokenBridgeInitiatedEvent)
   public async l1Challenge() {
-    return;
+    const unchekcedDepositTx = await this.getUncheckedDepositTx();
+    if (!unchekcedDepositTx) return;
+
+    const threshold = 1; // should be included in 1 submission interval
+
+    if (!unchekcedDepositTx.finalizedOutputIndex) {
+      const lastOutput = await this.getLastOutputFromDB();
+      const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+      if (lastIndex > unchekcedDepositTx.outputIndex + threshold) {
+        await this.deleteL2Ouptut(
+          unchekcedDepositTx,
+          'failed to check deposit tx'
+        );
+      }
+      return;
+    }
+
+    if (
+      unchekcedDepositTx.outputIndex + threshold <=
+      unchekcedDepositTx.finalizedOutputIndex
+    ) {
+      logger.info(
+        `successfully checked tx : coinType ${unchekcedDepositTx.coinType}, sequence ${unchekcedDepositTx.sequence}`
+      );
+      await this.checkDepositTx(unchekcedDepositTx);
+      return;
+    }
+
+    await this.deleteL2Ouptut(unchekcedDepositTx, 'failed to check deposit tx');
+  }
+
+  async getUncheckedDepositTx(): Promise<DepositTxEntity | null> {
+    const getUncheckedDepositTx: DepositTxEntity[] = await this.db
+      .getRepository(DepositTxEntity)
+      .find({
+        where: { isChecked: false },
+        order: { sequence: 'ASC' },
+        take: 1
+      });
+
+    if (getUncheckedDepositTx.length === 0) return null;
+    return getUncheckedDepositTx[0];
   }
 
   public stop(): void {
@@ -80,12 +118,30 @@ export class Challenger {
     return uncheckedWithdrawalTx[0];
   }
 
+  async checkDepositTx(depositTxEntity: DepositTxEntity): Promise<void> {
+    await this.db
+      .getRepository(DepositTxEntity)
+      .update(
+        {
+          coinType: depositTxEntity.coinType,
+          sequence: depositTxEntity.sequence
+        },
+        { isChecked: true }
+      );
+  }
+
   async checkWithdrawalTx(
     withdrawalTxEntity: WithdrawalTxEntity
   ): Promise<void> {
     await this.db
       .getRepository(WithdrawalTxEntity)
-      .update(withdrawalTxEntity.outputIndex, { isChecked: true });
+      .update(
+        {
+          coinType: withdrawalTxEntity.coinType,
+          sequence: withdrawalTxEntity.sequence
+        },
+        { isChecked: true }
+      );
   }
 
   async getChallengerOutputRoot(outputIndex: number): Promise<string | null> {
@@ -114,30 +170,17 @@ export class Challenger {
   // monitoring L2 withdrawal event and check the relayer works properly (L2 TokenBridgeInitiatedEvent)
   public async l2Challenge() {
     const uncheckedWithdrawalTx = await this.getUncheckedWitdrawalTx();
-    if (uncheckedWithdrawalTx === null) {
-      logger.info('[L2 Challenger] no unchecked withdrawal tx');
-      return;
-    }
+    if (!uncheckedWithdrawalTx) return;
 
     const outputRootFromContract = await this.getContractOutputRoot(
       uncheckedWithdrawalTx.outputIndex
     );
-    if (outputRootFromContract === null) {
-      logger.info(
-        `[L2 Challenger] contract output root not found for output index ${uncheckedWithdrawalTx.outputIndex}`
-      );
-      return;
-    }
 
     const outputRootFromChallenger = await this.getChallengerOutputRoot(
       uncheckedWithdrawalTx.outputIndex
     );
-    if (outputRootFromChallenger === null) {
-      logger.info(
-        `[L2 Challenger] challenger output root not found for output index ${uncheckedWithdrawalTx.outputIndex}`
-      );
-      return;
-    }
+
+    if (!outputRootFromChallenger || !outputRootFromContract) return;
 
     if (outputRootFromContract === outputRootFromChallenger) {
       logger.info(
@@ -147,21 +190,53 @@ export class Challenger {
       return;
     }
 
-    await this.deleteL2Ouptut(uncheckedWithdrawalTx.outputIndex);
+    await this.deleteL2Ouptut(
+      uncheckedWithdrawalTx,
+      'failed to check withdrawal tx'
+    );
   }
 
-  async deleteL2Ouptut(outputIndex: number) {
+  async isFinalizedL2Output(outputIndex: number) {
+    const isFinalized: boolean = await config.l1lcd.move.viewFunction<boolean>(
+      '0x1',
+      'op_output',
+      'is_finalized',
+      [config.L2ID],
+      [bcs.serialize(BCS.U64, outputIndex)]
+    );
+    return isFinalized;
+  }
+
+  async deleteL2Ouptut(
+    entity: WithdrawalTxEntity | DepositTxEntity,
+    reason?: string
+  ) {
+    const isFinalized = await this.isFinalizedL2Output(entity.outputIndex);
+
+    if (isFinalized) {
+      logger.warn(
+        `[L2 Challenger] output index ${entity.outputIndex} is already finalized`
+      );
+      if (entity instanceof DepositTxEntity) await this.checkDepositTx(entity);
+      if (entity instanceof WithdrawalTxEntity)
+        await this.checkWithdrawalTx(entity);
+      return;
+    }
+
     const executeMsg: Msg = new MsgExecute(
       this.challenger.key.accAddress,
       '0x1',
       'op_output',
       'delete_l2_output',
       [config.L2ID],
-      [bcs.serialize(BCS.U64, outputIndex)]
+      [bcs.serialize(BCS.U64, entity.outputIndex)]
     );
 
     await sendTx(config.l1lcd, this.challenger, [executeMsg]);
-    this.isRunning = true;
+    logger.info(
+      `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
+    );
+    process.exit(1);
   }
 }
 

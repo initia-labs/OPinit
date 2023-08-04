@@ -99,34 +99,21 @@ export class L2Monitor extends Monitor {
             Number.parseInt(data['l1_sequence']),
             data['l2_token']
           );
+
+          if (depositTx === null) {
+            logger.error(`deposit tx not found: ${data['l1_sequence']}`);
+            process.exit(1);
+          }
+
           const lastOutput = await this.getLastOutputFromDB();
           const lastIndex =
             lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex; // current last index
 
-          // TODO: is it possible?
-          if (depositTx === null) {
-            console.log(
-              `[Deposit Error] deposit tx not found: ${data['l1_sequence']}`
-            );
-            process.exit(1);
-          }
-
-          const submissionThreshold = 0;
-          if (lastIndex !== depositTx.outputIndex + submissionThreshold) {
-            console.log(
-              `[Deposit Error] current outputIndex : ${lastIndex}, depositTx outputIndex : ${depositTx.outputIndex}`
-            );
-            process.exit(1);
-          }
-
           await this.db.getRepository(DepositTxEntity).save({
             ...depositTx,
-            isChecked: true
+            finalizedOutputIndex: lastIndex + 1
           });
 
-          logger.info(
-            `successfully checked tx : coinType ${depositTx.coinType}, sequence ${depositTx.sequence}`
-          );
           break;
         }
       }

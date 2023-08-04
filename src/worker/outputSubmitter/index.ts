@@ -2,15 +2,13 @@ import { OutputSubmitter } from './outputSubmitter';
 import { logger } from 'lib/logger';
 import { once } from 'lodash';
 
-let jobs: OutputSubmitter[]
+let jobs: OutputSubmitter[];
 
 async function runBot(): Promise<void> {
   const outputSubmitter = new OutputSubmitter();
   await outputSubmitter.init();
 
-  jobs = [
-    outputSubmitter
-  ];
+  jobs = [outputSubmitter];
 
   await Promise.all(
     jobs.map((job) => {
