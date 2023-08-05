@@ -6,7 +6,6 @@ let jobs: OutputSubmitter[];
 
 async function runBot(): Promise<void> {
   const outputSubmitter = new OutputSubmitter();
-  await outputSubmitter.init();
 
   jobs = [outputSubmitter];
 
@@ -29,9 +28,6 @@ async function gracefulShutdown(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const outputSubmitter = new OutputSubmitter();
-  await outputSubmitter.init();
-
   await runBot();
 
   // attach graceful shutdown

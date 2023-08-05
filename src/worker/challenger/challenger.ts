@@ -34,11 +34,14 @@ export class Challenger {
   }
 
   public async run(): Promise<void> {
+    await this.init();
+    
     while (!this.isRunning) {
       try {
         await this.l1Challenge();
         await this.l2Challenge();
       } catch (e) {
+        console.log(e)
         logger.error('challenger error', e);
       } finally {
         await delay(1000);
@@ -52,6 +55,13 @@ export class Challenger {
       take: 1
     });
   }
+
+  public async getLastOutputIndex(): Promise<number> {
+    const lastOutput = await this.getLastOutputFromDB();
+    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+    return lastIndex;
+  }
+
 
   // monitoring L1 deposit event and check the relayer works properly (L1 TokenBridgeInitiatedEvent)
   public async l1Challenge() {
@@ -171,6 +181,9 @@ export class Challenger {
     const uncheckedWithdrawalTx = await this.getUncheckedWitdrawalTx();
     if (!uncheckedWithdrawalTx) return;
 
+    const lastIndex = await this.getLastOutputIndex();
+    if (uncheckedWithdrawalTx.outputIndex > lastIndex ) return;
+
     const outputRootFromContract = await this.getContractOutputRoot(
       uncheckedWithdrawalTx.outputIndex
     );
@@ -216,9 +229,14 @@ export class Challenger {
       logger.warn(
         `[L2 Challenger] output index ${entity.outputIndex} is already finalized`
       );
-      if (entity instanceof DepositTxEntity) await this.checkDepositTx(entity);
-      if (entity instanceof WithdrawalTxEntity)
-        await this.checkWithdrawalTx(entity);
+      if (entity instanceof DepositTxEntity) {
+        logger.info(`check deposit tx ${entity.sequence}`)
+        await this.checkDepositTx(entity)
+      } else if (entity instanceof WithdrawalTxEntity) {
+        logger.info(`check withdrawal tx ${entity.sequence}`)
+        await this.checkWithdrawalTx(entity)
+      }
+      
       return;
     }
 
@@ -231,7 +249,8 @@ export class Challenger {
       [bcs.serialize(BCS.U64, entity.outputIndex)]
     );
 
-    await sendTx(config.l1lcd, this.challenger, [executeMsg]);
+      console.log('delete l2 output', executeMsg)
+    // await sendTx(config.l1lcd, this.challenger, [executeMsg]);
     logger.info(
       `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
     );

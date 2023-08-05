@@ -31,6 +31,10 @@ export class OutputSubmitter {
     this.isRunning = true;
   }
 
+  public name(): string {
+    return 'output_submitter'
+  }
+
   async getNextOutputIndex() {
     return await config.l1lcd.move.viewFunction<number>(
       '0x1',
@@ -67,19 +71,22 @@ export class OutputSubmitter {
   }
 
   public async run() {
+    await this.init();
+
     while (this.isRunning) {
       try {
         const nextOutputIndex = await this.getNextOutputIndex();
+        if (nextOutputIndex <= this.syncedOutputIndex) {
+          this.logWaitingForNextOutputIndex('already synced');
+          continue;
+        }
+        
         const nextBlockHeight = await this.getNextBlockHeight();
 
         logger.info(
           `next block height ${nextBlockHeight} next output index ${nextOutputIndex}`
         );
 
-        if (nextOutputIndex <= this.syncedOutputIndex) {
-          this.logWaitingForNextOutputIndex();
-          continue;
-        }
         const outputEntity: OutputEntity = await this.apiRequester.getOuptut(
           nextOutputIndex
         );
@@ -91,7 +98,7 @@ export class OutputSubmitter {
         );
       } catch (err) {
         if (err.response.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          this.logWaitingForNextOutputIndex();
+          this.logWaitingForNextOutputIndex(`not found output index from contract ${err}`);
         } else {
           logger.error('OutputSubmitter runs error:', err);
         }
@@ -120,8 +127,8 @@ export class OutputSubmitter {
     );
   }
 
-  private logWaitingForNextOutputIndex() {
-    logger.info('waiting for next output index.');
+  private logWaitingForNextOutputIndex(msg?: string) {
+    logger.info(`waiting for next output index. ${msg}`);
   }
 }
 

@@ -93,7 +93,7 @@ export class L2Monitor extends Monitor {
         merkleProof: []
       };
 
-      logger.info(`withdraw tx found: ${tx.merkleRoot}`);
+      logger.info(`withdraw tx found in output idnex : ${tx.outputIndex}`);
 
       await this.db.getRepository(TxEntity).save(tx);
     }

@@ -12,7 +12,6 @@ let monitors: (Monitor | Challenger)[];
 
 async function runBot(): Promise<void> {
   const challenger = new Challenger();
-  await challenger.init();
 
   monitors = [
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000)),
