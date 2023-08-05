@@ -97,7 +97,7 @@ export class OutputSubmitter {
           nextBlockHeight
         );
       } catch (err) {
-        if (err.response.data.type === ErrorTypes.NOT_FOUND_ERROR) {
+        if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
           this.logWaitingForNextOutputIndex(`not found output index from contract ${err}`);
         } else {
           logger.error('OutputSubmitter runs error:', err);
