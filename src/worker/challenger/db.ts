@@ -11,6 +11,7 @@ import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 const debug = require('debug')('orm');
 
 import {
+  ChallengerCoinEntity,
   ChallengerOutputEntity,
   DepositTxEntity,
   StateEntity,
@@ -24,7 +25,8 @@ const staticOptions = {
     StateEntity,
     WithdrawalTxEntity,
     DepositTxEntity,
-    ChallengerOutputEntity
+    ChallengerOutputEntity,
+    ChallengerCoinEntity
   ]
 };
 

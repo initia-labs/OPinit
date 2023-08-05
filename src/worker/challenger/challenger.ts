@@ -17,6 +17,7 @@ import {
 } from 'orm';
 import { delay } from 'bluebird';
 import { logger } from 'lib/logger';
+import { APIRequest } from 'lib/apiRequest';
 
 const bcs = BCS.getInstance();
 
@@ -24,6 +25,7 @@ export class Challenger {
   private challenger: Wallet;
   private isRunning = false;
   private db: DataSource;
+  private apiRequester: APIRequest;
 
   async init() {
     [this.db] = getDB();
@@ -31,6 +33,12 @@ export class Challenger {
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.CHALLENGER_MNEMONIC })
     );
+  }
+
+  async fetchBridgeState(){
+    this.apiRequester = new APIRequest(config.EXECUTOR_URI);
+
+    // const 
   }
 
   public async run(): Promise<void> {
@@ -165,15 +173,15 @@ export class Challenger {
     return challengerOutputEntity[0].outputRoot;
   }
 
-  async getContractOutputRoot(outputIndex: number): Promise<string | null> {
-    const outputRootFromContract = await config.l1lcd.move.viewFunction<Buffer>(
+  async getContractOutputRoot(outputIndex: number): Promise<string> {
+    const outputRootFromContract = await config.l1lcd.move.viewFunction<Uint8Array>(
       '0x1',
       'op_output',
       'get_output_root',
       [config.L2ID],
       [bcs.serialize(BCS.U64, outputIndex)]
     );
-    return outputRootFromContract.toString('hex');
+    return Array.prototype.map.call(outputRootFromContract, x => x.toString(16).padStart(2, '0')).join('');
   }
 
   // monitoring L2 withdrawal event and check the relayer works properly (L2 TokenBridgeInitiatedEvent)
@@ -230,10 +238,10 @@ export class Challenger {
         `[L2 Challenger] output index ${entity.outputIndex} is already finalized`
       );
       if (entity instanceof DepositTxEntity) {
-        logger.info(`check deposit tx ${entity.sequence}`)
+        logger.warn(`[L2 Challenger] check deposit tx ${entity.sequence}`)
         await this.checkDepositTx(entity)
       } else if (entity instanceof WithdrawalTxEntity) {
-        logger.info(`check withdrawal tx ${entity.sequence}`)
+        logger.warn(`[L2 Challenger] check withdrawal tx ${entity.sequence}`)
         await this.checkWithdrawalTx(entity)
       }
       

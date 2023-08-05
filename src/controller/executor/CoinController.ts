@@ -6,13 +6,26 @@ import {
   Validator
 } from 'koa-joi-controllers';
 import { success } from '../../lib/response';
-import { getCoin } from '../../service/CoinService';
+import { getCoin, getAllCoins } from '../../service/CoinService';
 import { ErrorCodes } from 'lib/error';
 
 const Joi = Validator.Joi;
 
 @Controller('')
 export default class CoinController extends KoaController {
+
+  /**
+   * @api {get} /coin Get all coin mapping
+   * @apiName getAllCoins
+   * @apiGroup Coin
+   * 
+   * @apiSuccess {Object[]} coins Coin mapping list
+   */
+  @Get('/coin')
+  async getAllCoins(ctx): Promise<void> {
+    success(ctx, await getAllCoins());
+  }
+
   /**
    * @api {get} /coin/:coin_type Get coin mapping
    * @apiName getCoin

@@ -1,5 +1,6 @@
 import config from 'config';
 import {
+  ChallengerCoinEntity,
   ChallengerOutputEntity,
   DepositTxEntity,
   WithdrawalTxEntity
@@ -72,14 +73,19 @@ export class L2Monitor extends Monitor {
       switch (attrMap['type_tag']) {
         case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
           const data: { [key: string]: string } = JSON.parse(attrMap['data']);
-          const l2Denom = getL2Denom(Buffer.from(data['l2_token']));
+          const l2Denom = Buffer.from(data['l2_token'])
+            .toString()
+            .replace('native_', '');
+          const coin = await this.db.getRepository(ChallengerCoinEntity).findOne({
+            where: { l2Denom }
+          });
 
           const tx: WithdrawalTxEntity = {
             sequence: Number.parseInt(data['l2_sequence']),
             sender: data['from'],
             receiver: data['to'],
             amount: Number.parseInt(data['amount']),
-            coinType: l2Denom,
+            coinType: coin?.l1StructTag ?? '',
             outputIndex: lastIndex + 1,
             merkleRoot: '',
             merkleProof: [],
