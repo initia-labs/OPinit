@@ -1,6 +1,6 @@
 import * as Bluebird from 'bluebird';
 import { RPCSocket } from 'lib/rpc';
-import { ChallengerOutputEntity, StateEntity } from 'orm';
+import { ChallengerCoinEntity, ChallengerOutputEntity, StateEntity } from 'orm';
 import { getDB } from './db';
 import { DataSource } from 'typeorm';
 import { logger } from 'lib/logger';
@@ -20,6 +20,25 @@ export abstract class Monitor {
       order: { outputIndex: 'DESC' },
       take: 1
     });
+  }
+  
+  public async getLastOutputIndex(): Promise<number> {
+    const lastOutput = await this.getLastOutputFromDB();
+    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+    return lastIndex;
+  }
+
+
+  public async getCoinTypeFromDB(l2Denom: string): Promise<string> {
+    const coin = await this.db.getRepository(ChallengerCoinEntity).findOne({
+      where: {l2Denom}
+    })
+
+    if (!coin) {
+      throw new Error(`coin not found: ${l2Denom}`)
+    }
+
+    return coin.l1StructTag
   }
 
   public async run(): Promise<void> {

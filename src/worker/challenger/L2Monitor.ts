@@ -92,34 +92,48 @@ export class L2Monitor extends Monitor {
             isChecked: false
           };
 
-          logger.info(`withdraw tx found in output idnex : ${tx.outputIndex}`);
+          logger.info(`withdraw tx found in output index : ${tx.outputIndex}`);
 
           await this.db.getRepository(WithdrawalTxEntity).save(tx);
           break;
         }
-        case '0x1::op_brdige::TokenBridgeFinalizedEvent': {
+        case '0x1::op_bridge::TokenBridgeFinalizedEvent': {
           const data: { [key: string]: string } = JSON.parse(attrMap['data']);
+          const l2Denom = Buffer.from(data['l2_token'])
+            .toString()
+            .replace('native_', '');
 
           // get unchecked deposit tx
           const depositTx = await this.getDepositTx(
             Number.parseInt(data['l1_sequence']),
-            data['l2_token']
+            l2Denom
           );
 
-          if (depositTx === null) {
-            logger.error(`deposit tx not found: ${data['l1_sequence']}`);
-            process.exit(1);
+          // challenger could miss to store deposit tx due to `fetchBridgeState()`
+          if (depositTx === null) return;
+
+          const lastIndex = await this.getLastOutputIndex();
+          // compare initiate and finalize tx
+          const originTx = depositTx;
+          const finalTx = {
+            sequence: Number.parseInt(data['l1_sequence']),
+            sender: data['from'],
+            receiver: data['to'],
+            amount: Number.parseInt(data['amount']),
           }
-
-          const lastOutput = await this.getLastOutputFromDB();
-          const lastIndex =
-            lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex; // current last index
-
+          const isTxSame = (originTx, finalTx):boolean => {
+            return (
+              originTx.sequence === finalTx.sequence &&
+              originTx.sender === finalTx.sender &&
+              originTx.receiver === finalTx.receiver &&
+              originTx.amount === finalTx.amount
+            )
+          }
+          const index = isTxSame(originTx, finalTx) ? lastIndex + 1 : -1;
           await this.db.getRepository(DepositTxEntity).save({
             ...depositTx,
-            finalizedOutputIndex: lastIndex + 1
+            finalizedOutputIndex: index,
           });
-
           break;
         }
       }

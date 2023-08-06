@@ -13,6 +13,7 @@ import { APIRequest } from 'lib/apiRequest';
 import { delay } from 'bluebird';
 import { logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
+import { GetOutputResponse } from 'service';
 const bcs = BCS.getInstance();
 
 export class OutputSubmitter {
@@ -87,20 +88,26 @@ export class OutputSubmitter {
           `next block height ${nextBlockHeight} next output index ${nextOutputIndex}`
         );
 
-        const outputEntity: OutputEntity = await this.apiRequester.getOuptut(
-          nextOutputIndex
+        const res: GetOutputResponse = await this.apiRequester.getQuery<GetOutputResponse>(
+          `/output/${nextOutputIndex}`
         );
 
+        if (res.output === null) {
+          this.logWaitingForNextOutputIndex('not found output');
+          continue;
+        }
+        
         await this.processOutputEntity(
-          outputEntity,
+          res.output,
           nextOutputIndex,
           nextBlockHeight
         );
       } catch (err) {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          this.logWaitingForNextOutputIndex(`not found output index from contract ${err}`);
+          this.logWaitingForNextOutputIndex(`not found output index from contract`);
         } else {
           logger.error('OutputSubmitter runs error:', err);
+          this.stop();
         }
       } finally {
         await delay(10000);

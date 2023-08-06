@@ -2,11 +2,11 @@ import { CoinEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
-interface GetCoinResponse {
+export interface GetCoinResponse {
   coin: CoinEntity
 }
 
-interface GetAllCoinsResponse {
+export interface GetAllCoinsResponse {
   coins: CoinEntity[]
 }
 

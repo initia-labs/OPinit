@@ -2,7 +2,7 @@ import { OutputEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
-interface GetOutputResponse {
+export interface GetOutputResponse {
   output: OutputEntity
 }
 
@@ -11,13 +11,13 @@ export interface GetAllOutputsParam{
   limit: number
 }
 
-interface GetAllOutputsResponse {
+export interface GetAllOutputsResponse {
   next?: number
   limit: number
   outputs: OutputEntity[]
 }
 
-interface GetLatestOutputResponse {
+export interface GetLatestOutputResponse {
   output: OutputEntity
 }
 
