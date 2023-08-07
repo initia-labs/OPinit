@@ -82,12 +82,14 @@ export class L2Monitor extends Monitor {
         where: { l2Denom }
       });
 
+      if (!coin) continue;
+
       const tx: TxEntity = {
         sequence: Number.parseInt(data['l2_sequence']),
         sender: data['from'],
         receiver: data['to'],
         amount: Number.parseInt(data['amount']),
-        coinType: coin?.l1StructTag ?? '',
+        coinType: coin.l1StructTag,
         outputIndex: lastIndex + 1,
         merkleRoot: '',
         merkleProof: []

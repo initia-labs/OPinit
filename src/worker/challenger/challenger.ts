@@ -324,7 +324,7 @@ async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
     await checkTx(client, broadcastResult.txhash);
     return broadcastResult.txhash;
   } catch (error) {
-    console.log(msg)
+    console.log(msg);
     throw new Error(`Error in sendTx: ${error}`);
   }
 }

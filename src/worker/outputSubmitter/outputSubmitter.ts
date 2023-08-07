@@ -65,7 +65,7 @@ export class OutputSubmitter {
       await this.init();
       const nextBlockHeight = await this.getNextBlockHeight();
       logger.info(`next block height: ${nextBlockHeight}`);
-      
+
       if (nextBlockHeight <= this.syncedHeight) {
         this.logWaitingForNextOutput('synced height is not update');
         return;
