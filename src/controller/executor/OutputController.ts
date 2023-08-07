@@ -7,7 +7,7 @@ import {
 } from 'koa-joi-controllers';
 import { ErrorCodes } from 'lib/error';
 import { success } from 'lib/response';
-import { getOutput, getLatestOutput, getAllOutputs } from 'service';
+import { getOutput, getLatestOutput, getAllOutputs, getOutputByHeight } from 'service';
 
 const Joi = Validator.Joi;
 
@@ -51,8 +51,7 @@ export class OutputController extends KoaController {
   }
 
   /**
-   *
-   * @api {get} /output/:output_index Get output entity
+   * @api {get} /output/:output_index Get output entity by output index
    * @apiName getOutput
    * @apiGroup Output
    *
@@ -69,5 +68,25 @@ export class OutputController extends KoaController {
   })
   async getOutput(ctx): Promise<void> {
     success(ctx, await getOutput(ctx.params.output_index));
+  }
+
+  /**
+   * @api {get} /output/height/:height Get output entity by checkpoint height
+   * @apiName getOutputByHeight
+   * @apiGroup Output
+   *
+   * @apiParam {Number} height checkpoint height
+   *
+   * @apiSuccess {Object} output Output entity
+   */
+  @Get('/output/height/:height')
+  @Validate({
+    params: {
+      height: Joi.number().description('height')
+    },
+    failure: ErrorCodes.INVALID_REQUEST_ERROR
+  })
+  async getOutputByHeight(ctx): Promise<void> {
+    success(ctx, await getOutputByHeight(ctx.params.height));
   }
 }

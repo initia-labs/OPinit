@@ -19,7 +19,7 @@ const bcs = BCS.getInstance();
 export class OutputSubmitter {
   private submitter: Wallet;
   private apiRequester: APIRequest;
-  private syncedOutputIndex: number;
+  private syncedHeight = 0;
   private isRunning = false;
 
   async init() {
@@ -28,7 +28,6 @@ export class OutputSubmitter {
       new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC })
     );
     this.apiRequester = new APIRequest(config.EXECUTOR_URI);
-    this.syncedOutputIndex = -1;
     this.isRunning = true;
   }
 
@@ -36,17 +35,7 @@ export class OutputSubmitter {
     return 'output_submitter';
   }
 
-  async getNextOutputIndex() {
-    return await config.l1lcd.move.viewFunction<number>(
-      '0x1',
-      'op_output',
-      'next_output_index',
-      [config.L2ID],
-      []
-    );
-  }
-
-  async getNextBlockHeight() {
+  async getNextBlockHeight(): Promise<number> {
     return await config.l1lcd.move.viewFunction<number>(
       '0x1',
       'op_output',
@@ -76,37 +65,25 @@ export class OutputSubmitter {
 
     while (this.isRunning) {
       try {
-        const nextOutputIndex = await this.getNextOutputIndex();
-        if (nextOutputIndex <= this.syncedOutputIndex) {
-          this.logWaitingForNextOutputIndex('already synced');
-          continue;
-        }
-
         const nextBlockHeight = await this.getNextBlockHeight();
-
-        logger.info(
-          `next block height ${nextBlockHeight} next output index ${nextOutputIndex}`
-        );
+        if (nextBlockHeight <= this.syncedHeight) {
+          throw new Error('synced height is not update');
+        }
 
         const res: GetOutputResponse =
           await this.apiRequester.getQuery<GetOutputResponse>(
-            `/output/${nextOutputIndex}`
+            `/output/height/${nextBlockHeight}`
           );
-
-        if (res.output === null) {
-          this.logWaitingForNextOutputIndex('not found output');
-          continue;
-        }
 
         await this.processOutputEntity(
           res.output,
-          nextOutputIndex,
           nextBlockHeight
         );
       } catch (err) {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          this.logWaitingForNextOutputIndex(
-            `not found output index from contract`
+          console.log(err)
+          this.logWaitingForNextOutput(
+            `not found output from executor`
           );
         } else {
           logger.error('OutputSubmitter runs error:', err);
@@ -124,21 +101,20 @@ export class OutputSubmitter {
 
   private async processOutputEntity(
     outputEntity: OutputEntity,
-    nextOutputIndex: number,
     nextBlockHeight: number
   ) {
     await this.proposeL2Output(
       Buffer.from(outputEntity.outputRoot, 'hex'),
       nextBlockHeight
     );
-    this.syncedOutputIndex = nextOutputIndex;
+    this.syncedHeight = nextBlockHeight;
     logger.info(
-      `submitted output index: ${nextOutputIndex} output root: ${outputEntity.outputRoot}`
+      `submitted height: ${nextBlockHeight} output root: ${outputEntity.outputRoot}`
     );
   }
 
-  private logWaitingForNextOutputIndex(msg?: string) {
-    logger.info(`waiting for next output index. ${msg}`);
+  private logWaitingForNextOutput(msg?: string) {
+    logger.info(`waiting for next output. ${msg}`);
   }
 }
 

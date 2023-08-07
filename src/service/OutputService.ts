@@ -21,6 +21,11 @@ export interface GetLatestOutputResponse {
   output: OutputEntity;
 }
 
+export interface GetOutputByHeightResponse{
+  output: OutputEntity;
+}
+
+
 export async function getOutput(
   outputIndex: number
 ): Promise<GetOutputResponse> {
@@ -30,7 +35,32 @@ export async function getOutput(
   try {
     const qb = queryRunner.manager
       .createQueryBuilder(OutputEntity, 'output')
-      .where('output.outputIndex = :outputIndex', { outputIndex });
+      .where('output.output_index = :outputIndex', { outputIndex });
+
+    const output = await qb.getOne();
+
+    if (!output) {
+      throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
+    }
+
+    return {
+      output
+    };
+  } finally {
+    queryRunner.release();
+  }
+}
+
+export async function getOutputByHeight(
+  height: number
+): Promise<GetOutputByHeightResponse> {
+  const [db] = getDB();
+  const queryRunner = db.createQueryRunner('slave');
+
+  try {
+    const qb = queryRunner.manager
+      .createQueryBuilder(OutputEntity, 'output')
+      .where('output.checkpoint_block_height = :height', { height });
 
     const output = await qb.getOne();
 
