@@ -33,7 +33,7 @@ export class OutputSubmitter {
   }
 
   public name(): string {
-    return 'output_submitter'
+    return 'output_submitter';
   }
 
   async getNextOutputIndex() {
@@ -81,22 +81,23 @@ export class OutputSubmitter {
           this.logWaitingForNextOutputIndex('already synced');
           continue;
         }
-        
+
         const nextBlockHeight = await this.getNextBlockHeight();
 
         logger.info(
           `next block height ${nextBlockHeight} next output index ${nextOutputIndex}`
         );
 
-        const res: GetOutputResponse = await this.apiRequester.getQuery<GetOutputResponse>(
-          `/output/${nextOutputIndex}`
-        );
+        const res: GetOutputResponse =
+          await this.apiRequester.getQuery<GetOutputResponse>(
+            `/output/${nextOutputIndex}`
+          );
 
         if (res.output === null) {
           this.logWaitingForNextOutputIndex('not found output');
           continue;
         }
-        
+
         await this.processOutputEntity(
           res.output,
           nextOutputIndex,
@@ -104,7 +105,9 @@ export class OutputSubmitter {
         );
       } catch (err) {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          this.logWaitingForNextOutputIndex(`not found output index from contract`);
+          this.logWaitingForNextOutputIndex(
+            `not found output index from contract`
+          );
         } else {
           logger.error('OutputSubmitter runs error:', err);
           this.stop();

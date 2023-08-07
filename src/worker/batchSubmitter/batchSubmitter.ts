@@ -42,20 +42,20 @@ export class BatchSubmitter {
     this.isRunning = true;
   }
 
-  public stop(){
+  public stop() {
     this.isRunning = false;
   }
 
   public async run() {
     await this.init();
 
-    while(this.isRunning){
+    while (this.isRunning) {
       try {
         const latestBatch = await this.getStoredBatch(this.dataSource);
         if (latestBatch) {
           this.batchIndex = latestBatch.batchIndex + 1;
         }
-  
+
         // e.g [start_height + 0, start_height + 99], [start_height + 100, start_height + 199], ...
         const startHeight =
           this.batchL2StartHeight + this.batchIndex * this.submissionInterval;
@@ -63,7 +63,7 @@ export class BatchSubmitter {
           this.batchL2StartHeight +
           (this.batchIndex + 1) * this.submissionInterval -
           1;
-  
+
         if (endHeight > this.latestBlockHeight) {
           logger.info(
             `[${this.batchIndex}th batch] batch interval is not satisfied. current height: ${this.latestBlockHeight} target height: ${endHeight}`
@@ -71,7 +71,7 @@ export class BatchSubmitter {
           this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd); // update latest block height
           return;
         }
-  
+
         const batch = await this.getBatch(startHeight, endHeight);
         logger.info(
           `[${this.batchIndex}th batch] batch is generated. start height: ${startHeight} end height: ${endHeight}`
@@ -80,7 +80,7 @@ export class BatchSubmitter {
         logger.info(
           `[${this.batchIndex}th batch] batch is published to L1. tx hash: ${txHash}`
         );
-  
+
         await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
         logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
       } catch (err) {

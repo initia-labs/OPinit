@@ -15,7 +15,7 @@ async function runBot(): Promise<void> {
 
   // use to sync with bridge latest state
   await challenger.fetchBridgeState();
-  
+
   monitors = [
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000)),
     new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000)),

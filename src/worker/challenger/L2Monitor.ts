@@ -76,9 +76,11 @@ export class L2Monitor extends Monitor {
           const l2Denom = Buffer.from(data['l2_token'])
             .toString()
             .replace('native_', '');
-          const coin = await this.db.getRepository(ChallengerCoinEntity).findOne({
-            where: { l2Denom }
-          });
+          const coin = await this.db
+            .getRepository(ChallengerCoinEntity)
+            .findOne({
+              where: { l2Denom }
+            });
 
           const tx: WithdrawalTxEntity = {
             sequence: Number.parseInt(data['l2_sequence']),
@@ -119,20 +121,20 @@ export class L2Monitor extends Monitor {
             sequence: Number.parseInt(data['l1_sequence']),
             sender: data['from'],
             receiver: data['to'],
-            amount: Number.parseInt(data['amount']),
-          }
-          const isTxSame = (originTx, finalTx):boolean => {
+            amount: Number.parseInt(data['amount'])
+          };
+          const isTxSame = (originTx, finalTx): boolean => {
             return (
               originTx.sequence === finalTx.sequence &&
               originTx.sender === finalTx.sender &&
               originTx.receiver === finalTx.receiver &&
               originTx.amount === finalTx.amount
-            )
-          }
+            );
+          };
           const index = isTxSame(originTx, finalTx) ? lastIndex + 1 : -1;
           await this.db.getRepository(DepositTxEntity).save({
             ...depositTx,
-            finalizedOutputIndex: index,
+            finalizedOutputIndex: index
           });
           break;
         }

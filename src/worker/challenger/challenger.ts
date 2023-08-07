@@ -43,19 +43,25 @@ export class Challenger {
   }
 
   // TODO: fetch from finalized state, not latest state
-  public async fetchBridgeState(){
+  public async fetchBridgeState() {
     [this.db] = getDB();
     this.apiRequester = new APIRequest(config.EXECUTOR_URI);
-    const cfg = await fetchBridgeConfig()
-    const outputRes = await this.apiRequester.getQuery<GetLatestOutputResponse>('/output/latest')
-    if (!outputRes) return
-    const coinRes = await this.apiRequester.getQuery<GetAllCoinsResponse>('/coin')
-    if (!coinRes) return
-    const l1Res = await axios.get(`${config.L1_LCD_URI}/cosmos/base/tendermint/v1beta1/blocks/latest`)
-    if (!l1Res) return
- 
-    await this.db.getRepository(ChallengerOutputEntity).save(outputRes.output)
-    await this.db.getRepository(ChallengerCoinEntity).save(coinRes.coins)
+    const cfg = await fetchBridgeConfig();
+    const outputRes = await this.apiRequester.getQuery<GetLatestOutputResponse>(
+      '/output/latest'
+    );
+    if (!outputRes) return;
+    const coinRes = await this.apiRequester.getQuery<GetAllCoinsResponse>(
+      '/coin'
+    );
+    if (!coinRes) return;
+    const l1Res = await axios.get(
+      `${config.L1_LCD_URI}/cosmos/base/tendermint/v1beta1/blocks/latest`
+    );
+    if (!l1Res) return;
+
+    await this.db.getRepository(ChallengerOutputEntity).save(outputRes.output);
+    await this.db.getRepository(ChallengerCoinEntity).save(coinRes.coins);
     await this.db.getRepository(StateEntity).save([
       {
         name: 'challenger_l1_monitor',
@@ -63,21 +69,23 @@ export class Challenger {
       },
       {
         name: 'challenger_l2_monitor',
-        height: outputRes.output.checkpointBlockHeight + Number.parseInt(cfg.submission_interval) - 1
+        height:
+          outputRes.output.checkpointBlockHeight +
+          Number.parseInt(cfg.submission_interval) -
+          1
       }
-    ])
+    ]);
   }
 
   public async run(): Promise<void> {
     await this.init();
-    
+
     while (!this.isRunning) {
       try {
         await this.l1Challenge();
         await this.l2Challenge();
       } catch (e) {
-        console.log(e)
-        logger.error('challenger error', e);
+        logger.error('Error in Challenger', e);
       } finally {
         await delay(1000);
       }
@@ -97,24 +105,29 @@ export class Challenger {
     return lastIndex;
   }
 
-
   // monitoring L1 deposit event and check the relayer works properly
   public async l1Challenge() {
     // get unchecked deposit txs not finalized yet
     const unchekcedDepositTx = await this.getUncheckedDepositTx();
     if (!unchekcedDepositTx) return;
-    if (unchekcedDepositTx.finalizedOutputIndex === -1){
-      await this.deleteL2Ouptut(unchekcedDepositTx, 'not same between initialized and finalized deposit tx');
-      return
+    if (unchekcedDepositTx.finalizedOutputIndex === -1) {
+      await this.deleteL2Ouptut(
+        unchekcedDepositTx,
+        'not same between initialized and finalized deposit tx'
+      );
+      return;
     }
 
     if (!unchekcedDepositTx.finalizedOutputIndex) {
-      const lastIndex = await this.getLastOutputIndex()
+      const lastIndex = await this.getLastOutputIndex();
       // delete tx if it is not finalized for threshold submission interval
       if (lastIndex > unchekcedDepositTx.outputIndex + this.threshold) {
-        await this.deleteL2Ouptut(unchekcedDepositTx, 'deposit tx is not finalized for threshold submission interval');
-      } 
-      return
+        await this.deleteL2Ouptut(
+          unchekcedDepositTx,
+          'deposit tx is not finalized for threshold submission interval'
+        );
+      }
+      return;
     }
 
     if (
@@ -163,29 +176,25 @@ export class Challenger {
   }
 
   async checkDepositTx(depositTxEntity: DepositTxEntity): Promise<void> {
-    await this.db
-      .getRepository(DepositTxEntity)
-      .update(
-        {
-          coinType: depositTxEntity.coinType,
-          sequence: depositTxEntity.sequence
-        },
-        { isChecked: true }
-      );
+    await this.db.getRepository(DepositTxEntity).update(
+      {
+        coinType: depositTxEntity.coinType,
+        sequence: depositTxEntity.sequence
+      },
+      { isChecked: true }
+    );
   }
 
   async checkWithdrawalTx(
     withdrawalTxEntity: WithdrawalTxEntity
   ): Promise<void> {
-    await this.db
-      .getRepository(WithdrawalTxEntity)
-      .update(
-        {
-          coinType: withdrawalTxEntity.coinType,
-          sequence: withdrawalTxEntity.sequence
-        },
-        { isChecked: true }
-      );
+    await this.db.getRepository(WithdrawalTxEntity).update(
+      {
+        coinType: withdrawalTxEntity.coinType,
+        sequence: withdrawalTxEntity.sequence
+      },
+      { isChecked: true }
+    );
   }
 
   async getChallengerOutputRoot(outputIndex: number): Promise<string | null> {
@@ -201,20 +210,25 @@ export class Challenger {
   }
 
   async getContractOutputRoot(outputIndex: number): Promise<string | null> {
-    try{
-      const outputRootFromContract = await config.l1lcd.move.viewFunction<Uint8Array>(
-        '0x1',
-        'op_output',
-        'get_output_root',
-        [config.L2ID],
-        [bcs.serialize(BCS.U64, outputIndex)]
-      );
-      return Array.prototype.map.call(outputRootFromContract, x => x.toString(16).padStart(2, '0')).join('');
+    try {
+      const outputRootFromContract =
+        await config.l1lcd.move.viewFunction<Uint8Array>(
+          '0x1',
+          'op_output',
+          'get_output_root',
+          [config.L2ID],
+          [bcs.serialize(BCS.U64, outputIndex)]
+        );
+      return Array.prototype.map
+        .call(outputRootFromContract, (x) => x.toString(16).padStart(2, '0'))
+        .join('');
     } catch {
-      console.log('[L2 Challenger] waiting output submitter to submit output index : ', outputIndex)
-      return null
+      console.log(
+        '[L2 Challenger] waiting output submitter to submit output index : ',
+        outputIndex
+      );
+      return null;
     }
-    
   }
 
   // monitoring L2 withdrawal event and check the relayer works properly
@@ -223,7 +237,7 @@ export class Challenger {
     const uncheckedWithdrawalTx = await this.getUncheckedWitdrawalTx();
     if (!uncheckedWithdrawalTx) return;
     const lastIndex = await this.getLastOutputIndex();
-    if (uncheckedWithdrawalTx.outputIndex > lastIndex ) return;
+    if (uncheckedWithdrawalTx.outputIndex > lastIndex) return;
 
     // compare output root from contract and challenger
     const outputRootFromContract = await this.getContractOutputRoot(
@@ -239,12 +253,12 @@ export class Challenger {
       logger.info(
         `[L2 Challenger] successfully output root matched for output index ${uncheckedWithdrawalTx.outputIndex}`
       );
-      
+
       await this.checkWithdrawalTx(uncheckedWithdrawalTx);
       return;
     }
 
-    await this.checkIfFinalized(uncheckedWithdrawalTx)
+    await this.checkIfFinalized(uncheckedWithdrawalTx);
     await this.deleteL2Ouptut(
       uncheckedWithdrawalTx,
       'failed to check withdrawal tx'
@@ -262,7 +276,7 @@ export class Challenger {
     return isFinalized;
   }
 
-  async checkIfFinalized(entity: WithdrawalTxEntity | DepositTxEntity,){
+  async checkIfFinalized(entity: WithdrawalTxEntity | DepositTxEntity) {
     const isFinalized = await this.isFinalizedL2Output(entity.outputIndex);
 
     if (isFinalized) {
@@ -270,13 +284,13 @@ export class Challenger {
         `[L2 Challenger] output index ${entity.outputIndex} is already finalized`
       );
       if (entity instanceof DepositTxEntity) {
-        logger.warn(`[L2 Challenger] check deposit tx ${entity.sequence}`)
-        await this.checkDepositTx(entity)
+        logger.warn(`[L2 Challenger] check deposit tx ${entity.sequence}`);
+        await this.checkDepositTx(entity);
       } else if (entity instanceof WithdrawalTxEntity) {
-        logger.warn(`[L2 Challenger] check withdrawal tx ${entity.sequence}`)
-        await this.checkWithdrawalTx(entity)
+        logger.warn(`[L2 Challenger] check withdrawal tx ${entity.sequence}`);
+        await this.checkWithdrawalTx(entity);
       }
-      
+
       return;
     }
   }
@@ -294,8 +308,7 @@ export class Challenger {
       [bcs.serialize(BCS.U64, entity.outputIndex)]
     );
 
-      console.log('delete l2 output', executeMsg)
-    // await sendTx(config.l1lcd, this.challenger, [executeMsg]);
+    await sendTx(config.l1lcd, this.challenger, [executeMsg]);
     logger.info(
       `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
     );

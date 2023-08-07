@@ -7,14 +7,10 @@ import { batchController } from 'controller';
 import { once } from 'lodash';
 import config from 'config';
 
-
 let jobs: BatchSubmitter[] = [];
 
-async function runBot():Promise<void>{
-
-  jobs = [
-    new BatchSubmitter()
-  ];
+async function runBot(): Promise<void> {
+  jobs = [new BatchSubmitter()];
 
   await Promise.all(
     jobs.map((job) => {
@@ -26,7 +22,6 @@ async function runBot():Promise<void>{
 function stopBot(): void {
   jobs.forEach((job) => job.stop());
 }
-
 
 async function gracefulShutdown(): Promise<void> {
   stopBot();

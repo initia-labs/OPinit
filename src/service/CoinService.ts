@@ -3,11 +3,11 @@ import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
 export interface GetCoinResponse {
-  coin: CoinEntity
+  coin: CoinEntity;
 }
 
 export interface GetAllCoinsResponse {
-  coins: CoinEntity[]
+  coins: CoinEntity[];
 }
 
 export async function getCoin(coinType: string): Promise<GetCoinResponse> {
@@ -26,20 +26,17 @@ export async function getCoin(coinType: string): Promise<GetCoinResponse> {
 
     return {
       coin: coin
-    }
-
+    };
   } finally {
     queryRunner.release();
   }
 }
 
-
 export async function getAllCoins(): Promise<GetAllCoinsResponse> {
   const [db] = getDB();
   const queryRunner = db.createQueryRunner('slave');
   try {
-    const qb = queryRunner.manager
-      .createQueryBuilder(CoinEntity, 'coin');
+    const qb = queryRunner.manager.createQueryBuilder(CoinEntity, 'coin');
 
     const coins = await qb.getMany();
 
@@ -49,7 +46,7 @@ export async function getAllCoins(): Promise<GetAllCoinsResponse> {
 
     return {
       coins: coins
-    }
+    };
   } finally {
     queryRunner.release();
   }

@@ -1,8 +1,7 @@
-import { logger } from 'lib/logger';
 import config from 'config';
 import { Monitor } from './Monitor';
 import { getL2Denom, structTagToDenom } from 'lib/util';
-import { ChallengerCoinEntity, ChallengerOutputEntity, DepositTxEntity } from 'orm';
+import { ChallengerCoinEntity, DepositTxEntity } from 'orm';
 import { getCoinInfo } from 'lib/lcd';
 
 export class L1Monitor extends Monitor {
@@ -58,7 +57,7 @@ export class L1Monitor extends Monitor {
           break;
         }
         case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
-           // handle token bridge initiated event
+          // handle token bridge initiated event
           const denom = getL2Denom(Buffer.from(data['l2_token']));
 
           const entity: DepositTxEntity = {
@@ -73,7 +72,7 @@ export class L1Monitor extends Monitor {
           };
 
           await this.db.getRepository(DepositTxEntity).save(entity);
-          break
+          break;
         }
       }
     }

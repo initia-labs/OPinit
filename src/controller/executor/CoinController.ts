@@ -13,12 +13,11 @@ const Joi = Validator.Joi;
 
 @Controller('')
 export default class CoinController extends KoaController {
-
   /**
    * @api {get} /coin Get all coin mapping
    * @apiName getAllCoins
    * @apiGroup Coin
-   * 
+   *
    * @apiSuccess {Object[]} coins Coin mapping list
    */
   @Get('/coin')

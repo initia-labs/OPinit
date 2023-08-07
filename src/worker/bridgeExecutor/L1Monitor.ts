@@ -93,7 +93,7 @@ export class L1Monitor extends Monitor {
       await wallet
         .transaction(msgs)
         .then((info) => logger.info(`Tx submitted: ${info?.txhash}`))
-        .catch((err) => console.log(err));
+        .catch((err) => logger.error(`Err in L1 Monitor ${err}`));
     }
   }
 }

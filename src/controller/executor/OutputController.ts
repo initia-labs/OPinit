@@ -13,21 +13,23 @@ const Joi = Validator.Joi;
 
 @Controller('')
 export class OutputController extends KoaController {
-
   /**
    * @api {get} /output/latest Get all output entity
    * @apiName getAllOutputs
    * @apiGroup Output
-   * 
+   *
    * @apiParam {Number} [offset] Use next property from previous result for pagination
    * @apiParam {Number=10,20,100} [limit=20] Size of page
-   * 
+   *
    * @apiSuccess {Object[]} outputs Output list
    */
   @Get('/output')
   @Validate({
     query: {
-      limit: Joi.number().default(20).valid(10, 20, 100).description('Items per page'),
+      limit: Joi.number()
+        .default(20)
+        .valid(10, 20, 100)
+        .description('Items per page'),
       offset: Joi.alternatives(Joi.number(), Joi.string()).description('Offset')
     },
     failure: ErrorCodes.INVALID_REQUEST_ERROR
@@ -40,14 +42,13 @@ export class OutputController extends KoaController {
    * @api {get} /output/latest Get latest output entity
    * @apiName getLatestOutput
    * @apiGroup Output
-   * 
+   *
    * @apiSuccess {Object[]} outputs Output list
    */
   @Get('/output/latest')
   async getLatestOutput(ctx): Promise<void> {
     success(ctx, await getLatestOutput());
   }
-
 
   /**
    *
