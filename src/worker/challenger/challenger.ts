@@ -223,7 +223,7 @@ export class Challenger {
         .call(outputRootFromContract, (x) => x.toString(16).padStart(2, '0'))
         .join('');
     } catch {
-      console.log(
+      logger.info(
         '[L2 Challenger] waiting output submitter to submit output index : ',
         outputIndex
       );
