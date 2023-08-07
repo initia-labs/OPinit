@@ -85,7 +85,7 @@ export class Challenger {
         await this.l1Challenge();
         await this.l2Challenge();
       } catch (e) {
-        logger.error('Error in Challenger', e);
+        logger.error('Error in Challenger:', e);
       } finally {
         await delay(1000);
       }
@@ -324,6 +324,7 @@ async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
     await checkTx(client, broadcastResult.txhash);
     return broadcastResult.txhash;
   } catch (error) {
+    console.log(msg)
     throw new Error(`Error in sendTx: ${error}`);
   }
 }

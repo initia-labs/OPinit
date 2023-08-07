@@ -61,32 +61,26 @@ export class OutputSubmitter {
   }
 
   public async run() {
-    await this.init();
-
-    while (this.isRunning) {
-      try {
-        const nextBlockHeight = await this.getNextBlockHeight();
-        logger.info(`next block height: ${nextBlockHeight}`);
-        if (nextBlockHeight <= this.syncedHeight) {
-          this.logWaitingForNextOutput('synced height is not update');
-          continue;
-        }
-
-        const res: GetOutputResponse =
-          await this.apiRequester.getQuery<GetOutputResponse>(
-            `/output/height/${nextBlockHeight}`
-          );
-
-        await this.processOutputEntity(res.output, nextBlockHeight);
-      } catch (err) {
-        if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          this.logWaitingForNextOutput(`not found output from executor`);
-        } else {
-          logger.error('OutputSubmitter runs error:', err);
-          this.stop();
-        }
-      } finally {
-        await delay(1000);
+    try {
+      await this.init();
+      const nextBlockHeight = await this.getNextBlockHeight();
+      logger.info(`next block height: ${nextBlockHeight}`);
+      
+      if (nextBlockHeight <= this.syncedHeight) {
+        this.logWaitingForNextOutput('synced height is not update');
+        return;
+      }
+      const res: GetOutputResponse =
+        await this.apiRequester.getQuery<GetOutputResponse>(
+          `/output/height/${nextBlockHeight}`
+        );
+      await this.processOutputEntity(res.output, nextBlockHeight);
+    } catch (err) {
+      if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
+        this.logWaitingForNextOutput(`not found output from executor`);
+      } else {
+        logger.error('OutputSubmitter runs error:', err);
+        this.stop();
       }
     }
   }

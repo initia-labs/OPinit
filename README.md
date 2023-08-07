@@ -25,9 +25,7 @@ pm2 start batch.json
 
 ## Output Submitter
 
-```bash
-npm run output
-```
+Use pm2 to execute output submitter. It will submit next output only one time. You can set `restart_delay` in `output.json` to run output submitter periodically.
 
 If you use pm2,
 ```bash
@@ -67,9 +65,11 @@ pm2 start npm run executor.json
 | L2ID                      | L2ID                                                   | ''                               |
 | BATCH_PORT                | Batch submitter port                                   | 3000                             |
 | EXECUTOR_PORT             | Executor port                                          | 3001                             |
+| EXECUTOR_URI              | Executor URI                                           | http://localhost:3000            |
 | EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
 | BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
+
 
 > In Batch Submitter, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample)
