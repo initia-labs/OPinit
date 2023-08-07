@@ -7,7 +7,12 @@ import {
 } from 'koa-joi-controllers';
 import { ErrorCodes } from 'lib/error';
 import { success } from 'lib/response';
-import { getOutput, getLatestOutput, getAllOutputs, getOutputByHeight } from 'service';
+import {
+  getOutput,
+  getLatestOutput,
+  getAllOutputs,
+  getOutputByHeight
+} from 'service';
 
 const Joi = Validator.Joi;
 

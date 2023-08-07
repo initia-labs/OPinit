@@ -67,7 +67,8 @@ export class OutputSubmitter {
       try {
         const nextBlockHeight = await this.getNextBlockHeight();
         if (nextBlockHeight <= this.syncedHeight) {
-          throw new Error('synced height is not update');
+          this.logWaitingForNextOutput('synced height is not update');
+          continue;
         }
 
         const res: GetOutputResponse =
@@ -75,16 +76,11 @@ export class OutputSubmitter {
             `/output/height/${nextBlockHeight}`
           );
 
-        await this.processOutputEntity(
-          res.output,
-          nextBlockHeight
-        );
+        await this.processOutputEntity(res.output, nextBlockHeight);
       } catch (err) {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          console.log(err)
-          this.logWaitingForNextOutput(
-            `not found output from executor`
-          );
+          console.log(err);
+          this.logWaitingForNextOutput(`not found output from executor`);
         } else {
           logger.error('OutputSubmitter runs error:', err);
           this.stop();

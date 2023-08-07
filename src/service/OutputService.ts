@@ -21,10 +21,9 @@ export interface GetLatestOutputResponse {
   output: OutputEntity;
 }
 
-export interface GetOutputByHeightResponse{
+export interface GetOutputByHeightResponse {
   output: OutputEntity;
 }
-
 
 export async function getOutput(
   outputIndex: number
