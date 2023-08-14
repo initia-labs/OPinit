@@ -15,7 +15,9 @@ export abstract class Monitor {
     [this.db] = getDB();
   }
 
-  public async getLastOutputFromDB(manager: EntityManager): Promise<OutputEntity[]> {
+  public async getLastOutputFromDB(
+    manager: EntityManager
+  ): Promise<OutputEntity[]> {
     return await manager.getRepository(OutputEntity).find({
       order: { outputIndex: 'DESC' },
       take: 1

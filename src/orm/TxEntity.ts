@@ -22,7 +22,7 @@ export default class TxEntity {
   @Column('text')
   @Index('tx_l2id_index')
   l2Id: string;
-  
+
   @Column('int')
   @Index('tx_output_index')
   outputIndex: number;
