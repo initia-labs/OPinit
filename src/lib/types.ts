@@ -11,6 +11,7 @@ export interface WithdrawalTx {
   sender: string;
   receiver: string;
   amount: number;
+  l2_id: string
   coin_type: string;
 }
 

@@ -19,6 +19,10 @@ export default class WithdrawalTxEntity {
   @Column('int')
   amount: number;
 
+  @Column('text')
+  @Index('withdrawal_l2id_index')
+  l2Id: string;
+
   @Column('int')
   @Index('withdrawal_tx_output_index')
   outputIndex: number;

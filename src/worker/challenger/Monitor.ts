@@ -2,9 +2,11 @@ import * as Bluebird from 'bluebird';
 import { RPCSocket } from 'lib/rpc';
 import { ChallengerCoinEntity, ChallengerOutputEntity, StateEntity } from 'orm';
 import { getDB } from './db';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { logger } from 'lib/logger';
 import chalk from 'chalk';
+import axios from 'axios';
+import config from 'config';
 
 export abstract class Monitor {
   public syncedHeight: number;
@@ -15,15 +17,15 @@ export abstract class Monitor {
     [this.db] = getDB();
   }
 
-  public async getLastOutputFromDB(): Promise<ChallengerOutputEntity[]> {
-    return await this.db.getRepository(ChallengerOutputEntity).find({
+  public async getLastOutputFromDB(manager: EntityManager): Promise<ChallengerOutputEntity[]> {
+    return await manager.getRepository(ChallengerOutputEntity).find({
       order: { outputIndex: 'DESC' },
       take: 1
     });
   }
 
-  public async getLastOutputIndex(): Promise<number> {
-    const lastOutput = await this.getLastOutputFromDB();
+  public async getLastOutputIndex(manager:EntityManager): Promise<number> {
+    const lastOutput = await this.getLastOutputFromDB(manager);
     const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
     return lastIndex;
   }
@@ -64,7 +66,16 @@ export abstract class Monitor {
     this.isRunning = false;
   }
 
+  async isInvalidBlock(): Promise<boolean> {
+    const res = await axios.get(`${config.L2_RPC_URI}/invalid_block`);
+    return res.data['result']['height'] === '0'
+  }
+
   public async monitor(): Promise<void> {
+    if (await this.isInvalidBlock()){
+      logger.info('App hash is invalid. Please check the app hash')
+      process.exit(1)
+    }
     while (this.isRunning) {
       try {
         const latestHeight = this.socket.latestHeight;

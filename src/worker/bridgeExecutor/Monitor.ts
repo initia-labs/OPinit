@@ -1,8 +1,8 @@
 import * as Bluebird from 'bluebird';
 import { RPCSocket } from 'lib/rpc';
-import { StateEntity } from 'orm';
+import { OutputEntity, StateEntity } from 'orm';
 import { getDB } from './db';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { logger } from 'lib/logger';
 import chalk from 'chalk';
 
@@ -13,6 +13,19 @@ export abstract class Monitor {
 
   constructor(public socket: RPCSocket) {
     [this.db] = getDB();
+  }
+
+  public async getLastOutputFromDB(manager: EntityManager): Promise<OutputEntity[]> {
+    return await manager.getRepository(OutputEntity).find({
+      order: { outputIndex: 'DESC' },
+      take: 1
+    });
+  }
+
+  public async getLastOutputIndex(manager: EntityManager): Promise<number> {
+    const lastOutput = await this.getLastOutputFromDB(manager);
+    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+    return lastIndex;
   }
 
   public async run(): Promise<void> {
