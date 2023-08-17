@@ -81,7 +81,9 @@ export class L1Monitor extends Monitor {
               AccAddress.fromHex(data['from']),
               AccAddress.fromHex(data['to']),
               new Coin(denom, data['amount']),
-              Number.parseInt(data['l1_sequence'])
+              Number.parseInt(data['l1_sequence']),
+              this.syncedHeight + 1,
+              Buffer.from(data['data'])
             )
           );
           break;
