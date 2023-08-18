@@ -17,10 +17,15 @@ function getDateString() {
 }
 
 const print = winston.format.printf((info) => {
-  const level =
-    info.level === 'error'
-      ? chalk.red(info.level.toUpperCase())
-      : chalk.green(info.level.toUpperCase());
+  let level;
+  if (info.level === 'error') {
+    level = chalk.red(info.level.toUpperCase());
+  } else if (info.level === 'warn') {
+    level = chalk.yellow(info.level.toUpperCase());
+  } else {
+    level = chalk.green(info.level.toUpperCase());
+  }
+
   const log = `${getDateString()} [${level}]: ${info.message}`;
 
   return log;

@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-@Entity('tx')
-export default class TxEntity {
+@Entity('withdrawal_tx')
+export default class WithdrawalTxEntity {
   @PrimaryColumn('text')
   coinType: string;
 
@@ -9,22 +9,22 @@ export default class TxEntity {
   sequence: number;
 
   @Column('text')
-  @Index('tx_sender_index')
+  @Index('withdrawal_tx_sender_index')
   sender: string;
 
   @Column('text')
-  @Index('tx_receiver_index')
+  @Index('withdrawal_tx_receiver_index')
   receiver: string;
 
   @Column('int')
   amount: number;
 
   @Column('text')
-  @Index('tx_l2id_index')
+  @Index('withdrawal_l2id_index')
   l2Id: string;
 
   @Column('int')
-  @Index('tx_output_index')
+  @Index('withdrawal_tx_output_index')
   outputIndex: number;
 
   @Column('text')
@@ -32,4 +32,7 @@ export default class TxEntity {
 
   @Column('text', { array: true })
   merkleProof: string[];
+
+  @Column('boolean')
+  isChecked: boolean;
 }

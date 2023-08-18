@@ -1,5 +1,10 @@
 import config from 'config';
-import { CoinEntity, OutputEntity, TxEntity } from 'orm';
+import {
+  ChallengerCoinEntity,
+  ChallengerOutputEntity,
+  DepositTxEntity,
+  WithdrawalTxEntity
+} from 'orm';
 import { Monitor } from './Monitor';
 import { fetchBridgeConfig } from 'lib/lcd';
 import { WithdrawalStorage } from 'lib/storage';
@@ -13,7 +18,7 @@ export class L2Monitor extends Monitor {
   nextCheckpointBlockHeight: number;
 
   public name(): string {
-    return 'l2_monitor';
+    return 'challenger_l2_monitor';
   }
 
   public color(): string {
@@ -27,6 +32,7 @@ export class L2Monitor extends Monitor {
           const lastOutput = await this.getLastOutputFromDB(
             transactionalEntityManager
           );
+
           const lastCheckpointBlockHeight =
             lastOutput.length == 0 ? 0 : lastOutput[0].checkpointBlockHeight;
 
@@ -60,6 +66,7 @@ export class L2Monitor extends Monitor {
             { key: 'tx.height', value: (this.syncedHeight + 1).toString() }
           ]
         });
+
         const events = searchRes.txs
           .flatMap((tx) => tx.logs ?? [])
           .flatMap((log) => log.events);
@@ -75,45 +82,103 @@ export class L2Monitor extends Monitor {
             {}
           );
 
-          if (
-            attrMap['type_tag'] !== '0x1::op_bridge::TokenBridgeInitiatedEvent'
-          ) {
-            continue;
+          switch (attrMap['type_tag']) {
+            case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
+              const data: { [key: string]: string } = JSON.parse(
+                attrMap['data']
+              );
+              const l2Denom = Buffer.from(data['l2_token'])
+                .toString()
+                .replace('native_', '');
+              const coin = await transactionalEntityManager
+                .getRepository(ChallengerCoinEntity)
+                .findOne({
+                  where: { l2Denom }
+                });
+
+              if (!coin) {
+                logger.warn(`coin not found: ${l2Denom}`);
+                continue;
+              }
+
+              const tx: WithdrawalTxEntity = {
+                sequence: Number.parseInt(data['l2_sequence']),
+                sender: data['from'],
+                receiver: data['to'],
+                amount: Number.parseInt(data['amount']),
+                l2Id: data['l2_id'],
+                coinType: coin.l1StructTag,
+                outputIndex: lastIndex + 1,
+                merkleRoot: '',
+                merkleProof: [],
+                isChecked: false
+              };
+
+              logger.info(
+                `withdraw tx found in output index : ${tx.outputIndex}`
+              );
+
+              await transactionalEntityManager
+                .getRepository(WithdrawalTxEntity)
+                .save(tx);
+              break;
+            }
+            case '0x1::op_bridge::TokenBridgeFinalizedEvent': {
+              const data: { [key: string]: string } = JSON.parse(
+                attrMap['data']
+              );
+              const l2Denom = Buffer.from(data['l2_token'])
+                .toString()
+                .replace('native_', '');
+
+              // get unchecked deposit tx
+              const depositTx = await this.getDepositTx(
+                transactionalEntityManager,
+                Number.parseInt(data['l1_sequence']),
+                l2Denom
+              );
+
+              if (!depositTx) continue;
+
+              const lastIndex = await this.getLastOutputIndex(
+                transactionalEntityManager
+              );
+              const isTxSame = (originTx: DepositTxEntity): boolean => {
+                return (
+                  originTx.sequence === Number.parseInt(data['l1_sequence']) &&
+                  originTx.sender === data['from'] &&
+                  originTx.receiver === data['to'] &&
+                  originTx.amount === Number.parseInt(data['amount'])
+                );
+              };
+              const finalizedIndex = isTxSame(depositTx) ? lastIndex + 1 : null;
+              await transactionalEntityManager
+                .getRepository(DepositTxEntity)
+                .update(
+                  {
+                    sequence: depositTx.sequence,
+                    coinType: depositTx.coinType
+                  },
+                  { finalizedOutputIndex: finalizedIndex }
+                );
+              break;
+            }
           }
-
-          const data: { [key: string]: string } = JSON.parse(attrMap['data']);
-          const l2Denom = Buffer.from(data['l2_token'])
-            .toString()
-            .replace('native_', '');
-          const coin = await transactionalEntityManager
-            .getRepository(CoinEntity)
-            .findOne({
-              where: { l2Denom }
-            });
-
-          if (!coin) {
-            logger.warning(`coin not found for ${l2Denom}`);
-            continue;
-          }
-
-          const tx: TxEntity = {
-            sequence: Number.parseInt(data['l2_sequence']),
-            sender: data['from'],
-            receiver: data['to'],
-            amount: Number.parseInt(data['amount']),
-            l2Id: data['l2_id'],
-            coinType: coin.l1StructTag,
-            outputIndex: lastIndex + 1,
-            merkleRoot: '',
-            merkleProof: []
-          };
-
-          logger.info(`withdraw tx found in output index : ${tx.outputIndex}`);
-
-          await transactionalEntityManager.getRepository(TxEntity).save(tx);
         }
       }
     );
+  }
+
+  async getDepositTx(
+    transactionalEntityManager: EntityManager,
+    sequence: number,
+    coinType: string
+  ): Promise<DepositTxEntity | null> {
+    return await transactionalEntityManager
+      .getRepository(DepositTxEntity)
+      .findOne({
+        where: { sequence, coinType }
+      });
   }
 
   public async handleBlock(): Promise<void> {
@@ -123,21 +188,16 @@ export class L2Monitor extends Monitor {
           return;
         }
 
-        const lastOutput = await transactionalEntityManager
-          .getRepository(OutputEntity)
-          .find({
-            order: { outputIndex: 'DESC' },
-            take: 1
-          });
-        const lastIndex =
-          lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+        const lastIndex = await this.getLastOutputIndex(
+          transactionalEntityManager
+        );
         const blockInfo = await config.l2lcd.tendermint.blockInfo(
           this.syncedHeight
         );
 
         // fetch txs and build merkle tree for withdrawal storage
         const txEntities = await transactionalEntityManager
-          .getRepository(TxEntity)
+          .getRepository(WithdrawalTxEntity)
           .find({
             where: { outputIndex: lastIndex + 1 }
           });
@@ -166,7 +226,9 @@ export class L2Monitor extends Monitor {
 
           entity.merkleRoot = storageRoot;
           entity.merkleProof = storage.getMerkleProof(tx);
-          await transactionalEntityManager.getRepository(TxEntity).save(entity);
+          await transactionalEntityManager
+            .getRepository(WithdrawalTxEntity)
+            .save(entity);
         }
 
         // get output root and save to db
@@ -182,7 +244,8 @@ export class L2Monitor extends Monitor {
             Buffer.from(lastBlockHash, 'base64')
           ])
         ).toString('hex');
-        const outputEntity: OutputEntity = {
+
+        const outputEntity: ChallengerOutputEntity = {
           outputIndex: lastIndex + 1,
           outputRoot,
           stateRoot,
@@ -193,7 +256,7 @@ export class L2Monitor extends Monitor {
         };
 
         await transactionalEntityManager
-          .getRepository(OutputEntity)
+          .getRepository(ChallengerOutputEntity)
           .save(outputEntity);
         this.nextCheckpointBlockHeight += this.submissionInterval;
       }

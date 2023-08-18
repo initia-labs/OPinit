@@ -1,9 +1,41 @@
+import { RPCSocket } from 'lib/rpc';
+import { L1Monitor } from './L1Monitor';
+import { Monitor } from './Monitor';
 import { Challenger } from './challenger';
 import { initORM, finalizeORM } from './db';
 import { logger } from 'lib/logger';
 import { once } from 'lodash';
+import config from 'config';
+import { L2Monitor } from './L2Monitor';
+
+let monitors: (Monitor | Challenger)[];
+
+async function runBot(): Promise<void> {
+  const challenger = new Challenger();
+
+  // use to sync with bridge latest state
+  await challenger.fetchBridgeState();
+
+  monitors = [
+    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000)),
+    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000)),
+    challenger
+  ];
+
+  await Promise.all(
+    monitors.map((monitor) => {
+      monitor.run();
+    })
+  );
+}
+
+function stopBot(): void {
+  monitors.forEach((monitor) => monitor.stop());
+}
 
 async function gracefulShutdown(): Promise<void> {
+  stopBot();
+
   logger.info('Closing DB connection');
   await finalizeORM();
 
@@ -13,15 +45,7 @@ async function gracefulShutdown(): Promise<void> {
 
 async function main(): Promise<void> {
   await initORM();
-
-  const challenger = new Challenger();
-  await challenger.init();
-
-  const jobs = [
-    challenger.monitorL1Deposit(),
-    challenger.monitorL2Withdrawal()
-  ];
-  await Promise.all(jobs);
+  await runBot();
 
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
   signals.forEach((signal) => process.on(signal, once(gracefulShutdown)));

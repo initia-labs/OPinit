@@ -49,13 +49,9 @@ export class APIRequest {
     });
   }
 
-  private async getQuery<T>(url: string): Promise<T> {
+  public async getQuery<T>(url: string): Promise<T> {
     const response = await this.api.get<T>(url);
     return response.data;
-  }
-
-  public async getOuptut(outputIndx: number): Promise<OutputEntity> {
-    return this.getQuery<OutputEntity>(`/output/${outputIndx}`);
   }
 
   public async getBlock(blockHeight: number): Promise<any> {

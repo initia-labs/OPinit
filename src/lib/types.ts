@@ -11,7 +11,18 @@ export interface WithdrawalTx {
   sender: string;
   receiver: string;
   amount: number;
+  l2_id: string;
   coin_type: string;
+}
+
+export interface DepositTx {
+  sequence: number;
+  sender: string;
+  receiver: string;
+  amount: number;
+  l2_id: string;
+  l1_token: string;
+  l2_token: string;
 }
 
 export interface L1TokenBridgeInitiatedEvent {

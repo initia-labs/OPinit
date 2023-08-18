@@ -1,10 +1,12 @@
 import * as Bluebird from 'bluebird';
 import { RPCSocket } from 'lib/rpc';
-import { OutputEntity, StateEntity } from 'orm';
+import { ChallengerCoinEntity, ChallengerOutputEntity, StateEntity } from 'orm';
 import { getDB } from './db';
 import { DataSource, EntityManager } from 'typeorm';
 import { logger } from 'lib/logger';
 import chalk from 'chalk';
+import axios from 'axios';
+import config from 'config';
 
 export abstract class Monitor {
   public syncedHeight: number;
@@ -17,8 +19,8 @@ export abstract class Monitor {
 
   public async getLastOutputFromDB(
     manager: EntityManager
-  ): Promise<OutputEntity[]> {
-    return await manager.getRepository(OutputEntity).find({
+  ): Promise<ChallengerOutputEntity[]> {
+    return await manager.getRepository(ChallengerOutputEntity).find({
       order: { outputIndex: 'DESC' },
       take: 1
     });
@@ -28,6 +30,18 @@ export abstract class Monitor {
     const lastOutput = await this.getLastOutputFromDB(manager);
     const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
     return lastIndex;
+  }
+
+  public async getCoinTypeFromDB(l2Denom: string): Promise<string> {
+    const coin = await this.db.getRepository(ChallengerCoinEntity).findOne({
+      where: { l2Denom }
+    });
+
+    if (!coin) {
+      throw new Error(`coin not found: ${l2Denom}`);
+    }
+
+    return coin.l1StructTag;
   }
 
   public async run(): Promise<void> {
@@ -54,7 +68,16 @@ export abstract class Monitor {
     this.isRunning = false;
   }
 
+  async isInvalidBlock(): Promise<boolean> {
+    const res = await axios.get(`${config.L2_RPC_URI}/invalid_block`);
+    return res.data['result']['height'] === '0';
+  }
+
   public async monitor(): Promise<void> {
+    if (await this.isInvalidBlock()) {
+      logger.info('App hash is invalid. Please check the app hash');
+      process.exit(1);
+    }
     while (this.isRunning) {
       try {
         const latestHeight = this.socket.latestHeight;

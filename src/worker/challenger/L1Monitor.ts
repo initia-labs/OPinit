@@ -1,22 +1,13 @@
-import { logger } from 'lib/logger';
 import config from 'config';
 import { Monitor } from './Monitor';
-import { getCoinInfo } from 'lib/lcd';
-import {
-  AccAddress,
-  Coin,
-  Msg,
-  MsgCreateToken,
-  MsgDeposit
-} from '@initia/minitia.js';
 import { getL2Denom, structTagToDenom } from 'lib/util';
-import { CoinEntity } from 'orm';
-import { WalletType, getWallet, TxWallet } from 'lib/wallet';
+import { ChallengerCoinEntity, DepositTxEntity } from 'orm';
+import { getCoinInfo } from 'lib/lcd';
 import { EntityManager } from 'typeorm';
 
 export class L1Monitor extends Monitor {
   public name(): string {
-    return 'l1_monitor';
+    return 'challenger_l1_monitor';
   }
 
   public color(): string {
@@ -26,8 +17,6 @@ export class L1Monitor extends Monitor {
   public async handleEvents(): Promise<void> {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
-        const msgs: Msg[] = [];
-        const wallet: TxWallet = getWallet(WalletType.Executor);
         const searchRes = await config.l1lcd.tx.search({
           events: [
             { key: 'tx.height', value: (this.syncedHeight + 1).toString() }
@@ -36,6 +25,11 @@ export class L1Monitor extends Monitor {
         const events = searchRes.txs
           .flatMap((tx) => tx.logs ?? [])
           .flatMap((log) => log.events);
+
+        const lastIndex = await this.getLastOutputIndex(
+          transactionalEntityManager
+        );
+
         for (const evt of events) {
           if (evt.type !== 'move') continue;
 
@@ -58,7 +52,7 @@ export class L1Monitor extends Monitor {
                 Buffer.from(data['l2_token'])
               );
               const l2Denom = coinInfo.denom;
-              const coin: CoinEntity = {
+              const coin: ChallengerCoinEntity = {
                 l1StructTag: data['l1_token'],
                 l1Denom: structTagToDenom(data['l1_token']),
                 l2StructTag: `0x1::native_${l2Denom}::Coin`,
@@ -66,43 +60,31 @@ export class L1Monitor extends Monitor {
               };
 
               await transactionalEntityManager
-                .getRepository(CoinEntity)
+                .getRepository(ChallengerCoinEntity)
                 .save(coin);
-              msgs.push(
-                new MsgCreateToken(
-                  wallet.key.accAddress,
-                  l2Denom,
-                  coinInfo.name,
-                  coinInfo.symbol,
-                  coinInfo.decimals
-                )
-              );
               break;
             }
             case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
               // handle token bridge initiated event
               const denom = getL2Denom(Buffer.from(data['l2_token']));
-              msgs.push(
-                new MsgDeposit(
-                  wallet.key.accAddress,
-                  AccAddress.fromHex(data['from']),
-                  AccAddress.fromHex(data['to']),
-                  new Coin(denom, data['amount']),
-                  Number.parseInt(data['l1_sequence']),
-                  this.syncedHeight + 1,
-                  Buffer.from(data['data'])
-                )
-              );
+
+              const entity: DepositTxEntity = {
+                sequence: Number.parseInt(data['l1_sequence']),
+                sender: data['from'],
+                receiver: data['to'],
+                amount: Number.parseInt(data['amount']),
+                outputIndex: lastIndex + 1,
+                finalizedOutputIndex: null,
+                coinType: denom,
+                isChecked: false
+              };
+
+              await transactionalEntityManager
+                .getRepository(DepositTxEntity)
+                .save(entity);
               break;
             }
           }
-        }
-
-        if (msgs.length > 0) {
-          await wallet
-            .transaction(msgs)
-            .then((info) => logger.info(`Tx submitted: ${info?.txhash}`))
-            .catch((err) => logger.error(`Err in L1 Monitor ${err}`));
         }
       }
     );

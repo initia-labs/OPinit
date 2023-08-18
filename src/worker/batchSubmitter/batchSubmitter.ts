@@ -27,6 +27,7 @@ export class BatchSubmitter {
   private dataSource: DataSource;
   private submitter: Wallet;
   private submissionInterval: number;
+  private isRunning = false;
 
   async init() {
     [this.dataSource] = getDB();
@@ -38,44 +39,53 @@ export class BatchSubmitter {
     const bridgeCfg = await fetchBridgeConfig();
     this.batchL2StartHeight = parseInt(bridgeCfg.starting_block_number);
     this.submissionInterval = parseInt(bridgeCfg.submission_interval);
+    this.isRunning = true;
+  }
+
+  public stop() {
+    this.isRunning = false;
   }
 
   public async run() {
-    try {
-      const latestBatch = await this.getStoredBatch(this.dataSource);
-      if (latestBatch) {
-        this.batchIndex = latestBatch.batchIndex + 1;
-      }
+    await this.init();
 
-      // e.g [start_height + 0, start_height + 99], [start_height + 100, start_height + 199], ...
-      const startHeight =
-        this.batchL2StartHeight + this.batchIndex * this.submissionInterval;
-      const endHeight =
-        this.batchL2StartHeight +
-        (this.batchIndex + 1) * this.submissionInterval -
-        1;
+    while (this.isRunning) {
+      try {
+        const latestBatch = await this.getStoredBatch(this.dataSource);
+        if (latestBatch) {
+          this.batchIndex = latestBatch.batchIndex + 1;
+        }
 
-      if (endHeight > this.latestBlockHeight) {
+        // e.g [start_height + 0, start_height + 99], [start_height + 100, start_height + 199], ...
+        const startHeight =
+          this.batchL2StartHeight + this.batchIndex * this.submissionInterval;
+        const endHeight =
+          this.batchL2StartHeight +
+          (this.batchIndex + 1) * this.submissionInterval -
+          1;
+
+        if (endHeight > this.latestBlockHeight) {
+          logger.info(
+            `[${this.batchIndex}th batch] batch interval is not satisfied. current height: ${this.latestBlockHeight} target height: ${endHeight}`
+          );
+          this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd); // update latest block height
+          return;
+        }
+
+        const batch = await this.getBatch(startHeight, endHeight);
         logger.info(
-          `[${this.batchIndex}th batch] batch interval is not satisfied. current height: ${this.latestBlockHeight} target height: ${endHeight}`
+          `[${this.batchIndex}th batch] batch is generated. start height: ${startHeight} end height: ${endHeight}`
         );
-        this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd); // update latest block height
-        return;
+        const txHash = await this.publishBatchToL1(batch);
+        logger.info(
+          `[${this.batchIndex}th batch] batch is published to L1. tx hash: ${txHash}`
+        );
+
+        await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
+        logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
+      } catch (err) {
+        throw new Error(`Error in BatchSubmitter: ${err}`);
       }
-
-      const batch = await this.getBatch(startHeight, endHeight);
-      logger.info(
-        `[${this.batchIndex}th batch] batch is generated. start height: ${startHeight} end height: ${endHeight}`
-      );
-      const txHash = await this.publishBatchToL1(batch);
-      logger.info(
-        `[${this.batchIndex}th batch] batch is published to L1. tx hash: ${txHash}`
-      );
-
-      await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
-      logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
-    } catch (err) {
-      throw new Error(`Error in BatchSubmitter: ${err}`);
     }
   }
 
@@ -119,7 +129,7 @@ export class BatchSubmitter {
         'record_batch',
         [config.L2ID],
         [
-          bcs.serialize('vector<u8>', batch, this.submissionInterval*1000) // TODO: get max batch size from chain
+          bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000) // TODO: get max batch size from chain
         ]
       );
 
@@ -162,7 +172,6 @@ async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
     await checkTx(client, broadcastResult.txhash);
     return broadcastResult.txhash;
   } catch (error) {
-    console.log(error);
     throw new Error(`Error in sendTx: ${error}`);
   }
 }

@@ -10,12 +10,24 @@ import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
 const debug = require('debug')('orm');
 
-import { DepositTxEntity, StateEntity, WithdrawalTxEntity } from 'orm';
+import {
+  ChallengerCoinEntity,
+  ChallengerOutputEntity,
+  DepositTxEntity,
+  StateEntity,
+  WithdrawalTxEntity
+} from 'orm';
 
 const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
-  entities: [StateEntity, WithdrawalTxEntity, DepositTxEntity]
+  entities: [
+    StateEntity,
+    WithdrawalTxEntity,
+    DepositTxEntity,
+    ChallengerOutputEntity,
+    ChallengerCoinEntity
+  ]
 };
 
 let DB: DataSource[] = [];

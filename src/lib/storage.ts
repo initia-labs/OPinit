@@ -36,6 +36,7 @@ export class WithdrawalStorage {
             Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.sender), 'base64'),
             Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.receiver), 'base64'),
             Buffer.from(this.bcs.serialize(BCS.U64, tx.amount), 'base64'),
+            Buffer.from(tx.l2_id, 'utf8'),
             Buffer.from(tx.coin_type, 'utf8')
           ])
         )
@@ -50,6 +51,7 @@ export class WithdrawalStorage {
         Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.sender), 'base64'),
         Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.receiver), 'base64'),
         Buffer.from(this.bcs.serialize(BCS.U64, tx.amount), 'base64'),
+        Buffer.from(tx.l2_id, 'utf8'),
         Buffer.from(tx.coin_type, 'utf8')
       ])
     );

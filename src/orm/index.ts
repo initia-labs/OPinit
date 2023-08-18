@@ -3,16 +3,20 @@ import OutputEntity from './OutputEntity';
 import TxEntity from './TxEntity';
 import CoinEntity from './CoinEntity';
 import StateEntity from './StateEntity';
-import DepositTxEntity from './DepositTxEntity';
-import WithdrawalTxEntity from './WithdrawalTxEntity';
+import DepositTxEntity from './challenger/DepositTxEntity';
+import WithdrawalTxEntity from './challenger/WithdrawalTxEntity';
+import ChallengerOutputEntity from './challenger/ChallengerOutputEntity';
+import ChallengerCoinEntity from './challenger/ChallengerCoinEntity';
 
 export * from './RecordEntity';
 export * from './OutputEntity';
 export * from './TxEntity';
 export * from './CoinEntity';
 export * from './StateEntity';
-export * from './DepositTxEntity';
-export * from './WithdrawalTxEntity';
+export * from './challenger/DepositTxEntity';
+export * from './challenger/WithdrawalTxEntity';
+export * from './challenger/ChallengerOutputEntity';
+export * from './challenger/ChallengerCoinEntity';
 
 export {
   RecordEntity,
@@ -21,5 +25,7 @@ export {
   CoinEntity,
   StateEntity,
   DepositTxEntity,
-  WithdrawalTxEntity
+  WithdrawalTxEntity,
+  ChallengerOutputEntity,
+  ChallengerCoinEntity
 };
