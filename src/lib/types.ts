@@ -30,7 +30,7 @@ export interface L1TokenBridgeInitiatedEvent {
   to: string;
   l2_id: string;
   l1_token: string;
-  l2_token: Buffer;
+  l2_token: string;
   amount: number;
   l1_sequence: number;
 }
@@ -38,7 +38,7 @@ export interface L1TokenBridgeInitiatedEvent {
 export interface L2TokenBridgeInitiatedEvent {
   from: string;
   to: string;
-  l2_token: Buffer;
+  l2_token: string;
   amount: number;
   l2_sequence: number;
 }

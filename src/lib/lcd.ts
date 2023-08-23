@@ -1,6 +1,5 @@
 import { delay } from 'bluebird';
 import { TxInfo, Wallet, Msg } from '@initia/minitia.js';
-import { getL2Denom } from './util';
 import { BridgeConfig } from './types';
 import config from '../config';
 
@@ -47,7 +46,7 @@ export async function fetchBridgeConfig(): Promise<BridgeConfig> {
 
 export async function getCoinInfo(
   structTag: string,
-  l2Token: Buffer
+  l2Denom: string
 ): Promise<CoinInfo> {
   const address = structTag.split('::')[0];
   const resource = await config.l1lcd.move.resource<{
@@ -58,7 +57,7 @@ export async function getCoinInfo(
 
   return {
     structTag,
-    denom: getL2Denom(l2Token),
+    denom: l2Denom,
     name: resource.data.name,
     symbol: resource.data.symbol,
     decimals: resource.data.decimals

@@ -87,9 +87,7 @@ export class L2Monitor extends Monitor {
               const data: { [key: string]: string } = JSON.parse(
                 attrMap['data']
               );
-              const l2Denom = Buffer.from(data['l2_token'])
-                .toString()
-                .replace('native_', '');
+              const l2Denom = data['l2_token'].replace('native_', '');
               const coin = await transactionalEntityManager
                 .getRepository(ChallengerCoinEntity)
                 .findOne({
@@ -127,9 +125,7 @@ export class L2Monitor extends Monitor {
               const data: { [key: string]: string } = JSON.parse(
                 attrMap['data']
               );
-              const l2Denom = Buffer.from(data['l2_token'])
-                .toString()
-                .replace('native_', '');
+              const l2Denom = data['l2_token'].replace('native_', '');
 
               // get unchecked deposit tx
               const depositTx = await this.getDepositTx(

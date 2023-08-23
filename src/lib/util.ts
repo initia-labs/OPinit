@@ -115,7 +115,3 @@ export function structTagToDenom(structTag: string): string {
     return `move/${hash}`;
   }
 }
-
-export function getL2Denom(rawBuffer: Buffer): string {
-  return `l2_${rawBuffer.toString('hex')}`;
-}
