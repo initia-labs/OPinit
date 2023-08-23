@@ -9,7 +9,7 @@ import {
   MsgCreateToken,
   MsgDeposit
 } from '@initia/minitia.js';
-import { getL2Denom, structTagToDenom } from 'lib/util';
+import { structTagToDenom } from 'lib/util';
 import { CoinEntity } from 'orm';
 import { WalletType, getWallet, TxWallet } from 'lib/wallet';
 import { EntityManager } from 'typeorm';
@@ -55,7 +55,7 @@ export class L1Monitor extends Monitor {
               // handle token registered event
               const coinInfo = await getCoinInfo(
                 data['l1_token'],
-                Buffer.from(data['l2_token'])
+                `l2_${data['l2_token']}`
               );
               const l2Denom = coinInfo.denom;
               const coin: CoinEntity = {
@@ -81,7 +81,7 @@ export class L1Monitor extends Monitor {
             }
             case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
               // handle token bridge initiated event
-              const denom = getL2Denom(Buffer.from(data['l2_token']));
+              const denom = `l2_${data['l2_token']}`;
               msgs.push(
                 new MsgDeposit(
                   wallet.key.accAddress,

@@ -1,6 +1,6 @@
 import config from 'config';
 import { Monitor } from './Monitor';
-import { getL2Denom, structTagToDenom } from 'lib/util';
+import { structTagToDenom } from 'lib/util';
 import { ChallengerCoinEntity, DepositTxEntity } from 'orm';
 import { getCoinInfo } from 'lib/lcd';
 import { EntityManager } from 'typeorm';
@@ -49,7 +49,7 @@ export class L1Monitor extends Monitor {
               // handle token registered event
               const coinInfo = await getCoinInfo(
                 data['l1_token'],
-                Buffer.from(data['l2_token'])
+                `l2_${data['l2_token']}`
               );
               const l2Denom = coinInfo.denom;
               const coin: ChallengerCoinEntity = {
@@ -66,7 +66,7 @@ export class L1Monitor extends Monitor {
             }
             case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
               // handle token bridge initiated event
-              const denom = getL2Denom(Buffer.from(data['l2_token']));
+              const denom = `l2_${data['l2_token']}`;
 
               const entity: DepositTxEntity = {
                 sequence: Number.parseInt(data['l1_sequence']),
