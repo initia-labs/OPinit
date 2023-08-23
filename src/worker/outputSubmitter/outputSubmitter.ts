@@ -76,10 +76,10 @@ export class OutputSubmitter {
         );
       await this.processOutputEntity(res.output, nextBlockHeight);
     } catch (err) {
+      console.log(err)
       if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
         this.logWaitingForNextOutput(`not found output from executor`);
       } else {
-        logger.error('OutputSubmitter runs error:', err);
         this.stop();
       }
     }

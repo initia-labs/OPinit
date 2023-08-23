@@ -5,7 +5,7 @@ import { getDB } from './db';
 import { DataSource, EntityManager } from 'typeorm';
 import { logger } from 'lib/logger';
 import chalk from 'chalk';
-
+import config from 'config';
 export abstract class Monitor {
   public syncedHeight: number;
   protected db: DataSource;
@@ -77,7 +77,8 @@ export abstract class Monitor {
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
       } catch (e) {
-        logger.error('Monitor runs error:', e);
+        console.log(e)
+        this.stop();
       } finally {
         await Bluebird.Promise.delay(100);
       }

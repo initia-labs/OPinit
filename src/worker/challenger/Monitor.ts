@@ -100,7 +100,7 @@ export abstract class Monitor {
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
       } catch (e) {
-        logger.error('Monitor runs error:', e);
+        this.stop();
       } finally {
         await Bluebird.Promise.delay(100);
       }

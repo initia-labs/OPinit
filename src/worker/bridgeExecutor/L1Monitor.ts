@@ -101,8 +101,12 @@ export class L1Monitor extends Monitor {
         if (msgs.length > 0) {
           await wallet
             .transaction(msgs)
-            .then((info) => logger.info(`Tx submitted: ${info?.txhash}`))
-            .catch((err) => logger.error(`Err in L1 Monitor ${err}`));
+            .then((info) => {
+              logger.info(`Tx submitted: ${info?.txhash}`)
+            })
+            .catch((err) => {
+              throw new Error(`Error in L1 Monitor ${err}`);
+            });
         }
       }
     );

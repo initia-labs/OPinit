@@ -20,7 +20,7 @@ import {
 import { delay } from 'bluebird';
 import { logger } from 'lib/logger';
 import { APIRequest } from 'lib/apiRequest';
-import { GetAllOutputsResponse, GetLatestOutputResponse } from 'service';
+import { GetLatestOutputResponse } from 'service';
 import { fetchBridgeConfig } from 'lib/lcd';
 import axios from 'axios';
 import { GetAllCoinsResponse } from 'service/CoinService';
@@ -40,6 +40,7 @@ export class Challenger {
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.CHALLENGER_MNEMONIC })
     );
+    this.isRunning = true;
   }
 
   // TODO: fetch from finalized state, not latest state
@@ -80,12 +81,12 @@ export class Challenger {
   public async run(): Promise<void> {
     await this.init();
 
-    while (!this.isRunning) {
+    while (this.isRunning) {
       try {
         await this.l1Challenge();
         await this.l2Challenge();
       } catch (e) {
-        logger.error('Error in Challenger:', e);
+        this.stop();
       } finally {
         await delay(1000);
       }
@@ -324,7 +325,6 @@ async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
     await checkTx(client, broadcastResult.txhash);
     return broadcastResult.txhash;
   } catch (error) {
-    console.log(msg);
     throw new Error(`Error in sendTx: ${error}`);
   }
 }

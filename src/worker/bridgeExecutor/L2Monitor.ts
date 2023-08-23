@@ -43,8 +43,9 @@ export class L2Monitor extends Monitor {
         }
       );
       await super.run();
-    } catch (e) {
-      logger.error('L2Monitor runs error:', e);
+    } catch (err) {
+      logger.error('L2Monitor runs error:', err);
+      throw new Error(`Error in L2 Monitor ${err}`);
     }
   }
 
@@ -99,13 +100,14 @@ export class L2Monitor extends Monitor {
             sender: data['from'],
             receiver: data['to'],
             amount: Number.parseInt(data['amount']),
-            l2Id: data['l2_id'],
+            l2Id: config.L2ID,
             coinType: coin.l1StructTag,
             outputIndex: lastIndex + 1,
             merkleRoot: '',
             merkleProof: []
           };
-
+          console.log(data)
+          console.log('l2id: ', data['l2_id'])
           logger.info(`withdraw tx found in output index : ${tx.outputIndex}`);
 
           await transactionalEntityManager.getRepository(TxEntity).save(tx);
