@@ -16,6 +16,7 @@
     "test": "jest",
     "prettier": "prettier --write ./src/**/**/**/**/*.ts",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "do": "ts-node -T --files -r tsconfig-paths/register",
     "apidoc": "npm run do src/loader/generateApiDoc.ts",
     "prepublishOnly": "npm run build"
   },

@@ -5,7 +5,7 @@ import * as yargs from 'yargs';
 
 import config from 'config';
 
-import { logger } from 'lib/logger';
+import { executorLogger as logger } from 'lib/logger';
 
 const templateDir = './apidoc-template/';
 const templateName = 'index.html';
