@@ -1,33 +1,16 @@
 import * as Bluebird from 'bluebird';
 import { RPCSocket } from 'lib/rpc';
-import { OutputEntity, StateEntity } from 'orm';
-import { getDB } from './db';
-import { DataSource, EntityManager } from 'typeorm';
-import { executorLogger as logger } from 'lib/logger';
+import { StateEntity } from 'orm';
+import { DataSource } from 'typeorm';
+import MonitorHelper from './MonitorHelper';
+import winston from 'winston';
 
 export abstract class Monitor {
   public syncedHeight: number;
   protected db: DataSource;
   protected isRunning = false;
-
-  constructor(public socket: RPCSocket) {
-    [this.db] = getDB();
-  }
-
-  public async getLastOutputFromDB(
-    manager: EntityManager
-  ): Promise<OutputEntity[]> {
-    return await manager.getRepository(OutputEntity).find({
-      order: { outputIndex: 'DESC' },
-      take: 1
-    });
-  }
-
-  public async getLastOutputIndex(manager: EntityManager): Promise<number> {
-    const lastOutput = await this.getLastOutputFromDB(manager);
-    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
-    return lastIndex;
-  }
+  helper: MonitorHelper = new MonitorHelper();
+  constructor(public socket: RPCSocket, public logger: winston.Logger) {}
 
   public async run(): Promise<void> {
     const state = await this.db.getRepository(StateEntity).findOne({
@@ -59,7 +42,7 @@ export abstract class Monitor {
         const latestHeight = this.socket.latestHeight;
         if (!latestHeight || this.syncedHeight >= latestHeight) continue;
         if ((this.syncedHeight + 1) % 10 == 0 && this.syncedHeight !== 0) {
-          logger.info(`${this.name()} height ${this.syncedHeight + 1}`);
+          this.logger.info(`${this.name()} height ${this.syncedHeight + 1}`);
         }
 
         await this.handleEvents();
@@ -72,7 +55,7 @@ export abstract class Monitor {
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
       } catch (e) {
-        console.log(e)
+        console.log(e);
         this.stop();
       } finally {
         await Bluebird.Promise.delay(100);
@@ -88,11 +71,6 @@ export abstract class Monitor {
 
   // eslint-disable-next-line
   public name(): string {
-    return '';
-  }
-
-  // eslint-disable-next-line
-  public color(): string {
     return '';
   }
 }

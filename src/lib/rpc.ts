@@ -11,7 +11,7 @@ export class RPCSocket {
   public alivedAt: number;
   public updateTimer: NodeJS.Timer;
   public latestHeight?: number;
-  logger: winston.Logger
+  logger: winston.Logger;
 
   constructor(rpcUrl: string, public interval: number, logger: winston.Logger) {
     this.wsUrl = rpcUrl.replace('http', 'ws') + '/websocket';

@@ -18,13 +18,16 @@ function getDateString() {
 
 function getLogsSubdir() {
   const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1, 2)}-${pad(d.getDate(), 2)}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1, 2)}-${pad(
+    d.getDate(),
+    2
+  )}`;
 }
 
 const print = winston.format.printf((info) => {
   let level;
 
-  if (!config.USE_LOG_FILE){
+  if (!config.USE_LOG_FILE) {
     // Do not colorize when writing to file
     if (info.level === 'error') {
       level = chalk.red(info.level.toUpperCase());
@@ -35,7 +38,9 @@ const print = winston.format.printf((info) => {
     }
   }
 
-  const log = `${getDateString()} [${level ? level : info.level}]: ${info.message}`;
+  const log = `${getDateString()} [${level ? level : info.level}]: ${
+    info.message
+  }`;
 
   return log;
 });

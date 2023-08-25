@@ -1,7 +1,6 @@
-import { executorLogger as logger } from 'lib/logger';
 import config from 'config';
 import { Monitor } from './Monitor';
-import { getCoinInfo } from 'lib/lcd';
+import { CoinInfo, getCoinInfo } from 'lib/lcd';
 import {
   AccAddress,
   Coin,
@@ -10,13 +9,42 @@ import {
   MsgDeposit
 } from '@initia/minitia.js';
 import { structTagToDenom } from 'lib/util';
-import { CoinEntity } from 'orm';
+import { ExecutorCoinEntity } from 'orm';
 import { WalletType, getWallet, TxWallet } from 'lib/wallet';
 import { EntityManager } from 'typeorm';
+import { RPCSocket } from 'lib/rpc';
+import { getDB } from './db';
+import winston from 'winston';
 
 export class L1Monitor extends Monitor {
+  constructor(public socket: RPCSocket, logger: winston.Logger) {
+    super(socket, logger);
+    [this.db] = getDB();
+  }
+
   public name(): string {
-    return 'l1_monitor';
+    return 'executor_l1_monitor';
+  }
+
+  public async handleTokenRegisteredEvent(
+    manager: EntityManager,
+    data: { [key: string]: string }
+  ): Promise<[string, CoinInfo]> {
+    const coinInfo: CoinInfo = await getCoinInfo(
+      data['l1_token'],
+      `l2_${data['l2_token']}`
+    );
+    const l2Denom = coinInfo.denom;
+    const coin: ExecutorCoinEntity = {
+      l1StructTag: data['l1_token'],
+      l1Denom: structTagToDenom(data['l1_token']),
+      l2StructTag: `0x1::native_${l2Denom}::Coin`,
+      l2Denom
+    };
+
+    await this.helper.saveEntity(manager, ExecutorCoinEntity, coin);
+
+    return [l2Denom, coinInfo];
   }
 
   public async handleEvents(): Promise<void> {
@@ -24,46 +52,22 @@ export class L1Monitor extends Monitor {
       async (transactionalEntityManager: EntityManager) => {
         const msgs: Msg[] = [];
         const wallet: TxWallet = getWallet(WalletType.Executor);
-        const searchRes = await config.l1lcd.tx.search({
-          events: [
-            { key: 'tx.height', value: (this.syncedHeight + 1).toString() }
-          ]
-        });
-        const events = searchRes.txs
-          .flatMap((tx) => tx.logs ?? [])
-          .flatMap((log) => log.events);
+        const events = await this.helper.fetchEvents(
+          config.l1lcd,
+          this.syncedHeight
+        );
+
         for (const evt of events) {
-          if (evt.type !== 'move') continue;
-
-          const attrMap: { [key: string]: string } = evt.attributes.reduce(
-            (obj, attr) => {
-              obj[attr.key] = attr.value;
-              return obj;
-            },
-            {}
-          );
-
-          const data: { [key: string]: string } = JSON.parse(attrMap['data']);
+          const attrMap = this.helper.eventsToAttrMap(evt);
+          const data = this.helper.parseData(attrMap);
           if (data['l2_id'] !== config.L2ID) continue;
 
           switch (attrMap['type_tag']) {
             case '0x1::op_bridge::TokenRegisteredEvent': {
-              // handle token registered event
-              const coinInfo = await getCoinInfo(
-                data['l1_token'],
-                `l2_${data['l2_token']}`
+              const [l2Denom, coinInfo] = await this.handleTokenRegisteredEvent(
+                transactionalEntityManager,
+                data
               );
-              const l2Denom = coinInfo.denom;
-              const coin: CoinEntity = {
-                l1StructTag: data['l1_token'],
-                l1Denom: structTagToDenom(data['l1_token']),
-                l2StructTag: `0x1::native_${l2Denom}::Coin`,
-                l2Denom
-              };
-
-              await transactionalEntityManager
-                .getRepository(CoinEntity)
-                .save(coin);
               msgs.push(
                 new MsgCreateToken(
                   wallet.key.accAddress,
@@ -98,7 +102,9 @@ export class L1Monitor extends Monitor {
           await wallet
             .transaction(msgs)
             .then((info) => {
-              logger.info(`Tx submitted in height: ${this.syncedHeight}, txhash: ${info?.txhash}`)
+              this.logger.info(
+                `Tx submitted in height: ${this.syncedHeight}, txhash: ${info?.txhash}`
+              );
             })
             .catch((err) => {
               throw new Error(`Error in L1 Monitor ${err}`);

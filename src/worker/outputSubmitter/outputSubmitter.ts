@@ -8,7 +8,7 @@ import {
   TxInfo
 } from '@initia/initia.js';
 import config, { INTERVAL_OUTPUT } from 'config';
-import { OutputEntity } from 'orm';
+import { ExecutorOutputEntity } from 'orm';
 import { APIRequest } from 'lib/apiRequest';
 import { delay } from 'bluebird';
 import { outputLogger as logger } from 'lib/logger';
@@ -63,13 +63,16 @@ export class OutputSubmitter {
   }
 
   public async run() {
-    while(this.isRunning) {
-      try {
-        await this.init();
-        const nextBlockHeight = await this.getNextBlockHeight();
-        logger.info(`next block height: ${nextBlockHeight}, synced height: ${this.syncedHeight}`);
+    await this.init();
 
-        if (nextBlockHeight <= this.syncedHeight) continue
+    while (this.isRunning) {
+      try {
+        const nextBlockHeight = await this.getNextBlockHeight();
+        logger.info(
+          `next block height: ${nextBlockHeight}, synced height: ${this.syncedHeight}`
+        );
+
+        if (nextBlockHeight <= this.syncedHeight) continue;
 
         const res: GetOutputResponse =
           await this.apiRequester.getQuery<GetOutputResponse>(
@@ -80,7 +83,7 @@ export class OutputSubmitter {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
           this.logWaitingForNextOutput(`not found output from executor height`);
         } else {
-          logger.error(err)
+          logger.error(err);
           this.stop();
         }
       } finally {
@@ -94,7 +97,7 @@ export class OutputSubmitter {
   }
 
   private async processOutputEntity(
-    outputEntity: OutputEntity,
+    outputEntity: ExecutorOutputEntity,
     nextBlockHeight: number
   ) {
     await this.proposeL2Output(

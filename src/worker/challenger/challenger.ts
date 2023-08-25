@@ -11,8 +11,8 @@ import {
 import { DataSource } from 'typeorm';
 import { getDB } from './db';
 import {
-  WithdrawalTxEntity,
-  DepositTxEntity,
+  ChallengerWithdrawalTxEntity,
+  ChallengerDepositTxEntity,
   ChallengerOutputEntity,
   StateEntity,
   ChallengerCoinEntity
@@ -145,9 +145,9 @@ export class Challenger {
     await this.deleteL2Ouptut(unchekcedDepositTx, 'failed to check deposit tx');
   }
 
-  async getUncheckedDepositTx(): Promise<DepositTxEntity | null> {
-    const getUncheckedDepositTx: DepositTxEntity[] = await this.db
-      .getRepository(DepositTxEntity)
+  async getUncheckedDepositTx(): Promise<ChallengerDepositTxEntity | null> {
+    const getUncheckedDepositTx: ChallengerDepositTxEntity[] = await this.db
+      .getRepository(ChallengerDepositTxEntity)
       .find({
         where: { isChecked: false },
         order: { sequence: 'ASC' },
@@ -163,9 +163,9 @@ export class Challenger {
   }
 
   // get unchecked withdrawal txs with smallest sequence from db
-  async getUncheckedWitdrawalTx(): Promise<WithdrawalTxEntity | null> {
-    const uncheckedWithdrawalTx: WithdrawalTxEntity[] = await this.db
-      .getRepository(WithdrawalTxEntity)
+  async getUncheckedWitdrawalTx(): Promise<ChallengerWithdrawalTxEntity | null> {
+    const uncheckedWithdrawalTx: ChallengerWithdrawalTxEntity[] = await this.db
+      .getRepository(ChallengerWithdrawalTxEntity)
       .find({
         where: { isChecked: false },
         order: { sequence: 'ASC' },
@@ -176,8 +176,10 @@ export class Challenger {
     return uncheckedWithdrawalTx[0];
   }
 
-  async checkDepositTx(depositTxEntity: DepositTxEntity): Promise<void> {
-    await this.db.getRepository(DepositTxEntity).update(
+  async checkDepositTx(
+    depositTxEntity: ChallengerDepositTxEntity
+  ): Promise<void> {
+    await this.db.getRepository(ChallengerDepositTxEntity).update(
       {
         coinType: depositTxEntity.coinType,
         sequence: depositTxEntity.sequence
@@ -187,9 +189,9 @@ export class Challenger {
   }
 
   async checkWithdrawalTx(
-    withdrawalTxEntity: WithdrawalTxEntity
+    withdrawalTxEntity: ChallengerWithdrawalTxEntity
   ): Promise<void> {
-    await this.db.getRepository(WithdrawalTxEntity).update(
+    await this.db.getRepository(ChallengerWithdrawalTxEntity).update(
       {
         coinType: withdrawalTxEntity.coinType,
         sequence: withdrawalTxEntity.sequence
@@ -277,17 +279,19 @@ export class Challenger {
     return isFinalized;
   }
 
-  async checkIfFinalized(entity: WithdrawalTxEntity | DepositTxEntity) {
+  async checkIfFinalized(
+    entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity
+  ) {
     const isFinalized = await this.isFinalizedL2Output(entity.outputIndex);
 
     if (isFinalized) {
       logger.warn(
         `[L2 Challenger] output index ${entity.outputIndex} is already finalized`
       );
-      if (entity instanceof DepositTxEntity) {
+      if (entity instanceof ChallengerDepositTxEntity) {
         logger.warn(`[L2 Challenger] check deposit tx ${entity.sequence}`);
         await this.checkDepositTx(entity);
-      } else if (entity instanceof WithdrawalTxEntity) {
+      } else if (entity instanceof ChallengerWithdrawalTxEntity) {
         logger.warn(`[L2 Challenger] check withdrawal tx ${entity.sequence}`);
         await this.checkWithdrawalTx(entity);
       }
@@ -297,7 +301,7 @@ export class Challenger {
   }
 
   async deleteL2Ouptut(
-    entity: WithdrawalTxEntity | DepositTxEntity,
+    entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity,
     reason?: string
   ) {
     const executeMsg: Msg = new MsgExecute(

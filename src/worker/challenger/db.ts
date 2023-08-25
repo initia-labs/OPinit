@@ -13,9 +13,9 @@ const debug = require('debug')('orm');
 import {
   ChallengerCoinEntity,
   ChallengerOutputEntity,
-  DepositTxEntity,
+  ChallengerDepositTxEntity,
   StateEntity,
-  WithdrawalTxEntity
+  ChallengerWithdrawalTxEntity
 } from 'orm';
 
 const staticOptions = {
@@ -23,8 +23,8 @@ const staticOptions = {
   bigNumberStrings: true,
   entities: [
     StateEntity,
-    WithdrawalTxEntity,
-    DepositTxEntity,
+    ChallengerWithdrawalTxEntity,
+    ChallengerDepositTxEntity,
     ChallengerOutputEntity,
     ChallengerCoinEntity
   ]

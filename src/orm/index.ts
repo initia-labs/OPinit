@@ -1,31 +1,38 @@
 import RecordEntity from './RecordEntity';
-import OutputEntity from './OutputEntity';
-import TxEntity from './TxEntity';
-import CoinEntity from './CoinEntity';
 import StateEntity from './StateEntity';
-import DepositTxEntity from './challenger/DepositTxEntity';
-import WithdrawalTxEntity from './challenger/WithdrawalTxEntity';
-import ChallengerOutputEntity from './challenger/ChallengerOutputEntity';
-import ChallengerCoinEntity from './challenger/ChallengerCoinEntity';
+
+import ExecutorWithdrawalTxEntity from './executor/WithdrawalTxEntity';
+import ExecutorCoinEntity from './executor/CoinEntity';
+import ExecutorDepositTxEntity from './executor/DepositTxEntity';
+import ExecutorOutputEntity from './executor/OutputEntity';
+
+import ChallengerDepositTxEntity from './challenger/DepositTxEntity';
+import ChallengerWithdrawalTxEntity from './challenger/WithdrawalTxEntity';
+import ChallengerOutputEntity from './challenger/OutputEntity';
+import ChallengerCoinEntity from './challenger/CoinEntity';
 
 export * from './RecordEntity';
-export * from './OutputEntity';
-export * from './TxEntity';
-export * from './CoinEntity';
 export * from './StateEntity';
+
 export * from './challenger/DepositTxEntity';
 export * from './challenger/WithdrawalTxEntity';
-export * from './challenger/ChallengerOutputEntity';
-export * from './challenger/ChallengerCoinEntity';
+export * from './challenger/OutputEntity';
+export * from './challenger/CoinEntity';
+
+export * from './executor/CoinEntity';
+export * from './executor/OutputEntity';
+export * from './executor/DepositTxEntity';
+export * from './executor/WithdrawalTxEntity';
 
 export {
   RecordEntity,
-  OutputEntity,
-  TxEntity,
-  CoinEntity,
   StateEntity,
-  DepositTxEntity,
-  WithdrawalTxEntity,
-  ChallengerOutputEntity,
-  ChallengerCoinEntity
+  ExecutorCoinEntity,
+  ExecutorWithdrawalTxEntity,
+  ExecutorDepositTxEntity,
+  ExecutorOutputEntity,
+  ChallengerCoinEntity,
+  ChallengerWithdrawalTxEntity,
+  ChallengerDepositTxEntity,
+  ChallengerOutputEntity
 };

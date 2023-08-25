@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-@Entity('coin')
+@Entity('executor_coin')
 export default class CoinEntity {
   @PrimaryColumn('text')
   l1StructTag: string;
@@ -12,6 +12,6 @@ export default class CoinEntity {
   l2StructTag: string;
 
   @Column('text')
-  @Index('coin_l2_denom')
+  @Index('executor_coin_l2_denom')
   l2Denom: string;
 }

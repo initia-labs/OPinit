@@ -128,9 +128,7 @@ export class BatchSubmitter {
         'op_batch_inbox',
         'record_batch',
         [config.L2ID],
-        [
-          bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000)
-        ]
+        [bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000)]
       );
 
       return await sendTx(config.l1lcd, this.submitter, [executeMsg]);

@@ -1,9 +1,9 @@
-import { OutputEntity } from 'orm';
+import { ExecutorOutputEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
 export interface GetOutputResponse {
-  output: OutputEntity;
+  output: ExecutorOutputEntity;
 }
 
 export interface GetAllOutputsParam {
@@ -14,15 +14,15 @@ export interface GetAllOutputsParam {
 export interface GetAllOutputsResponse {
   next?: number;
   limit: number;
-  outputs: OutputEntity[];
+  outputs: ExecutorOutputEntity[];
 }
 
 export interface GetLatestOutputResponse {
-  output: OutputEntity;
+  output: ExecutorOutputEntity;
 }
 
 export interface GetOutputByHeightResponse {
-  output: OutputEntity;
+  output: ExecutorOutputEntity;
 }
 
 export async function getOutput(
@@ -33,7 +33,7 @@ export async function getOutput(
 
   try {
     const qb = queryRunner.manager
-      .createQueryBuilder(OutputEntity, 'output')
+      .createQueryBuilder(ExecutorOutputEntity, 'output')
       .where('output.output_index = :outputIndex', { outputIndex });
 
     const output = await qb.getOne();
@@ -58,7 +58,7 @@ export async function getOutputByHeight(
 
   try {
     const qb = queryRunner.manager
-      .createQueryBuilder(OutputEntity, 'output')
+      .createQueryBuilder(ExecutorOutputEntity, 'output')
       .where('output.checkpoint_block_height = :height', { height });
 
     const output = await qb.getOne();
@@ -84,7 +84,7 @@ export async function getAllOutputs(
   try {
     const offset = param.offset ?? 0;
     const qb = queryRunner.manager
-      .createQueryBuilder(OutputEntity, 'output')
+      .createQueryBuilder(ExecutorOutputEntity, 'output')
       .orderBy('output.outputIndex', 'DESC')
       .skip(offset * param.limit)
       .take(param.limit);
@@ -117,7 +117,7 @@ export async function getLatestOutput(): Promise<GetLatestOutputResponse> {
 
   try {
     const qb = queryRunner.manager
-      .createQueryBuilder(OutputEntity, 'output')
+      .createQueryBuilder(ExecutorOutputEntity, 'output')
       .orderBy('output.outputIndex', 'DESC');
 
     const output = await qb.getOne();
