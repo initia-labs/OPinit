@@ -1,6 +1,6 @@
 import { getDB } from './db';
 import { DataSource } from 'typeorm';
-import { logger } from 'lib/logger';
+import { executorLogger as logger } from 'lib/logger';
 import config from 'config';
 import { BlockBulk, getBlockBulk } from 'lib/rpc';
 import { compressor } from 'lib/compressor';
@@ -129,7 +129,7 @@ export class BatchSubmitter {
         'record_batch',
         [config.L2ID],
         [
-          bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000) // TODO: get max batch size from chain
+          bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000)
         ]
       );
 

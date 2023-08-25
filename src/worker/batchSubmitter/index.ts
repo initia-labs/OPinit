@@ -1,6 +1,5 @@
 import { initORM, finalizeORM } from './db';
-import { logger } from '../../lib/logger';
-import { delay } from 'bluebird';
+import { executorLogger as logger } from 'lib/logger';
 import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';

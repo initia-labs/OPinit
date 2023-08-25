@@ -1,4 +1,3 @@
-import { logger } from './logger';
 import {
   Key,
   Wallet,
@@ -56,7 +55,6 @@ export function initWallet(type: WalletType, lcd: LCDClient): void {
       );
       break;
   }
-  logger.info(`Wallet ${type} initialized`);
 }
 
 // Access the wallets

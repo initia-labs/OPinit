@@ -18,7 +18,7 @@ import {
   ChallengerCoinEntity
 } from 'orm';
 import { delay } from 'bluebird';
-import { logger } from 'lib/logger';
+import { challengerLogger as logger } from 'lib/logger';
 import { APIRequest } from 'lib/apiRequest';
 import { GetLatestOutputResponse } from 'service';
 import { fetchBridgeConfig } from 'lib/lcd';

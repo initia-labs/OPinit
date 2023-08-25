@@ -3,9 +3,8 @@ import { RPCSocket } from 'lib/rpc';
 import { OutputEntity, StateEntity } from 'orm';
 import { getDB } from './db';
 import { DataSource, EntityManager } from 'typeorm';
-import { logger } from 'lib/logger';
-import chalk from 'chalk';
-import config from 'config';
+import { executorLogger as logger } from 'lib/logger';
+
 export abstract class Monitor {
   public syncedHeight: number;
   protected db: DataSource;
@@ -60,11 +59,7 @@ export abstract class Monitor {
         const latestHeight = this.socket.latestHeight;
         if (!latestHeight || this.syncedHeight >= latestHeight) continue;
         if ((this.syncedHeight + 1) % 10 == 0 && this.syncedHeight !== 0) {
-          logger.info(
-            chalk[this.color()](
-              `${this.name()} height ${this.syncedHeight + 1}`
-            )
-          );
+          logger.info(`${this.name()} height ${this.syncedHeight + 1}`);
         }
 
         await this.handleEvents();

@@ -5,7 +5,7 @@ import { fetchBridgeConfig } from 'lib/lcd';
 import { WithdrawalStorage } from 'lib/storage';
 import { BridgeConfig, WithdrawalTx } from 'lib/types';
 import { sha3_256 } from 'lib/util';
-import { logger } from 'lib/logger';
+import { executorLogger as logger } from 'lib/logger';
 import { EntityManager } from 'typeorm';
 
 export class L2Monitor extends Monitor {
@@ -14,10 +14,6 @@ export class L2Monitor extends Monitor {
 
   public name(): string {
     return 'l2_monitor';
-  }
-
-  public color(): string {
-    return 'green';
   }
 
   public async run(): Promise<void> {
@@ -44,7 +40,6 @@ export class L2Monitor extends Monitor {
       );
       await super.run();
     } catch (err) {
-      logger.error('L2Monitor runs error:', err);
       throw new Error(`Error in L2 Monitor ${err}`);
     }
   }
@@ -76,11 +71,7 @@ export class L2Monitor extends Monitor {
             {}
           );
 
-          if (
-            attrMap['type_tag'] !== '0x1::op_bridge::TokenBridgeInitiatedEvent'
-          ) {
-            continue;
-          }
+          if (attrMap['type_tag'] !== '0x1::op_bridge::TokenBridgeInitiatedEvent') continue;
 
           const data: { [key: string]: string } = JSON.parse(attrMap['data']);
           const l2Denom = data['l2_token'].replace('native_', '');
@@ -91,7 +82,7 @@ export class L2Monitor extends Monitor {
             });
 
           if (!coin) {
-            logger.warning(`coin not found for ${l2Denom}`);
+            logger.warn(`coin not found for ${l2Denom}`);
             continue;
           }
 
@@ -106,8 +97,7 @@ export class L2Monitor extends Monitor {
             merkleRoot: '',
             merkleProof: []
           };
-          console.log(data)
-          console.log('l2id: ', data['l2_id'])
+
           logger.info(`withdraw tx found in output index : ${tx.outputIndex}`);
 
           await transactionalEntityManager.getRepository(TxEntity).save(tx);
@@ -117,20 +107,11 @@ export class L2Monitor extends Monitor {
   }
 
   public async handleBlock(): Promise<void> {
-    await this.db.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        if (this.syncedHeight < this.nextCheckpointBlockHeight - 1) {
-          return;
-        }
+    if (this.syncedHeight < this.nextCheckpointBlockHeight - 1) return
 
-        const lastOutput = await transactionalEntityManager
-          .getRepository(OutputEntity)
-          .find({
-            order: { outputIndex: 'DESC' },
-            take: 1
-          });
-        const lastIndex =
-          lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+    await this.db.transaction(
+      async (transactionalEntityManager: EntityManager) => {   
+        const lastIndex = await this.getLastOutputIndex(transactionalEntityManager);
         const blockInfo = await config.l2lcd.tendermint.blockInfo(
           this.syncedHeight
         );
@@ -199,4 +180,7 @@ export class L2Monitor extends Monitor {
       }
     );
   }
+
+  // public async getLastOutputIndex(){}
+
 }

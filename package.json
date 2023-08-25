@@ -7,7 +7,7 @@
     "node": ">=16"
   },
   "scripts": {
-    "start": "ts-node ./src/worker/batchSubmitter.ts",
+    "start": "ts-node -r tsconfig-paths/register ./src/worker/bridgeExecutor/index.ts",
     "executor": "ts-node -r tsconfig-paths/register ./src/worker/bridgeExecutor/index.ts",
     "batch": "ts-node -r tsconfig-paths/register ./src/worker/batchSubmitter/index.ts",
     "challenger": "ts-node -r tsconfig-paths/register ./src/worker/challenger/index.ts",

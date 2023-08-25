@@ -1,5 +1,4 @@
 import * as sentry from '@sentry/node';
-import { logger } from './logger';
 
 export enum ErrorTypes {
   // 400 Bad Request
@@ -75,7 +74,6 @@ export function errorHandler(
         }
 
         if (err.type === ErrorTypes.API_ERROR) {
-          logger.error(err);
           const errForThrow = err.wrappedError || err;
 
           sentry.withScope((scope) => {
@@ -90,7 +88,6 @@ export function errorHandler(
       } else if (err.isJoi) {
         callback(ctx, 'INVALID_REQUEST_ERROR', err.statusCode, err.message);
       } else {
-        logger.error(err);
         sentry.withScope((scope) => {
           scope.addEventProcessor((event) =>
             sentry.Handlers.parseRequest(event, ctx.request)

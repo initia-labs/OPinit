@@ -3,10 +3,9 @@ import { RPCSocket } from 'lib/rpc';
 import { ChallengerCoinEntity, ChallengerOutputEntity, StateEntity } from 'orm';
 import { getDB } from './db';
 import { DataSource, EntityManager } from 'typeorm';
-import { logger } from 'lib/logger';
-import chalk from 'chalk';
+import { challengerLogger as logger } from 'lib/logger';
 import axios from 'axios';
-import config from 'config';
+import config, {INTERVAL_CHALLENGER} from 'config';
 
 export abstract class Monitor {
   public syncedHeight: number;
@@ -75,7 +74,7 @@ export abstract class Monitor {
 
   public async monitor(): Promise<void> {
     if (await this.isInvalidBlock()) {
-      logger.info('App hash is invalid. Please check the app hash');
+      logger.error('App hash is invalid. Please check the app hash');
       process.exit(1);
     }
     while (this.isRunning) {
@@ -83,11 +82,7 @@ export abstract class Monitor {
         const latestHeight = this.socket.latestHeight;
         if (!latestHeight || this.syncedHeight >= latestHeight) continue;
         if ((this.syncedHeight + 1) % 10 == 0 && this.syncedHeight !== 0) {
-          logger.info(
-            chalk[this.color()](
-              `${this.name()} height ${this.syncedHeight + 1}`
-            )
-          );
+          logger.info(`${this.name()} height ${this.syncedHeight + 1}`);
         }
 
         await this.handleEvents();
@@ -95,14 +90,14 @@ export abstract class Monitor {
         this.syncedHeight += 1;
         await this.handleBlock();
 
-        // update state
         await this.db
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
-      } catch (e) {
+      } catch (err) {
+        logger.error(err);
         this.stop();
       } finally {
-        await Bluebird.Promise.delay(100);
+        await Bluebird.Promise.delay(INTERVAL_CHALLENGER);
       }
     }
   }

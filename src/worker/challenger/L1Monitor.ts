@@ -10,10 +10,6 @@ export class L1Monitor extends Monitor {
     return 'challenger_l1_monitor';
   }
 
-  public color(): string {
-    return 'blue';
-  }
-
   public async handleEvents(): Promise<void> {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {

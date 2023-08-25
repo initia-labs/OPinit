@@ -1,4 +1,4 @@
-import { logger } from 'lib/logger';
+import { executorLogger as logger } from 'lib/logger';
 import config from 'config';
 import { Monitor } from './Monitor';
 import { getCoinInfo } from 'lib/lcd';
@@ -17,10 +17,6 @@ import { EntityManager } from 'typeorm';
 export class L1Monitor extends Monitor {
   public name(): string {
     return 'l1_monitor';
-  }
-
-  public color(): string {
-    return 'blue';
   }
 
   public async handleEvents(): Promise<void> {
@@ -102,7 +98,7 @@ export class L1Monitor extends Monitor {
           await wallet
             .transaction(msgs)
             .then((info) => {
-              logger.info(`Tx submitted: ${info?.txhash}`)
+              logger.info(`Tx submitted in height: ${this.syncedHeight}, txhash: ${info?.txhash}`)
             })
             .catch((err) => {
               throw new Error(`Error in L1 Monitor ${err}`);

@@ -10,7 +10,7 @@ import { fetchBridgeConfig } from 'lib/lcd';
 import { WithdrawalStorage } from 'lib/storage';
 import { BridgeConfig, WithdrawalTx } from 'lib/types';
 import { sha3_256 } from 'lib/util';
-import { logger } from 'lib/logger';
+import { challengerLogger as logger } from 'lib/logger';
 import { EntityManager } from 'typeorm';
 
 export class L2Monitor extends Monitor {
@@ -19,10 +19,6 @@ export class L2Monitor extends Monitor {
 
   public name(): string {
     return 'challenger_l2_monitor';
-  }
-
-  public color(): string {
-    return 'green';
   }
 
   public async run(): Promise<void> {
@@ -178,12 +174,10 @@ export class L2Monitor extends Monitor {
   }
 
   public async handleBlock(): Promise<void> {
+    if (this.syncedHeight < this.nextCheckpointBlockHeight - 1) return
+
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
-        if (this.syncedHeight < this.nextCheckpointBlockHeight - 1) {
-          return;
-        }
-
         const lastIndex = await this.getLastOutputIndex(
           transactionalEntityManager
         );

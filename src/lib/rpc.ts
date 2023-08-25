@@ -1,5 +1,5 @@
+import * as winston from 'winston';
 import config from '../config';
-import { logger } from './logger';
 import axios, { AxiosRequestConfig } from 'axios';
 import * as Websocket from 'ws';
 
@@ -11,9 +11,11 @@ export class RPCSocket {
   public alivedAt: number;
   public updateTimer: NodeJS.Timer;
   public latestHeight?: number;
+  logger: winston.Logger
 
-  constructor(rpcUrl: string, public interval: number) {
+  constructor(rpcUrl: string, public interval: number, logger: winston.Logger) {
     this.wsUrl = rpcUrl.replace('http', 'ws') + '/websocket';
+    this.logger = logger;
   }
 
   public initialize(): void {
@@ -50,7 +52,7 @@ export class RPCSocket {
         1000
       ).toFixed(1);
       const msg = `${this.constructor.name} is now alive. (downtime ${downtime} minutes)`;
-      logger.info(msg);
+      this.logger.info(msg);
       this.isAlive = true;
     }
     this.alivedAt = Date.now();
@@ -60,7 +62,7 @@ export class RPCSocket {
     // no responsed more than 3 minutes, it is down
     if (this.isAlive && Date.now() - this.alivedAt > 3 * 60 * 1000) {
       const msg = `${this.constructor.name} is no response!`;
-      logger.warn(msg);
+      this.logger.warn(msg);
       this.isAlive = false;
     }
   }
@@ -93,14 +95,14 @@ export class RPCSocket {
     };
 
     this.ws.send(JSON.stringify(request));
-    logger.info(
+    this.logger.info(
       `${this.constructor.name}: websocket connected to ${this.wsUrl}`
     );
     this.alive();
   }
 
   protected onDisconnect(code: number, reason: string): void {
-    logger.info(
+    this.logger.info(
       `${this.constructor.name}: websocket disconnected (${code}: ${reason})`
     );
     // if disconnected, try connect again
@@ -109,7 +111,7 @@ export class RPCSocket {
 
   // eslint-disable-next-line
   protected onError(error): void {
-    logger.error(`${this.constructor.name} websocket: `, error);
+    this.logger.error(`${this.constructor.name} websocket: `, error);
   }
 
   // eslint-disable-next-line
@@ -119,7 +121,7 @@ export class RPCSocket {
     try {
       data = JSON.parse(raw);
     } catch (error) {
-      logger.error(`${this.constructor.name}: JSON parse error ${raw}`);
+      this.logger.error(`${this.constructor.name}: JSON parse error ${raw}`);
       return;
     }
 
@@ -130,7 +132,7 @@ export class RPCSocket {
         );
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     }
 
     this.alive();
@@ -192,7 +194,7 @@ export async function getBlockBulk(
   );
 
   if (!blockBulksResult) {
-    logger.error('failed get block bulks from rpc');
+    this.logger.error('failed get block bulks from rpc');
     return null;
   }
 
