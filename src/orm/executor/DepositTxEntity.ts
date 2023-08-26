@@ -22,7 +22,4 @@ export default class DepositTxEntity {
 
   @Column('int')
   amount: number;
-
-  @Column('boolean')
-  isChecked: boolean;
 }

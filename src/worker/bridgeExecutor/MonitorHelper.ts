@@ -1,6 +1,4 @@
 import { BlockInfo } from '@initia/minitia.js';
-import { fetchBridgeConfig } from 'lib/lcd';
-import { BridgeConfig } from 'lib/types';
 import { sha3_256 } from 'lib/util';
 import { EntityManager, EntityTarget, ObjectLiteral } from 'typeorm';
 

@@ -17,6 +17,7 @@ import {
 } from '@initia/initia.js';
 import { fetchBridgeConfig } from 'lib/lcd';
 import { delay } from 'bluebird';
+import { INTERVAL_BATCH } from 'config';
 
 const bcs = BCS.getInstance();
 
@@ -85,6 +86,8 @@ export class BatchSubmitter {
         logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
       } catch (err) {
         throw new Error(`Error in BatchSubmitter: ${err}`);
+      } finally {
+        await delay(INTERVAL_BATCH);
       }
     }
   }

@@ -56,7 +56,7 @@ export class L2Monitor extends Monitor {
         }
       );
     } catch (err) {
-      throw new Error(`Error in L2 Monitor ${err}`);
+      throw new Error(err);
     }
   }
 
@@ -78,13 +78,35 @@ export class L2Monitor extends Monitor {
     };
   }
 
+  private async handleTokenBridgeInitiatedEvent(
+    manager: EntityManager,
+    data: { [key: string]: string }
+  ) {
+    const lastIndex = await this.helper.getLastOutputIndex(
+      manager,
+      ExecutorOutputEntity
+    );
+
+    const l2Denom = data['l2_token'].replace('native_', '');
+    const coin = await this.helper.getCoin(
+      manager,
+      ExecutorCoinEntity,
+      l2Denom
+    );
+
+    if (!coin) {
+      this.logger.warn(`coin not found for ${l2Denom}`);
+      return;
+    }
+
+    const tx: ExecutorWithdrawalTxEntity = this.genTx(data, coin, lastIndex);
+
+    this.logger.info(`Withdraw tx in height ${this.syncedHeight}`);
+    await this.helper.saveEntity(manager, ExecutorWithdrawalTxEntity, tx);
+  }
   public async handleEvents(): Promise<void> {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
-        const lastIndex = await this.helper.getLastOutputIndex(
-          transactionalEntityManager,
-          ExecutorOutputEntity
-        );
         const events = await this.helper.fetchEvents(
           config.l2lcd,
           this.syncedHeight
@@ -92,39 +114,17 @@ export class L2Monitor extends Monitor {
 
         for (const evt of events) {
           const attrMap = this.helper.eventsToAttrMap(evt);
-          if (
-            attrMap['type_tag'] !== '0x1::op_bridge::TokenBridgeInitiatedEvent'
-          )
-            continue;
           const data: { [key: string]: string } =
             this.helper.parseData(attrMap);
 
-          const l2Denom = data['l2_token'].replace('native_', '');
-          const coin = await this.helper.getCoin(
-            transactionalEntityManager,
-            ExecutorCoinEntity,
-            l2Denom
-          );
-
-          if (!coin) {
-            this.logger.warn(`coin not found for ${l2Denom}`);
-            continue;
+          switch (attrMap['type_tag']) {
+            case '0x1::op_bridge::TokenBridgeInitiatedEvent':
+              await this.handleTokenBridgeInitiatedEvent(
+                transactionalEntityManager,
+                data
+              );
+              break;
           }
-
-          const tx: ExecutorWithdrawalTxEntity = this.genTx(
-            data,
-            coin,
-            lastIndex
-          );
-
-          this.logger.info(
-            `withdraw tx found in output index : ${tx.outputIndex}`
-          );
-          await this.helper.saveEntity(
-            transactionalEntityManager,
-            ExecutorWithdrawalTxEntity,
-            tx
-          );
         }
       }
     );

@@ -43,9 +43,13 @@ export class L1Monitor extends Monitor {
 
   public async handleTokenBridgeInitiatedEvent(
     manager: EntityManager,
-    data: { [key: string]: string },
-    lastIndex: number
+    data: { [key: string]: string }
   ) {
+    const lastIndex = await this.helper.getLastOutputIndex(
+      manager,
+      ChallengerOutputEntity
+    );
+
     const denom = `l2_${data['l2_token']}`;
     const entity: ChallengerDepositTxEntity = {
       sequence: Number.parseInt(data['l1_sequence']),
@@ -69,11 +73,6 @@ export class L1Monitor extends Monitor {
           this.syncedHeight
         );
 
-        const lastIndex = await this.helper.getLastOutputIndex(
-          transactionalEntityManager,
-          ChallengerOutputEntity
-        );
-
         for (const evt of events) {
           const attrMap = this.helper.eventsToAttrMap(evt);
           const data = this.helper.parseData(attrMap);
@@ -90,8 +89,7 @@ export class L1Monitor extends Monitor {
             case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
               await this.handleTokenBridgeInitiatedEvent(
                 transactionalEntityManager,
-                data,
-                lastIndex
+                data
               );
               break;
             }

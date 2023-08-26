@@ -57,6 +57,5 @@ const config = {
 export default config;
 
 export const INTERVAL_BATCH = 100;
-export const INTERVAL_CHALLENGER = 100;
-export const INTERVAL_EXECUTOR = 100;
+export const INTERVAL_MONITOR = 100;
 export const INTERVAL_OUTPUT = 1000;

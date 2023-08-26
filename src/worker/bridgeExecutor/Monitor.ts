@@ -4,6 +4,7 @@ import { StateEntity } from 'orm';
 import { DataSource } from 'typeorm';
 import MonitorHelper from './MonitorHelper';
 import winston from 'winston';
+import { INTERVAL_MONITOR } from 'config';
 
 export abstract class Monitor {
   public syncedHeight: number;
@@ -54,11 +55,11 @@ export abstract class Monitor {
         await this.db
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
-      } catch (e) {
-        console.log(e);
+      } catch (err) {
+        this.logger.error(`Error in ${this.name()} ${err}`);
         this.stop();
       } finally {
-        await Bluebird.Promise.delay(100);
+        await Bluebird.Promise.delay(INTERVAL_MONITOR);
       }
     }
   }
