@@ -18,12 +18,17 @@ export async function runBot(): Promise<void> {
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 1000, logger), logger),
     new L2Monitor(new RPCSocket(config.L2_RPC_URI, 1000, logger), logger)
   ];
-
-  await Promise.all(
-    monitors.map((monitor) => {
-      monitor.run();
-    })
-  );
+  try{ 
+    await Promise.all(
+      monitors.map((monitor) => {
+        monitor.run();
+      })
+    );
+  } catch (err) {
+    logger.error(err);
+    gracefulShutdown();
+  }
+  
 }
 
 export function stopBot(): void {

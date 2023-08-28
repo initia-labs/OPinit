@@ -45,7 +45,6 @@ export abstract class Monitor {
         if ((this.syncedHeight + 1) % 10 == 0 && this.syncedHeight !== 0) {
           this.logger.info(`${this.name()} height ${this.syncedHeight + 1}`);
         }
-
         await this.handleEvents();
 
         this.syncedHeight += 1;
@@ -56,8 +55,8 @@ export abstract class Monitor {
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
       } catch (err) {
-        this.logger.error(`Error in ${this.name()} ${err}`);
         this.stop();
+        throw new Error(`Error in ${this.name()} ${err}`)
       } finally {
         await Bluebird.Promise.delay(INTERVAL_MONITOR);
       }
