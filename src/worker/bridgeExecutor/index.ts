@@ -5,7 +5,7 @@ import { L1Monitor } from './L1Monitor';
 import { L2Monitor } from './L2Monitor';
 import { executorController } from 'controller';
 
-import { logger } from 'lib/logger';
+import { executorLogger as logger } from 'lib/logger';
 import { initORM, finalizeORM } from './db';
 import { initServer, finalizeServer } from 'loader';
 import { once } from 'lodash';
@@ -15,15 +15,20 @@ let monitors: Monitor[];
 
 export async function runBot(): Promise<void> {
   monitors = [
-    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000)),
-    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000))
+    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 1000, logger), logger),
+    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 1000, logger), logger)
   ];
-
-  await Promise.all(
-    monitors.map((monitor) => {
-      monitor.run();
-    })
-  );
+  try{ 
+    await Promise.all(
+      monitors.map((monitor) => {
+        monitor.run();
+      })
+    );
+  } catch (err) {
+    logger.error(err);
+    gracefulShutdown();
+  }
+  
 }
 
 export function stopBot(): void {

@@ -1,5 +1,5 @@
 import { OutputSubmitter } from './outputSubmitter';
-import { logger } from 'lib/logger';
+import { outputLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
 
 let jobs: OutputSubmitter[];

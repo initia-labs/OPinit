@@ -1,6 +1,6 @@
 import { getDB } from './db';
 import { DataSource } from 'typeorm';
-import { logger } from 'lib/logger';
+import { executorLogger as logger } from 'lib/logger';
 import config from 'config';
 import { BlockBulk, getBlockBulk } from 'lib/rpc';
 import { compressor } from 'lib/compressor';
@@ -17,6 +17,7 @@ import {
 } from '@initia/initia.js';
 import { fetchBridgeConfig } from 'lib/lcd';
 import { delay } from 'bluebird';
+import { INTERVAL_BATCH } from 'config';
 
 const bcs = BCS.getInstance();
 
@@ -85,6 +86,8 @@ export class BatchSubmitter {
         logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
       } catch (err) {
         throw new Error(`Error in BatchSubmitter: ${err}`);
+      } finally {
+        await delay(INTERVAL_BATCH);
       }
     }
   }
@@ -128,9 +131,7 @@ export class BatchSubmitter {
         'op_batch_inbox',
         'record_batch',
         [config.L2ID],
-        [
-          bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000) // TODO: get max batch size from chain
-        ]
+        [bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000)]
       );
 
       return await sendTx(config.l1lcd, this.submitter, [executeMsg]);

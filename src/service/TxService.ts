@@ -1,16 +1,16 @@
-import { TxEntity } from 'orm';
+import { ExecutorWithdrawalTxEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
 export async function getTx(
   coin_type: string,
   sequence: number
-): Promise<TxEntity> {
+): Promise<ExecutorWithdrawalTxEntity> {
   const [db] = getDB();
   const queryRunner = db.createQueryRunner('slave');
   try {
     const qb = queryRunner.manager
-      .createQueryBuilder(TxEntity, 'tx')
+      .createQueryBuilder(ExecutorWithdrawalTxEntity, 'tx')
       .where('tx.coin_type = :coin_type', { coin_type })
       .andWhere('tx.sequence = :sequence', { sequence });
 

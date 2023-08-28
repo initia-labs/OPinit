@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-@Entity('withdrawal_tx')
+@Entity('challenger_withdrawal_tx')
 export default class WithdrawalTxEntity {
   @PrimaryColumn('text')
   coinType: string;
@@ -16,7 +16,7 @@ export default class WithdrawalTxEntity {
   @Index('withdrawal_tx_receiver_index')
   receiver: string;
 
-  @Column('int')
+  @Column('bigint')
   amount: number;
 
   @Column('text')

@@ -1,5 +1,4 @@
 import Axios, { AxiosInstance } from 'axios';
-import { OutputEntity } from 'orm';
 
 export interface OutputProposedEvent {
   l2_id: string;

@@ -1,5 +1,5 @@
 import { delay } from 'bluebird';
-import { TxInfo, Wallet, Msg } from '@initia/minitia.js';
+import { TxInfo, Wallet, Msg, TxAPI } from '@initia/minitia.js';
 import { BridgeConfig } from './types';
 import config from '../config';
 
@@ -15,6 +15,7 @@ export async function transaction(
     sequence
   });
   const broadcastResult = await wallet.lcd.tx.broadcast(signedTx);
+
   if (broadcastResult['code']) throw new Error(broadcastResult.raw_log);
   return checkTx(wallet, broadcastResult.txhash);
 }

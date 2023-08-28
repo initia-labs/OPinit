@@ -1,13 +1,13 @@
-import { CoinEntity } from 'orm';
+import { ExecutorCoinEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
 export interface GetCoinResponse {
-  coin: CoinEntity;
+  coin: ExecutorCoinEntity;
 }
 
 export interface GetAllCoinsResponse {
-  coins: CoinEntity[];
+  coins: ExecutorCoinEntity[];
 }
 
 export async function getCoin(coinType: string): Promise<GetCoinResponse> {
@@ -15,7 +15,7 @@ export async function getCoin(coinType: string): Promise<GetCoinResponse> {
   const queryRunner = db.createQueryRunner('slave');
   try {
     const qb = queryRunner.manager
-      .createQueryBuilder(CoinEntity, 'coin')
+      .createQueryBuilder(ExecutorCoinEntity, 'coin')
       .where('coin.l1StructTag = :coinType', { coinType });
 
     const coin = await qb.getOne();
@@ -36,7 +36,10 @@ export async function getAllCoins(): Promise<GetAllCoinsResponse> {
   const [db] = getDB();
   const queryRunner = db.createQueryRunner('slave');
   try {
-    const qb = queryRunner.manager.createQueryBuilder(CoinEntity, 'coin');
+    const qb = queryRunner.manager.createQueryBuilder(
+      ExecutorCoinEntity,
+      'coin'
+    );
 
     const coins = await qb.getMany();
 

@@ -1,9 +1,9 @@
 import { RPCSocket } from 'lib/rpc';
 import { L1Monitor } from './L1Monitor';
-import { Monitor } from './Monitor';
+import { Monitor } from 'worker/bridgeExecutor/Monitor';
 import { Challenger } from './challenger';
 import { initORM, finalizeORM } from './db';
-import { logger } from 'lib/logger';
+import { challengerLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
 import config from 'config';
 import { L2Monitor } from './L2Monitor';
@@ -17,16 +17,21 @@ async function runBot(): Promise<void> {
   await challenger.fetchBridgeState();
 
   monitors = [
-    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000)),
-    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000)),
+    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000, logger), logger),
+    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000, logger), logger),
     challenger
   ];
-
-  await Promise.all(
-    monitors.map((monitor) => {
-      monitor.run();
-    })
-  );
+  try{ 
+    await Promise.all(
+      monitors.map((monitor) => {
+        monitor.run();
+      })
+    );
+  } catch (err){
+    logger.error(err);
+    gracefulShutdown();
+  }
+  
 }
 
 function stopBot(): void {

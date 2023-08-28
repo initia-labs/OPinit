@@ -12,5 +12,5 @@ static/
 
 .envrc
 build
-
+logs/
 testing/

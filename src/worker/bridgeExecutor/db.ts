@@ -9,12 +9,26 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 const debug = require('debug')('orm');
 
-import { OutputEntity, TxEntity, CoinEntity, StateEntity } from 'orm';
+import {
+  ExecutorOutputEntity,
+  ExecutorWithdrawalTxEntity,
+  ExecutorCoinEntity,
+  ExecutorDepositTxEntity,
+  ExecutorFailedTxEntity,
+  StateEntity
+} from 'orm';
 
 const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
-  entities: [OutputEntity, TxEntity, CoinEntity, StateEntity]
+  entities: [
+    ExecutorOutputEntity,
+    ExecutorWithdrawalTxEntity,
+    ExecutorCoinEntity,
+    ExecutorDepositTxEntity,
+    ExecutorFailedTxEntity,
+    StateEntity
+  ]
 };
 
 let DB: DataSource[] = [];

@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity('output')
+@Entity('executor_output')
 export default class OutputEntity {
   @PrimaryColumn('int')
   outputIndex: number;

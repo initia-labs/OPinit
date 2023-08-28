@@ -1,5 +1,4 @@
 import * as http from 'http';
-import { logger } from 'lib/logger';
 import { initApp } from './app';
 import { KoaController } from 'koa-joi-controllers';
 let server: http.Server;
@@ -13,7 +12,7 @@ export async function initServer(
   server = http.createServer(app.callback());
 
   server.listen(port, () => {
-    logger.info(`Listening on port ${port}`);
+    console.log(`Listening on port ${port}`);
   });
 
   return server;

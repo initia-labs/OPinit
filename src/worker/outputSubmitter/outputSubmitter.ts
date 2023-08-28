@@ -7,13 +7,15 @@ import {
   LCDClient,
   TxInfo
 } from '@initia/initia.js';
-import config from 'config';
-import { OutputEntity } from 'orm';
+import config, { INTERVAL_OUTPUT } from 'config';
+import { ExecutorOutputEntity } from 'orm';
 import { APIRequest } from 'lib/apiRequest';
 import { delay } from 'bluebird';
-import { logger } from 'lib/logger';
+import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
 import { GetOutputResponse } from 'service';
+import * as Bluebird from 'bluebird';
+
 const bcs = BCS.getInstance();
 
 export class OutputSubmitter {
@@ -61,26 +63,31 @@ export class OutputSubmitter {
   }
 
   public async run() {
-    try {
-      await this.init();
-      const nextBlockHeight = await this.getNextBlockHeight();
-      logger.info(`next block height: ${nextBlockHeight}`);
+    await this.init();
 
-      if (nextBlockHeight <= this.syncedHeight) {
-        this.logWaitingForNextOutput('synced height is not update');
-        return;
-      }
-      const res: GetOutputResponse =
-        await this.apiRequester.getQuery<GetOutputResponse>(
-          `/output/height/${nextBlockHeight}`
+    while (this.isRunning) {
+      try {
+        const nextBlockHeight = await this.getNextBlockHeight();
+        logger.info(
+          `next block height: ${nextBlockHeight}, synced height: ${this.syncedHeight}`
         );
-      await this.processOutputEntity(res.output, nextBlockHeight);
-    } catch (err) {
-      if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-        this.logWaitingForNextOutput(`not found output from executor`);
-      } else {
-        logger.error('OutputSubmitter runs error:', err);
-        this.stop();
+
+        if (nextBlockHeight <= this.syncedHeight) continue;
+
+        const res: GetOutputResponse =
+          await this.apiRequester.getQuery<GetOutputResponse>(
+            `/output/height/${nextBlockHeight}`
+          );
+        await this.processOutputEntity(res.output, nextBlockHeight);
+      } catch (err) {
+        if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
+          this.logWaitingForNextOutput(`not found output from executor height`);
+        } else {
+          logger.error(err);
+          this.stop();
+        }
+      } finally {
+        await Bluebird.Promise.delay(INTERVAL_OUTPUT);
       }
     }
   }
@@ -90,7 +97,7 @@ export class OutputSubmitter {
   }
 
   private async processOutputEntity(
-    outputEntity: OutputEntity,
+    outputEntity: ExecutorOutputEntity,
     nextBlockHeight: number
   ) {
     await this.proposeL2Output(
@@ -99,12 +106,12 @@ export class OutputSubmitter {
     );
     this.syncedHeight = nextBlockHeight;
     logger.info(
-      `submitted height: ${nextBlockHeight} output root: ${outputEntity.outputRoot}`
+      `successfully submitted! height: ${nextBlockHeight}, output root: ${outputEntity.outputRoot}`
     );
   }
 
-  private logWaitingForNextOutput(msg?: string) {
-    logger.info(`waiting for next output. ${msg}`);
+  private logWaitingForNextOutput(reason?: string) {
+    logger.info(`waiting for next output. ${reason}`);
   }
 }
 

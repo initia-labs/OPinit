@@ -16,17 +16,31 @@ function getDateString() {
   )}:${pad(d.getMinutes(), 2)}`;
 }
 
+function getLogsSubdir() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1, 2)}-${pad(
+    d.getDate(),
+    2
+  )}`;
+}
+
 const print = winston.format.printf((info) => {
   let level;
-  if (info.level === 'error') {
-    level = chalk.red(info.level.toUpperCase());
-  } else if (info.level === 'warn') {
-    level = chalk.yellow(info.level.toUpperCase());
-  } else {
-    level = chalk.green(info.level.toUpperCase());
+
+  if (!config.USE_LOG_FILE) {
+    // Do not colorize when writing to file
+    if (info.level === 'error') {
+      level = chalk.red(info.level.toUpperCase());
+    } else if (info.level === 'warn') {
+      level = chalk.yellow(info.level.toUpperCase());
+    } else {
+      level = chalk.green(info.level.toUpperCase());
+    }
   }
 
-  const log = `${getDateString()} [${level}]: ${info.message}`;
+  const log = `${getDateString()} [${level ? level : info.level}]: ${
+    info.message
+  }`;
 
   return log;
 });
@@ -35,7 +49,7 @@ function createLogger(name: string) {
   const logger = winston.createLogger({
     level: 'info',
     format: winston.format.combine(
-      winston.format.errors({ stack: true }),
+      winston.format.errors({ stack: true, stackTraces: true }),
       print
     ),
     defaultMeta: { service: 'user-service' }
@@ -49,14 +63,14 @@ function createLogger(name: string) {
     logger.add(
       new DailyRotateFile({
         level: 'error',
-        filename: `logs/${name}_error.log`,
+        filename: `logs/${getLogsSubdir()}/${name}_error.log`,
         zippedArchive: true
       })
     );
 
     logger.add(
       new DailyRotateFile({
-        filename: `logs/${name}_combined.log`,
+        filename: `logs/${getLogsSubdir()}/${name}_combined.log`,
         zippedArchive: true
       })
     );
@@ -69,4 +83,7 @@ function createLogger(name: string) {
   return logger;
 }
 
-export const logger = createLogger('logger');
+export const executorLogger = createLogger('executor');
+export const batchLogger = createLogger('batch');
+export const challengerLogger = createLogger('challenger');
+export const outputLogger = createLogger('output');
