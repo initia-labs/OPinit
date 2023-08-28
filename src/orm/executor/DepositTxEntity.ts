@@ -20,6 +20,6 @@ export default class DepositTxEntity {
   @Index('executor_deposit_tx_output_index')
   outputIndex: number;
 
-  @Column('int')
+  @Column('bigint')
   amount: number;
 }

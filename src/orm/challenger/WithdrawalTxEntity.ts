@@ -16,7 +16,7 @@ export default class WithdrawalTxEntity {
   @Index('withdrawal_tx_receiver_index')
   receiver: string;
 
-  @Column('int')
+  @Column('bigint')
   amount: number;
 
   @Column('text')

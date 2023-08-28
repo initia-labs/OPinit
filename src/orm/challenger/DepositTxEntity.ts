@@ -24,7 +24,7 @@ export default class DepositTxEntity {
   @Index('deposit_tx_finalized_output_index')
   finalizedOutputIndex: number | null;
 
-  @Column('int')
+  @Column('bigint')
   amount: number;
 
   @Column('boolean')
