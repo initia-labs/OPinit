@@ -1,6 +1,5 @@
 import { delay } from 'bluebird';
 import { Wallet, LCDClient, TxInfo, Msg } from '@initia/minitia.js';
-import { logger } from './logger';
 
 export async function transaction(
   wallet: Wallet,
@@ -45,7 +44,6 @@ export async function checkTx(
 // check whether batch submission interval is met
 export async function getLatestBlockHeight(client: LCDClient): Promise<number> {
   const block = await client.tendermint.blockInfo().catch((error) => {
-    logger.error(`Error getting block info from L2: ${error}`);
     throw new Error(`Error getting block info from L2: ${error}`);
   });
 

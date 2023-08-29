@@ -6,8 +6,11 @@ import {
   DataSourceOptions
 } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+
+import debugModule from 'debug';
+const debug = debugModule('orm');
+
 import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
-const debug = require('debug')('orm');
 
 import {
   ExecutorOutputEntity,
@@ -15,7 +18,7 @@ import {
   ExecutorCoinEntity,
   ExecutorDepositTxEntity,
   ExecutorFailedTxEntity,
-  StateEntity
+  StateEntity,
 } from 'orm';
 
 const staticOptions = {
@@ -44,7 +47,7 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   return new DataSource({
     ...options,
     ...staticOptions,
-    namingStrategy: new CamelToSnakeNamingStrategy()
+    namingStrategy: new CamelToSnakeNamingStrategy() as any
   }).initialize();
 }
 

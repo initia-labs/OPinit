@@ -8,6 +8,7 @@ import {
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
+
 const debug = require('debug')('orm');
 
 import { RecordEntity } from 'orm';
@@ -31,7 +32,7 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   return new DataSource({
     ...options,
     ...staticOptions,
-    namingStrategy: new CamelToSnakeNamingStrategy()
+    namingStrategy: new CamelToSnakeNamingStrategy() as any
   }).initialize();
 }
 
