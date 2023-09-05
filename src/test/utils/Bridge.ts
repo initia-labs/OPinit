@@ -64,8 +64,6 @@ export async function checkTx(
   throw new Error('Transaction checking timed out');
 }
 
-/// outputSubmitter -> op_output/initialize
-/// executor -> op_bridge/initialize
 export async function build(dirname: string, moduleName: string) {
   const builder = new MoveBuilder(__dirname + `/${dirname}`, {});
   await builder.build();

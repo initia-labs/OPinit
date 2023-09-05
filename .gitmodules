@@ -1,0 +1,3 @@
+[submodule "docker"]
+	path = src/test/docker/local-initia
+	url = https://github.com/initia-labs/local-initia
