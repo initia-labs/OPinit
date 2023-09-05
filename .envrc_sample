@@ -1,21 +1,23 @@
 export TYPEORM_CONNECTION=postgres
 export TYPEORM_HOST=localhost
-export TYPEORM_USERNAME=initia
-export TYPEORM_PASSWORD=initia
-export TYPEORM_DATABASE=batch
+export TYPEORM_USERNAME=jungsuhan
+export TYPEORM_PASSWORD=jungsuhan
+export TYPEORM_DATABASE=challenger
 export TYPEORM_PORT=5432
 export TYPEORM_SYNCHRONIZE=true
 export TYPEORM_LOGGING=false
 export TYPEORM_ENTITIES=src/orm/*Entity.ts
-
-export SERVER_PORT=3000
-
-export L1_LCD_URI=https://stone-rest.initia.tech
-export L1_RPC_URI=https://stone-rpc.initia.tech
-export L2_LCD_URI=https://minitia-rest.initia.tech
-export L2_RPC_URI=https://minitia-rpc.initia.tech
-export L2ID=0xdeabff225180fcbd7854c88e053292753e395c8b::minitia::One
 export USE_LOG_FILE=false
+
+export EXECUTOR_PORT=3000
+export BATCH_PORT=3001
+
+export L1_LCD_URI=https://next-stone-rest.initia.tech
+export L1_RPC_URI=https://next-stone-rpc.initia.tech
+export L2_LCD_URI=http://34.146.182.245:1317
+export L2_RPC_URI=http://34.146.182.245:26657
+export L2ID=0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10r1::Minitia
+
 
 # executor config
 export EXECUTOR_MNEMONIC='recycle sight world spoon leopard shine dizzy before public use jungle either arctic detail hawk output option august hedgehog menu keen night work become'
@@ -28,3 +30,4 @@ export CHALLENGER_MNEMONIC='purity yard brush wagon note forest athlete seek off
 
 # output submitter config
 export OUTPUT_SUBMITTER_MNEMONIC='airport hidden cake dry bleak alcohol enough tower charge cash modify feature analyst suffer bus oyster initial coffee wine plug paper damp sock afraid'
+export EXECUTOR_URI=http://localhost:3000

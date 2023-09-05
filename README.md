@@ -1,7 +1,6 @@
 # Initia Rollup
 
-Initia Optimistic Rollup Bots.
-
+Initia Optimistic Rollup Bots. You can check [Minitia](https://github.com/initia-labs/minitia) spec for more information.
 - Batch Submitter: Submit batch to L1 node
 - Output Submitter: Submit output to L1 node
 - Challenger: Challenge invalid output
@@ -9,15 +8,37 @@ Initia Optimistic Rollup Bots.
 
 # How to use
 
+## Bridge Executor
+
+Bridge executor is a bot that monitor L1, L2 node and execute bridge transaction. It will execute following steps.
+
+1. Publish L2 ID to L1
+    - L2 ID should be published under executor account
+2. Initialize bridge contract on L1 with L2 ID
+    - Execute `initialize<L2ID>` entry function in `bridge.move`
+3. Run executor bot
+    - Execute L1, L2 monitor in bridge executor
+        ```bash
+        npm run executor
+        ```
+    - If you use pm2, you can run executor with following command.
+        ```bash
+        pm2 start executor.json
+        ```
+4. Register coin to bridge store and prepare deposit store
+    - Execute `register_token<L2ID, CoinType>`
+5. Now you can deposit after registering coin is done
+
 ## Batch Submitter
 
-You can run batch submitter and server with following command.
+Batch submitter is a background process that submits transaction batches to the BatchInbox module of L1.
+You can run with following command.
 
 ```bash
 npm run batch
 ```
 
-If you use pm2, you can run batch submitter and server with following command.
+If you use pm2,
 
 ```bash
 pm2 start batch.json
@@ -25,7 +46,12 @@ pm2 start batch.json
 
 ## Output Submitter
 
-Use pm2 to execute output submitter. It will submit next output only one time. You can set `restart_delay` in `output.json` to run output submitter periodically.
+Output submitter is the component to store the L2 output root for block finalization.
+Output submitter will get the L2 output results from executor and submit it to L1 using `propose_l2_output<L2ID>` in `output.move`.
+
+```bash
+npm run output
+```
 
 If you use pm2,
 ```bash
@@ -34,6 +60,9 @@ pm2 start output.json
 
 ## Challenger
 
+Challenger is an entity capable of deleting invalid output proposals from the output oracle.
+
+
 ```bash
 npm run challenger
 ```
@@ -41,17 +70,6 @@ npm run challenger
 If you use pm2, 
 ```bash
 pm2 start challenger.json
-```
-
-## Bridge Executor
-
-```bash
-npm run executor
-```
-
-If you use pm2,
-```bash
-pm2 start npm run executor.json
 ```
 
 # Configuration
@@ -72,4 +90,5 @@ pm2 start npm run executor.json
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
 
 
-> In Batch Submitter, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample)
+
+> In initia rollup, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample)
