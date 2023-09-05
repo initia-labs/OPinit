@@ -18,7 +18,7 @@ import {
   ExecutorCoinEntity,
   ExecutorDepositTxEntity,
   ExecutorFailedTxEntity,
-  StateEntity,
+  StateEntity
 } from 'orm';
 
 const staticOptions = {
@@ -51,11 +51,20 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   }).initialize();
 }
 
-export async function initORM(): Promise<void> {
+export async function initORM(host?: string, port?: number): Promise<void> {
   const reader = new ConnectionOptionsReader();
   const options = (await reader.all()) as PostgresConnectionOptions[];
 
-  DB = await Bluebird.map(options, (opt) => initConnection(opt));
+  DB = await Bluebird.map(options, (opt) => {
+    const newOptions = { ...opt };
+    if (host) {
+      newOptions.host = host;
+    }
+    if (port) {
+      newOptions.port = port;
+    }
+    return initConnection(newOptions);
+  });
 }
 
 export function getDB(): DataSource[] {

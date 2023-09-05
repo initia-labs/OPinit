@@ -8,7 +8,6 @@ import {
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
-
 const debug = require('debug')('orm');
 
 import { RecordEntity } from 'orm';

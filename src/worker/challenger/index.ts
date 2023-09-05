@@ -21,17 +21,16 @@ async function runBot(): Promise<void> {
     new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000, logger), logger),
     challenger
   ];
-  try{ 
+  try {
     await Promise.all(
       monitors.map((monitor) => {
         monitor.run();
       })
     );
-  } catch (err){
+  } catch (err) {
     logger.error(err);
     gracefulShutdown();
   }
-  
 }
 
 function stopBot(): void {

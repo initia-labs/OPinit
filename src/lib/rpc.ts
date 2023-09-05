@@ -24,7 +24,7 @@ export class RPCSocket {
   }
 
   public stop(): void {
-    this.ws.terminate();
+    if (this.ws) this.ws.terminate();
   }
 
   public tick(): void {

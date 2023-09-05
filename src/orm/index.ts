@@ -37,5 +37,5 @@ export {
   ChallengerCoinEntity,
   ChallengerWithdrawalTxEntity,
   ChallengerDepositTxEntity,
-  ChallengerOutputEntity,
+  ChallengerOutputEntity
 };

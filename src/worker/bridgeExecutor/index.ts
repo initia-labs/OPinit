@@ -18,7 +18,7 @@ export async function runBot(): Promise<void> {
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 1000, logger), logger),
     new L2Monitor(new RPCSocket(config.L2_RPC_URI, 1000, logger), logger)
   ];
-  try{ 
+  try {
     await Promise.all(
       monitors.map((monitor) => {
         monitor.run();
@@ -28,14 +28,13 @@ export async function runBot(): Promise<void> {
     logger.error(err);
     gracefulShutdown();
   }
-  
 }
 
 export function stopBot(): void {
   monitors.forEach((monitor) => monitor.stop());
 }
 
-async function gracefulShutdown(): Promise<void> {
+export async function gracefulShutdown(): Promise<void> {
   stopBot();
 
   logger.info('Closing listening port');
@@ -48,10 +47,11 @@ async function gracefulShutdown(): Promise<void> {
   process.exit(0);
 }
 
-async function main(): Promise<void> {
+export async function startExecutor(): Promise<void> {
   await initORM();
   await initServer(executorController, config.EXECUTOR_PORT);
   initWallet(WalletType.Executor, config.l2lcd);
+  logger.info('executor l2id :', config.L2ID);
   await runBot();
 
   // attach graceful shutdown
@@ -60,5 +60,7 @@ async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main().catch(console.log);
+  startExecutor().catch(console.log);
 }
+
+export { monitors };

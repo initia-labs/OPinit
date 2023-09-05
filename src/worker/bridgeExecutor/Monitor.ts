@@ -49,14 +49,13 @@ export abstract class Monitor {
 
         this.syncedHeight += 1;
         await this.handleBlock();
-
         // update state
         await this.db
           .getRepository(StateEntity)
           .update({ name: this.name() }, { height: this.syncedHeight });
       } catch (err) {
         this.stop();
-        throw new Error(`Error in ${this.name()} ${err}`)
+        throw new Error(`Error in ${this.name()} ${err}`);
       } finally {
         await Bluebird.Promise.delay(INTERVAL_MONITOR);
       }

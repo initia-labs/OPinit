@@ -2,7 +2,7 @@ import type { Config } from '@jest/types';
 
 // Jest configuration
 const config: Config.InitialOptions = {
-  roots: ['<rootDir>/src', '<rootDir>/test'],
+  roots: ['<rootDir>/src', '<rootDir>/src/test'],
   transform: {
     '^.+\\.ts?$': 'ts-jest',
   },
