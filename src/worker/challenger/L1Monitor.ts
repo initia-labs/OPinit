@@ -1,4 +1,3 @@
-import config from 'config';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
 import { structTagToDenom } from 'lib/util';
 import {
@@ -11,6 +10,9 @@ import { EntityManager } from 'typeorm';
 import { RPCSocket } from 'lib/rpc';
 import { getDB } from './db';
 import winston from 'winston';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export class L1Monitor extends Monitor {
   constructor(public socket: RPCSocket, logger: winston.Logger) {

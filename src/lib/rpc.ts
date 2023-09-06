@@ -1,7 +1,9 @@
 import * as winston from 'winston';
-import config from '../config';
 import axios, { AxiosRequestConfig } from 'axios';
 import * as Websocket from 'ws';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export class RPCSocket {
   public ws: Websocket;

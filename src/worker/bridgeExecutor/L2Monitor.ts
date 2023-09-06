@@ -1,4 +1,3 @@
-import config from 'config';
 import {
   ExecutorCoinEntity,
   ExecutorOutputEntity,
@@ -13,6 +12,9 @@ import { BlockInfo } from '@initia/minitia.js';
 import { getDB } from './db';
 import { RPCSocket } from 'lib/rpc';
 import winston from 'winston';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export class L2Monitor extends Monitor {
   submissionInterval: number;

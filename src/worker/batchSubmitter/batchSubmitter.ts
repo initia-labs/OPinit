@@ -1,7 +1,7 @@
 import { getDB } from './db';
 import { DataSource } from 'typeorm';
 import { executorLogger as logger } from 'lib/logger';
-import config from 'config';
+
 import { BlockBulk, getBlockBulk } from 'lib/rpc';
 import { compressor } from 'lib/compressor';
 import { getLatestBlockHeight } from 'lib/tx';
@@ -18,7 +18,9 @@ import {
 import { fetchBridgeConfig } from 'lib/lcd';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
+import { getConfig } from 'config';
 
+const config = getConfig();
 const bcs = BCS.getInstance();
 
 export class BatchSubmitter {

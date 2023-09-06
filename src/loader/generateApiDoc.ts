@@ -3,8 +3,6 @@ import * as path from 'path';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'fs';
 import * as yargs from 'yargs';
 
-import config from 'config';
-
 import { executorLogger as logger } from 'lib/logger';
 
 const templateDir = './apidoc-template/';

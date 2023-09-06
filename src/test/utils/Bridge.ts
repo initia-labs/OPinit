@@ -17,7 +17,7 @@ import {
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
-import config from 'config';
+
 import { delay } from 'bluebird';
 import { MoveBuilder } from '@initia/builder.js';
 import { getDB, initORM } from 'worker/bridgeExecutor/db';
@@ -28,7 +28,9 @@ import {
   StateEntity,
   ExecutorWithdrawalTxEntity
 } from 'orm';
+import {getConfig} from 'config';
 
+const config = getConfig();
 export const bcs = BCS.getInstance();
 
 export async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
@@ -65,7 +67,7 @@ export async function checkTx(
 }
 
 export async function build(dirname: string, moduleName: string) {
-  const builder = new MoveBuilder(__dirname + `/${dirname}`, {});
+  const builder = new MoveBuilder(`${dirname}`, {});
   await builder.build();
   const contract = await builder.get(moduleName);
   return contract.toString('base64');
@@ -149,12 +151,7 @@ class Bridge {
   }
 
   updateL2ID() {
-    const filePath = path.join(
-      __dirname,
-      this.contractDir,
-      'sources',
-      'l2id.move'
-    );
+    const filePath = path.join(this.contractDir, 'sources', 'l2id.move');
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     const updatedContent = fileContent.replace(
       /(addr::)[^\s{]+( \{)/g,

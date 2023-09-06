@@ -1,7 +1,9 @@
-import config from '../config';
 import * as winston from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
 import chalk from 'chalk';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 function pad(input: number | string, width: number, z = '0') {
   const n = typeof input === 'number' ? input.toString() : input;

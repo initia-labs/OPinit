@@ -42,38 +42,35 @@ services:
       - "9191:9091"
       - "26658:26657"
   postgres:
-    depends_on:
-      - initia
-      - minitia
     image: postgres:13
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: rollup
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - default
     ports:
-      - "5432:5432"
-  rollup:
-    depends_on:
-      - initia
-      - minitia
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    image: rollup
-    container_name: rollup
-    ports:
-      - "3000:3000"
-      - "3001:3001"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    env_file:
-      - .envrc
+      - "5433:5432"
+  # rollup:
+  #   platform: linux/amd64
+  #   depends_on:
+  #     - initia
+  #     - minitia
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: rollup
+  #   container_name: rollup
+  #   ports:
+  #     - "3000:3000"
+  #     - "3001:3001"
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   env_file:
+  #     - .envrc
 volumes:
   initia:
   minitia:

@@ -5,8 +5,10 @@ import { Challenger } from './challenger';
 import { initORM, finalizeORM } from './db';
 import { challengerLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
-import config from 'config';
 import { L2Monitor } from './L2Monitor';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 let monitors: (Monitor | Challenger)[];
 

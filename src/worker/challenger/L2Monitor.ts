@@ -1,4 +1,3 @@
-import config from 'config';
 import {
   ChallengerCoinEntity,
   ChallengerOutputEntity,
@@ -14,6 +13,9 @@ import { EntityManager } from 'typeorm';
 import { RPCSocket } from 'lib/rpc';
 import winston from 'winston';
 import { getDB } from './db';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export class L2Monitor extends Monitor {
   submissionInterval: number;

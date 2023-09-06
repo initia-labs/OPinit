@@ -1,7 +1,9 @@
 import { delay } from 'bluebird';
 import { TxInfo, Wallet, Msg, TxAPI } from '@initia/minitia.js';
 import { BridgeConfig } from './types';
-import config from '../config';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export async function transaction(
   wallet: Wallet,

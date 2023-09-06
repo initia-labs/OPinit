@@ -1,4 +1,3 @@
-import config from 'config';
 import {
   Wallet,
   MnemonicKey,
@@ -24,7 +23,9 @@ import { GetLatestOutputResponse } from 'service';
 import { fetchBridgeConfig } from 'lib/lcd';
 import axios from 'axios';
 import { GetAllCoinsResponse } from 'service/CoinService';
+import { getConfig } from 'config';
 
+const config = getConfig();
 const bcs = BCS.getInstance();
 
 export class Challenger {

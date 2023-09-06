@@ -1,4 +1,3 @@
-import config from 'config';
 import { RPCSocket } from 'lib/rpc';
 import { Monitor } from './Monitor';
 import { L1Monitor } from './L1Monitor';
@@ -10,7 +9,9 @@ import { initORM, finalizeORM } from './db';
 import { initServer, finalizeServer } from 'loader';
 import { once } from 'lodash';
 import { WalletType, initWallet } from 'lib/wallet';
+import { getConfig } from 'config';
 
+const config = getConfig();
 let monitors: Monitor[];
 
 export async function runBot(): Promise<void> {

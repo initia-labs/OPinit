@@ -7,7 +7,9 @@ import {
   LCDClient
 } from '@initia/minitia.js';
 import { transaction } from './lcd';
-import config from 'config';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export enum WalletType {
   Challenger = 'challenger',

@@ -4,7 +4,9 @@ import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';
 import { once } from 'lodash';
-import config from 'config';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 let jobs: BatchSubmitter[] = [];
 

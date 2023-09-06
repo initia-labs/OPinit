@@ -1,4 +1,3 @@
-import config from 'config';
 import { Monitor } from './Monitor';
 import { CoinInfo, getCoinInfo } from 'lib/lcd';
 import {
@@ -20,6 +19,9 @@ import { EntityManager } from 'typeorm';
 import { RPCSocket } from 'lib/rpc';
 import { getDB } from './db';
 import winston from 'winston';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export class L1Monitor extends Monitor {
   constructor(public socket: RPCSocket, logger: winston.Logger) {

@@ -65,7 +65,7 @@
     "webpack-bundle-analyzer": "^4.1.0"
   },
   "dependencies": {
-    "@initia/builder.js": "^0.0.7",
+    "@initia/builder.js": "^0.0.8",
     "@initia/initia.js": "^0.1.4",
     "@initia/minitia.js": "^0.0.6",
     "@koa/cors": "^4.0.0",
@@ -79,6 +79,8 @@
     "bluebird": "^3.7.2",
     "chalk": "^2.4.2",
     "dockerode": "^3.3.5",
+    "dotenv": "^16.3.1",
+    "ffi-napi": "^4.0.3",
     "koa": "^2.14.2",
     "koa-body": "^5.0.0",
     "koa-helmet": "^7.0.2",
@@ -95,6 +97,7 @@
     "request-promise": "^4.2.6",
     "sha3": "^2.1.4",
     "testcontainers": "^10.2.1",
+    "ts-node": "^10.9.1",
     "typeorm": "^0.3.17",
     "undici": "^5.22.1",
     "winston": "^3.10.0",

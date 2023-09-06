@@ -7,7 +7,7 @@ import {
   LCDClient,
   TxInfo
 } from '@initia/initia.js';
-import config, { INTERVAL_OUTPUT } from 'config';
+import { INTERVAL_OUTPUT } from 'config';
 import { ExecutorOutputEntity } from 'orm';
 import { APIRequest } from 'lib/apiRequest';
 import { delay } from 'bluebird';
@@ -15,7 +15,9 @@ import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
 import { GetOutputResponse } from 'service';
 import * as Bluebird from 'bluebird';
+import { getConfig } from 'config';
 
+const config = getConfig();
 const bcs = BCS.getInstance();
 
 export class OutputSubmitter {
