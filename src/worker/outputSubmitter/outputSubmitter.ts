@@ -14,7 +14,6 @@ import { delay } from 'bluebird';
 import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
 import { GetOutputResponse } from 'service';
-import * as Bluebird from 'bluebird';
 import { getConfig } from 'config';
 
 const config = getConfig();
@@ -40,13 +39,14 @@ export class OutputSubmitter {
   }
 
   async getNextBlockHeight(): Promise<number> {
-    return await config.l1lcd.move.viewFunction<number>(
+    const nextBlockHeight = await config.l1lcd.move.viewFunction<string>(
       '0x1',
       'op_output',
       'next_block_num',
       [config.L2ID],
       []
     );
+    return parseInt(nextBlockHeight);
   }
 
   async proposeL2Output(outputRoot: Buffer, l2BlockHeight: number) {
@@ -57,7 +57,7 @@ export class OutputSubmitter {
       'propose_l2_output',
       [config.L2ID],
       [
-        bcs.serialize('vector<u8>', outputRoot, 33),
+        bcs.serialize('vector<u8>', outputRoot, 33), // 33 is the length of output root
         bcs.serialize('u64', l2BlockHeight)
       ]
     );
@@ -70,10 +70,6 @@ export class OutputSubmitter {
     while (this.isRunning) {
       try {
         const nextBlockHeight = await this.getNextBlockHeight();
-        logger.info(
-          `next block height: ${nextBlockHeight}, synced height: ${this.syncedHeight}`
-        );
-
         if (nextBlockHeight <= this.syncedHeight) continue;
 
         const res: GetOutputResponse =
@@ -83,13 +79,14 @@ export class OutputSubmitter {
         await this.processOutputEntity(res.output, nextBlockHeight);
       } catch (err) {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          this.logWaitingForNextOutput(`not found output from executor height`);
+          logger.warn(
+            `[Output] waiting for next output. not found output from executor height`
+          );
+          await delay(INTERVAL_OUTPUT);
         } else {
           logger.error(err);
           this.stop();
         }
-      } finally {
-        await Bluebird.Promise.delay(INTERVAL_OUTPUT);
       }
     }
   }
@@ -108,12 +105,8 @@ export class OutputSubmitter {
     );
     this.syncedHeight = nextBlockHeight;
     logger.info(
-      `successfully submitted! height: ${nextBlockHeight}, output root: ${outputEntity.outputRoot}`
+      `[Output] successfully submitted! height: ${nextBlockHeight}, output root: ${outputEntity.outputRoot}`
     );
-  }
-
-  private logWaitingForNextOutput(reason?: string) {
-    logger.info(`waiting for next output. ${reason}`);
   }
 }
 

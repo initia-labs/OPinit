@@ -14,7 +14,7 @@ import { getConfig } from 'config';
 const config = getConfig();
 let monitors: Monitor[];
 
-export async function runBot(): Promise<void> {
+async function runBot(): Promise<void> {
   monitors = [
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 1000, logger), logger),
     new L2Monitor(new RPCSocket(config.L2_RPC_URI, 1000, logger), logger)
@@ -27,15 +27,15 @@ export async function runBot(): Promise<void> {
     );
   } catch (err) {
     logger.error(err);
-    gracefulShutdown();
+    stopExecutor();
   }
 }
 
-export function stopBot(): void {
+function stopBot(): void {
   monitors.forEach((monitor) => monitor.stop());
 }
 
-export async function gracefulShutdown(): Promise<void> {
+export async function stopExecutor(): Promise<void> {
   stopBot();
 
   logger.info('Closing listening port');
@@ -44,7 +44,7 @@ export async function gracefulShutdown(): Promise<void> {
   logger.info('Closing DB connection');
   await finalizeORM();
 
-  logger.info('Finished');
+  logger.info('Finished Executor');
   process.exit(0);
 }
 
@@ -52,12 +52,11 @@ export async function startExecutor(): Promise<void> {
   await initORM();
   await initServer(executorController, config.EXECUTOR_PORT);
   initWallet(WalletType.Executor, config.l2lcd);
-  logger.info('executor l2id :', config.L2ID);
   await runBot();
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
-  signals.forEach((signal) => process.on(signal, once(gracefulShutdown)));
+  signals.forEach((signal) => process.on(signal, once(stopExecutor)));
 }
 
 if (require.main === module) {

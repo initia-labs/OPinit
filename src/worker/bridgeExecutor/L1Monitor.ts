@@ -147,7 +147,9 @@ export class L1Monitor extends Monitor {
               );
             })
             .catch(async (err) => {
-              const errMsg = JSON.stringify(err.response?.data);
+              const errMsg = err.response?.data
+                ? JSON.stringify(err.response?.data)
+                : err;
               this.logger.error(
                 `Failed to submit tx in height: ${this.syncedHeight}\n${stringfyMsgs}\n${errMsg}`
               );

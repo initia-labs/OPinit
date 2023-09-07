@@ -36,10 +36,9 @@ const defaultConfig = {
   USE_LOG_FILE: 'false'
 };
 
-
 export class Config implements ConfigInterface {
   private static instance: Config;
-  
+
   EXECUTOR_PORT: number;
   BATCH_PORT: number;
   L1_LCD_URI: string;
@@ -106,7 +105,7 @@ export class Config implements ConfigInterface {
   }
 }
 
-export function getConfig(){
+export function getConfig() {
   if (process.env.DEVELOPMENT_MODE === 'test') {
     process.env.TYPEORM_HOST = 'localhost';
     process.env.TYPEORM_USERNAME = 'user';
@@ -117,19 +116,21 @@ export function getConfig(){
     const testConfig = {
       EXECUTOR_PORT: 3000,
       BATCH_PORT: 3001,
-      L1_LCD_URI: 'http://localhost:1317',
+      L1_LCD_URI: 'http://127.0.0.1:1317',
       L1_RPC_URI: 'http://localhost:26657',
       L2_LCD_URI: 'http://localhost:1318',
       L2_RPC_URI: 'http://localhost:26658',
       EXECUTOR_URI: 'http://localhost:3000',
-      L2ID: '0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10tt4::Minitia',
+      L2ID: '0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10t1::Minitia',
       TYPEORM_HOST: 'http://localhost:5433'
     };
     Config.updateConfig({
       ...testConfig,
-      l1lcd: new InitiaLCDClient(testConfig.L1_LCD_URI),
+      l1lcd: new InitiaLCDClient(testConfig.L1_LCD_URI, {
+        gasAdjustment: '10'
+      }),
       l2lcd: new MinitiaLCDClient(testConfig.L2_LCD_URI, {
-        gasPrices: '0umin',
+        gasPrices: '0.15umin',
         gasAdjustment: '1.75'
       })
     });
@@ -141,6 +142,6 @@ export function getConfig(){
 const config = Config.getConfig();
 export default config;
 
-export const INTERVAL_BATCH = 100;
+export const INTERVAL_BATCH = 10000;
 export const INTERVAL_MONITOR = 100;
-export const INTERVAL_OUTPUT = 1000;
+export const INTERVAL_OUTPUT = 10000;

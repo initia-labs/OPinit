@@ -31,7 +31,7 @@ async function runBot(): Promise<void> {
     );
   } catch (err) {
     logger.error(err);
-    gracefulShutdown();
+    stopChallenger();
   }
 }
 
@@ -39,24 +39,24 @@ function stopBot(): void {
   monitors.forEach((monitor) => monitor.stop());
 }
 
-async function gracefulShutdown(): Promise<void> {
+export async function stopChallenger(): Promise<void> {
   stopBot();
 
   logger.info('Closing DB connection');
   await finalizeORM();
 
-  logger.info('Finished');
+  logger.info('Finished Challenger');
   process.exit(0);
 }
 
-async function main(): Promise<void> {
+export async function startChallenger(): Promise<void> {
   await initORM();
   await runBot();
 
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
-  signals.forEach((signal) => process.on(signal, once(gracefulShutdown)));
+  signals.forEach((signal) => process.on(signal, once(stopChallenger)));
 }
 
 if (require.main === module) {
-  main().catch(console.log);
+  startChallenger().catch(console.log);
 }

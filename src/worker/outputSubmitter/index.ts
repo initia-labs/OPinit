@@ -9,32 +9,37 @@ async function runBot(): Promise<void> {
 
   jobs = [outputSubmitter];
 
-  await Promise.all(
-    jobs.map((job) => {
-      job.run();
-    })
-  );
+  try {
+    await Promise.all(
+      jobs.map((job) => {
+        job.run();
+      })
+    );
+  } catch (err) {
+    logger.error(err);
+    stopOutput();
+  }
 }
 
 function stopBot(): void {
   jobs.forEach((job) => job.stop());
 }
 
-async function gracefulShutdown(): Promise<void> {
+export async function stopOutput(): Promise<void> {
   stopBot();
 
-  logger.info('Finished');
+  logger.info('Finished OutputSubmitter');
   process.exit(0);
 }
 
-async function main(): Promise<void> {
+export async function startOutput(): Promise<void> {
   await runBot();
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
-  signals.forEach((signal) => process.on(signal, once(gracefulShutdown)));
+  signals.forEach((signal) => process.on(signal, once(stopOutput)));
 }
 
 if (require.main === module) {
-  main().catch(console.log);
+  startOutput().catch(console.log);
 }

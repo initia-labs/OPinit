@@ -318,7 +318,7 @@ export class Challenger {
     logger.info(
       `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
     );
-    process.exit(1);
+    process.exit(0);
   }
 }
 

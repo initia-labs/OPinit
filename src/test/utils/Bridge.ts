@@ -28,7 +28,7 @@ import {
   StateEntity,
   ExecutorWithdrawalTxEntity
 } from 'orm';
-import {getConfig} from 'config';
+import { getConfig } from 'config';
 
 const config = getConfig();
 export const bcs = BCS.getInstance();
@@ -36,9 +36,9 @@ export const bcs = BCS.getInstance();
 export async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
   try {
     const signedTx = await sender.createAndSignTx({ msgs: msg });
-    const broadcastResult = await client.tx.broadcast(signedTx);
-    console.log('height: ', broadcastResult.height);
+    const broadcastResult = await sender.lcd.tx.broadcast(signedTx);
     await checkTx(client, broadcastResult.txhash);
+    console.log('height: ', broadcastResult.height);
     return broadcastResult.txhash;
   } catch (error) {
     console.log(error?.response?.data);
@@ -90,6 +90,7 @@ class Bridge {
   db: DataSource;
   submissionInterval: number;
   finalizedTime: number;
+  l2StartBlockHeight: number;
   l1BlockHeight: number;
   l2BlockHeight: number;
   l2id: string;
@@ -99,12 +100,14 @@ class Bridge {
   constructor(
     submissionInterval: number,
     finalizedTime: number,
+    l2StartBlockHeight: number,
     l2id: string,
     contractDir: string
   ) {
     [this.db] = getDB();
     this.submissionInterval = submissionInterval;
     this.finalizedTime = finalizedTime;
+    this.l2StartBlockHeight = l2StartBlockHeight;
     this.l2id = l2id;
     this.tag = this.l2id.split('::')[1];
     this.contractDir = contractDir;
@@ -185,7 +188,7 @@ class Bridge {
   async outputInitialize(
     submissionInterval: number,
     finalizedTime: number,
-    l2BlockHeight: number
+    l2StartBlockHeight: number
   ) {
     const sender = executor;
     const executeMsg = [
@@ -200,7 +203,7 @@ class Bridge {
           bcs.serialize('address', outputSubmitter.key.accAddress),
           bcs.serialize('address', challenger.key.accAddress),
           bcs.serialize('u64', finalizedTime),
-          bcs.serialize('u64', l2BlockHeight)
+          bcs.serialize('u64', l2StartBlockHeight)
         ]
       )
     ];
@@ -226,28 +229,19 @@ class Bridge {
     await this.publishL2ID(this.contractDir, this.tag);
     await delay(7000);
     console.log('publish L2ID done');
-
     await this.bridgeInitialize();
     await delay(7000);
     console.log('initialize bridge done');
-
     await this.outputInitialize(
       this.submissionInterval,
       this.finalizedTime,
-      this.l2BlockHeight
+      this.l2StartBlockHeight
     );
     await delay(7000);
-    console.log('setup bridge and output done');
-
+    console.log('output initiaization done');
     await this.bridgeRegisterToken(`0x1::native_uinit::Coin`);
     console.log('register token done');
     await delay(7000);
-    console.log(
-      `L1 Block Height: ${this.l1BlockHeight}, L2 Block Height: ${this.l2BlockHeight}, L2ID: ${this.l2id}`
-    );
-    console.log(
-      `submissionInterval: ${this.submissionInterval}, finalizedTime: ${this.finalizedTime}`
-    );
   }
 
   async deployBridge() {
@@ -255,6 +249,7 @@ class Bridge {
     const bridge = new Bridge(
       this.submissionInterval,
       this.finalizedTime,
+      this.l2StartBlockHeight,
       this.l2id,
       this.contractDir
     );

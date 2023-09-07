@@ -67,29 +67,18 @@ export class BatchSubmitter {
           (this.batchIndex + 1) * this.submissionInterval -
           1;
 
+        this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd);
         if (endHeight > this.latestBlockHeight) {
-          logger.info(
-            `[${this.batchIndex}th batch] batch interval is not satisfied. current height: ${this.latestBlockHeight} target height: ${endHeight}`
-          );
-          this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd); // update latest block height
-          return;
+          await delay(INTERVAL_BATCH);
+          continue;
         }
 
         const batch = await this.getBatch(startHeight, endHeight);
-        logger.info(
-          `[${this.batchIndex}th batch] batch is generated. start height: ${startHeight} end height: ${endHeight}`
-        );
-        const txHash = await this.publishBatchToL1(batch);
-        logger.info(
-          `[${this.batchIndex}th batch] batch is published to L1. tx hash: ${txHash}`
-        );
-
+        await this.publishBatchToL1(batch);
         await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
-        logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
+        logger.info(`[Batch] ${this.batchIndex}th batch is successfully saved`);
       } catch (err) {
         throw new Error(`Error in BatchSubmitter: ${err}`);
-      } finally {
-        await delay(INTERVAL_BATCH);
       }
     }
   }

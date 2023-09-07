@@ -3,7 +3,7 @@ version: "3.8"
 services:
   initia:
     build:
-      context: ./docker/local-initia
+      context: ./local-initia
       dockerfile: Dockerfile.initia
       args:
         INITIA_VERSION: ${INITIA_VERSION}
@@ -17,13 +17,13 @@ services:
       - default
     ports:
       - "1317:1317"
-      - "8080:8080"
-      - "9090:9090"
-      - "9091:9091"
+      # - "8080:8080"
+      # - "9090:9090"
+      # - "9091:9091"
       - "26657:26657"
   minitia:
     build:
-      context: ./docker/local-initia
+      context: ./local-initia
       dockerfile: Dockerfile.minitia
       args:
         MINITIA_VERSION: ${MINITIA_VERSION}
@@ -37,9 +37,9 @@ services:
       - default
     ports:
       - "1318:1317"
-      - "8081:8080"
-      - "9190:9090"
-      - "9191:9091"
+      # - "8081:8080"
+      # - "9190:9090"
+      # - "9191:9091"
       - "26658:26657"
   postgres:
     image: postgres:13
@@ -58,6 +58,7 @@ services:
   #   depends_on:
   #     - initia
   #     - minitia
+  #     - postgres
   #   build: 
   #     context: .
   #     dockerfile: Dockerfile

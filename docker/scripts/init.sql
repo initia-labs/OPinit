@@ -1,3 +1,0 @@
--- init.sql
-DROP DATABASE IF EXISTS rollup;
-CREATE DATABASE rollup;
