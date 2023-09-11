@@ -12,11 +12,11 @@ const config = getConfig();
 
 let monitors: (Monitor | Challenger)[];
 
-async function runBot(): Promise<void> {
+async function runBot(isFetch?: boolean): Promise<void> {
   const challenger = new Challenger();
 
   // use to sync with bridge latest state
-  await challenger.fetchBridgeState();
+  if (isFetch) await challenger.fetchBridgeState();
 
   monitors = [
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000, logger), logger),
@@ -49,9 +49,9 @@ export async function stopChallenger(): Promise<void> {
   process.exit(0);
 }
 
-export async function startChallenger(): Promise<void> {
+export async function startChallenger(isFetch = true): Promise<void> {
   await initORM();
-  await runBot();
+  await runBot(isFetch);
 
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
   signals.forEach((signal) => process.on(signal, once(stopChallenger)));

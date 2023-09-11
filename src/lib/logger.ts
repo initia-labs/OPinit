@@ -26,28 +26,28 @@ function getLogsSubdir() {
   )}`;
 }
 
-const print = winston.format.printf((info) => {
-  let level;
-
-  if (!config.USE_LOG_FILE) {
-    // Do not colorize when writing to file
-    if (info.level === 'error') {
-      level = chalk.red(info.level.toUpperCase());
-    } else if (info.level === 'warn') {
-      level = chalk.yellow(info.level.toUpperCase());
-    } else {
-      level = chalk.green(info.level.toUpperCase());
-    }
-  }
-
-  const log = `${getDateString()} [${level ? level : info.level}]: ${
-    info.message
-  }`;
-
-  return log;
-});
-
 function createLogger(name: string) {
+  const print = winston.format.printf((info) => {
+    let level;
+
+    if (!config.USE_LOG_FILE) {
+      // Do not colorize when writing to file
+      if (info.level === 'error') {
+        level = chalk.red(info.level.toUpperCase());
+      } else if (info.level === 'warn') {
+        level = chalk.yellow(info.level.toUpperCase());
+      } else {
+        level = chalk.green(info.level.toUpperCase());
+      }
+    }
+
+    const log = `${getDateString()} [${
+      level ? level : info.level
+    } - ${name}]: ${info.message}`;
+
+    return log;
+  });
+
   const logger = winston.createLogger({
     level: 'info',
     format: winston.format.combine(
@@ -85,7 +85,7 @@ function createLogger(name: string) {
   return logger;
 }
 
-export const executorLogger = createLogger('executor');
-export const batchLogger = createLogger('batch');
-export const challengerLogger = createLogger('challenger');
-export const outputLogger = createLogger('output');
+export const executorLogger = createLogger('Executor');
+export const batchLogger = createLogger('Batch');
+export const challengerLogger = createLogger('Challenger');
+export const outputLogger = createLogger('Output');

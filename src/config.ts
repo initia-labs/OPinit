@@ -116,7 +116,7 @@ export function getConfig() {
     const testConfig = {
       EXECUTOR_PORT: 3000,
       BATCH_PORT: 3001,
-      L1_LCD_URI: 'http://127.0.0.1:1317',
+      L1_LCD_URI: 'http://localhost:1317',
       L1_RPC_URI: 'http://localhost:26657',
       L2_LCD_URI: 'http://localhost:1318',
       L2_RPC_URI: 'http://localhost:26658',

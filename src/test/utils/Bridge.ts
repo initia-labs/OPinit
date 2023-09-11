@@ -1,25 +1,6 @@
-import {
-  AccAddress,
-  Coin,
-  MsgExecute,
-  MsgPublish,
-  MsgSend,
-  MsgDeposit
-} from '@initia/initia.js';
-import {
-  Wallet,
-  MnemonicKey,
-  BCS,
-  LCDClient,
-  TxInfo,
-  Msg
-} from '@initia/initia.js';
-import axios from 'axios';
+import { MsgExecute, MsgPublish } from '@initia/initia.js';
 import * as fs from 'fs';
 import * as path from 'path';
-
-import { delay } from 'bluebird';
-import { MoveBuilder } from '@initia/builder.js';
 import { getDB, initORM } from 'worker/bridgeExecutor/db';
 import { DataSource, EntityManager } from 'typeorm';
 import {
@@ -29,62 +10,9 @@ import {
   ExecutorWithdrawalTxEntity
 } from 'orm';
 import { getConfig } from 'config';
-
+import { build, executor, challenger, outputSubmitter, bcs } from './helper';
+import { sendTx } from 'lib/tx';
 const config = getConfig();
-export const bcs = BCS.getInstance();
-
-export async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
-  try {
-    const signedTx = await sender.createAndSignTx({ msgs: msg });
-    const broadcastResult = await sender.lcd.tx.broadcast(signedTx);
-    await checkTx(client, broadcastResult.txhash);
-    console.log('height: ', broadcastResult.height);
-    return broadcastResult.txhash;
-  } catch (error) {
-    console.log(error?.response?.data);
-    throw new Error(`Error in sendTx: ${error}`);
-  }
-}
-
-export async function checkTx(
-  lcd: LCDClient,
-  txHash: string,
-  timeout = 60000
-): Promise<TxInfo | undefined> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeout) {
-    try {
-      const txInfo = await lcd.tx.txInfo(txHash);
-      if (txInfo) return txInfo;
-      await delay(1000);
-    } catch (err) {
-      throw new Error(`Failed to check transaction status: ${err.message}`);
-    }
-  }
-
-  throw new Error('Transaction checking timed out');
-}
-
-export async function build(dirname: string, moduleName: string) {
-  const builder = new MoveBuilder(`${dirname}`, {});
-  await builder.build();
-  const contract = await builder.get(moduleName);
-  return contract.toString('base64');
-}
-
-export const executor = new Wallet(
-  config.l1lcd,
-  new MnemonicKey({ mnemonic: config.EXECUTOR_MNEMONIC })
-);
-export const challenger = new Wallet(
-  config.l1lcd,
-  new MnemonicKey({ mnemonic: config.CHALLENGER_MNEMONIC })
-);
-export const outputSubmitter = new Wallet(
-  config.l1lcd,
-  new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC })
-);
 
 class Bridge {
   db: DataSource;
@@ -167,7 +95,7 @@ class Bridge {
     const sender = executor;
     const module = await build(dirname, moduleName);
     const executeMsg = [new MsgPublish(sender.key.accAddress, [module], 0)];
-    await sendTx(config.l1lcd, sender, executeMsg);
+    await sendTx(sender, executeMsg);
   }
 
   async bridgeInitialize() {
@@ -182,7 +110,7 @@ class Bridge {
         []
       )
     ];
-    await sendTx(config.l1lcd, sender, executeMsg);
+    await sendTx(sender, executeMsg);
   }
 
   async outputInitialize(
@@ -207,7 +135,7 @@ class Bridge {
         ]
       )
     ];
-    await sendTx(config.l1lcd, sender, executeMsg);
+    await sendTx(sender, executeMsg);
   }
 
   async bridgeRegisterToken(coinType: string) {
@@ -222,26 +150,22 @@ class Bridge {
         []
       )
     ];
-    await sendTx(config.l1lcd, sender, executeMsg);
+    await sendTx(sender, executeMsg);
   }
 
   async tx() {
     await this.publishL2ID(this.contractDir, this.tag);
-    await delay(7000);
     console.log('publish L2ID done');
     await this.bridgeInitialize();
-    await delay(7000);
     console.log('initialize bridge done');
     await this.outputInitialize(
       this.submissionInterval,
       this.finalizedTime,
       this.l2StartBlockHeight
     );
-    await delay(7000);
     console.log('output initiaization done');
     await this.bridgeRegisterToken(`0x1::native_uinit::Coin`);
     console.log('register token done');
-    await delay(7000);
   }
 
   async deployBridge() {

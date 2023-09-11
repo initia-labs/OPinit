@@ -103,9 +103,10 @@ export class L2Monitor extends Monitor {
 
     const tx: ExecutorWithdrawalTxEntity = this.genTx(data, coin, lastIndex);
 
-    this.logger.info(`Withdraw tx in height ${this.syncedHeight}`);
+    this.logger.info(`withdraw tx in height ${this.syncedHeight}`);
     await this.helper.saveEntity(manager, ExecutorWithdrawalTxEntity, tx);
   }
+
   public async handleEvents(): Promise<void> {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
@@ -125,7 +126,6 @@ export class L2Monitor extends Monitor {
                 transactionalEntityManager,
                 data
               );
-              break;
           }
         }
       }

@@ -15,6 +15,7 @@ import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
 import { GetOutputResponse } from 'service';
 import { getConfig } from 'config';
+import { sendTx } from 'lib/tx';
 
 const config = getConfig();
 const bcs = BCS.getInstance();
@@ -61,7 +62,7 @@ export class OutputSubmitter {
         bcs.serialize('u64', l2BlockHeight)
       ]
     );
-    await sendTx(config.l1lcd, this.submitter, [executeMsg]);
+    await sendTx(this.submitter, [executeMsg]);
   }
 
   public async run() {
@@ -80,7 +81,7 @@ export class OutputSubmitter {
       } catch (err) {
         if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
           logger.warn(
-            `[Output] waiting for next output. not found output from executor height`
+            `waiting for next output. not found output from executor height`
           );
           await delay(INTERVAL_OUTPUT);
         } else {
@@ -105,39 +106,7 @@ export class OutputSubmitter {
     );
     this.syncedHeight = nextBlockHeight;
     logger.info(
-      `[Output] successfully submitted! height: ${nextBlockHeight}, output root: ${outputEntity.outputRoot}`
+      `successfully submitted! height: ${nextBlockHeight}, output root: ${outputEntity.outputRoot}`
     );
   }
-}
-
-/// Utils
-async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
-  try {
-    const signedTx = await sender.createAndSignTx({ msgs: msg });
-    const broadcastResult = await client.tx.broadcast(signedTx);
-    await checkTx(client, broadcastResult.txhash);
-    return broadcastResult.txhash;
-  } catch (error) {
-    throw new Error(`Error in sendTx: ${error}`);
-  }
-}
-
-export async function checkTx(
-  lcd: LCDClient,
-  txHash: string,
-  timeout = 60000
-): Promise<TxInfo | undefined> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeout) {
-    try {
-      const txInfo = await lcd.tx.txInfo(txHash);
-      if (txInfo) return txInfo;
-      await delay(1000);
-    } catch (err) {
-      throw new Error(`Failed to check transaction status: ${err.message}`);
-    }
-  }
-
-  throw new Error('Transaction checking timed out');
 }

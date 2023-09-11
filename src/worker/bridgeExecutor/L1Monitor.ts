@@ -143,7 +143,7 @@ export class L1Monitor extends Monitor {
             .transaction(msgs)
             .then((info) => {
               this.logger.info(
-                `Succeed to submit tx in height: ${this.syncedHeight}\ntxhash: ${info?.txhash}\nmsgs: ${stringfyMsgs}`
+                `succeed to submit tx in height: ${this.syncedHeight}\ntxhash: ${info?.txhash}\nmsgs: ${stringfyMsgs}`
               );
             })
             .catch(async (err) => {

@@ -24,6 +24,7 @@ import { fetchBridgeConfig } from 'lib/lcd';
 import axios from 'axios';
 import { GetAllCoinsResponse } from 'service/CoinService';
 import { getConfig } from 'config';
+import { sendTx } from 'lib/tx';
 
 const config = getConfig();
 const bcs = BCS.getInstance();
@@ -314,42 +315,10 @@ export class Challenger {
       [bcs.serialize(BCS.U64, entity.outputIndex)]
     );
 
-    await sendTx(config.l1lcd, this.challenger, [executeMsg]);
+    await sendTx(this.challenger, [executeMsg]);
     logger.info(
       `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
     );
     process.exit(0);
   }
-}
-
-/// Utils
-async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
-  try {
-    const signedTx = await sender.createAndSignTx({ msgs: msg });
-    const broadcastResult = await client.tx.broadcast(signedTx);
-    await checkTx(client, broadcastResult.txhash);
-    return broadcastResult.txhash;
-  } catch (error) {
-    throw new Error(`Error in sendTx: ${error}`);
-  }
-}
-
-export async function checkTx(
-  lcd: LCDClient,
-  txHash: string,
-  timeout = 60000
-): Promise<TxInfo | undefined> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeout) {
-    try {
-      const txInfo = await lcd.tx.txInfo(txHash);
-      if (txInfo) return txInfo;
-      await delay(1000);
-    } catch (err) {
-      throw new Error(`Failed to check transaction status: ${err.message}`);
-    }
-  }
-
-  throw new Error('Transaction checking timed out');
 }

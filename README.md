@@ -73,3 +73,17 @@ pm2 start npm run executor.json
 
 
 > In Batch Submitter, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample)
+
+# Test
+
+Docker and docker-compose are required to run integration test.
+
+```bash
+npm run test:integration
+```
+
+If you want to reset docker container, run following command.
+
+```bash
+./docker-compose-reset
+```
