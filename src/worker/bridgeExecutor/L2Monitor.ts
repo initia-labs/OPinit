@@ -1,4 +1,3 @@
-import config from 'config';
 import {
   ExecutorCoinEntity,
   ExecutorOutputEntity,
@@ -13,6 +12,9 @@ import { BlockInfo } from '@initia/minitia.js';
 import { getDB } from './db';
 import { RPCSocket } from 'lib/rpc';
 import winston from 'winston';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export class L2Monitor extends Monitor {
   submissionInterval: number;
@@ -101,9 +103,10 @@ export class L2Monitor extends Monitor {
 
     const tx: ExecutorWithdrawalTxEntity = this.genTx(data, coin, lastIndex);
 
-    this.logger.info(`Withdraw tx in height ${this.syncedHeight}`);
+    this.logger.info(`withdraw tx in height ${this.syncedHeight}`);
     await this.helper.saveEntity(manager, ExecutorWithdrawalTxEntity, tx);
   }
+
   public async handleEvents(): Promise<void> {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
@@ -123,7 +126,6 @@ export class L2Monitor extends Monitor {
                 transactionalEntityManager,
                 data
               );
-              break;
           }
         }
       }

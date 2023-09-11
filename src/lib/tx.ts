@@ -1,13 +1,12 @@
 import { delay } from 'bluebird';
-import { Wallet, LCDClient, TxInfo, Msg } from '@initia/minitia.js';
-import { logger } from './logger';
+import { LCDClient, TxAPI } from '@initia/minitia.js';
 
-export async function transaction(
-  wallet: Wallet,
-  msgs: Msg[],
+export async function sendTx(
+  wallet: any,
+  msgs: any[],
   accountNumber?: number,
   sequence?: number
-): Promise<TxInfo | undefined> {
+): Promise<any> {
   try {
     const signedTx = await wallet.createAndSignTx({
       msgs,
@@ -16,17 +15,19 @@ export async function transaction(
     });
     const broadcastResult = await wallet.lcd.tx.broadcast(signedTx);
     if (broadcastResult['code']) throw new Error(broadcastResult.raw_log);
-    return checkTx(wallet.lcd, broadcastResult.txhash);
+    await checkTx(wallet.lcd, broadcastResult.txhash);
+    return broadcastResult;
   } catch (err) {
+    console.log(err);
     throw new Error(`Failed to execute transaction: ${err.message}`);
   }
 }
 
 export async function checkTx(
-  lcd: LCDClient,
+  lcd: any,
   txHash: string,
   timeout = 60000
-): Promise<TxInfo | undefined> {
+): Promise<any> {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeout) {
@@ -45,7 +46,6 @@ export async function checkTx(
 // check whether batch submission interval is met
 export async function getLatestBlockHeight(client: LCDClient): Promise<number> {
   const block = await client.tendermint.blockInfo().catch((error) => {
-    logger.error(`Error getting block info from L2: ${error}`);
     throw new Error(`Error getting block info from L2: ${error}`);
   });
 

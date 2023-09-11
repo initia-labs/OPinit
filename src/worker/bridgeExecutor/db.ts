@@ -6,8 +6,11 @@ import {
   DataSourceOptions
 } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+
+import debugModule from 'debug';
+const debug = debugModule('orm');
+
 import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
-const debug = require('debug')('orm');
 
 import {
   ExecutorOutputEntity,
@@ -44,15 +47,24 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   return new DataSource({
     ...options,
     ...staticOptions,
-    namingStrategy: new CamelToSnakeNamingStrategy()
+    namingStrategy: new CamelToSnakeNamingStrategy() as any
   }).initialize();
 }
 
-export async function initORM(): Promise<void> {
+export async function initORM(host?: string, port?: number): Promise<void> {
   const reader = new ConnectionOptionsReader();
   const options = (await reader.all()) as PostgresConnectionOptions[];
 
-  DB = await Bluebird.map(options, (opt) => initConnection(opt));
+  DB = await Bluebird.map(options, (opt) => {
+    const newOptions = { ...opt };
+    if (host) {
+      newOptions.host = host;
+    }
+    if (port) {
+      newOptions.port = port;
+    }
+    return initConnection(newOptions);
+  });
 }
 
 export function getDB(): DataSource[] {

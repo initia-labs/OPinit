@@ -4,25 +4,32 @@ import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';
 import { once } from 'lodash';
-import config from 'config';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 let jobs: BatchSubmitter[] = [];
 
 async function runBot(): Promise<void> {
   jobs = [new BatchSubmitter()];
 
-  await Promise.all(
-    jobs.map((job) => {
-      job.run();
-    })
-  );
+  try {
+    await Promise.all(
+      jobs.map((job) => {
+        job.run();
+      })
+    );
+  } catch (err) {
+    logger.error(err);
+    stopBatch();
+  }
 }
 
 function stopBot(): void {
   jobs.forEach((job) => job.stop());
 }
 
-async function gracefulShutdown(): Promise<void> {
+export async function stopBatch(): Promise<void> {
   stopBot();
 
   logger.info('Closing listening port');
@@ -31,21 +38,20 @@ async function gracefulShutdown(): Promise<void> {
   logger.info('Closing DB connection');
   await finalizeORM();
 
-  logger.info('Finished');
+  logger.info('Finished Batch');
   process.exit(0);
 }
 
-async function main(): Promise<void> {
+export async function startBatch(): Promise<void> {
   await initORM();
   await initServer(batchController, config.BATCH_PORT);
-
   await runBot();
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
-  signals.forEach((signal) => process.on(signal, once(gracefulShutdown)));
+  signals.forEach((signal) => process.on(signal, once(stopBatch)));
 }
 
 if (require.main === module) {
-  main().catch(console.log);
+  startBatch().catch(console.log);
 }

@@ -6,8 +6,10 @@ import {
   MnemonicKey,
   LCDClient
 } from '@initia/minitia.js';
-import { transaction } from './lcd';
-import config from 'config';
+import { sendTx } from './tx';
+import { getConfig } from 'config';
+
+const config = getConfig();
 
 export enum WalletType {
   Challenger = 'challenger',
@@ -83,7 +85,7 @@ export class TxWallet extends Wallet {
     }
 
     try {
-      const txInfo = await transaction(
+      const txInfo = await sendTx(
         this,
         msgs,
         this.managedAccountNumber,

@@ -1,24 +1,19 @@
 import { getDB } from './db';
 import { DataSource } from 'typeorm';
-import { executorLogger as logger } from 'lib/logger';
-import config from 'config';
+import { batchLogger as logger } from 'lib/logger';
+
 import { BlockBulk, getBlockBulk } from 'lib/rpc';
 import { compressor } from 'lib/compressor';
 import { getLatestBlockHeight } from 'lib/tx';
 import { RecordEntity } from 'orm';
-import {
-  Wallet,
-  MnemonicKey,
-  MsgExecute,
-  BCS,
-  LCDClient,
-  TxInfo,
-  Msg
-} from '@initia/initia.js';
+import { Wallet, MnemonicKey, MsgExecute, BCS } from '@initia/initia.js';
 import { fetchBridgeConfig } from 'lib/lcd';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
+import { getConfig } from 'config';
+import { sendTx } from 'lib/tx';
 
+const config = getConfig();
 const bcs = BCS.getInstance();
 
 export class BatchSubmitter {
@@ -65,29 +60,18 @@ export class BatchSubmitter {
           (this.batchIndex + 1) * this.submissionInterval -
           1;
 
+        this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd);
         if (endHeight > this.latestBlockHeight) {
-          logger.info(
-            `[${this.batchIndex}th batch] batch interval is not satisfied. current height: ${this.latestBlockHeight} target height: ${endHeight}`
-          );
-          this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd); // update latest block height
-          return;
+          await delay(INTERVAL_BATCH);
+          continue;
         }
 
         const batch = await this.getBatch(startHeight, endHeight);
-        logger.info(
-          `[${this.batchIndex}th batch] batch is generated. start height: ${startHeight} end height: ${endHeight}`
-        );
-        const txHash = await this.publishBatchToL1(batch);
-        logger.info(
-          `[${this.batchIndex}th batch] batch is published to L1. tx hash: ${txHash}`
-        );
-
+        await this.publishBatchToL1(batch);
         await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
-        logger.info(`[${this.batchIndex}th batch] batch is indexed to DB`);
+        logger.info(`${this.batchIndex}th batch is successfully saved`);
       } catch (err) {
         throw new Error(`Error in BatchSubmitter: ${err}`);
-      } finally {
-        await delay(INTERVAL_BATCH);
       }
     }
   }
@@ -134,7 +118,7 @@ export class BatchSubmitter {
         [bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000)]
       );
 
-      return await sendTx(config.l1lcd, this.submitter, [executeMsg]);
+      return await sendTx(this.submitter, [executeMsg]);
     } catch (err) {
       throw new Error(`Error publishing batch to L1: ${err}`);
     }
@@ -163,36 +147,4 @@ export class BatchSubmitter {
 
     return record;
   }
-}
-
-/// Utils
-async function sendTx(client: LCDClient, sender: Wallet, msg: Msg[]) {
-  try {
-    const signedTx = await sender.createAndSignTx({ msgs: msg });
-    const broadcastResult = await client.tx.broadcast(signedTx);
-    await checkTx(client, broadcastResult.txhash);
-    return broadcastResult.txhash;
-  } catch (error) {
-    throw new Error(`Error in sendTx: ${error}`);
-  }
-}
-
-export async function checkTx(
-  lcd: LCDClient,
-  txHash: string,
-  timeout = 60000
-): Promise<TxInfo | undefined> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeout) {
-    try {
-      const txInfo = await lcd.tx.txInfo(txHash);
-      if (txInfo) return txInfo;
-      await delay(1000);
-    } catch (err) {
-      throw new Error(`Failed to check transaction status: ${err.message}`);
-    }
-  }
-
-  throw new Error('Transaction checking timed out');
 }

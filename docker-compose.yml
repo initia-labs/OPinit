@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+  initia:
+    build:
+      context: ./local-initia
+      dockerfile: Dockerfile.initia
+      args:
+        INITIA_VERSION: ${INITIA_VERSION}
+    image: ghcr.io/initia-labs/initiad:${INITIA_VERSION}
+    hostname: initia
+    pull_policy: always
+    platform: linux/amd64
+    volumes:
+      - initia:/app
+    networks:
+      - default
+    ports:
+      - "1317:1317"
+      - "26657:26657"
+  minitia:
+    build:
+      context: ./local-initia
+      dockerfile: Dockerfile.minitia
+      args:
+        MINITIA_VERSION: ${MINITIA_VERSION}
+    image: ghcr.io/initia-labs/minitiad:${MINITIA_VERSION}
+    hostname: minitia
+    pull_policy: always
+    platform: linux/amd64
+    volumes:
+      - minitia:/app
+    networks:
+      - default
+    ports:
+      - "1318:1317"
+      - "26658:26657"
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+    ports:
+      - "5433:5432"
+  # rollup:
+  #   platform: linux/amd64
+  #   depends_on:
+  #     - initia
+  #     - minitia
+  #     - postgres
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: rollup
+  #   container_name: rollup
+  #   ports:
+  #     - "3000:3000"
+  #     - "3001:3001"
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   env_file:
+  #     - .envrc
+volumes:
+  initia:
+  minitia:
+  postgres_data:
+    driver: local
+
+networks:
+  default:

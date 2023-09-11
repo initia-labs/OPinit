@@ -1,4 +1,4 @@
-import { compressor, decompressor } from './compressor';
+import { compressor, decompressor } from 'lib/compressor';
 
 describe('Test compress and decompress functions', () => {
   it('should correctly compress and decompress records', () => {
