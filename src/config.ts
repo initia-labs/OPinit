@@ -127,7 +127,7 @@ export function getConfig() {
     Config.updateConfig({
       ...testConfig,
       l1lcd: new InitiaLCDClient(testConfig.L1_LCD_URI, {
-        gasAdjustment: '10'
+        gasAdjustment: '15'
       }),
       l2lcd: new MinitiaLCDClient(testConfig.L2_LCD_URI, {
         gasPrices: '0.15umin',

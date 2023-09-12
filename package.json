@@ -66,7 +66,7 @@
     "webpack-bundle-analyzer": "^4.1.0"
   },
   "dependencies": {
-    "@initia/builder.js": "^0.0.8",
+    "@initia/builder.js": "file:../builder.js",
     "@initia/initia.js": "^0.1.4",
     "@initia/minitia.js": "^0.0.6",
     "@koa/cors": "^4.0.0",

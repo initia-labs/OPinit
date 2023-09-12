@@ -17,6 +17,7 @@ import {
   Wallet as iWallet,
   MnemonicKey as iMnemonicKey
 } from '@initia/initia.js';
+import { checkExecutor } from './utils/helper';
 
 const config = Config.getConfig();
 const docker = new DockerHelper(path.join(__dirname, '..', '..'));
@@ -24,7 +25,7 @@ const docker = new DockerHelper(path.join(__dirname, '..', '..'));
 async function main() {
   try {
     await docker.start();
-    await delay(20_000);
+    await delay(20_000); // time for setting up docker
 
     await setupBridge(10, 10, 10);
     await startBot();
@@ -53,9 +54,8 @@ async function startBot() {
   startBatch();
   startExecutor();
   startChallenger(false);
-
-  await delay(10_000);
-
+  
+  await checkExecutor(); // WARN: run after executor started
   startOutput();
 }
 

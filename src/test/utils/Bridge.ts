@@ -156,14 +156,17 @@ class Bridge {
   async tx() {
     await this.publishL2ID(this.contractDir, this.tag);
     console.log('publish L2ID done');
+
     await this.bridgeInitialize();
     console.log('initialize bridge done');
+
     await this.outputInitialize(
       this.submissionInterval,
       this.finalizedTime,
       this.l2StartBlockHeight
     );
     console.log('output initiaization done');
+    
     await this.bridgeRegisterToken(`0x1::native_uinit::Coin`);
     console.log('register token done');
   }

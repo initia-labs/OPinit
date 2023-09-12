@@ -3,7 +3,7 @@ name = "op"
 version = "0.0.0"
 
 [dependencies]
-InitiaStdlib = { git = "https://github.com/initia-labs/initiavm.git", subdir = "crates/../precompile/modules/initia_stdlib", rev = "main" }
+InitiaStdlib = { git = "https://github.com/initia-labs/initiavm.git", subdir = "precompile/modules/initia_stdlib", rev = "main" }
 
 [addresses]
 std =  "0x1"

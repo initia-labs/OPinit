@@ -104,3 +104,18 @@ export async function getOutput(outputIndex: number): Promise<OutputResponse> {
   const res = await axios.get(url);
   return res.data;
 }
+
+
+export const checkExecutor = async (timeout = 60_000) => {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < timeout) {
+    try {
+      const response = await axios.get(config.EXECUTOR_URI);
+      if (response.status === 200) return;
+    } catch {
+      continue
+    }
+    await new Promise(res => setTimeout(res, 1_000));
+  }
+};

@@ -8,9 +8,14 @@ services:
       args:
         INITIA_VERSION: ${INITIA_VERSION}
     image: ghcr.io/initia-labs/initiad:${INITIA_VERSION}
+    pull_policy: if_not_present
     hostname: initia
-    pull_policy: always
     platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657"]
+      interval: 20s
+      timeout: 20s
+      retries: 3
     volumes:
       - initia:/app
     networks:
@@ -25,9 +30,14 @@ services:
       args:
         MINITIA_VERSION: ${MINITIA_VERSION}
     image: ghcr.io/initia-labs/minitiad:${MINITIA_VERSION}
+    pull_policy: if_not_present
     hostname: minitia
-    pull_policy: always
     platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657"]
+      interval: 20s
+      timeout: 20s
+      retries: 3
     volumes:
       - minitia:/app
     networks:
@@ -37,35 +47,44 @@ services:
       - "26658:26657"
   postgres:
     image: postgres:13
+    pull_policy: if_not_present
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 20s
+      timeout: 20s
+      retries: 3
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - default
     ports:
       - "5433:5432"
-  # rollup:
-  #   platform: linux/amd64
-  #   depends_on:
-  #     - initia
-  #     - minitia
-  #     - postgres
-  #   build: 
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   image: rollup
-  #   container_name: rollup
-  #   ports:
-  #     - "3000:3000"
-  #     - "3001:3001"
-  #   volumes:
-  #     - .:/app
-  #     - /app/node_modules
-  #   env_file:
-  #     - .envrc
+  rollup:
+    platform: linux/amd64
+    depends_on:
+      initia:
+        condition: service_healthy
+      minitia:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy 
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: rollup
+    container_name: rollup
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .envrc
 volumes:
   initia:
   minitia:
