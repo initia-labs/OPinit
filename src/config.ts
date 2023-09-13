@@ -121,13 +121,13 @@ export function getConfig() {
       L2_LCD_URI: 'http://localhost:1318',
       L2_RPC_URI: 'http://localhost:26658',
       EXECUTOR_URI: 'http://localhost:3000',
-      L2ID: '0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10t1::Minitia',
+      L2ID: '0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10ta1::Minitia',
       TYPEORM_HOST: 'http://localhost:5433'
     };
     Config.updateConfig({
       ...testConfig,
       l1lcd: new InitiaLCDClient(testConfig.L1_LCD_URI, {
-        gasAdjustment: '15'
+        gasAdjustment: '1.75'
       }),
       l2lcd: new MinitiaLCDClient(testConfig.L2_LCD_URI, {
         gasPrices: '0.15umin',

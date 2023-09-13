@@ -63,28 +63,28 @@ services:
       - default
     ports:
       - "5433:5432"
-  rollup:
-    platform: linux/amd64
-    depends_on:
-      initia:
-        condition: service_healthy
-      minitia:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy 
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    image: rollup
-    container_name: rollup
-    ports:
-      - "3000:3000"
-      - "3001:3001"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    env_file:
-      - .envrc
+  # rollup:
+  #   platform: linux/amd64
+  #   depends_on:
+  #     initia:
+  #       condition: service_healthy
+  #     minitia:
+  #       condition: service_healthy
+  #     postgres:
+  #       condition: service_healthy 
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: rollup
+  #   container_name: rollup
+  #   ports:
+  #     - "3000:3000"
+  #     - "3001:3001"
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   env_file:
+  #     - .envrc
 volumes:
   initia:
   minitia:

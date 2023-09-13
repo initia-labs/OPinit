@@ -24,10 +24,10 @@ const docker = new DockerHelper(path.join(__dirname, '..', '..'));
 
 async function main() {
   try {
-    await docker.start();
-    await delay(20_000); // time for setting up docker
+    // await docker.start();
+    // await delay(20_000); // time for setting up docker
 
-    await setupBridge(10, 10, 10);
+    await setupBridge(10, 10, 1);
     await startBot();
     await startTxBot();
   } catch (err) {
@@ -54,7 +54,7 @@ async function startBot() {
   startBatch();
   startExecutor();
   startChallenger(false);
-  
+
   await checkExecutor(); // WARN: run after executor started
   startOutput();
 }
