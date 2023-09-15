@@ -8,6 +8,18 @@ Initia Optimistic Rollup Bots. You can check [Minitia](https://github.com/initia
 
 # How to use
 
+## Setup L2
+
+Initializes the L2 id and op-bridge/output contracts.
+You should set `submissionInterval`, `finalizedTime` and `l2StartBlockHeight` before initializing.
+
+```bash
+export SUB_INTV=10
+export FIN_TIME=10
+export L2_HEIGHT=1
+npm run l2setup
+```
+
 ## Bridge Executor
 
 Bridge executor is a bot that monitor L1, L2 node and execute bridge transaction. It will execute following steps.
@@ -83,7 +95,7 @@ pm2 start challenger.json
 | L2ID                      | L2ID                                                   | ''                               |
 | BATCH_PORT                | Batch submitter port                                   | 3000                             |
 | EXECUTOR_PORT             | Executor port                                          | 3001                             |
-| EXECUTOR_URI              | Executor URI                                           | http://localhost:3000            |
+| EXECUTOR_URI              | Executor URI (for output submitter)                    | http://localhost:3000            |
 | EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
 | BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |

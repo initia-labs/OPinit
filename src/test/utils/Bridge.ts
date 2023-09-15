@@ -45,6 +45,7 @@ class Bridge {
     await this.setDB();
     this.updateL2ID();
   }
+  
   async setDB() {
     const l1Monitor = `executor_l1_monitor`;
     const l2Monitor = `executor_l2_monitor`;

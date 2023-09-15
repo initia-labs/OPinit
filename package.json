@@ -19,7 +19,8 @@
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "do": "ts-node -T --files -r tsconfig-paths/register",
     "apidoc": "npm run do src/loader/generateApiDoc.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "l2setup": "ts-node -r tsconfig-paths/register ./src/scripts/setupL2.ts"
   },
   "repository": {
     "type": "git",
@@ -66,7 +67,7 @@
     "webpack-bundle-analyzer": "^4.1.0"
   },
   "dependencies": {
-    "@initia/builder.js": "file:../builder.js",
+    "@initia/builder.js": "^0.0.9",
     "@initia/initia.js": "^0.1.4",
     "@initia/minitia.js": "^0.0.6",
     "@koa/cors": "^4.0.0",
