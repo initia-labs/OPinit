@@ -49,7 +49,7 @@ function createLogger(name: string) {
   });
 
   const logger = winston.createLogger({
-    level: 'info',
+    level: 'silly',
     format: winston.format.combine(
       winston.format.errors({ stack: true, stackTraces: true }),
       print

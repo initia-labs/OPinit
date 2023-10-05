@@ -124,6 +124,8 @@ export class L2Monitor extends Monitor {
       manager,
       ChallengerOutputEntity
     );
+    
+    console.log("deposit data:", data);
 
     const isTxSame = (originTx: ChallengerDepositTxEntity): boolean => {
       return (

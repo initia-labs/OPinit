@@ -22,4 +22,7 @@ export default class DepositTxEntity {
 
   @Column('bigint')
   amount: number;
+
+  @Column('bigint')
+  height: number;
 }

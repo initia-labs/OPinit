@@ -51,7 +51,7 @@ export class L1Monitor extends Monitor {
       manager,
       ChallengerOutputEntity
     );
-
+     
     const denom = `l2_${data['l2_token']}`;
     const entity: ChallengerDepositTxEntity = {
       sequence: Number.parseInt(data['l1_sequence']),
@@ -59,6 +59,7 @@ export class L1Monitor extends Monitor {
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       outputIndex: lastIndex + 1,
+      height: this.syncedHeight,
       finalizedOutputIndex: null,
       coinType: denom,
       isChecked: false

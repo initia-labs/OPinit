@@ -80,7 +80,8 @@ export class L1Monitor extends Monitor {
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       outputIndex: lastIndex + 1,
-      coinType: denom
+      coinType: denom,
+      height: this.syncedHeight,
     };
 
     this.logger.info(`Deposit tx in height ${this.syncedHeight}`);
@@ -92,7 +93,7 @@ export class L1Monitor extends Monitor {
       AccAddress.fromHex(data['to']),
       new Coin(denom, data['amount']),
       Number.parseInt(data['l1_sequence']),
-      this.syncedHeight + 1,
+      this.syncedHeight,
       Buffer.from(data['data'])
     );
   }
