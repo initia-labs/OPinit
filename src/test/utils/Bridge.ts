@@ -1,4 +1,4 @@
-import { MsgExecute, MsgPublish } from '@initia/initia.js';
+import { MsgPublish, MsgExecute } from '@initia/initia.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getDB, initORM } from 'worker/bridgeExecutor/db';
@@ -12,6 +12,7 @@ import {
 import { getConfig } from 'config';
 import { build, executor, challenger, outputSubmitter, bcs } from './helper';
 import { sendTx } from 'lib/tx';
+
 const config = getConfig();
 
 class Bridge {
@@ -37,7 +38,7 @@ class Bridge {
     this.finalizedTime = finalizedTime;
     this.l2StartBlockHeight = l2StartBlockHeight;
     this.l2id = l2id;
-    this.moduleName = this.l2id.split('::')[1]; 
+    this.moduleName = this.l2id.split('::')[1];
     this.contractDir = contractDir;
   }
 
@@ -45,7 +46,7 @@ class Bridge {
     await this.setDB();
     this.updateL2ID();
   }
-  
+
   async setDB() {
     const l1Monitor = `executor_l1_monitor`;
     const l2Monitor = `executor_l2_monitor`;
@@ -97,18 +98,7 @@ class Bridge {
     return new MsgPublish(executor.key.accAddress, [module], 0);
   }
 
-  bridgeInitializeMsg(l2id: string) {
-    return new MsgExecute(
-      executor.key.accAddress,
-      '0x1',
-      'op_bridge',
-      'initialize',
-      [l2id],
-      []
-    );
-  }
-
-  outputInitializeMsg(
+  bridgeInitializeMsg(
     submissionInterval: number,
     finalizedTime: number,
     l2StartBlockHeight: number
@@ -116,10 +106,11 @@ class Bridge {
     return new MsgExecute(
       executor.key.accAddress,
       '0x1',
-      'op_output',
+      'op_bridge',
       'initialize',
-      [this.l2id],
+      [],
       [
+        bcs.serialize('string', this.l2id),
         bcs.serialize('u64', submissionInterval),
         bcs.serialize('address', outputSubmitter.key.accAddress),
         bcs.serialize('address', challenger.key.accAddress),
@@ -129,33 +120,32 @@ class Bridge {
     );
   }
 
-  bridgeRegisterTokenMsg(coinType: string) {
+  bridgeRegisterTokenMsg(metadata: string) {
     return new MsgExecute(
       executor.key.accAddress,
       '0x1',
       'op_bridge',
       'register_token',
-      [this.l2id, coinType],
-      []
+      [],
+      [bcs.serialize('string', this.l2id), bcs.serialize('object', metadata)]
     );
   }
 
-  async tx() {
+  async tx(metadata: string) {
     const module = await build(this.contractDir, this.moduleName);
     const msgs = [
       this.publishL2IDMsg(module),
-      this.bridgeInitializeMsg(this.l2id),
-      this.outputInitializeMsg(
+      this.bridgeInitializeMsg(
         this.submissionInterval,
         this.finalizedTime,
         this.l2StartBlockHeight
       ),
-      this.bridgeRegisterTokenMsg(`0x1::native_uinit::Coin`)
+      this.bridgeRegisterTokenMsg(metadata)
     ];
     await sendTx(executor, msgs);
   }
 
-  async deployBridge() {
+  async deployBridge(metadata: string) {
     await initORM();
     const bridge = new Bridge(
       this.submissionInterval,
@@ -165,7 +155,7 @@ class Bridge {
       this.contractDir
     );
     await bridge.init();
-    await bridge.tx();
+    await bridge.tx(metadata);
   }
 }
 

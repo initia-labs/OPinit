@@ -3,7 +3,7 @@ import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
 export async function getTx(
-  coin_type: string,
+  metadata: string,
   sequence: number
 ): Promise<ExecutorWithdrawalTxEntity> {
   const [db] = getDB();
@@ -11,7 +11,7 @@ export async function getTx(
   try {
     const qb = queryRunner.manager
       .createQueryBuilder(ExecutorWithdrawalTxEntity, 'tx')
-      .where('tx.coin_type = :coin_type', { coin_type })
+      .where('tx.metadata = :metadata', { metadata })
       .andWhere('tx.sequence = :sequence', { sequence });
 
     const tx = await qb.getOne();

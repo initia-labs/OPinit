@@ -68,8 +68,8 @@
   },
   "dependencies": {
     "@initia/builder.js": "^0.0.9",
-    "@initia/initia.js": "^0.1.4",
-    "@initia/minitia.js": "^0.0.6",
+    "@initia/initia.js": "^0.1.10",
+    "@initia/minitia.js": "^0.0.8",
     "@koa/cors": "^4.0.0",
     "@sentry/node": "^7.60.0",
     "@types/bluebird": "^3.5.38",

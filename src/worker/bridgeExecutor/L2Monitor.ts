@@ -73,7 +73,7 @@ export class L2Monitor extends Monitor {
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       l2Id: config.L2ID,
-      coinType: coin.l1StructTag,
+      metadata: coin.l1Metadata,
       outputIndex: lastIndex + 1,
       merkleRoot: '',
       merkleProof: []
@@ -89,20 +89,19 @@ export class L2Monitor extends Monitor {
       ExecutorOutputEntity
     );
 
-    const l2Denom = data['l2_token'].replace('native_', '');
+    const metadata = data['metadata'];
     const coin = await this.helper.getCoin(
       manager,
       ExecutorCoinEntity,
-      l2Denom
+      metadata
     );
 
     if (!coin) {
-      this.logger.warn(`coin not found for ${l2Denom}`);
+      this.logger.warn(`coin not found for ${metadata}`);
       return;
     }
 
     const tx: ExecutorWithdrawalTxEntity = this.genTx(data, coin, lastIndex);
-
     this.logger.info(`withdraw tx in height ${this.syncedHeight}`);
     await this.helper.saveEntity(manager, ExecutorWithdrawalTxEntity, tx);
   }
@@ -142,7 +141,7 @@ export class L2Monitor extends Monitor {
       receiver: entity.receiver,
       amount: entity.amount,
       l2_id: entity.l2Id,
-      coin_type: entity.coinType
+      metadata: entity.metadata
     }));
 
     const storage = new WithdrawalStorage(txs);
@@ -178,10 +177,12 @@ export class L2Monitor extends Monitor {
           ExecutorWithdrawalTxEntity,
           lastIndex
         );
+
         const storageRoot = await this.saveMerkleRootAndProof(
           transactionalEntityManager,
           txEntities
         );
+
         const outputEntity = this.helper.calculateOutputEntity(
           lastIndex,
           blockInfo,

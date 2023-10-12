@@ -6,33 +6,18 @@ import { startOutput } from 'worker/outputSubmitter';
 import { startExecutor } from 'worker/bridgeExecutor';
 import { startChallenger } from 'worker/challenger';
 import { Config } from 'config';
-import { delay } from 'bluebird';
 import { TxBot } from './utils/TxBot';
-import {
-  Wallet as mWallet,
-  MnemonicKey as mMnemonicKey
-} from '@initia/minitia.js';
-
-import {
-  Wallet as iWallet,
-  MnemonicKey as iMnemonicKey
-} from '@initia/initia.js';
-import { checkExecutor } from './utils/helper';
+import { computeCoinMetadata, normalizeMetadata } from 'lib/lcd';
+import { delay } from 'bluebird';
 
 const config = Config.getConfig();
 const docker = new DockerHelper(path.join(__dirname, '..', '..'));
 
-async function main() {
-  try {
-    await docker.start();
-    await delay(20_000); // time for setting up docker
-
-    await setupBridge(10, 10, 1);
-    await startBot();
-    await startTxBot();
-  } catch (err) {
-    console.log(err);
-  }
+async function setup() {
+  await docker.start();
+  await delay(20_000); // time for setting up docker
+  await setupBridge(10, 10, 1);
+  await startBot();
 }
 
 async function setupBridge(
@@ -47,53 +32,40 @@ async function setupBridge(
     config.L2ID,
     path.join(__dirname, 'contract')
   );
-  await bridge.deployBridge();
+  const UINIT_METADATA = normalizeMetadata(computeCoinMetadata('0x1', 'uinit')); // '0x8e4733bdabcf7d4afc3d14f0dd46c9bf52fb0fce9e4b996c939e195b8bc891d9'
+
+  await bridge.deployBridge(UINIT_METADATA);
 }
 
 async function startBot() {
-  startBatch();
-  startExecutor();
-  startChallenger(false);
-
-  await checkExecutor(); // WARN: run after executor started
-  startOutput();
+  try {
+    await Promise.all([
+      startBatch(),
+      startExecutor(),
+      startChallenger(false), // false for not fetching executor state
+      startOutput()
+    ]);
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 async function startTxBot() {
   const txBot = new TxBot();
 
-  const l1sender = txBot.createWallet(
-    config.l1lcd,
-    iWallet,
-    iMnemonicKey,
-    'banner december bunker moral nasty glide slow property pen twist doctor exclude novel top material flee appear imitate cat state domain consider then age'
-  );
-  const l2sender = txBot.createWallet(
-    config.l2lcd,
-    iWallet,
-    iMnemonicKey,
-    'banner december bunker moral nasty glide slow property pen twist doctor exclude novel top material flee appear imitate cat state domain consider then age'
-  );
-  const l1receiver = txBot.createWallet(
-    config.l1lcd,
-    mWallet,
-    mMnemonicKey,
-    'diamond donkey opinion claw cool harbor tree elegant outer mother claw amount message result leave tank plunge harbor garment purity arrest humble figure endless'
-  );
-  const l2receiver = txBot.createWallet(
-    config.l2lcd,
-    mWallet,
-    mMnemonicKey,
-    'diamond donkey opinion claw cool harbor tree elegant outer mother claw amount message result leave tank plunge harbor garment purity arrest humble figure endless'
-  );
-
-  // create account number
-  await txBot.sendCoin(l1sender, l1receiver, 1_000_000, 'uinit');
-  await txBot.sendCoin(l2sender, l2receiver, 1_000_000, 'umin');
-
   try {
-    await txBot.deposit(l1sender, l2receiver, 1_000);
-    // await txBot.withdrawal(l2receiver, 100); // WARN: run after deposit done
+    await txBot.deposit(txBot.l1sender, txBot.l2receiver, 1_000);
+    // await txBot.withdrawal(txBot.l2receiver, 100);          // WARN: run after deposit done
+    // await txBot.claim(txBot.l1receiver, 1, 45); // WARN: run after withdrawal done
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function main() {
+  try {
+    await setup();
+    // await startTxBot();
   } catch (err) {
     console.log(err);
   }

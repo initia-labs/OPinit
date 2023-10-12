@@ -1,12 +1,4 @@
-import {
-  BCS,
-  Msg,
-  MsgExecute,
-  Wallet,
-  MnemonicKey,
-  LCDClient,
-  TxInfo
-} from '@initia/initia.js';
+import { BCS, Msg, MsgExecute, Wallet, MnemonicKey } from '@initia/initia.js';
 import { INTERVAL_OUTPUT } from 'config';
 import { ExecutorOutputEntity } from 'orm';
 import { APIRequest } from 'lib/apiRequest';
@@ -22,6 +14,7 @@ const bcs = BCS.getInstance();
 
 export class OutputSubmitter {
   private submitter: Wallet;
+  private executor: Wallet;
   private apiRequester: APIRequest;
   private syncedHeight = 0;
   private isRunning = false;
@@ -31,6 +24,11 @@ export class OutputSubmitter {
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC })
     );
+    this.executor = new Wallet(
+      config.l1lcd,
+      new MnemonicKey({ mnemonic: config.EXECUTOR_MNEMONIC })
+    );
+
     this.apiRequester = new APIRequest(config.EXECUTOR_URI);
     this.isRunning = true;
   }
@@ -44,8 +42,11 @@ export class OutputSubmitter {
       '0x1',
       'op_output',
       'next_block_num',
-      [config.L2ID],
-      []
+      [],
+      [
+        bcs.serialize('address', this.executor.key.accAddress),
+        bcs.serialize('string', config.L2ID)
+      ]
     );
     return parseInt(nextBlockHeight);
   }
@@ -56,8 +57,10 @@ export class OutputSubmitter {
       '0x1',
       'op_output',
       'propose_l2_output',
-      [config.L2ID],
+      [],
       [
+        bcs.serialize('address', this.executor.key.accAddress),
+        bcs.serialize('string', config.L2ID),
         bcs.serialize('vector<u8>', outputRoot, 33), // 33 is the length of output root
         bcs.serialize('u64', l2BlockHeight)
       ]

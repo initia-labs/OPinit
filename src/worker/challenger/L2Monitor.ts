@@ -73,7 +73,7 @@ export class L2Monitor extends Monitor {
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       l2Id: config.L2ID,
-      coinType: coin.l1StructTag,
+      metadata: coin.l1Metadata,
       outputIndex: lastIndex + 1,
       merkleRoot: '',
       merkleProof: [],
@@ -90,15 +90,15 @@ export class L2Monitor extends Monitor {
       ChallengerOutputEntity
     );
 
-    const l2Denom = data['l2_token'].replace('native_', '');
+    const metadata = data['metadata'];
     const coin = await this.helper.getCoin(
       manager,
       ChallengerCoinEntity,
-      l2Denom
+      metadata
     );
 
     if (!coin) {
-      this.logger.warn(`coin not found for ${l2Denom}`);
+      this.logger.warn(`coin not found for ${metadata}`);
       return;
     }
 
@@ -111,12 +111,12 @@ export class L2Monitor extends Monitor {
     manager: EntityManager,
     data: { [key: string]: string }
   ) {
-    const l2Denom = data['l2_token'].replace('native_', '');
+    const metadata = data['metadata'];
     const depositTx = await this.helper.getDepositTx(
       manager,
       ChallengerDepositTxEntity,
       Number.parseInt(data['l1_sequence']),
-      l2Denom
+      metadata
     );
     if (!depositTx) return;
 
@@ -124,8 +124,6 @@ export class L2Monitor extends Monitor {
       manager,
       ChallengerOutputEntity
     );
-    
-    console.log("deposit data:", data);
 
     const isTxSame = (originTx: ChallengerDepositTxEntity): boolean => {
       return (
@@ -140,7 +138,7 @@ export class L2Monitor extends Monitor {
     await manager.getRepository(ChallengerDepositTxEntity).update(
       {
         sequence: depositTx.sequence,
-        coinType: depositTx.coinType
+        metadata: depositTx.metadata
       },
       { finalizedOutputIndex: finalizedIndex }
     );
@@ -190,7 +188,7 @@ export class L2Monitor extends Monitor {
       receiver: entity.receiver,
       amount: entity.amount,
       l2_id: entity.l2Id,
-      coin_type: entity.coinType
+      metadata: entity.metadata
     }));
 
     const storage = new WithdrawalStorage(txs);

@@ -3,7 +3,7 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 @Entity('executor_withdrawal_tx')
 export default class WithdrawalTxEntity {
   @PrimaryColumn('text')
-  coinType: string;
+  metadata: string;
 
   @PrimaryColumn('int')
   sequence: number;

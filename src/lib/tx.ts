@@ -1,5 +1,5 @@
 import { delay } from 'bluebird';
-import { LCDClient, TxAPI } from '@initia/minitia.js';
+import { LCDClient } from '@initia/minitia.js';
 
 export async function sendTx(
   wallet: any,

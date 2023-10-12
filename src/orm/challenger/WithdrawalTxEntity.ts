@@ -1,9 +1,9 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('challenger_withdrawal_tx')
-export default class WithdrawalTxEntity {
+export default class ChallengerWithdrawalTxEntity {
   @PrimaryColumn('text')
-  coinType: string;
+  metadata: string;
 
   @PrimaryColumn('int')
   sequence: number;

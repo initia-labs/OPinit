@@ -1,5 +1,10 @@
 import { Monitor } from './Monitor';
-import { CoinInfo, getCoinInfo } from 'lib/lcd';
+import {
+  CoinInfo,
+  computeCoinMetadata,
+  normalizeMetadata,
+  resolveFAMetadata
+} from 'lib/lcd';
 import {
   AccAddress,
   Coin,
@@ -7,7 +12,7 @@ import {
   MsgCreateToken,
   MsgDeposit
 } from '@initia/minitia.js';
-import { structTagToDenom } from 'lib/util';
+
 import {
   ExecutorCoinEntity,
   ExecutorDepositTxEntity,
@@ -38,28 +43,35 @@ export class L1Monitor extends Monitor {
     manager: EntityManager,
     data: { [key: string]: string }
   ): Promise<MsgCreateToken> {
-    const coinInfo: CoinInfo = await getCoinInfo(
-      data['l1_token'],
-      `l2_${data['l2_token']}`
+    const l1Metadata = data['l1_token'];
+    const l2Metadata = normalizeMetadata(
+      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
     );
-    const l2Denom = coinInfo.denom;
+
+    const l1CoinInfo: CoinInfo = await resolveFAMetadata(
+      config.l1lcd,
+      l1Metadata
+    );
+
+    const l1Denom = l1CoinInfo.denom;
+    const l2Denom = 'l2/' + data['l2_token'];
+
     const coin: ExecutorCoinEntity = {
-      l1StructTag: data['l1_token'],
-      l1Denom: structTagToDenom(data['l1_token']),
-      l2StructTag: `0x1::native_${l2Denom}::Coin`,
-      l2Denom
+      l1Metadata: l1Metadata,
+      l1Denom: l1Denom,
+      l2Metadata: l2Metadata,
+      l2Denom: l2Denom
     };
 
-    this.logger.info(`Registering ${l2Denom}...`);
+    this.logger.info(`Registering ${l1Denom}...`);
 
     await this.helper.saveEntity(manager, ExecutorCoinEntity, coin);
 
     return new MsgCreateToken(
       wallet.key.accAddress,
+      l1CoinInfo.name,
       l2Denom,
-      coinInfo.name,
-      coinInfo.symbol,
-      coinInfo.decimals
+      l1CoinInfo.decimals
     );
   }
 
@@ -73,15 +85,19 @@ export class L1Monitor extends Monitor {
       ExecutorOutputEntity
     );
 
-    const denom = `l2_${data['l2_token']}`;
+    const l2Metadata = normalizeMetadata(
+      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
+    );
+    const l2Denom = 'l2/' + data['l2_token'];
+
     const entity: ExecutorDepositTxEntity = {
       sequence: Number.parseInt(data['l1_sequence']),
       sender: data['from'],
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       outputIndex: lastIndex + 1,
-      coinType: denom,
-      height: this.syncedHeight,
+      metadata: l2Metadata,
+      height: this.syncedHeight
     };
 
     this.logger.info(`Deposit tx in height ${this.syncedHeight}`);
@@ -91,7 +107,7 @@ export class L1Monitor extends Monitor {
       wallet.key.accAddress,
       AccAddress.fromHex(data['from']),
       AccAddress.fromHex(data['to']),
-      new Coin(denom, data['amount']),
+      new Coin(l2Denom, data['amount']),
       Number.parseInt(data['l1_sequence']),
       this.syncedHeight,
       Buffer.from(data['data'])
@@ -102,7 +118,7 @@ export class L1Monitor extends Monitor {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
         const msgs: Msg[] = [];
-        const wallet: TxWallet = getWallet(WalletType.Executor);
+        const executor: TxWallet = getWallet(WalletType.Executor);
 
         const events = await this.helper.fetchEvents(
           config.l1lcd,
@@ -117,7 +133,7 @@ export class L1Monitor extends Monitor {
           switch (attrMap['type_tag']) {
             case '0x1::op_bridge::TokenRegisteredEvent': {
               const msg: MsgCreateToken = await this.handleTokenRegisteredEvent(
-                wallet,
+                executor,
                 transactionalEntityManager,
                 data
               );
@@ -125,10 +141,9 @@ export class L1Monitor extends Monitor {
               break;
             }
             case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
-              // handle token bridge initiated event
               const msg: MsgDeposit =
                 await this.handleTokenBridgeInitiatedEvent(
-                  wallet,
+                  executor,
                   transactionalEntityManager,
                   data
                 );
@@ -140,7 +155,7 @@ export class L1Monitor extends Monitor {
 
         if (msgs.length > 0) {
           const stringfyMsgs = msgs.map((msg) => msg.toJSON().toString());
-          await wallet
+          await executor
             .transaction(msgs)
             .then((info) => {
               this.logger.info(
@@ -152,7 +167,7 @@ export class L1Monitor extends Monitor {
                 ? JSON.stringify(err.response?.data)
                 : err;
               this.logger.error(
-                `Failed to submit tx in height: ${this.syncedHeight}\n${stringfyMsgs}\n${errMsg}`
+                `Failed to submit tx in height: ${this.syncedHeight}\nMsg: ${stringfyMsgs}\n${errMsg}`
               );
               const failedTx: ExecutorFailedTxEntity = {
                 height: this.syncedHeight,

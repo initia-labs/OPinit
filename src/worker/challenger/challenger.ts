@@ -1,12 +1,4 @@
-import {
-  Wallet,
-  MnemonicKey,
-  BCS,
-  LCDClient,
-  Msg,
-  TxInfo,
-  MsgExecute
-} from '@initia/initia.js';
+import { Wallet, MnemonicKey, BCS, Msg, MsgExecute } from '@initia/initia.js';
 import { DataSource } from 'typeorm';
 import { getDB } from './db';
 import {
@@ -22,7 +14,7 @@ import { APIRequest } from 'lib/apiRequest';
 import { GetLatestOutputResponse } from 'service';
 import { fetchBridgeConfig } from 'lib/lcd';
 import axios from 'axios';
-import { GetAllCoinsResponse } from 'service/CoinService';
+import { GetAllCoinsResponse } from 'service/executor/CoinService';
 import { getConfig } from 'config';
 import { sendTx } from 'lib/tx';
 
@@ -138,7 +130,7 @@ export class Challenger {
       unchekcedDepositTx.finalizedOutputIndex
     ) {
       logger.info(
-        `[L1 Challenger] successfully checked tx : coinType ${unchekcedDepositTx.coinType}, sequence ${unchekcedDepositTx.sequence}`
+        `[L1 Challenger] successfully checked tx : metadata ${unchekcedDepositTx.metadata}, sequence ${unchekcedDepositTx.sequence}`
       );
       await this.checkDepositTx(unchekcedDepositTx);
       return;
@@ -183,7 +175,7 @@ export class Challenger {
   ): Promise<void> {
     await this.db.getRepository(ChallengerDepositTxEntity).update(
       {
-        coinType: depositTxEntity.coinType,
+        metadata: depositTxEntity.metadata,
         sequence: depositTxEntity.sequence
       },
       { isChecked: true }
@@ -195,7 +187,7 @@ export class Challenger {
   ): Promise<void> {
     await this.db.getRepository(ChallengerWithdrawalTxEntity).update(
       {
-        coinType: withdrawalTxEntity.coinType,
+        metadata: withdrawalTxEntity.metadata,
         sequence: withdrawalTxEntity.sequence
       },
       { isChecked: true }

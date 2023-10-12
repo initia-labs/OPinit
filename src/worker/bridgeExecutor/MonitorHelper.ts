@@ -20,20 +20,20 @@ class MonitorHelper {
     manager: EntityManager,
     entityClass: EntityTarget<T>,
     sequence: number,
-    coinType: string
+    metadata: string
   ): Promise<T | null> {
     return await manager.getRepository(entityClass).findOne({
-      where: { sequence, coinType } as any
+      where: { sequence, metadata } as any
     });
   }
 
   public async getCoin<T extends ObjectLiteral>(
     manager: EntityManager,
     entityClass: EntityTarget<T>,
-    l2Denom: string
+    metadata: string
   ): Promise<T | null> {
     return await manager.getRepository(entityClass).findOne({
-      where: { l2Denom } as any
+      where: { l2Metadata: metadata } as any
     });
   }
 
