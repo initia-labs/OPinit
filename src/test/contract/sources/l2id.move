@@ -1,3 +1,3 @@
-module addr::s11r18 {
+module addr::s11rt1 {
     struct Minitia {}
 }

@@ -23,16 +23,21 @@ const bcs = BCS.getInstance();
 
 export class Challenger {
   private challenger: Wallet;
+  private executor: Wallet;
   private isRunning = false;
   private db: DataSource;
   private apiRequester: APIRequest;
-  private threshold = 0; // TODO: set threshold from contract config
+  private threshold = 1; // TODO: set threshold from contract config
 
   async init() {
     [this.db] = getDB();
     this.challenger = new Wallet(
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.CHALLENGER_MNEMONIC })
+    );
+    this.executor = new Wallet(
+      config.l1lcd,
+      new MnemonicKey({ mnemonic: config.EXECUTOR_MNEMONIC })
     );
     this.isRunning = true;
   }
@@ -82,7 +87,7 @@ export class Challenger {
       } catch (e) {
         this.stop();
       } finally {
-        await delay(1000);
+        await delay(1_000);
       }
     }
   }
@@ -102,22 +107,26 @@ export class Challenger {
 
   // monitoring L1 deposit event and check the relayer works properly
   public async l1Challenge() {
-    // get unchecked deposit txs not finalized yet
     const unchekcedDepositTx = await this.getUncheckedDepositTx();
+    
+    
     if (!unchekcedDepositTx) return;
-    if (unchekcedDepositTx.finalizedOutputIndex === -1) {
-      await this.deleteL2Ouptut(
+
+    // case 1. not same deposit tx
+    if (!unchekcedDepositTx.finalizedOutputIndex) {
+      await this.deleteL2Outptut(
         unchekcedDepositTx,
-        'not same between initialized and finalized deposit tx'
+        'not same deposit tx between L1 and L2'
       );
       return;
     }
 
+    // case2. not finalized within threshold
     if (!unchekcedDepositTx.finalizedOutputIndex) {
       const lastIndex = await this.getLastOutputIndex();
       // delete tx if it is not finalized for threshold submission interval
       if (lastIndex > unchekcedDepositTx.outputIndex + this.threshold) {
-        await this.deleteL2Ouptut(
+        await this.deleteL2Outptut(
           unchekcedDepositTx,
           'deposit tx is not finalized for threshold submission interval'
         );
@@ -136,7 +145,7 @@ export class Challenger {
       return;
     }
 
-    await this.deleteL2Ouptut(unchekcedDepositTx, 'failed to check deposit tx');
+    await this.deleteL2Outptut(unchekcedDepositTx, 'failed to check deposit tx');
   }
 
   async getUncheckedDepositTx(): Promise<ChallengerDepositTxEntity | null> {
@@ -213,8 +222,12 @@ export class Challenger {
           '0x1',
           'op_output',
           'get_output_root',
-          [config.L2ID],
-          [bcs.serialize(BCS.U64, outputIndex)]
+          [],
+          [
+            bcs.serialize(BCS.ADDRESS, this.executor.key.accAddress),
+            bcs.serialize(BCS.STRING, config.l2lcd),
+            bcs.serialize(BCS.U64, outputIndex)
+          ]
         );
       return Array.prototype.map
         .call(outputRootFromContract, (x) => x.toString(16).padStart(2, '0'))
@@ -255,8 +268,8 @@ export class Challenger {
       return;
     }
 
-    await this.checkIfFinalized(uncheckedWithdrawalTx);
-    await this.deleteL2Ouptut(
+    await this.checkFinalized(uncheckedWithdrawalTx);
+    await this.deleteL2Outptut(
       uncheckedWithdrawalTx,
       'failed to check withdrawal tx'
     );
@@ -267,13 +280,17 @@ export class Challenger {
       '0x1',
       'op_output',
       'is_finalized',
-      [config.L2ID],
-      [bcs.serialize(BCS.U64, outputIndex)]
+      [],
+      [
+        bcs.serialize(BCS.ADDRESS, this.executor.key.accAddress),
+        bcs.serialize(BCS.STRING, config.l2lcd),
+        bcs.serialize(BCS.U64, outputIndex)
+      ]
     );
     return isFinalized;
   }
 
-  async checkIfFinalized(
+  async checkFinalized(
     entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity
   ) {
     const isFinalized = await this.isFinalizedL2Output(entity.outputIndex);
@@ -294,7 +311,7 @@ export class Challenger {
     }
   }
 
-  async deleteL2Ouptut(
+  async deleteL2Outptut(
     entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity,
     reason?: string
   ) {
@@ -303,14 +320,19 @@ export class Challenger {
       '0x1',
       'op_output',
       'delete_l2_output',
-      [config.L2ID],
-      [bcs.serialize(BCS.U64, entity.outputIndex)]
+      [],
+      [
+        bcs.serialize('address', this.executor.key.accAddress),
+        bcs.serialize('string', config.L2ID),
+        bcs.serialize('u64', entity.outputIndex)
+      ]
     );
 
-    await sendTx(this.challenger, [executeMsg]);
     logger.info(
       `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
     );
+
+    await sendTx(this.challenger, [executeMsg]);
     process.exit(0);
   }
 }

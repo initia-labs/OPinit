@@ -1,7 +1,7 @@
 import { RPCSocket } from 'lib/rpc';
 import { L1Monitor } from './L1Monitor';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
-import { Challenger } from './challenger';
+import { Challenger } from './Challenger';
 import { initORM, finalizeORM } from './db';
 import { challengerLogger as logger } from 'lib/logger';
 import { once } from 'lodash';

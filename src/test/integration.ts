@@ -17,7 +17,6 @@ async function setup() {
   await docker.start();
   await delay(20_000); // time for setting up docker
   await setupBridge(10, 10, 1);
-  await startBot();
 }
 
 async function setupBridge(
@@ -64,7 +63,13 @@ async function startTxBot() {
 
 async function main() {
   try {
-    await setup();
+    if (process.env.DEVELOPMENT_MODE !== 'test') {
+      console.log('Only run in test mode');
+      return
+    }
+
+    // await setup();
+    await startBot();
     // await startTxBot();
   } catch (err) {
     console.log(err);

@@ -118,7 +118,7 @@ export class L2Monitor extends Monitor {
       Number.parseInt(data['l1_sequence']),
       metadata
     );
-    if (!depositTx) return;
+    if (!depositTx) throw new Error('deposit tx not found');
 
     const lastIndex = await this.helper.getLastOutputIndex(
       manager,

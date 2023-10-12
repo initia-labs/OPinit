@@ -74,7 +74,6 @@ export class TxBot {
         bcs.serialize('u64', amount)
       ]
     );
-    console.log('msg: ', msg);
     return await sendTx(sender, [msg]);
   }
 

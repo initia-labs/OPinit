@@ -14,7 +14,7 @@
     "output": "sleep 5 && ts-node -r tsconfig-paths/register ./src/worker/outputSubmitter/index.ts",
     "build": "tsc --module commonjs && webpack --mode production",
     "test": "jest",
-    "test:integration": "ts-node -r tsconfig-paths/register ./src/test/integration.ts",
+    "test:integration": "export DEVELOPMENT_MODE=test && ts-node -r tsconfig-paths/register ./src/test/integration.ts",
     "prettier": "prettier --write ./src/**/**/**/**/*.ts",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "do": "ts-node -T --files -r tsconfig-paths/register",
