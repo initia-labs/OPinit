@@ -47,7 +47,7 @@ export class L1Monitor extends Monitor {
     const l2Metadata = normalizeMetadata(
       computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
     );
-
+    
     const l1CoinInfo: CoinInfo = await resolveFAMetadata(
       config.l1lcd,
       l1Metadata
@@ -122,7 +122,8 @@ export class L1Monitor extends Monitor {
 
         const events = await this.helper.fetchEvents(
           config.l1lcd,
-          this.syncedHeight
+          this.syncedHeight,
+          'move'
         );
 
         for (const evt of events) {

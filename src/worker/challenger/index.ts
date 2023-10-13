@@ -13,11 +13,8 @@ const config = getConfig();
 let monitors: (Monitor | Challenger)[];
 
 async function runBot(isFetch?: boolean): Promise<void> {
-  const challenger = new Challenger();
-
-  // use to sync with bridge latest state
-  if (isFetch) await challenger.fetchBridgeState();
-
+  const challenger = new Challenger(isFetch ? true : false);
+  
   monitors = [
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000, logger), logger),
     new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000, logger), logger),

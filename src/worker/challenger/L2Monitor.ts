@@ -2,7 +2,8 @@ import {
   ChallengerCoinEntity,
   ChallengerOutputEntity,
   ChallengerDepositTxEntity,
-  ChallengerWithdrawalTxEntity
+  ChallengerWithdrawalTxEntity,
+  StateEntity,
 } from 'orm';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
 import { fetchBridgeConfig } from 'lib/lcd';
@@ -13,6 +14,8 @@ import { RPCSocket } from 'lib/rpc';
 import winston from 'winston';
 import { getDB } from './db';
 import { getConfig } from 'config';
+import { delay } from 'bluebird';
+import {ENOT_EQUAL_TX} from './ChallegnerHelper';
 
 const config = getConfig();
 
@@ -107,10 +110,37 @@ export class L2Monitor extends Monitor {
     await this.helper.saveEntity(manager, ChallengerWithdrawalTxEntity, tx);
   }
 
+  // sync deposit txs every 500ms
+  private async syncDepositTx(){
+    const depositEvents = await this.helper.fetchEvents(
+      config.l2lcd,
+      this.syncedHeight,
+      'deposit'
+    )
+
+    for (const evt of depositEvents) {
+      const attrMap = this.helper.eventsToAttrMap(evt);
+      const targetHeight = parseInt(attrMap['deposit_height'])
+      for (;;) {
+        const l1State: StateEntity | null = await this.db.getRepository(StateEntity).findOne({
+          where: {
+            name: 'challenger_l1_monitor'
+          }
+        });
+        if (!l1State) throw new Error('challenger l1 state not found');
+        if (targetHeight < l1State.height) return
+        this.logger.info(`syncing deposit tx height ${targetHeight} in height ${this.syncedHeight}...`);
+        await delay(500);
+      }
+    }
+  }
+
   private async handleTokenBridgeFinalizedEvent(
     manager: EntityManager,
     data: { [key: string]: string }
   ) {
+    await this.syncDepositTx();
+    
     const metadata = data['metadata'];
     const depositTx = await this.helper.getDepositTx(
       manager,
@@ -119,7 +149,7 @@ export class L2Monitor extends Monitor {
       metadata
     );
     if (!depositTx) throw new Error('deposit tx not found');
-
+    
     const lastIndex = await this.helper.getLastOutputIndex(
       manager,
       ChallengerOutputEntity
@@ -133,7 +163,7 @@ export class L2Monitor extends Monitor {
         originTx.amount === Number.parseInt(data['amount'])
       );
     };
-    const finalizedIndex = isTxSame(depositTx) ? lastIndex + 1 : null;
+    const finalizedIndex = isTxSame(depositTx) ? lastIndex + 1 : ENOT_EQUAL_TX;
 
     await manager.getRepository(ChallengerDepositTxEntity).update(
       {
@@ -149,7 +179,8 @@ export class L2Monitor extends Monitor {
       async (transactionalEntityManager: EntityManager) => {
         const events = await this.helper.fetchEvents(
           config.l2lcd,
-          this.syncedHeight
+          this.syncedHeight,
+          'move'
         );
 
         for (const evt of events) {
@@ -245,5 +276,5 @@ export class L2Monitor extends Monitor {
         this.nextCheckpointBlockHeight += this.submissionInterval;
       }
     );
-  }
+  } 
 }

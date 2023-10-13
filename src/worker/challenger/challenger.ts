@@ -1,12 +1,13 @@
 import { Wallet, MnemonicKey, BCS, Msg, MsgExecute } from '@initia/initia.js';
-import { DataSource } from 'typeorm';
+import { DataSource, ManyToMany } from 'typeorm';
 import { getDB } from './db';
 import {
   ChallengerWithdrawalTxEntity,
   ChallengerDepositTxEntity,
   ChallengerOutputEntity,
   StateEntity,
-  ChallengerCoinEntity
+  ChallengerCoinEntity,
+  DeletedOutputEntity
 } from 'orm';
 import { delay } from 'bluebird';
 import { challengerLogger as logger } from 'lib/logger';
@@ -17,6 +18,8 @@ import axios from 'axios';
 import { GetAllCoinsResponse } from 'service/executor/CoinService';
 import { getConfig } from 'config';
 import { sendTx } from 'lib/tx';
+import ChallengerHelper, {ENOT_EQUAL_TX} from './ChallegnerHelper';
+import { EntityManager } from 'typeorm';
 
 const config = getConfig();
 const bcs = BCS.getInstance();
@@ -27,9 +30,15 @@ export class Challenger {
   private isRunning = false;
   private db: DataSource;
   private apiRequester: APIRequest;
-  private threshold = 1; // TODO: set threshold from contract config
+  private threshold = 10; // TODO: set threshold from contract config
+  helper: ChallengerHelper = new ChallengerHelper();
+
+  constructor(public isFetch: boolean) {}
 
   async init() {
+      // use to sync with bridge latest state
+    if (this.isFetch) await this.fetchBridgeState(); 
+
     [this.db] = getDB();
     this.challenger = new Wallet(
       config.l1lcd,
@@ -59,22 +68,26 @@ export class Challenger {
       `${config.L1_LCD_URI}/cosmos/base/tendermint/v1beta1/blocks/latest`
     );
     if (!l1Res) return;
-
-    await this.db.getRepository(ChallengerOutputEntity).save(outputRes.output);
-    await this.db.getRepository(ChallengerCoinEntity).save(coinRes.coins);
-    await this.db.getRepository(StateEntity).save([
-      {
-        name: 'challenger_l1_monitor',
-        height: parseInt(l1Res.data.block.header.height)
-      },
-      {
-        name: 'challenger_l2_monitor',
-        height:
-          outputRes.output.checkpointBlockHeight +
-          Number.parseInt(cfg.submission_interval) -
-          1
+    
+    await this.db.transaction(
+      async (manager: EntityManager)=> {
+        await manager.getRepository(ChallengerOutputEntity).save(outputRes.output);
+        await manager.getRepository(ChallengerCoinEntity).save(coinRes.coins);
+        await manager.getRepository(StateEntity).save([
+          {
+            name: 'challenger_l1_monitor',
+            height: parseInt(l1Res.data.block.header.height)
+          },
+          {
+            name: 'challenger_l2_monitor',
+            height:
+              outputRes.output.checkpointBlockHeight +
+              Number.parseInt(cfg.submission_interval) -
+              1
+          }
+        ]);
       }
-    ]);
+    )
   }
 
   public async run(): Promise<void> {
@@ -92,116 +105,43 @@ export class Challenger {
     }
   }
 
-  public async getLastOutputFromDB(): Promise<ChallengerOutputEntity[]> {
-    return await this.db.getRepository(ChallengerOutputEntity).find({
-      order: { outputIndex: 'DESC' },
-      take: 1
-    });
-  }
-
-  public async getLastOutputIndex(): Promise<number> {
-    const lastOutput = await this.getLastOutputFromDB();
-    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
-    return lastIndex;
-  }
-
-  // monitoring L1 deposit event and check the relayer works properly
   public async l1Challenge() {
-    const unchekcedDepositTx = await this.getUncheckedDepositTx();
-    
-    
-    if (!unchekcedDepositTx) return;
+    await this.db.transaction(
+      async (manager: EntityManager)=> {
+        const unchekcedDepositTx = await this.helper.getUncheckedTx(manager, ChallengerDepositTxEntity);
+        if (!unchekcedDepositTx ||!unchekcedDepositTx.finalizedOutputIndex) return;
 
-    // case 1. not same deposit tx
-    if (!unchekcedDepositTx.finalizedOutputIndex) {
-      await this.deleteL2Outptut(
-        unchekcedDepositTx,
-        'not same deposit tx between L1 and L2'
-      );
-      return;
-    }
+        // case 1. not finalized deposit
+        if (unchekcedDepositTx.finalizedOutputIndex === ENOT_EQUAL_TX) {
+          await this.deleteL2Outptut(
+            unchekcedDepositTx,
+            'not same deposit tx between L1 and L2'
+          );
+          return;
+        }
 
-    // case2. not finalized within threshold
-    if (!unchekcedDepositTx.finalizedOutputIndex) {
-      const lastIndex = await this.getLastOutputIndex();
-      // delete tx if it is not finalized for threshold submission interval
-      if (lastIndex > unchekcedDepositTx.outputIndex + this.threshold) {
-        await this.deleteL2Outptut(
-          unchekcedDepositTx,
-          'deposit tx is not finalized for threshold submission interval'
-        );
+        // case2. not finalized within threshold
+        if (unchekcedDepositTx.finalizedOutputIndex > unchekcedDepositTx.outputIndex + this.threshold) {
+            await this.deleteL2Outptut(
+              unchekcedDepositTx,
+              'deposit tx is not finalized for threshold submission interval'
+            );
+            return;
+        }
+
+        await this.helper.finalizeUncheckedTx(
+          manager,
+          ChallengerDepositTxEntity,
+          unchekcedDepositTx
+        )
       }
-      return;
-    }
-
-    if (
-      unchekcedDepositTx.outputIndex + this.threshold <=
-      unchekcedDepositTx.finalizedOutputIndex
-    ) {
-      logger.info(
-        `[L1 Challenger] successfully checked tx : metadata ${unchekcedDepositTx.metadata}, sequence ${unchekcedDepositTx.sequence}`
-      );
-      await this.checkDepositTx(unchekcedDepositTx);
-      return;
-    }
-
-    await this.deleteL2Outptut(unchekcedDepositTx, 'failed to check deposit tx');
-  }
-
-  async getUncheckedDepositTx(): Promise<ChallengerDepositTxEntity | null> {
-    const getUncheckedDepositTx: ChallengerDepositTxEntity[] = await this.db
-      .getRepository(ChallengerDepositTxEntity)
-      .find({
-        where: { isChecked: false },
-        order: { sequence: 'ASC' },
-        take: 1
-      });
-
-    if (getUncheckedDepositTx.length === 0) return null;
-    return getUncheckedDepositTx[0];
+    )
   }
 
   public stop(): void {
     this.isRunning = false;
   }
 
-  // get unchecked withdrawal txs with smallest sequence from db
-  async getUncheckedWitdrawalTx(): Promise<ChallengerWithdrawalTxEntity | null> {
-    const uncheckedWithdrawalTx: ChallengerWithdrawalTxEntity[] = await this.db
-      .getRepository(ChallengerWithdrawalTxEntity)
-      .find({
-        where: { isChecked: false },
-        order: { sequence: 'ASC' },
-        take: 1
-      });
-
-    if (uncheckedWithdrawalTx.length === 0) return null;
-    return uncheckedWithdrawalTx[0];
-  }
-
-  async checkDepositTx(
-    depositTxEntity: ChallengerDepositTxEntity
-  ): Promise<void> {
-    await this.db.getRepository(ChallengerDepositTxEntity).update(
-      {
-        metadata: depositTxEntity.metadata,
-        sequence: depositTxEntity.sequence
-      },
-      { isChecked: true }
-    );
-  }
-
-  async checkWithdrawalTx(
-    withdrawalTxEntity: ChallengerWithdrawalTxEntity
-  ): Promise<void> {
-    await this.db.getRepository(ChallengerWithdrawalTxEntity).update(
-      {
-        metadata: withdrawalTxEntity.metadata,
-        sequence: withdrawalTxEntity.sequence
-      },
-      { isChecked: true }
-    );
-  }
 
   async getChallengerOutputRoot(outputIndex: number): Promise<string | null> {
     const challengerOutputEntity = await this.db
@@ -229,9 +169,7 @@ export class Challenger {
             bcs.serialize(BCS.U64, outputIndex)
           ]
         );
-      return Array.prototype.map
-        .call(outputRootFromContract, (x) => x.toString(16).padStart(2, '0'))
-        .join('');
+      return Buffer.from(outputRootFromContract).toString('hex');
     } catch {
       logger.info(
         '[L2 Challenger] waiting output submitter to submit output index : ',
@@ -241,41 +179,49 @@ export class Challenger {
     }
   }
 
-  // monitoring L2 withdrawal event and check the relayer works properly
   public async l2Challenge() {
-    // get unchecked withdrawal txs from challenger
-    const uncheckedWithdrawalTx = await this.getUncheckedWitdrawalTx();
-    if (!uncheckedWithdrawalTx) return;
-    const lastIndex = await this.getLastOutputIndex();
-    if (uncheckedWithdrawalTx.outputIndex > lastIndex) return;
+    await this.db.transaction(
+      async (manager: EntityManager)=> {
+        const uncheckedWithdrawalTx = await this.helper.getUncheckedTx(manager, ChallengerWithdrawalTxEntity);
+        if (!uncheckedWithdrawalTx) return;
 
-    // compare output root from contract and challenger
-    const outputRootFromContract = await this.getContractOutputRoot(
-      uncheckedWithdrawalTx.outputIndex
-    );
-    if (!outputRootFromContract) return;
-    const outputRootFromChallenger = await this.getChallengerOutputRoot(
-      uncheckedWithdrawalTx.outputIndex
-    );
+        // condition 1. ouptut should be submitted
+        await this.db.transaction(
+          async (transactionalEntityManager: EntityManager) => {
+            const lastIndex = await this.helper.getLastOutputIndex(
+              transactionalEntityManager,
+              ChallengerOutputEntity
+            );
+            if (uncheckedWithdrawalTx.outputIndex > lastIndex) return;
+        })
 
-    if (!outputRootFromChallenger || !outputRootFromContract) return;
-    if (outputRootFromContract === outputRootFromChallenger) {
-      logger.info(
-        `[L2 Challenger] successfully output root matched for output index ${uncheckedWithdrawalTx.outputIndex}`
-      );
+        // case 1. output root not matched
+        const outputRootFromContract = await this.getContractOutputRoot(
+          uncheckedWithdrawalTx.outputIndex
+        );
+        const outputRootFromChallenger = await this.getChallengerOutputRoot(
+          uncheckedWithdrawalTx.outputIndex
+        );
+        if (!outputRootFromContract || !outputRootFromChallenger) return;
+        const isOutputFinalized = await this.isFinalizedOutput(uncheckedWithdrawalTx.outputIndex);
+        if (!isOutputFinalized && outputRootFromContract !== outputRootFromChallenger) {
+          await this.deleteL2Outptut(
+            uncheckedWithdrawalTx,
+            'failed to check withdrawal tx'
+          );
+          return;
+        }
 
-      await this.checkWithdrawalTx(uncheckedWithdrawalTx);
-      return;
-    }
-
-    await this.checkFinalized(uncheckedWithdrawalTx);
-    await this.deleteL2Outptut(
-      uncheckedWithdrawalTx,
-      'failed to check withdrawal tx'
-    );
+        await this.helper.finalizeUncheckedTx(
+          manager,
+          ChallengerWithdrawalTxEntity,
+          uncheckedWithdrawalTx
+        )
+      }
+    )
   }
 
-  async isFinalizedL2Output(outputIndex: number) {
+  async isFinalizedOutput(outputIndex: number) {
     const isFinalized: boolean = await config.l1lcd.move.viewFunction<boolean>(
       '0x1',
       'op_output',
@@ -290,49 +236,53 @@ export class Challenger {
     return isFinalized;
   }
 
-  async checkFinalized(
-    entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity
-  ) {
-    const isFinalized = await this.isFinalizedL2Output(entity.outputIndex);
 
-    if (isFinalized) {
-      logger.warn(
-        `[L2 Challenger] output index ${entity.outputIndex} is already finalized`
-      );
-      if (entity instanceof ChallengerDepositTxEntity) {
-        logger.warn(`[L2 Challenger] check deposit tx ${entity.sequence}`);
-        await this.checkDepositTx(entity);
-      } else if (entity instanceof ChallengerWithdrawalTxEntity) {
-        logger.warn(`[L2 Challenger] check withdrawal tx ${entity.sequence}`);
-        await this.checkWithdrawalTx(entity);
-      }
-
-      return;
-    }
+  async isOutputSubmitted(outputIndex: number): Promise<boolean> {
+    const nextBlockHeight = await config.l1lcd.move.viewFunction<string>(
+      '0x1',
+      'op_output',
+      'next_block_num',
+      [],
+      [
+        bcs.serialize('address', this.executor.key.accAddress),
+        bcs.serialize('string', config.L2ID)
+      ]
+    );
+    return parseInt(nextBlockHeight) > outputIndex;
   }
 
   async deleteL2Outptut(
     entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity,
     reason?: string
   ) {
-    const executeMsg: Msg = new MsgExecute(
-      this.challenger.key.accAddress,
-      '0x1',
-      'op_output',
-      'delete_l2_output',
-      [],
-      [
-        bcs.serialize('address', this.executor.key.accAddress),
-        bcs.serialize('string', config.L2ID),
-        bcs.serialize('u64', entity.outputIndex)
-      ]
-    );
+    if (!await this.isOutputSubmitted(entity.outputIndex)) return;
+    
+      const deletedOutput: DeletedOutputEntity = {
+        outputIndex: entity.outputIndex,
+        executor: this.executor.key.accAddress,
+        l2Id: config.L2ID,
+        reason: reason ?? 'unknown',
+      };
+      await this.db.getRepository(DeletedOutputEntity).save(deletedOutput);
 
-    logger.info(
-      `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
-    );
-
-    await sendTx(this.challenger, [executeMsg]);
-    process.exit(0);
+      const executeMsg: Msg = new MsgExecute(
+        this.challenger.key.accAddress,
+        '0x1',
+        'op_output',
+        'delete_l2_output',
+        [],
+        [
+          bcs.serialize('address', this.executor.key.accAddress),
+          bcs.serialize('string', config.L2ID),
+          bcs.serialize('u64', entity.outputIndex)
+        ]
+      );
+  
+      logger.info(
+        `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
+      );
+    
+        // await sendTx(this.challenger, [executeMsg]);
+        // process.exit(0); // exit process when output is deleted
   }
 }

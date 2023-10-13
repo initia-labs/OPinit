@@ -111,7 +111,8 @@ export class L2Monitor extends Monitor {
       async (transactionalEntityManager: EntityManager) => {
         const events = await this.helper.fetchEvents(
           config.l2lcd,
-          this.syncedHeight
+          this.syncedHeight,
+          'move'
         );
 
         for (const evt of events) {

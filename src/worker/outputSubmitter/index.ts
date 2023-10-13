@@ -3,6 +3,7 @@ import { outputLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
 import axios from 'axios';
 import { getConfig } from 'config';
+import { checkHealth } from 'test/utils/helper';
 
 const config = getConfig();
 let jobs: OutputSubmitter[];
@@ -36,28 +37,14 @@ export async function stopOutput(): Promise<void> {
 }
 
 export async function startOutput(): Promise<void> {
-  await checkExecutor();
+  await checkHealth(config.EXECUTOR_URI + '/health');
+  
   await runBot();
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
   signals.forEach((signal) => process.on(signal, once(stopOutput)));
 }
-
-export const checkExecutor = async (timeout = 60_000) => {
-  const startTime = Date.now();
-
-  while (Date.now() - startTime < timeout) {
-    try {
-      const response = await axios.get(config.EXECUTOR_URI + '/health');
-      if (response.status === 200) return;
-    } catch {
-      logger.info('waiting for executor');
-      await new Promise((res) => setTimeout(res, 5_000));
-      continue;
-    }
-  }
-};
 
 if (require.main === module) {
   startOutput().catch(console.log);

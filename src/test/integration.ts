@@ -8,14 +8,15 @@ import { startChallenger } from 'worker/challenger';
 import { Config } from 'config';
 import { TxBot } from './utils/TxBot';
 import { computeCoinMetadata, normalizeMetadata } from 'lib/lcd';
-import { delay } from 'bluebird';
+import { checkHealth } from './utils/helper';
 
 const config = Config.getConfig();
 const docker = new DockerHelper(path.join(__dirname, '..', '..'));
 
 async function setup() {
   await docker.start();
-  await delay(20_000); // time for setting up docker
+  await checkHealth(config.L1_LCD_URI, 20_000)
+  await checkHealth(config.L2_LCD_URI, 20_000)
   await setupBridge(10, 10, 1);
 }
 
@@ -34,6 +35,7 @@ async function setupBridge(
   const UINIT_METADATA = normalizeMetadata(computeCoinMetadata('0x1', 'uinit')); // '0x8e4733bdabcf7d4afc3d14f0dd46c9bf52fb0fce9e4b996c939e195b8bc891d9'
 
   await bridge.deployBridge(UINIT_METADATA);
+  console.log('Bridge deployed');
 }
 
 async function startBot() {
@@ -53,9 +55,11 @@ async function startTxBot() {
   const txBot = new TxBot();
 
   try {
+    
     await txBot.deposit(txBot.l1sender, txBot.l2receiver, 1_000);
     // await txBot.withdrawal(txBot.l2receiver, 100);          // WARN: run after deposit done
-    // await txBot.claim(txBot.l1receiver, 1, 45); // WARN: run after withdrawal done
+    // await txBot.claim(txBot.l1receiver, 1, 13); // WARN: run after withdrawal done
+    console.log('tx bot done')
   } catch (err) {
     console.log(err);
   }
@@ -63,14 +67,9 @@ async function startTxBot() {
 
 async function main() {
   try {
-    if (process.env.DEVELOPMENT_MODE !== 'test') {
-      console.log('Only run in test mode');
-      return
-    }
-
-    // await setup();
+    await setup();
     await startBot();
-    // await startTxBot();
+    await startTxBot();
   } catch (err) {
     console.log(err);
   }

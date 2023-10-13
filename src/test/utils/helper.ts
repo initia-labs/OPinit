@@ -108,12 +108,12 @@ export async function getOutput(outputIndex: number): Promise<OutputResponse> {
   return res.data;
 }
 
-export const checkExecutor = async (timeout = 60_000) => {
+export const checkHealth = async (url: string, timeout = 60_000) => {
   const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
     try {
-      const response = await axios.get(config.EXECUTOR_URI);
+      const response = await axios.get(url);
       if (response.status === 200) return;
     } catch {
       continue;
@@ -121,3 +121,5 @@ export const checkExecutor = async (timeout = 60_000) => {
     await new Promise((res) => setTimeout(res, 1_000));
   }
 };
+
+
