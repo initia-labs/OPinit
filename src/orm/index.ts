@@ -20,7 +20,7 @@ export * from './challenger/DepositTxEntity';
 export * from './challenger/WithdrawalTxEntity';
 export * from './challenger/OutputEntity';
 export * from './challenger/CoinEntity';
-export * from './challenger/DeletedOutputEntity'
+export * from './challenger/DeletedOutputEntity';
 
 export * from './executor/CoinEntity';
 export * from './executor/OutputEntity';

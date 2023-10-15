@@ -18,7 +18,7 @@ import axios from 'axios';
 import { GetAllCoinsResponse } from 'service/executor/CoinService';
 import { getConfig } from 'config';
 import { sendTx } from 'lib/tx';
-import ChallengerHelper, {ENOT_EQUAL_TX} from './ChallegnerHelper';
+import ChallengerHelper, { ENOT_EQUAL_TX } from './ChallegnerHelper';
 import { EntityManager } from 'typeorm';
 
 const config = getConfig();
@@ -30,14 +30,15 @@ export class Challenger {
   private isRunning = false;
   private db: DataSource;
   private apiRequester: APIRequest;
-  private threshold = 10; // TODO: set threshold from contract config
+  private DEPOSIT_THRESHOLD = 10; // TODO: set threshold from contract config
+  private WITHDRAWAL_THRESHOLD = 10; // TODO: set threshold from contract config
   helper: ChallengerHelper = new ChallengerHelper();
 
   constructor(public isFetch: boolean) {}
 
   async init() {
-      // use to sync with bridge latest state
-    if (this.isFetch) await this.fetchBridgeState(); 
+    // use to sync with bridge latest state
+    if (this.isFetch) await this.fetchBridgeState();
 
     [this.db] = getDB();
     this.challenger = new Wallet(
@@ -68,26 +69,26 @@ export class Challenger {
       `${config.L1_LCD_URI}/cosmos/base/tendermint/v1beta1/blocks/latest`
     );
     if (!l1Res) return;
-    
-    await this.db.transaction(
-      async (manager: EntityManager)=> {
-        await manager.getRepository(ChallengerOutputEntity).save(outputRes.output);
-        await manager.getRepository(ChallengerCoinEntity).save(coinRes.coins);
-        await manager.getRepository(StateEntity).save([
-          {
-            name: 'challenger_l1_monitor',
-            height: parseInt(l1Res.data.block.header.height)
-          },
-          {
-            name: 'challenger_l2_monitor',
-            height:
-              outputRes.output.checkpointBlockHeight +
-              Number.parseInt(cfg.submission_interval) -
-              1
-          }
-        ]);
-      }
-    )
+
+    await this.db.transaction(async (manager: EntityManager) => {
+      await manager
+        .getRepository(ChallengerOutputEntity)
+        .save(outputRes.output);
+      await manager.getRepository(ChallengerCoinEntity).save(coinRes.coins);
+      await manager.getRepository(StateEntity).save([
+        {
+          name: 'challenger_l1_monitor',
+          height: parseInt(l1Res.data.block.header.height)
+        },
+        {
+          name: 'challenger_l2_monitor',
+          height:
+            outputRes.output.checkpointBlockHeight +
+            Number.parseInt(cfg.submission_interval) -
+            1
+        }
+      ]);
+    });
   }
 
   public async run(): Promise<void> {
@@ -106,42 +107,46 @@ export class Challenger {
   }
 
   public async l1Challenge() {
-    await this.db.transaction(
-      async (manager: EntityManager)=> {
-        const unchekcedDepositTx = await this.helper.getUncheckedTx(manager, ChallengerDepositTxEntity);
-        if (!unchekcedDepositTx ||!unchekcedDepositTx.finalizedOutputIndex) return;
+    await this.db.transaction(async (manager: EntityManager) => {
+      const unchekcedDepositTx = await this.helper.getUncheckedTx(
+        manager,
+        ChallengerDepositTxEntity
+      );
+      if (!unchekcedDepositTx || !unchekcedDepositTx.finalizedOutputIndex)
+        return;
 
-        // case 1. not finalized deposit
-        if (unchekcedDepositTx.finalizedOutputIndex === ENOT_EQUAL_TX) {
-          await this.deleteL2Outptut(
-            unchekcedDepositTx,
-            'not same deposit tx between L1 and L2'
-          );
-          return;
-        }
-
-        // case2. not finalized within threshold
-        if (unchekcedDepositTx.finalizedOutputIndex > unchekcedDepositTx.outputIndex + this.threshold) {
-            await this.deleteL2Outptut(
-              unchekcedDepositTx,
-              'deposit tx is not finalized for threshold submission interval'
-            );
-            return;
-        }
-
-        await this.helper.finalizeUncheckedTx(
-          manager,
-          ChallengerDepositTxEntity,
-          unchekcedDepositTx
-        )
+      // case 1. not equal deposit tx between L1 and L2
+      if (unchekcedDepositTx.finalizedOutputIndex === ENOT_EQUAL_TX) {
+        await this.deleteL2Outptut(
+          unchekcedDepositTx,
+          'not same deposit tx between L1 and L2'
+        );
+        return;
       }
-    )
+
+      // case2. not finalized within threshold
+      if (
+        unchekcedDepositTx.finalizedOutputIndex >
+        unchekcedDepositTx.outputIndex + this.DEPOSIT_THRESHOLD
+      ) {
+        await this.deleteL2Outptut(
+          unchekcedDepositTx,
+          'deposit tx is not finalized for threshold submission interval'
+        );
+        return;
+      }
+
+      await this.helper.finalizeUncheckedTx(
+        manager,
+        ChallengerDepositTxEntity,
+        unchekcedDepositTx
+      );
+    });
   }
 
   public stop(): void {
     this.isRunning = false;
   }
-
 
   async getChallengerOutputRoot(outputIndex: number): Promise<string | null> {
     const challengerOutputEntity = await this.db
@@ -165,60 +170,68 @@ export class Challenger {
           [],
           [
             bcs.serialize(BCS.ADDRESS, this.executor.key.accAddress),
-            bcs.serialize(BCS.STRING, config.l2lcd),
+            bcs.serialize(BCS.STRING, config.L2ID),
             bcs.serialize(BCS.U64, outputIndex)
           ]
         );
-      return Buffer.from(outputRootFromContract).toString('hex');
-    } catch {
-      logger.info(
-        '[L2 Challenger] waiting output submitter to submit output index : ',
-        outputIndex
+      return Array.from(outputRootFromContract)
+        .map((byte) => byte.toString(16))
+        .join('');
+    } catch (e) {
+      logger.warn(
+        `[L2 Challenger] waiting for submitting output root in output index ${outputIndex}`
       );
       return null;
     }
   }
 
   public async l2Challenge() {
-    await this.db.transaction(
-      async (manager: EntityManager)=> {
-        const uncheckedWithdrawalTx = await this.helper.getUncheckedTx(manager, ChallengerWithdrawalTxEntity);
-        if (!uncheckedWithdrawalTx) return;
+    await this.db.transaction(async (manager: EntityManager) => {
+      const uncheckedWithdrawalTx = await this.helper.getUncheckedTx(
+        manager,
+        ChallengerWithdrawalTxEntity
+      );
+      if (!uncheckedWithdrawalTx) return;
 
-        // condition 1. ouptut should be submitted
-        await this.db.transaction(
-          async (transactionalEntityManager: EntityManager) => {
-            const lastIndex = await this.helper.getLastOutputIndex(
-              transactionalEntityManager,
-              ChallengerOutputEntity
-            );
-            if (uncheckedWithdrawalTx.outputIndex > lastIndex) return;
-        })
+      // condition 1. ouptut should be submitted
+      const lastIndex = await this.helper.getLastOutputIndex(
+        manager,
+        ChallengerOutputEntity
+      );
+      if (
+        !uncheckedWithdrawalTx.outputIndex ||
+        uncheckedWithdrawalTx.outputIndex > lastIndex
+      )
+        return;
 
-        // case 1. output root not matched
-        const outputRootFromContract = await this.getContractOutputRoot(
-          uncheckedWithdrawalTx.outputIndex
+      // case 1. output root not matched
+      const outputRootFromContract = await this.getContractOutputRoot(
+        uncheckedWithdrawalTx.outputIndex
+      );
+      const outputRootFromChallenger = await this.getChallengerOutputRoot(
+        uncheckedWithdrawalTx.outputIndex
+      );
+      if (!outputRootFromContract || !outputRootFromChallenger) return;
+      const isOutputFinalized = await this.isFinalizedOutput(
+        uncheckedWithdrawalTx.outputIndex
+      );
+      if (
+        !isOutputFinalized &&
+        outputRootFromContract !== outputRootFromChallenger
+      ) {
+        await this.deleteL2Outptut(
+          uncheckedWithdrawalTx,
+          `not equal output root from contract: ${outputRootFromContract}, from challenger: ${outputRootFromChallenger}`
         );
-        const outputRootFromChallenger = await this.getChallengerOutputRoot(
-          uncheckedWithdrawalTx.outputIndex
-        );
-        if (!outputRootFromContract || !outputRootFromChallenger) return;
-        const isOutputFinalized = await this.isFinalizedOutput(uncheckedWithdrawalTx.outputIndex);
-        if (!isOutputFinalized && outputRootFromContract !== outputRootFromChallenger) {
-          await this.deleteL2Outptut(
-            uncheckedWithdrawalTx,
-            'failed to check withdrawal tx'
-          );
-          return;
-        }
-
-        await this.helper.finalizeUncheckedTx(
-          manager,
-          ChallengerWithdrawalTxEntity,
-          uncheckedWithdrawalTx
-        )
+        return;
       }
-    )
+
+      await this.helper.finalizeUncheckedTx(
+        manager,
+        ChallengerWithdrawalTxEntity,
+        uncheckedWithdrawalTx
+      );
+    });
   }
 
   async isFinalizedOutput(outputIndex: number) {
@@ -229,13 +242,12 @@ export class Challenger {
       [],
       [
         bcs.serialize(BCS.ADDRESS, this.executor.key.accAddress),
-        bcs.serialize(BCS.STRING, config.l2lcd),
+        bcs.serialize(BCS.STRING, config.L2ID),
         bcs.serialize(BCS.U64, outputIndex)
       ]
     );
     return isFinalized;
   }
-
 
   async isOutputSubmitted(outputIndex: number): Promise<boolean> {
     const nextBlockHeight = await config.l1lcd.move.viewFunction<string>(
@@ -255,34 +267,34 @@ export class Challenger {
     entity: ChallengerWithdrawalTxEntity | ChallengerDepositTxEntity,
     reason?: string
   ) {
-    if (!await this.isOutputSubmitted(entity.outputIndex)) return;
-    
-      const deletedOutput: DeletedOutputEntity = {
-        outputIndex: entity.outputIndex,
-        executor: this.executor.key.accAddress,
-        l2Id: config.L2ID,
-        reason: reason ?? 'unknown',
-      };
-      await this.db.getRepository(DeletedOutputEntity).save(deletedOutput);
+    if (!(await this.isOutputSubmitted(entity.outputIndex))) return;
 
-      const executeMsg: Msg = new MsgExecute(
-        this.challenger.key.accAddress,
-        '0x1',
-        'op_output',
-        'delete_l2_output',
-        [],
-        [
-          bcs.serialize('address', this.executor.key.accAddress),
-          bcs.serialize('string', config.L2ID),
-          bcs.serialize('u64', entity.outputIndex)
-        ]
-      );
-  
-      logger.info(
-        `[L2 Challenger] output index ${entity.outputIndex} is deleted, reason: ${reason}`
-      );
-    
-        // await sendTx(this.challenger, [executeMsg]);
-        // process.exit(0); // exit process when output is deleted
+    const deletedOutput: DeletedOutputEntity = {
+      outputIndex: entity.outputIndex,
+      executor: this.executor.key.accAddress,
+      l2Id: config.L2ID,
+      reason: reason ?? 'unknown'
+    };
+    await this.db.getRepository(DeletedOutputEntity).save(deletedOutput);
+
+    const executeMsg: Msg = new MsgExecute(
+      this.challenger.key.accAddress,
+      '0x1',
+      'op_output',
+      'delete_l2_output',
+      [],
+      [
+        bcs.serialize('address', this.executor.key.accAddress),
+        bcs.serialize('string', config.L2ID),
+        bcs.serialize('u64', entity.outputIndex)
+      ]
+    );
+
+    logger.info(
+      `output index ${entity.outputIndex} is deleted, reason: ${reason}`
+    );
+
+    // await sendTx(this.challenger, [executeMsg]);
+    // process.exit(0); // exit process when output is deleted
   }
 }

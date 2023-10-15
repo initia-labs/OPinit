@@ -38,7 +38,7 @@ export async function stopOutput(): Promise<void> {
 
 export async function startOutput(): Promise<void> {
   await checkHealth(config.EXECUTOR_URI + '/health');
-  
+
   await runBot();
 
   // attach graceful shutdown

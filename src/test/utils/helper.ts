@@ -121,5 +121,3 @@ export const checkHealth = async (url: string, timeout = 60_000) => {
     await new Promise((res) => setTimeout(res, 1_000));
   }
 };
-
-

@@ -88,7 +88,11 @@ class MonitorHelper {
   ///
   ///  UTIL
   ///
-  public async fetchEvents(lcd: any, height: number, eventType: string): Promise<any[]> {
+  public async fetchEvents(
+    lcd: any,
+    height: number,
+    eventType: string
+  ): Promise<any[]> {
     const searchRes = await lcd.tx.search({
       events: [{ key: 'tx.height', value: (height + 1).toString() }]
     });
@@ -104,7 +108,7 @@ class MonitorHelper {
       return obj;
     }, {});
   }
-  
+
   public parseData(attrMap: { [key: string]: string }): {
     [key: string]: string;
   } {
@@ -114,8 +118,6 @@ class MonitorHelper {
   ///
   /// L1 HELPER
   ///
-
-  
 
   ///
   /// L2 HELPER

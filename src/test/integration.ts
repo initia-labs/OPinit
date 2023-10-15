@@ -15,8 +15,8 @@ const docker = new DockerHelper(path.join(__dirname, '..', '..'));
 
 async function setup() {
   await docker.start();
-  await checkHealth(config.L1_LCD_URI, 20_000)
-  await checkHealth(config.L2_LCD_URI, 20_000)
+  await checkHealth(config.L1_LCD_URI, 20_000);
+  await checkHealth(config.L2_LCD_URI, 20_000);
   await setupBridge(10, 10, 1);
 }
 
@@ -43,7 +43,7 @@ async function startBot() {
     await Promise.all([
       startBatch(),
       startExecutor(),
-      startChallenger(false), // false for not fetching executor state
+      startChallenger(),
       startOutput()
     ]);
   } catch (err) {
@@ -55,11 +55,11 @@ async function startTxBot() {
   const txBot = new TxBot();
 
   try {
-    
+    // TODO: Make withdraw and claim sequentially
     await txBot.deposit(txBot.l1sender, txBot.l2receiver, 1_000);
     // await txBot.withdrawal(txBot.l2receiver, 100);          // WARN: run after deposit done
-    // await txBot.claim(txBot.l1receiver, 1, 13); // WARN: run after withdrawal done
-    console.log('tx bot done')
+    // await txBot.claim(txBot.l1receiver, 1, 19); // WARN: run after withdrawal done
+    console.log('tx bot done');
   } catch (err) {
     console.log(err);
   }

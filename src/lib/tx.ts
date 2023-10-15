@@ -16,7 +16,7 @@ export async function sendTx(
     const broadcastResult = await wallet.lcd.tx.broadcast(signedTx);
     if (broadcastResult['code']) throw new Error(broadcastResult.raw_log);
     await checkTx(wallet.lcd, broadcastResult.txhash);
-    
+
     return broadcastResult;
   } catch (err) {
     console.log(err);

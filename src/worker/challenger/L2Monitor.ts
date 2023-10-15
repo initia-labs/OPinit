@@ -3,7 +3,7 @@ import {
   ChallengerOutputEntity,
   ChallengerDepositTxEntity,
   ChallengerWithdrawalTxEntity,
-  StateEntity,
+  StateEntity
 } from 'orm';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
 import { fetchBridgeConfig } from 'lib/lcd';
@@ -15,7 +15,7 @@ import winston from 'winston';
 import { getDB } from './db';
 import { getConfig } from 'config';
 import { delay } from 'bluebird';
-import {ENOT_EQUAL_TX} from './ChallegnerHelper';
+import { ENOT_EQUAL_TX } from './ChallegnerHelper';
 
 const config = getConfig();
 
@@ -111,25 +111,29 @@ export class L2Monitor extends Monitor {
   }
 
   // sync deposit txs every 500ms
-  private async syncDepositTx(){
+  private async syncDepositTx() {
     const depositEvents = await this.helper.fetchEvents(
       config.l2lcd,
       this.syncedHeight,
       'deposit'
-    )
+    );
 
     for (const evt of depositEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
-      const targetHeight = parseInt(attrMap['deposit_height'])
+      const targetHeight = parseInt(attrMap['deposit_height']);
       for (;;) {
-        const l1State: StateEntity | null = await this.db.getRepository(StateEntity).findOne({
-          where: {
-            name: 'challenger_l1_monitor'
-          }
-        });
+        const l1State: StateEntity | null = await this.db
+          .getRepository(StateEntity)
+          .findOne({
+            where: {
+              name: 'challenger_l1_monitor'
+            }
+          });
         if (!l1State) throw new Error('challenger l1 state not found');
-        if (targetHeight < l1State.height) return
-        this.logger.info(`syncing deposit tx height ${targetHeight} in height ${this.syncedHeight}...`);
+        if (targetHeight < l1State.height) return;
+        this.logger.info(
+          `syncing deposit tx height ${targetHeight} in height ${this.syncedHeight}...`
+        );
         await delay(500);
       }
     }
@@ -140,7 +144,7 @@ export class L2Monitor extends Monitor {
     data: { [key: string]: string }
   ) {
     await this.syncDepositTx();
-    
+
     const metadata = data['metadata'];
     const depositTx = await this.helper.getDepositTx(
       manager,
@@ -149,7 +153,7 @@ export class L2Monitor extends Monitor {
       metadata
     );
     if (!depositTx) throw new Error('deposit tx not found');
-    
+
     const lastIndex = await this.helper.getLastOutputIndex(
       manager,
       ChallengerOutputEntity
@@ -160,9 +164,10 @@ export class L2Monitor extends Monitor {
         originTx.sequence === Number.parseInt(data['l1_sequence']) &&
         originTx.sender === data['from'] &&
         originTx.receiver === data['to'] &&
-        originTx.amount === Number.parseInt(data['amount'])
+        Number(originTx.amount) === Number.parseInt(data['amount']) // originTx.amount could be string due to typeorm bigint
       );
     };
+
     const finalizedIndex = isTxSame(depositTx) ? lastIndex + 1 : ENOT_EQUAL_TX;
 
     await manager.getRepository(ChallengerDepositTxEntity).update(
@@ -276,5 +281,5 @@ export class L2Monitor extends Monitor {
         this.nextCheckpointBlockHeight += this.submissionInterval;
       }
     );
-  } 
+  }
 }
