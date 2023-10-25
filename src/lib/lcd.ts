@@ -2,6 +2,7 @@ import { BridgeConfig } from './types';
 import { getConfig } from 'config';
 import { BCS, Wallet, MnemonicKey } from '@initia/initia.js';
 import * as crypto from 'crypto';
+import { WalletType, getWallet } from './wallet';
 
 const config = getConfig();
 const bcs = BCS.getInstance();
@@ -48,8 +49,7 @@ export function normalizeMetadata(addr: string) {
   return addr.startsWith('0x') ? addr : '0x' + addr;
 }
 
-export function computeBridgeMetadata(l2Id: string) {
-  const creator = '0x56ccf33c45b99546cd1da172cf6849395bbf8573';
+export function computeBridgeMetadata(creator:string, l2Id: string) {
   const addrBytes = Buffer.from(
     bcs.serialize('address', creator),
     'base64'
