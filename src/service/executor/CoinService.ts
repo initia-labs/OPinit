@@ -10,13 +10,13 @@ export interface GetAllCoinsResponse {
   coins: ExecutorCoinEntity[];
 }
 
-export async function getCoin(coinType: string): Promise<GetCoinResponse> {
+export async function getCoin(metadata: string): Promise<GetCoinResponse> {
   const [db] = getDB();
   const queryRunner = db.createQueryRunner('slave');
   try {
     const qb = queryRunner.manager
       .createQueryBuilder(ExecutorCoinEntity, 'coin')
-      .where('coin.l1StructTag = :coinType', { coinType });
+      .where('coin.l1Metadata = :metadata', { metadata });
 
     const coin = await qb.getOne();
 

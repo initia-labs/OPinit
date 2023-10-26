@@ -3,7 +3,7 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 @Entity('executor_deposit_tx')
 export default class DepositTxEntity {
   @PrimaryColumn('text')
-  coinType: string;
+  metadata: string;
 
   @PrimaryColumn('int')
   sequence: number;

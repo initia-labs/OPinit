@@ -49,10 +49,14 @@ export async function stopExecutor(): Promise<void> {
 }
 
 export async function startExecutor(): Promise<void> {
-  await initORM();
-  await initServer(executorController, config.EXECUTOR_PORT);
-  initWallet(WalletType.Executor, config.l2lcd);
-  await runBot();
+  try {
+    await initORM();
+    await initServer(executorController, config.EXECUTOR_PORT);
+    initWallet(WalletType.Executor, config.l2lcd);
+    await runBot();
+  } catch (err) {
+    throw new Error(err);
+  }
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;

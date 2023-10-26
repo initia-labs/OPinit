@@ -2,7 +2,8 @@ import {
   ChallengerCoinEntity,
   ChallengerOutputEntity,
   ChallengerDepositTxEntity,
-  ChallengerWithdrawalTxEntity
+  ChallengerWithdrawalTxEntity,
+  StateEntity
 } from 'orm';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
 import { fetchBridgeConfig } from 'lib/lcd';
@@ -13,6 +14,8 @@ import { RPCSocket } from 'lib/rpc';
 import winston from 'winston';
 import { getDB } from './db';
 import { getConfig } from 'config';
+import { delay } from 'bluebird';
+import { ENOT_EQUAL_TX } from './ChallegnerHelper';
 
 const config = getConfig();
 
@@ -73,7 +76,7 @@ export class L2Monitor extends Monitor {
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       l2Id: config.L2ID,
-      coinType: coin.l1StructTag,
+      metadata: coin.l1Metadata,
       outputIndex: lastIndex + 1,
       merkleRoot: '',
       merkleProof: [],
@@ -90,15 +93,15 @@ export class L2Monitor extends Monitor {
       ChallengerOutputEntity
     );
 
-    const l2Denom = data['l2_token'].replace('native_', '');
+    const metadata = data['metadata'];
     const coin = await this.helper.getCoin(
       manager,
       ChallengerCoinEntity,
-      l2Denom
+      metadata
     );
 
     if (!coin) {
-      this.logger.warn(`coin not found for ${l2Denom}`);
+      this.logger.warn(`coin not found for ${metadata}`);
       return;
     }
 
@@ -107,40 +110,70 @@ export class L2Monitor extends Monitor {
     await this.helper.saveEntity(manager, ChallengerWithdrawalTxEntity, tx);
   }
 
+  // sync deposit txs every 500ms
+  private async syncDepositTx() {
+    const depositEvents = await this.helper.fetchEvents(
+      config.l2lcd,
+      this.syncedHeight,
+      'deposit'
+    );
+
+    for (const evt of depositEvents) {
+      const attrMap = this.helper.eventsToAttrMap(evt);
+      const targetHeight = parseInt(attrMap['deposit_height']);
+      for (;;) {
+        const l1State: StateEntity | null = await this.db
+          .getRepository(StateEntity)
+          .findOne({
+            where: {
+              name: 'challenger_l1_monitor'
+            }
+          });
+        if (!l1State) throw new Error('challenger l1 state not found');
+        if (targetHeight < l1State.height) return;
+        this.logger.info(
+          `syncing deposit tx height ${targetHeight} in height ${this.syncedHeight}...`
+        );
+        await delay(500);
+      }
+    }
+  }
+
   private async handleTokenBridgeFinalizedEvent(
     manager: EntityManager,
     data: { [key: string]: string }
   ) {
-    const l2Denom = data['l2_token'].replace('native_', '');
+    await this.syncDepositTx();
+
+    const metadata = data['metadata'];
     const depositTx = await this.helper.getDepositTx(
       manager,
       ChallengerDepositTxEntity,
       Number.parseInt(data['l1_sequence']),
-      l2Denom
+      metadata
     );
-    if (!depositTx) return;
+    if (!depositTx) throw new Error('deposit tx not found');
 
     const lastIndex = await this.helper.getLastOutputIndex(
       manager,
       ChallengerOutputEntity
     );
-    
-    console.log("deposit data:", data);
 
     const isTxSame = (originTx: ChallengerDepositTxEntity): boolean => {
       return (
         originTx.sequence === Number.parseInt(data['l1_sequence']) &&
         originTx.sender === data['from'] &&
         originTx.receiver === data['to'] &&
-        originTx.amount === Number.parseInt(data['amount'])
+        Number(originTx.amount) === Number.parseInt(data['amount']) // originTx.amount could be string due to typeorm bigint
       );
     };
-    const finalizedIndex = isTxSame(depositTx) ? lastIndex + 1 : null;
+
+    const finalizedIndex = isTxSame(depositTx) ? lastIndex + 1 : ENOT_EQUAL_TX;
 
     await manager.getRepository(ChallengerDepositTxEntity).update(
       {
         sequence: depositTx.sequence,
-        coinType: depositTx.coinType
+        metadata: depositTx.metadata
       },
       { finalizedOutputIndex: finalizedIndex }
     );
@@ -151,7 +184,8 @@ export class L2Monitor extends Monitor {
       async (transactionalEntityManager: EntityManager) => {
         const events = await this.helper.fetchEvents(
           config.l2lcd,
-          this.syncedHeight
+          this.syncedHeight,
+          'move'
         );
 
         for (const evt of events) {
@@ -190,7 +224,7 @@ export class L2Monitor extends Monitor {
       receiver: entity.receiver,
       amount: entity.amount,
       l2_id: entity.l2Id,
-      coin_type: entity.coinType
+      metadata: entity.metadata
     }));
 
     const storage = new WithdrawalStorage(txs);

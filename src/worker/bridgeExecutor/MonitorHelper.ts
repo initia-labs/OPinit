@@ -6,6 +6,16 @@ class MonitorHelper {
   ///
   /// GET
   ///
+  public async getSyncedState<T extends ObjectLiteral>(
+    manager: EntityManager,
+    entityClass: EntityTarget<T>,
+    name: string
+  ): Promise<T | null> {
+    return await manager.getRepository(entityClass).findOne({
+      where: { name: name } as any
+    });
+  }
+
   public async getWithdrawalTxs<T extends ObjectLiteral>(
     manager: EntityManager,
     entityClass: EntityTarget<T>,
@@ -20,20 +30,20 @@ class MonitorHelper {
     manager: EntityManager,
     entityClass: EntityTarget<T>,
     sequence: number,
-    coinType: string
+    metadata: string
   ): Promise<T | null> {
     return await manager.getRepository(entityClass).findOne({
-      where: { sequence, coinType } as any
+      where: { sequence, metadata } as any
     });
   }
 
   public async getCoin<T extends ObjectLiteral>(
     manager: EntityManager,
     entityClass: EntityTarget<T>,
-    l2Denom: string
+    metadata: string
   ): Promise<T | null> {
     return await manager.getRepository(entityClass).findOne({
-      where: { l2Denom } as any
+      where: { l2Metadata: metadata } as any
     });
   }
 
@@ -78,14 +88,18 @@ class MonitorHelper {
   ///
   ///  UTIL
   ///
-  public async fetchEvents(lcd: any, height: number): Promise<any[]> {
+  public async fetchEvents(
+    lcd: any,
+    height: number,
+    eventType: string
+  ): Promise<any[]> {
     const searchRes = await lcd.tx.search({
       events: [{ key: 'tx.height', value: (height + 1).toString() }]
     });
     return searchRes.txs
       .flatMap((tx) => tx.logs ?? [])
       .flatMap((log) => log.events)
-      .filter((evt) => evt.type === 'move');
+      .filter((evt) => evt.type === eventType);
   }
 
   public eventsToAttrMap(event: any): { [key: string]: string } {
@@ -94,6 +108,7 @@ class MonitorHelper {
       return obj;
     }, {});
   }
+
   public parseData(attrMap: { [key: string]: string }): {
     [key: string]: string;
   } {

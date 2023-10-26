@@ -1,5 +1,4 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
-import { Msg } from '@initia/initia.js';
 
 @Entity('executor_failed_tx')
 export default class FailedTxEntity {

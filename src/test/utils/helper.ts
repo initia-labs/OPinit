@@ -30,7 +30,7 @@ export async function build(
 }
 
 export interface TxResponse {
-  coin_type: string;
+  metadata: string;
   sequence: number;
   sender: string;
   receiver: string;
@@ -59,8 +59,11 @@ export async function makeFinalizeMsg(
     '0x1',
     'op_bridge',
     'finalize_token_bridge',
-    [config.L2ID, '0x1::native_uinit::Coin'],
+    [],
     [
+      bcs.serialize('address', executor.key.accAddress),
+      bcs.serialize('string', config.L2ID),
+      bcs.serialize('object', txRes.metadata), // coin metadata
       bcs.serialize('u64', outputRes.outputIndex), // output index
       bcs.serialize(
         'vector<vector<u8>>',
@@ -105,12 +108,12 @@ export async function getOutput(outputIndex: number): Promise<OutputResponse> {
   return res.data;
 }
 
-export const checkExecutor = async (timeout = 60_000) => {
+export const checkHealth = async (url: string, timeout = 60_000) => {
   const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
     try {
-      const response = await axios.get(config.EXECUTOR_URI);
+      const response = await axios.get(url);
       if (response.status === 200) return;
     } catch {
       continue;

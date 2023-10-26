@@ -2,6 +2,8 @@ import { MerkleTree } from 'merkletreejs';
 import { BCS } from '@initia/minitia.js';
 import { sha3_256 } from './util';
 import { WithdrawalTx } from './types';
+import { computeBridgeMetadata } from './lcd';
+import { WalletType, getWallet } from './wallet';
 
 export class WithdrawalStorage {
   public bcs = BCS.getInstance();
@@ -15,8 +17,11 @@ export class WithdrawalStorage {
           Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.sender), 'base64'),
           Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.receiver), 'base64'),
           Buffer.from(this.bcs.serialize(BCS.U64, tx.amount), 'base64'),
-          Buffer.from(tx.l2_id, 'utf8'),
-          Buffer.from(tx.coin_type, 'utf8')
+          Buffer.from(
+            this.bcs.serialize(BCS.OBJECT, computeBridgeMetadata(getWallet(WalletType.Executor).key.accAddress, tx.l2_id)),
+            'base64'
+          ),
+          Buffer.from(this.bcs.serialize(BCS.OBJECT, tx.metadata), 'base64')
         ])
       )
     );
@@ -37,8 +42,11 @@ export class WithdrawalStorage {
             Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.sender), 'base64'),
             Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.receiver), 'base64'),
             Buffer.from(this.bcs.serialize(BCS.U64, tx.amount), 'base64'),
-            Buffer.from(tx.l2_id, 'utf8'),
-            Buffer.from(tx.coin_type, 'utf8')
+            Buffer.from(
+              this.bcs.serialize(BCS.OBJECT, computeBridgeMetadata(getWallet(WalletType.Executor).key.accAddress, tx.l2_id)),
+              'base64'
+            ),
+            Buffer.from(this.bcs.serialize(BCS.OBJECT, tx.metadata), 'base64')
           ])
         )
       )
@@ -52,8 +60,11 @@ export class WithdrawalStorage {
         Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.sender), 'base64'),
         Buffer.from(this.bcs.serialize(BCS.ADDRESS, tx.receiver), 'base64'),
         Buffer.from(this.bcs.serialize(BCS.U64, tx.amount), 'base64'),
-        Buffer.from(tx.l2_id, 'utf8'),
-        Buffer.from(tx.coin_type, 'utf8')
+        Buffer.from(
+          this.bcs.serialize(BCS.OBJECT, computeBridgeMetadata(getWallet(WalletType.Executor).key.accAddress, tx.l2_id)),
+          'base64'
+        ),
+        Buffer.from(this.bcs.serialize(BCS.OBJECT, tx.metadata), 'base64')
       ])
     );
 

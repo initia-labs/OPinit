@@ -1,11 +1,15 @@
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
-import { structTagToDenom } from 'lib/util';
 import {
   ChallengerCoinEntity,
   ChallengerDepositTxEntity,
   ChallengerOutputEntity
 } from 'orm';
-import { getCoinInfo } from 'lib/lcd';
+import {
+  CoinInfo,
+  computeCoinMetadata,
+  normalizeMetadata,
+  resolveFAMetadata
+} from 'lib/lcd';
 import { EntityManager } from 'typeorm';
 import { RPCSocket } from 'lib/rpc';
 import { getDB } from './db';
@@ -28,16 +32,24 @@ export class L1Monitor extends Monitor {
     manager: EntityManager,
     data: { [key: string]: string }
   ) {
-    const coinInfo = await getCoinInfo(
-      data['l1_token'],
-      `l2_${data['l2_token']}`
+    const l1Metadata = data['l1_token'];
+    const l2Metadata = normalizeMetadata(
+      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
     );
-    const l2Denom = coinInfo.denom;
+
+    const l1CoinInfo: CoinInfo = await resolveFAMetadata(
+      config.l1lcd,
+      l1Metadata
+    );
+
+    const l1Denom = l1CoinInfo.denom;
+    const l2Denom = 'l2/' + data['l2_token'];
+
     const coin: ChallengerCoinEntity = {
-      l1StructTag: data['l1_token'],
-      l1Denom: structTagToDenom(data['l1_token']),
-      l2StructTag: `0x1::native_${l2Denom}::Coin`,
-      l2Denom
+      l1Metadata: l1Metadata,
+      l1Denom: l1Denom,
+      l2Metadata: l2Metadata,
+      l2Denom: l2Denom
     };
 
     await this.helper.saveEntity(manager, ChallengerCoinEntity, coin);
@@ -51,17 +63,20 @@ export class L1Monitor extends Monitor {
       manager,
       ChallengerOutputEntity
     );
-     
-    const denom = `l2_${data['l2_token']}`;
+
+    const l2Metadata = normalizeMetadata(
+      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
+    );
+
     const entity: ChallengerDepositTxEntity = {
       sequence: Number.parseInt(data['l1_sequence']),
       sender: data['from'],
       receiver: data['to'],
       amount: Number.parseInt(data['amount']),
       outputIndex: lastIndex + 1,
+      metadata: l2Metadata,
       height: this.syncedHeight,
       finalizedOutputIndex: null,
-      coinType: denom,
       isChecked: false
     };
 
@@ -73,7 +88,8 @@ export class L1Monitor extends Monitor {
       async (transactionalEntityManager: EntityManager) => {
         const events = await this.helper.fetchEvents(
           config.l1lcd,
-          this.syncedHeight
+          this.syncedHeight,
+          'move'
         );
 
         for (const evt of events) {

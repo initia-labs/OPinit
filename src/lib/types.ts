@@ -12,7 +12,7 @@ export interface WithdrawalTx {
   receiver: string;
   amount: number;
   l2_id: string;
-  coin_type: string;
+  metadata: string;
 }
 
 export interface DepositTx {

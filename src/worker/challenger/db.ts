@@ -15,7 +15,8 @@ import {
   ChallengerOutputEntity,
   ChallengerDepositTxEntity,
   StateEntity,
-  ChallengerWithdrawalTxEntity
+  ChallengerWithdrawalTxEntity,
+  DeletedOutputEntity
 } from 'orm';
 
 const staticOptions = {
@@ -26,7 +27,8 @@ const staticOptions = {
     ChallengerWithdrawalTxEntity,
     ChallengerDepositTxEntity,
     ChallengerOutputEntity,
-    ChallengerCoinEntity
+    ChallengerCoinEntity,
+    DeletedOutputEntity
   ]
 };
 

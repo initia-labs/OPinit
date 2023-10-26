@@ -1,5 +1,5 @@
 import { delay } from 'bluebird';
-import { LCDClient, TxAPI } from '@initia/minitia.js';
+import { LCDClient } from '@initia/minitia.js';
 
 export async function sendTx(
   wallet: any,
@@ -16,6 +16,7 @@ export async function sendTx(
     const broadcastResult = await wallet.lcd.tx.broadcast(signedTx);
     if (broadcastResult['code']) throw new Error(broadcastResult.raw_log);
     await checkTx(wallet.lcd, broadcastResult.txhash);
+
     return broadcastResult;
   } catch (err) {
     console.log(err);

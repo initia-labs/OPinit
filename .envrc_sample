@@ -14,8 +14,8 @@ export BATCH_PORT=3001
 
 export L1_LCD_URI=https://next-stone-rest.initia.tech
 export L1_RPC_URI=https://next-stone-rpc.initia.tech
-export L2_LCD_URI=http://34.146.182.245:1317
-export L2_RPC_URI=http://34.146.182.245:26657
+export L2_LCD_URI=http://localhost:1318
+export L2_RPC_URI=http://localhost:26658
 export L2ID=0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10r1::Minitia
 
 

@@ -1,7 +1,7 @@
 import { RPCSocket } from 'lib/rpc';
 import { L1Monitor } from './L1Monitor';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
-import { Challenger } from './challenger';
+import { Challenger } from './Challenger';
 import { initORM, finalizeORM } from './db';
 import { challengerLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
@@ -13,10 +13,7 @@ const config = getConfig();
 let monitors: (Monitor | Challenger)[];
 
 async function runBot(isFetch?: boolean): Promise<void> {
-  const challenger = new Challenger();
-
-  // use to sync with bridge latest state
-  if (isFetch) await challenger.fetchBridgeState();
+  const challenger = new Challenger(isFetch ? true : false);
 
   monitors = [
     new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000, logger), logger),
@@ -49,7 +46,7 @@ export async function stopChallenger(): Promise<void> {
   process.exit(0);
 }
 
-export async function startChallenger(isFetch = true): Promise<void> {
+export async function startChallenger(isFetch = false): Promise<void> {
   await initORM();
   await runBot(isFetch);
 

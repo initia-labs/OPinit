@@ -16,14 +16,14 @@ const Joi = Validator.Joi;
 export class TxController extends KoaController {
   /**
    *
-   * @api {get} /tx/:coin_type/:sequence Get tx entity
+   * @api {get} /tx/:l1_metadata/:sequence Get tx entity
    * @apiName getTx
    * @apiGroup Tx
    *
-   * @apiParam {String} coinType L1 coin struct tag
+   * @apiParam {String} l1Metadata L1 coin metadata
    * @apiParam {Number} sequence L2 withdrawal tx sequence
    *
-   * @apiSuccess {String} coinType L1 coin struct tag
+   * @apiSuccess {String} l1Metadata L1 coin metadata
    * @apiSuccess {Number} sequence L2 sequence
    * @apiSuccess {String} sender   Withdrawal tx sender
    * @apiSuccess {String} receiver Withdrawal tx receiver
@@ -32,17 +32,17 @@ export class TxController extends KoaController {
    * @apiSuccess {String} merkleRoot Withdrawal tx merkle root
    * @apiSuccess {String[]} merkleProof Withdrawal txs merkle proof
    */
-  @Get('/tx/:coin_type/:sequence')
+  @Get('/tx/:l1_metadata/:sequence')
   @Validate({
     params: {
-      coin_type: Joi.string().description('Coin type'),
+      l1_metadata: Joi.string().description('L1 Metadata'),
       sequence: Joi.number().description('Sequence')
     },
     failure: ErrorCodes.INVALID_REQUEST_ERROR
   })
   async getTx(ctx: Context): Promise<void> {
-    const coin_type: string = ctx.params.coin_type as string;
+    const l1_metadata: string = ctx.params.l1_metadata as string;
     const sequence: number = ctx.params.sequence as number;
-    success(ctx, await getTx(coin_type, sequence));
+    success(ctx, await getTx(l1_metadata, sequence));
   }
 }

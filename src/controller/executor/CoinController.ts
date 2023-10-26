@@ -6,7 +6,7 @@ import {
   Validator
 } from 'koa-joi-controllers';
 import { success } from '../../lib/response';
-import { getCoin, getAllCoins } from '../../service/CoinService';
+import { getCoin, getAllCoins } from '../../service/executor/CoinService';
 import { ErrorCodes } from 'lib/error';
 
 const Joi = Validator.Joi;
@@ -26,26 +26,26 @@ export default class CoinController extends KoaController {
   }
 
   /**
-   * @api {get} /coin/:coin_type Get coin mapping
+   * @api {get} /coin/:metadata Get coin mapping
    * @apiName getCoin
    * @apiGroup Coin
    *
-   * @apiParam {String} coinType L1 coin type
+   * @apiParam {String} l1Metadata L1 coin metadata
    *
-   * @apiSuccess {String} l1StructTag L1 coin struct tag
+   * @apiSuccess {String} l1Metadata L1 coin metadata
    * @apiSuccess {String} l1Denom L1 coin denom
-   * @apiSuccess {String} l2StructTag L2 coin struct tag
+   * @apiSuccess {String} l2Metadata L2 coin metadata
    * @apiSuccess {String} l2Denom L2 coin denom
    *
    */
-  @Get('/coin/:coin_type')
+  @Get('/coin/:metadata')
   @Validate({
     params: {
-      coin_type: Joi.string().description('Coin type')
+      metadata: Joi.string().description('Coin type')
     },
     failure: ErrorCodes.INVALID_REQUEST_ERROR
   })
   async getCoin(ctx): Promise<void> {
-    success(ctx, await getCoin(ctx.params.coin_type));
+    success(ctx, await getCoin(ctx.params.metadata));
   }
 }
