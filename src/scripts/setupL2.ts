@@ -9,9 +9,12 @@ import {
   challenger,
   outputSubmitter
 } from 'test/utils/helper';
+import { computeCoinMetadata, normalizeMetadata } from 'lib/lcd';
+
 
 const config = getConfig();
-export const bcs = BCS.getInstance();
+const bcs = BCS.getInstance();
+const UINIT_METADATA = normalizeMetadata(computeCoinMetadata('0x1', 'uinit')); // '0x8e4733bdabcf7d4afc3d14f0dd46c9bf52fb0fce9e4b996c939e195b8bc891d9'
 
 class L2Initializer {
   l2id = config.L2ID;
@@ -38,18 +41,7 @@ class L2Initializer {
     return new MsgPublish(executor.key.accAddress, [module], 0);
   }
 
-  bridgeInitializeMsg(l2id: string) {
-    return new MsgExecute(
-      executor.key.accAddress,
-      '0x1',
-      'op_bridge',
-      'initialize',
-      [l2id],
-      []
-    );
-  }
-
-  outputInitializeMsg(
+  bridgeInitializeMsg(
     submissionInterval: number,
     finalizedTime: number,
     l2StartBlockHeight: number
@@ -57,10 +49,11 @@ class L2Initializer {
     return new MsgExecute(
       executor.key.accAddress,
       '0x1',
-      'op_output',
+      'op_bridge',
       'initialize',
-      [this.l2id],
+      [],
       [
+        bcs.serialize('string', this.l2id),
         bcs.serialize('u64', submissionInterval),
         bcs.serialize('address', outputSubmitter.key.accAddress),
         bcs.serialize('address', challenger.key.accAddress),
@@ -70,14 +63,14 @@ class L2Initializer {
     );
   }
 
-  bridgeRegisterTokenMsg(coinType: string) {
+  bridgeRegisterTokenMsg(metadata: string) {
     return new MsgExecute(
       executor.key.accAddress,
       '0x1',
       'op_bridge',
       'register_token',
-      [this.l2id, coinType],
-      []
+      [],
+      [bcs.serialize('string', this.l2id), bcs.serialize('object', metadata)]
     );
   }
 
@@ -86,13 +79,12 @@ class L2Initializer {
     const module = await build(this.contractDir, this.moduleName);
     const msgs = [
       this.publishL2IDMsg(module),
-      this.bridgeInitializeMsg(this.l2id),
-      this.outputInitializeMsg(
+      this.bridgeInitializeMsg(
         this.submissionInterval,
         this.finalizedTime,
         this.l2StartBlockHeight
       ),
-      this.bridgeRegisterTokenMsg(`0x1::native_uinit::Coin`)
+      this.bridgeRegisterTokenMsg(UINIT_METADATA)
     ];
     await sendTx(executor, msgs);
   }

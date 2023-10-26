@@ -2,7 +2,6 @@ import { BridgeConfig } from './types';
 import { getConfig } from 'config';
 import { BCS, Wallet, MnemonicKey } from '@initia/initia.js';
 import * as crypto from 'crypto';
-import { WalletType, getWallet } from './wallet';
 
 const config = getConfig();
 const bcs = BCS.getInstance();
