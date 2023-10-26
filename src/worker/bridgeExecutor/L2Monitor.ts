@@ -106,6 +106,20 @@ export class L2Monitor extends Monitor {
     await this.helper.saveEntity(manager, ExecutorWithdrawalTxEntity, tx);
   }
 
+  public async handleTokenRegisteredEvent(
+    manager: EntityManager,
+    data: { [key: string]: string }
+  ) {
+    const symbol = data['symbol'];
+    await manager.getRepository(ExecutorCoinEntity).update(
+      {
+        l2Denom: symbol
+      },
+      { isChecked: true }
+    )
+  }
+
+
   public async handleEvents(): Promise<void> {
     await this.db.transaction(
       async (transactionalEntityManager: EntityManager) => {
@@ -121,11 +135,20 @@ export class L2Monitor extends Monitor {
             this.helper.parseData(attrMap);
 
           switch (attrMap['type_tag']) {
-            case '0x1::op_bridge::TokenBridgeInitiatedEvent':
+            case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
               await this.handleTokenBridgeInitiatedEvent(
                 transactionalEntityManager,
                 data
               );
+              break;
+            }
+            case '0x1::op_bridge::TokenRegisteredEvent': {
+              await this.handleTokenRegisteredEvent(
+                transactionalEntityManager,
+                data
+              );
+              break;
+            }
           }
         }
       }

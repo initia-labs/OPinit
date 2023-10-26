@@ -14,4 +14,7 @@ export default class CoinEntity {
   @Column('text')
   @Index('executor_coin_l2_denom')
   l2Denom: string;
+
+  @Column('boolean')
+  isChecked: boolean;
 }

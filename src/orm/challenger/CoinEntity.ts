@@ -14,4 +14,7 @@ export default class ChallengerCoinEntity {
   @Column('text')
   @Index('challenger_coin_l2_denom')
   l2Denom: string;
+
+  @Column('boolean')
+  isChecked: boolean;
 }

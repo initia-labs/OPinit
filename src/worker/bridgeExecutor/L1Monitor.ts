@@ -60,10 +60,9 @@ export class L1Monitor extends Monitor {
       l1Metadata: l1Metadata,
       l1Denom: l1Denom,
       l2Metadata: l2Metadata,
-      l2Denom: l2Denom
+      l2Denom: l2Denom,
+      isChecked: false
     };
-
-    this.logger.info(`Registering ${l1Denom}...`);
 
     await this.helper.saveEntity(manager, ExecutorCoinEntity, coin);
 

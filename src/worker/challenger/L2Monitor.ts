@@ -139,6 +139,19 @@ export class L2Monitor extends Monitor {
     }
   }
 
+  public async handleTokenRegisteredEvent(
+    manager: EntityManager,
+    data: { [key: string]: string }
+  ) {
+    const symbol = data['symbol'];
+    await manager.getRepository(ChallengerCoinEntity).update(
+      {
+        l2Denom: symbol
+      },
+      { isChecked: true }
+    )
+  }
+
   private async handleTokenBridgeFinalizedEvent(
     manager: EntityManager,
     data: { [key: string]: string }
@@ -203,6 +216,13 @@ export class L2Monitor extends Monitor {
             }
             case '0x1::op_bridge::TokenBridgeFinalizedEvent': {
               await this.handleTokenBridgeFinalizedEvent(
+                transactionalEntityManager,
+                data
+              );
+              break;
+            }
+            case '0x1::op_bridge::TokenRegisteredEvent': {
+              await this.handleTokenRegisteredEvent(
                 transactionalEntityManager,
                 data
               );
