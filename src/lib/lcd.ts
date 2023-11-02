@@ -48,7 +48,7 @@ export function normalizeMetadata(addr: string) {
   return addr.startsWith('0x') ? addr : '0x' + addr;
 }
 
-export function computeBridgeMetadata(creator:string, l2Id: string) {
+export function computeBridgeAddress(creator:string, l2Id: string) {
   const addrBytes = Buffer.from(
     bcs.serialize('address', creator),
     'base64'
