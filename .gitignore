@@ -1,18 +1,52 @@
-*.log
+# OS
 .DS_Store
+*.swp
+*.swo
+*.swl
+*.swm
+*.swn
+.vscode
+.idea
+*.code-workspace
 
-.idea/
-.vscode/
-coverage/
-
-node_modules/
-dist/
-apidoc/
-static/
-
-.envrc
+# Build
+bin
 build
-logs/
-testing/
+vendor
+.vendor-new
+build
+dist
+tools/bin/*
+examples/build/*
+docs/_build
+tools-stamp
 
-temp*
+# Data - ideally these don't exist
+examples/basecoin/app/data
+baseapp/data/*
+client/lcd/keys/*
+remote/ansible/testnets
+mytestnet
+
+# Testing
+coverage.txt
+profile.out
+sim_log_file
+
+# Vagrant
+.vagrant/
+*.box
+*.log
+vagrant
+
+# IDE
+.idea/
+*.iml
+
+# Graphviz
+dependency-graph.png
+
+# Latex
+*.aux
+*.out
+*.synctex.gz

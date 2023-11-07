@@ -1,0 +1,36 @@
+syntax = "proto3";
+package op_init.op_host.v1;
+
+import "amino/amino.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "op_init/op_host/v1/types.proto";
+
+option go_package = "github.com/initia-labs/OPinit/x/op_host/types";
+
+// GenesisState defines the rollup module's genesis state.
+message GenesisState {
+  // params defines all the parameters of related to deposit.
+  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // bridges defines the registered bridges.
+  repeated Bridge bridges = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // the id will be asisgned to a new bridge.
+  uint64 next_bridge_id = 3;
+}
+
+// Bridge defeins a bridge state.
+message Bridge {
+  uint64 bridge_id = 1;
+  // l1 sequence number.
+  uint64 sequence = 2;
+  // a bridge config.
+  BridgeConfig bridge_config = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // a list of (l1, l2) token pairs
+  repeated TokenPair token_pairs = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // a list of l2 output proposals, which has been proven.
+  repeated bytes proven_withdrawals = 5;
+  // a list of l2 output proposals.
+  repeated OutputProposal proposals = 6 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}

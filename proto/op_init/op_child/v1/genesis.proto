@@ -1,0 +1,39 @@
+syntax = "proto3";
+package op_init.op_child.v1;
+
+import "amino/amino.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "op_init/op_child/v1/types.proto";
+
+option go_package = "github.com/initia-labs/OPinit/x/op_child/types";
+
+// GenesisState defines the rollup module's genesis state.
+message GenesisState {
+  // params defines all the parameters of related to deposit.
+  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // last_validator_powers is a special index that provides a historical list
+  // of the last-block's bonded validators.
+  repeated LastValidatorPower last_validator_powers = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // delegations defines the validator set at genesis.
+  repeated Validator validators = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // fee_pool defines the previous proposer at genesis.
+  string previous_proposer = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  bool exported = 5;
+}
+
+// LastValidatorPower required for validator set update logic.
+message LastValidatorPower {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // address is the address of the validator.
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // power defines the power of the validator.
+  int64 power = 2;
+}
