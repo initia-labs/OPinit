@@ -72,6 +72,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 		}
 	}
 
+	for _, finalizedL1Sequence := range data.FinalizedL1Sequences {
+		k.RecordFinalizedL1Sequence(ctx, finalizedL1Sequence)
+	}
+
+	k.SetNextL2Sequence(ctx, data.NextL2Sequence)
+
 	return res
 }
 
@@ -87,11 +93,19 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		return false
 	})
 
+	var finalizedL1Sequences []uint64
+	k.IterateFinalizedL1Sequences(ctx, func(l1Sequence uint64) bool {
+		finalizedL1Sequences = append(finalizedL1Sequences, l1Sequence)
+		return false
+	})
+
 	return &types.GenesisState{
-		Params:              k.GetParams(ctx),
-		LastValidatorPowers: lastValidatorPowers,
-		Validators:          k.GetAllValidators(ctx),
-		PreviousProposer:    k.GetPreviousProposerConsAddr(ctx).String(),
-		Exported:            true,
+		Params:               k.GetParams(ctx),
+		LastValidatorPowers:  lastValidatorPowers,
+		Validators:           k.GetAllValidators(ctx),
+		PreviousProposer:     k.GetPreviousProposerConsAddr(ctx).String(),
+		Exported:             true,
+		FinalizedL1Sequences: finalizedL1Sequences,
+		NextL2Sequence:       k.GetNextL2Sequence(ctx),
 	}
 }

@@ -66,7 +66,7 @@ func validateGenesisStateValidators(validators []Validator) error {
 	return nil
 }
 
-// GetGenesisStateFromAppState returns x/rollup GenesisState given raw application
+// GetGenesisStateFromAppState returns x/op_child GenesisState given raw application
 // genesis state.
 func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) *GenesisState {
 	var genesisState GenesisState

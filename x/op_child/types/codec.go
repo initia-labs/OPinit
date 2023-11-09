@@ -21,8 +21,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgAddValidator{}, "op_child/MsgAddValidator")
 	legacy.RegisterAminoMsg(cdc, &MsgRemoveValidator{}, "op_child/MsgRemoveAddValidator")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "op_child/MsgUpdateParams")
-	legacy.RegisterAminoMsg(cdc, &MsgDeposit{}, "op_child/MsgDeposit")
-	legacy.RegisterAminoMsg(cdc, &MsgWithdraw{}, "op_child/MsgWithdraw")
+	legacy.RegisterAminoMsg(cdc, &MsgFinalizeTokenDeposit{}, "op_child/MsgFinalizeTokenDeposit")
+	legacy.RegisterAminoMsg(cdc, &MsgInitiateTokenWithdrawal{}, "op_child/MsgInitiateTokenWithdrawal")
 
 	//cdc.RegisterConcrete(&PublishAuthorization{}, "move/PublishAuthorization", nil)
 	cdc.RegisterConcrete(Params{}, "op_child/Params", nil)
@@ -35,8 +35,8 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgAddValidator{},
 		&MsgRemoveValidator{},
 		&MsgUpdateParams{},
-		&MsgDeposit{},
-		&MsgWithdraw{},
+		&MsgFinalizeTokenDeposit{},
+		&MsgInitiateTokenWithdrawal{},
 	)
 	registry.RegisterInterface(
 		"cosmos.gov.v1beta1.Content",

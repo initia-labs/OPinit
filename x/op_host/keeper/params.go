@@ -2,12 +2,12 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/initia-labs/OPinit/x/op_child/types"
+	"github.com/initia-labs/OPinit/x/op_host/types"
 )
 
-// BridgeExecutor returns params.BridgeExecutor
-func (k Keeper) BridgeExecutor(ctx sdk.Context) sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(k.GetParams(ctx).BridgeExecutor)
+// RegistrationFee returns params.RegistrationFee
+func (k Keeper) RegistrationFee(ctx sdk.Context) sdk.Coins {
+	return k.GetParams(ctx).RegistrationFee
 }
 
 // SetParams sets the x/op_child module parameters.
@@ -36,8 +36,4 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 
 	k.cdc.MustUnmarshal(bz, &params)
 	return params
-}
-
-func (k Keeper) MinGasPrices(ctx sdk.Context) sdk.DecCoins {
-	return k.GetParams(ctx).MinGasPrices
 }

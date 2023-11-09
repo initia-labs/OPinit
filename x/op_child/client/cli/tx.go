@@ -16,7 +16,7 @@ import (
 	"github.com/initia-labs/OPinit/x/op_child/types"
 )
 
-// GetTxCmd returns a root CLI command handler for all x/rollup transaction commands.
+// GetTxCmd returns a root CLI command handler for all x/op_child transaction commands.
 func GetTxCmd() *cobra.Command {
 	rollupTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -69,7 +69,7 @@ func NewDepositCmd() *cobra.Command {
 				return err
 			}
 
-			amount, err := sdk.ParseCoinsNormalized(args[3])
+			amount, err := sdk.ParseCoinNormalized(args[3])
 			if err != nil {
 				return err
 			}
@@ -190,10 +190,10 @@ Where proposal.json contains:
 	return cmd
 }
 
-func newBuildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgWithdraw, error) {
+func newBuildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
 	sender := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgWithdraw(sender, to, amount)
+	msg := types.NewMsgInitiateTokenWithdrawal(sender, to, amount)
 	if err := msg.ValidateBasic(); err != nil {
 		return txf, nil, err
 	}
@@ -202,11 +202,11 @@ func newBuildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Flag
 }
 
 func newBuildDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet,
-	sequence uint64, from, to sdk.AccAddress, amount sdk.Coins, hookMsg []byte,
-) (tx.Factory, *types.MsgDeposit, error) {
+	sequence uint64, from, to sdk.AccAddress, amount sdk.Coin, hookMsg []byte,
+) (tx.Factory, *types.MsgFinalizeTokenDeposit, error) {
 	sender := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgDeposit(sender, from, to, amount, sequence, hookMsg)
+	msg := types.NewMsgFinalizeTokenDeposit(sender, from, to, amount, sequence, hookMsg)
 	if err := msg.ValidateBasic(); err != nil {
 		return txf, nil, err
 	}

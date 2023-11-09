@@ -6,6 +6,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 option go_package                      = "github.com/initia-labs/OPinit/x/op_host/types";
 option (gogoproto.equal_all)           = true;
@@ -31,13 +32,19 @@ message BridgeConfig {
   string challenger = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The address of the proposer.
   string proposer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // The interval in seconds at which checkpoints must be submitted.
+  // The l2 block number interval at which checkpoints must be submitted.
   uint64 submission_interval = 3;
-  // The minium time (in seconds) that must elapse before a withdrawal can be finalized.
-  uint64 finalization_period = 4;
-  // The time of the first l2 block recorded.
-  google.protobuf.Timestamp start_time = 5
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // The minium time duration that must elapse before a withdrawal can be finalized.
+  google.protobuf.Duration finalization_period = 4 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag)     = "finalization_period,omitempty",
+    (gogoproto.nullable)    = false,
+    (amino.dont_omitempty)  = true
+  ];
+  // The block number of the first l2 block recorded.
+  uint64 starting_block_number = 5;
+  // Normally it is IBC channelID for permissioned IBC relayer.
+  bytes metadata = 6;
 }
 
 // TokenPair defines l1 and l2 token pair
@@ -46,14 +53,13 @@ message TokenPair {
   string l2_denom = 2;
 }
 
-// OutputProposal is a l2 block submitted by proposer.
-message OutputProposal {
+// Output is a l2 block submitted by proposer.
+message Output {
   // Hash of the l2 output.
   bytes output_root = 1;
   // Timestamp of the l1 block that the output root was submitted in.
   google.protobuf.Timestamp l1_block_time = 2
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // Timestamp of the l2 block that the output root was submitted in.
-  google.protobuf.Timestamp l2_block_time = 3
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 l2_block_number = 3;
 }

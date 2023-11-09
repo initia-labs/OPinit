@@ -29,14 +29,14 @@ service Msg {
   ////////////////////////////
   // Bridge Executor Messages
 
-  // Deposit defines a rpc handler method for MsgDeposit.
-  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  // FinalizeTokenDeposit defines a rpc handler method for MsgFinalizeTokenDeposit.
+  rpc FinalizeTokenDeposit(MsgFinalizeTokenDeposit) returns (MsgFinalizeTokenDepositResponse);
 
   ////////////////////////////
   // User Messages
 
-  // Withdraw defines a user facing l2 => l1 token transfer interface.
-  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  // InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
+  rpc InitiateTokenWithdrawal(MsgInitiateTokenWithdrawal) returns (MsgInitiateTokenWithdrawalResponse);
 
   ////////////////////////////
   // Authority Messages
@@ -48,7 +48,7 @@ service Msg {
   rpc RemoveValidator(MsgRemoveValidator) returns (MsgRemoveValidatorResponse);
 
   // UpdateParams defines an operation for updating the
-  // x/rollup module parameters.
+  // x/op_child module parameters.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   // SpendFeePool defines an operation that spend fee pool to a recipient.
@@ -94,10 +94,10 @@ message MsgExecuteLegacyContentsResponse {}
 /////////////////////////////
 // Bridge Executor messages
 
-// MsgDeposit is a message to submit deposit funds from upper layer
-message MsgDeposit {
+// MsgFinalizeTokenDeposit is a message to submit deposit funds from upper layer
+message MsgFinalizeTokenDeposit {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "op_child/MsgDeposit";
+  option (amino.name)           = "op_child/MsgFinalizeTokenDeposit";
 
   // the sender address
   string sender = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -109,12 +109,8 @@ message MsgDeposit {
   string to = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // amount is the coin amount to deposit.
-  repeated cosmos.base.v1beta1.Coin amount = 4 [
-    (gogoproto.moretags)     = "yaml:\"amount\"",
-    (gogoproto.nullable)     = false,
-    (amino.dont_omitempty)   = true,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
+  cosmos.base.v1beta1.Coin amount = 4
+      [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // sequence is the sequence number of l1 bridge
   uint64 sequence = 5;
@@ -126,13 +122,13 @@ message MsgDeposit {
   bytes data = 7 [(gogoproto.nullable) = true, (amino.dont_omitempty) = true];
 }
 
-// MsgDepositResponse returns deposit result data
-message MsgDepositResponse {}
+// MsgFinalizeTokenDepositResponse returns deposit result data
+message MsgFinalizeTokenDepositResponse {}
 
-// MsgWithdraw is a message to withdraw a new token from L2 to L1.
-message MsgWithdraw {
+// MsgInitiateTokenWithdrawal is a message to withdraw a new token from L2 to L1.
+message MsgInitiateTokenWithdrawal {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "op_child/MsgWithdraw";
+  option (amino.name)           = "op_child/MsgInitiateTokenWithdrawal";
 
   // the l2 sender address
   string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -145,8 +141,8 @@ message MsgWithdraw {
       [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
-// MsgWithdrawResponse returns create token result data
-message MsgWithdrawResponse {
+// MsgInitiateTokenWithdrawalResponse returns create token result data
+message MsgInitiateTokenWithdrawalResponse {
   uint64 sequence = 1;
 }
 
@@ -162,7 +158,7 @@ message MsgAddValidator {
   option (gogoproto.goproto_getters) = false;
 
   // authority is the address that controls the module
-  // (defaults to x/rollup unless overwritten).
+  // (defaults to x/op_child unless overwritten).
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 
   string              moniker           = 2;
@@ -179,7 +175,7 @@ message MsgRemoveValidator {
   option (amino.name)           = "op_child/MsgRemoveValidator";
 
   // authority is the address that controls the module
-  // (defaults to x/rollup unless overwritten).
+  // (defaults to x/op_child unless overwritten).
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // validator is the validator to remove.
@@ -212,7 +208,7 @@ message MsgSpendFeePool {
   option (amino.name)           = "op_child/MsgSpendFeePool";
 
   // authority is the address that controls the module
-  // (defaults to x/rollup unless overwritten).
+  // (defaults to x/op_child unless overwritten).
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // recipient is address to receive the coins.

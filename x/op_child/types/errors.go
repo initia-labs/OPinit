@@ -4,7 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-// x/rollup module sentinel errors
+// x/op_child module sentinel errors
 var (
 	ErrNoValidatorFound                = errorsmod.Register(ModuleName, 2, "validator does not exist")
 	ErrValidatorOwnerExists            = errorsmod.Register(ModuleName, 3, "validator already exist for this operator address; must use new validator operator address")
@@ -12,7 +12,8 @@ var (
 	ErrValidatorPubKeyTypeNotSupported = errorsmod.Register(ModuleName, 5, "validator pubkey type is not supported")
 	ErrInvalidHistoricalInfo           = errorsmod.Register(ModuleName, 6, "invalid historical info")
 	ErrEmptyValidatorPubKey            = errorsmod.Register(ModuleName, 7, "empty validator public key")
-	ErrInvalidSigner                   = errorsmod.Register(ModuleName, 8, "expected rollup account as only signer for system message")
+	ErrInvalidSigner                   = errorsmod.Register(ModuleName, 8, "expected `op_child` module account as only signer for system message")
 	ErrDepositAlreadyFinalized         = errorsmod.Register(ModuleName, 9, "deposit already finalized")
-	ErrZeroAmount                      = errorsmod.Register(ModuleName, 10, "zero amount")
+	ErrInvalidAmount                   = errorsmod.Register(ModuleName, 10, "invalid amount")
+	ErrInvalidSequence                 = errorsmod.Register(ModuleName, 11, "invalid sequence")
 )

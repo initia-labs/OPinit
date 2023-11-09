@@ -26,7 +26,7 @@ type Keeper struct {
 	legacyRouter govv1beta1.Router
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
-	// should be the x/rollup module account.
+	// should be the x/op_child module account.
 	authority string
 }
 

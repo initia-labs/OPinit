@@ -262,9 +262,10 @@ func (ms MsgServer) SpendFeePool(context context.Context, req *types.MsgSpendFee
 /////////////////////////////////////////////////////
 // The messages for Bridge Executor
 
-// Deposit implements send a deposit from the upper layer to the recipient
-func (ms MsgServer) Deposit(context context.Context, req *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+// FinalizeTokenDeposit implements send a deposit from the upper layer to the recipient
+func (ms MsgServer) FinalizeTokenDeposit(context context.Context, req *types.MsgFinalizeTokenDeposit) (*types.MsgFinalizeTokenDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(context)
+	coin := req.Amount
 
 	// permission check
 	if err := ms.checkBridgeExecutorPermission(ctx, req.Sender); err != nil {
@@ -272,7 +273,7 @@ func (ms MsgServer) Deposit(context context.Context, req *types.MsgDeposit) (*ty
 	}
 
 	// check already finalized
-	if ok := ms.HasFinalizedInboundSequence(ctx, req.Sequence); ok {
+	if ok := ms.HasFinalizedL1Sequence(ctx, req.Sequence); ok {
 		return nil, types.ErrDepositAlreadyFinalized
 	}
 
@@ -286,22 +287,24 @@ func (ms MsgServer) Deposit(context context.Context, req *types.MsgDeposit) (*ty
 		return nil, err
 	}
 
-	if err := ms.bankKeeper.MintCoins(ctx, types.ModuleName, req.Amount); err != nil {
+	coins := sdk.NewCoins(coin)
+	if err := ms.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		return nil, err
 	}
 
-	if err := ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, req.Amount); err != nil {
+	if err := ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, coins); err != nil {
 		return nil, err
 	}
 
-	ms.RecordFinalizedInboundSequence(ctx, req.Sequence)
+	ms.RecordFinalizedL1Sequence(ctx, req.Sequence)
 
 	event := sdk.NewEvent(
-		types.EventTypeFinalizeTokenBridge,
-		sdk.NewAttribute(types.AttributeKeyInboundSequence, strconv.FormatUint(req.Sequence, 10)),
+		types.EventTypeFinalizeTokenDeposit,
+		sdk.NewAttribute(types.AttributeKeyL1Sequence, strconv.FormatUint(req.Sequence, 10)),
 		sdk.NewAttribute(types.AttributeKeySender, req.From),
 		sdk.NewAttribute(types.AttributeKeyRecipient, req.To),
-		sdk.NewAttribute(types.AttributeKeyAmount, req.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
 	)
 
@@ -319,23 +322,24 @@ func (ms MsgServer) Deposit(context context.Context, req *types.MsgDeposit) (*ty
 	}
 	ctx.EventManager().EmitEvent(event)
 
-	return &types.MsgDepositResponse{}, nil
+	return &types.MsgFinalizeTokenDepositResponse{}, nil
 }
 
 /////////////////////////////////////////////////////
 // The messages for User
 
-// Withdraw implements creating a token from the upper layer
-func (ms MsgServer) Withdraw(context context.Context, req *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
+// InitiateTokenWithdrawal implements creating a token from the upper layer
+func (ms MsgServer) InitiateTokenWithdrawal(context context.Context, req *types.MsgInitiateTokenWithdrawal) (*types.MsgInitiateTokenWithdrawalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(context)
+	coin := req.Amount
 
 	senderAddr, err := sdk.AccAddressFromBech32(req.Sender)
 	if err != nil {
 		return nil, err
 	}
 
-	coins := sdk.NewCoins(req.Amount)
-	outboundSequence := ms.IncreaseOutboundSequence(ctx)
+	coins := sdk.NewCoins(coin)
+	l2Sequence := ms.IncreaseNextL2Sequence(ctx)
 	if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, coins); err != nil {
 		return nil, err
 	}
@@ -344,12 +348,13 @@ func (ms MsgServer) Withdraw(context context.Context, req *types.MsgWithdraw) (*
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeInitiateTokenBridge,
+		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
 		sdk.NewAttribute(types.AttributeKeyTo, req.To),
-		sdk.NewAttribute(types.AttributeKeyAmount, req.Amount.String()),
-		sdk.NewAttribute(types.AttributeKeyOutboundSequence, strconv.FormatUint(outboundSequence, 10)),
+		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
 	))
 
-	return &types.MsgWithdrawResponse{}, nil
+	return &types.MsgInitiateTokenWithdrawalResponse{}, nil
 }

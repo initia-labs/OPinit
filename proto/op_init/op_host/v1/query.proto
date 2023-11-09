@@ -73,7 +73,8 @@ message QueryBridgeRequest {
 // QueryBridgeResponse is response type for the Query/Bridge RPC method
 message QueryBridgeResponse {
   uint64       bridge_id     = 1;
-  BridgeConfig bridge_config = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string       bridge_addr   = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  BridgeConfig bridge_config = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // QueryBridgesRequest is request type for Query/Bridges RPC method.
@@ -139,21 +140,25 @@ message QueryOutputProposalRequest {
 
 // QueryOutputProposalResponse is response type for the Query/OutputProposal RPC method
 message QueryOutputProposalResponse {
-  uint64         bridge_id       = 1;
-  uint64         output_index    = 2;
-  OutputProposal output_proposal = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 bridge_id       = 1;
+  uint64 output_index    = 2;
+  Output output_proposal = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // QueryOutputProposalsRequest is response type for the Query/OutputProposals RPC method
 message QueryOutputProposalsRequest {
   uint64 bridge_id    = 1;
   uint64 output_index = 2;
+  // pagination defines the pagination in the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryOutputProposalsResponse is response type for the Query/OutputProposals RPC method
 message QueryOutputProposalsResponse {
   repeated QueryOutputProposalResponse output_proposals = 1
       [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

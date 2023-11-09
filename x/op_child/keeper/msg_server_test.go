@@ -246,8 +246,8 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	account := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
 
 	// valid
-	msg := types.NewMsgWithdraw(account, addrs[1], sdk.NewCoin(denom, math.NewInt(100)))
-	_, err := ms.Withdraw(sdk.WrapSDKContext(ctx), msg)
+	msg := types.NewMsgInitiateTokenWithdrawal(account, addrs[1], sdk.NewCoin(denom, math.NewInt(100)))
+	_, err := ms.InitiateTokenWithdrawal(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 
 }
@@ -263,16 +263,16 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
 	// unauthorized deposit
-	msg := types.NewMsgDeposit(addrs[1], addrs[1], addrs[1], sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(100))), 1, nil)
-	_, err := ms.Deposit(sdk.WrapSDKContext(ctx), msg)
+	msg := types.NewMsgFinalizeTokenDeposit(addrs[1], addrs[1], addrs[1], sdk.NewCoin(denom, sdk.NewInt(100)), 1, nil)
+	_, err := ms.FinalizeTokenDeposit(sdk.WrapSDKContext(ctx), msg)
 	require.Error(t, err)
 
 	beforeBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
 	require.Equal(t, sdk.ZeroInt(), beforeBalance.Amount)
 
 	// valid deposit
-	msg = types.NewMsgDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(100))), 1, nil)
-	_, err = ms.Deposit(sdk.WrapSDKContext(ctx), msg)
+	msg = types.NewMsgFinalizeTokenDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoin(denom, sdk.NewInt(100)), 1, nil)
+	_, err = ms.FinalizeTokenDeposit(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 
 	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
@@ -295,13 +295,13 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	input.BridgeHook.err = nil
 
 	// valid deposit
-	msg := types.NewMsgDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(100))), 1, hookMsgBytes)
-	_, err = ms.Deposit(sdk.WrapSDKContext(ctx), msg)
+	msg := types.NewMsgFinalizeTokenDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoin(denom, sdk.NewInt(100)), 1, hookMsgBytes)
+	_, err = ms.FinalizeTokenDeposit(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 	require.Equal(t, hookMsgBytes, input.BridgeHook.msgBytes)
 
 	for _, event := range ctx.EventManager().Events() {
-		if event.Type == types.EventTypeFinalizeTokenBridge {
+		if event.Type == types.EventTypeFinalizeTokenDeposit {
 			for _, attr := range event.Attributes {
 				if attr.Key == types.AttributeKeyHookSuccess {
 					require.Equal(t, "true", attr.Value)
@@ -321,13 +321,13 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	input.BridgeHook.err = errors.New("should be failed")
 
 	// valid deposit
-	msg := types.NewMsgDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(100))), 1, []byte("invalid_message"))
-	_, err := ms.Deposit(sdk.WrapSDKContext(ctx), msg)
+	msg := types.NewMsgFinalizeTokenDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoin(denom, sdk.NewInt(100)), 1, []byte("invalid_message"))
+	_, err := ms.FinalizeTokenDeposit(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 	require.Empty(t, input.BridgeHook.msgBytes)
 
 	for _, event := range ctx.EventManager().Events() {
-		if event.Type == types.EventTypeFinalizeTokenBridge {
+		if event.Type == types.EventTypeFinalizeTokenDeposit {
 			for _, attr := range event.Attributes {
 				if attr.Key == types.AttributeKeyHookSuccess {
 					require.Equal(t, "false", attr.Value)

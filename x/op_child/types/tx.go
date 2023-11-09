@@ -26,8 +26,8 @@ const (
 	TypeMsgWhitelist       = "whitelist"
 	TypeMsgSpendFeePool    = "spend_fee_pool"
 
-	TypeMsgWithdraw = "withdraw‰"
-	TypeMsgDeposit  = "deposit"
+	TypeMsgInitiateTokenWithdrawal = "withdraw‰"
+	TypeMsgFinalizeTokenDeposit    = "deposit"
 )
 
 var (
@@ -37,8 +37,8 @@ var (
 	_ sdk.Msg = &MsgRemoveValidator{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgSpendFeePool{}
-	_ sdk.Msg = &MsgDeposit{}
-	_ sdk.Msg = &MsgWithdraw{}
+	_ sdk.Msg = &MsgFinalizeTokenDeposit{}
+	_ sdk.Msg = &MsgInitiateTokenWithdrawal{}
 
 	_ legacytx.LegacyMsg = &MsgExecuteMessages{}
 	_ legacytx.LegacyMsg = &MsgExecuteLegacyContents{}
@@ -46,8 +46,8 @@ var (
 	_ legacytx.LegacyMsg = &MsgRemoveValidator{}
 	_ legacytx.LegacyMsg = &MsgUpdateParams{}
 	_ legacytx.LegacyMsg = &MsgSpendFeePool{}
-	_ legacytx.LegacyMsg = &MsgDeposit{}
-	_ legacytx.LegacyMsg = &MsgWithdraw{}
+	_ legacytx.LegacyMsg = &MsgFinalizeTokenDeposit{}
+	_ legacytx.LegacyMsg = &MsgInitiateTokenWithdrawal{}
 )
 
 // should refer initiavm/precompile/modules/minlib/sources/coin.move
@@ -379,15 +379,15 @@ func (msg MsgRemoveValidator) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{senderAddr}
 }
 
-/* MsgWithdraw */
+/* MsgInitiateTokenWithdrawal */
 
-// NewMsgWithdraw creates a new MsgWithdraw instance.
-func NewMsgWithdraw(
+// NewMsgInitiateTokenWithdrawal creates a new MsgInitiateTokenWithdrawal instance.
+func NewMsgInitiateTokenWithdrawal(
 	sender sdk.AccAddress,
 	to sdk.AccAddress,
 	amount sdk.Coin,
-) *MsgWithdraw {
-	return &MsgWithdraw{
+) *MsgInitiateTokenWithdrawal {
+	return &MsgInitiateTokenWithdrawal{
 		Sender: sender.String(),
 		To:     to.String(),
 		Amount: amount,
@@ -395,17 +395,17 @@ func NewMsgWithdraw(
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdraw) Route() string {
+func (msg MsgInitiateTokenWithdrawal) Route() string {
 	return RouterKey
 }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgWithdraw) Type() string {
-	return TypeMsgWithdraw
+func (msg MsgInitiateTokenWithdrawal) Type() string {
+	return TypeMsgInitiateTokenWithdrawal
 }
 
-// ValidateBasic performs basic MsgWithdraw message validation.
-func (msg MsgWithdraw) ValidateBasic() error {
+// ValidateBasic performs basic MsgInitiateTokenWithdrawal message validation.
+func (msg MsgInitiateTokenWithdrawal) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
 		return err
 	}
@@ -414,25 +414,21 @@ func (msg MsgWithdraw) ValidateBasic() error {
 		return err
 	}
 
-	if err := msg.Amount.Validate(); err != nil {
-		return err
-	}
-
-	if msg.Amount.IsZero() {
-		return ErrZeroAmount
+	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return ErrInvalidAmount
 	}
 
 	return nil
 }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg MsgWithdraw) GetSignBytes() []byte {
+func (msg MsgInitiateTokenWithdrawal) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
 }
 
 // GetSigners returns the signer addresses that are expected to sign the result
 // of GetSignBytes.
-func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
+func (msg MsgInitiateTokenWithdrawal) GetSigners() []sdk.AccAddress {
 	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil { // should never happen as valid basic rejects invalid addresses
 		panic(err.Error())
@@ -440,16 +436,16 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{senderAddr}
 }
 
-/* MsgDeposit */
+/* MsgFinalizeTokenDeposit */
 
-// NewMsgDeposit creates a new MsgDeposit instance.
-func NewMsgDeposit(
+// NewMsgFinalizeTokenDeposit creates a new MsgFinalizeTokenDeposit instance.
+func NewMsgFinalizeTokenDeposit(
 	sender, from, to sdk.AccAddress,
-	amount sdk.Coins,
+	amount sdk.Coin,
 	sequence uint64,
 	data []byte,
-) *MsgDeposit {
-	return &MsgDeposit{
+) *MsgFinalizeTokenDeposit {
+	return &MsgFinalizeTokenDeposit{
 		Sender:   sender.String(),
 		From:     from.String(),
 		To:       to.String(),
@@ -460,17 +456,17 @@ func NewMsgDeposit(
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgDeposit) Route() string {
+func (msg MsgFinalizeTokenDeposit) Route() string {
 	return RouterKey
 }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgDeposit) Type() string {
-	return TypeMsgDeposit
+func (msg MsgFinalizeTokenDeposit) Type() string {
+	return TypeMsgFinalizeTokenDeposit
 }
 
-// ValidateBasic performs basic MsgDeposit message validation.
-func (msg MsgDeposit) ValidateBasic() error {
+// ValidateBasic performs basic MsgFinalizeTokenDeposit message validation.
+func (msg MsgFinalizeTokenDeposit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
 		return err
 	}
@@ -483,25 +479,25 @@ func (msg MsgDeposit) ValidateBasic() error {
 		return err
 	}
 
-	if !msg.Amount.IsValid() {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
+	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return ErrInvalidAmount
 	}
 
-	if msg.Amount.IsZero() {
-		return ErrZeroAmount
+	if msg.Sequence == 0 {
+		return ErrInvalidSequence
 	}
 
 	return nil
 }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg MsgDeposit) GetSignBytes() []byte {
+func (msg MsgFinalizeTokenDeposit) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
 }
 
 // GetSigners returns the signer addresses that are expected to sign the result
 // of GetSignBytes.
-func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
+func (msg MsgFinalizeTokenDeposit) GetSigners() []sdk.AccAddress {
 	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil { // should never happen as valid basic rejects invalid addresses
 		panic(err.Error())
