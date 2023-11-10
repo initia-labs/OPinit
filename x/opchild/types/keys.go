@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/binary"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -69,8 +68,11 @@ func GetLastValidatorPowerKey(operator sdk.ValAddress) []byte {
 }
 
 // GetHistoricalInfoKey returns a key prefix for indexing HistoricalInfo objects.
-func GetHistoricalInfoKey(height int64) []byte {
-	return append(HistoricalInfoKey, []byte(strconv.FormatInt(height, 10))...)
+func GetHistoricalInfoKey(height uint64) []byte {
+	_height := [8]byte{}
+	binary.BigEndian.PutUint64(_height[:], height)
+
+	return append(HistoricalInfoKey, _height[:]...)
 }
 
 func GetFinalizedL1SequenceKey(sequence uint64) []byte {

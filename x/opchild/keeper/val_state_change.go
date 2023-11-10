@@ -19,6 +19,12 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 		panic(err)
 	}
 
+	// if there is no validator updates,
+	// delete tracking info to prevent empty block creation.
+	if len(updates) == 0 {
+		k.DeleteHistoricalInfo(ctx, ctx.BlockHeight())
+	}
+
 	return updates
 }
 
