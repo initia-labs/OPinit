@@ -98,6 +98,18 @@ func (ms MsgServer) ProposeOutput(context context.Context, req *types.MsgPropose
 	// fetch next output index
 	outputIndex := ms.IncreaseNextOutputIndex(ctx, bridgeId)
 
+	// check this is first submission or not
+	if outputIndex != 1 {
+		lastOutputProposal, err := ms.GetOutputProposal(ctx, bridgeId, outputIndex-1)
+		if err != nil {
+			return nil, err
+		}
+
+		if l2BlockNumber <= lastOutputProposal.L2BlockNumber {
+			return nil, types.ErrInvalidL2BlockNumber
+		}
+	}
+
 	// store output proposal
 	if err := ms.SetOutputProposal(ctx, bridgeId, outputIndex, types.Output{
 		OutputRoot:    outputRoot,
@@ -207,7 +219,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 	outputIndex := req.OutputIndex
 	l2Sequence := req.Sequence
 	amount := req.Amount.Amount
-	l2Denom := req.Amount.Denom
+	denom := req.Amount.Denom
 
 	if ok, err := ms.IsFinalized(ctx, bridgeId, outputIndex); err != nil {
 		return nil, err
@@ -240,12 +252,12 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 		var withdrawalHash [32]byte
 		{
 			seed := []byte{}
-			binary.BigEndian.AppendUint64(seed, bridgeId)
-			binary.BigEndian.AppendUint64(seed, req.Sequence)
+			seed = binary.BigEndian.AppendUint64(seed, bridgeId)
+			seed = binary.BigEndian.AppendUint64(seed, req.Sequence)
 			seed = append(seed, sender[:]...)
 			seed = append(seed, receiver[:]...)
-			seed = append(seed, []byte(l2Denom)...)
-			binary.BigEndian.AppendUint64(seed, amount.Uint64())
+			seed = append(seed, []byte(denom)...)
+			seed = binary.BigEndian.AppendUint64(seed, amount.Uint64())
 
 			withdrawalHash = sha3.Sum256(seed)
 		}
@@ -274,15 +286,9 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 		ms.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash)
 	}
 
-	// load l1denom from the token pair store
-	l1Denom, err := ms.GetTokenPair(ctx, bridgeId, l2Denom)
-	if err != nil {
-		return nil, err
-	}
-
 	// transfer asset to a user from the bridge account
 	bridgeAddr := types.BridgeAddress(bridgeId)
-	if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, receiver, sdk.NewCoins(sdk.NewCoin(l1Denom, amount))); err != nil {
+	if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, receiver, sdk.NewCoins(sdk.NewCoin(denom, amount))); err != nil {
 		return nil, err
 	}
 
@@ -293,8 +299,8 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
 		sdk.NewAttribute(types.AttributeKeyFrom, sender.String()),
 		sdk.NewAttribute(types.AttributeKeyTo, receiver.String()),
-		sdk.NewAttribute(types.AttributeKeyL1Denom, l1Denom),
-		sdk.NewAttribute(types.AttributeKeyL2Denom, l2Denom),
+		sdk.NewAttribute(types.AttributeKeyL1Denom, denom),
+		sdk.NewAttribute(types.AttributeKeyL2Denom, types.L2Denom(bridgeId, denom)),
 		sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 	))
 
@@ -314,7 +320,10 @@ func (ms MsgServer) UpdateProposer(context context.Context, req *types.MsgUpdate
 	}
 
 	config.Proposer = req.NewProposer
-	ms.Keeper.bridgeHook.BridgeProposerUpdated(ctx, bridgeId, config)
+	if err := ms.Keeper.bridgeHook.BridgeProposerUpdated(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
 	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
@@ -335,7 +344,10 @@ func (ms MsgServer) UpdateChallenger(context context.Context, req *types.MsgUpda
 	}
 
 	config.Challenger = req.NewChallenger
-	ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config)
+	if err := ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
 	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}

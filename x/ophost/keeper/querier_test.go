@@ -1,0 +1,177 @@
+package keeper_test
+
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/initia-labs/OPinit/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/x/ophost/types"
+)
+
+func Test_QueryBridge(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	config := types.BridgeConfig{
+		Challenger:          addrs[0].String(),
+		Proposer:            addrs[0].String(),
+		SubmissionInterval:  time.Second * 10,
+		FinalizationPeriod:  time.Second * 60,
+		SubmissionStartTime: time.Now().UTC(),
+		Metadata:            []byte{1, 2, 3},
+	}
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, config)
+	require.NoError(t, err)
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.Bridge(sdk.WrapSDKContext(ctx), &types.QueryBridgeRequest{
+		BridgeId: 1,
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, types.QueryBridgeResponse{
+		BridgeId:     1,
+		BridgeAddr:   types.BridgeAddress(1).String(),
+		BridgeConfig: config,
+	}, *res)
+}
+
+func Test_QueryBridges(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	config1 := types.BridgeConfig{
+		Challenger:          addrs[0].String(),
+		Proposer:            addrs[0].String(),
+		SubmissionInterval:  time.Second * 10,
+		FinalizationPeriod:  time.Second * 60,
+		SubmissionStartTime: time.Now().UTC(),
+		Metadata:            []byte{1, 2, 3},
+	}
+	config2 := types.BridgeConfig{
+		Challenger:          addrs[1].String(),
+		Proposer:            addrs[0].String(),
+		SubmissionInterval:  time.Second * 10,
+		FinalizationPeriod:  time.Second * 60,
+		SubmissionStartTime: time.Now().UTC(),
+		Metadata:            []byte{3, 4, 5},
+	}
+	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
+	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.Bridges(sdk.WrapSDKContext(ctx), &types.QueryBridgesRequest{})
+
+	require.NoError(t, err)
+	require.Equal(t, []types.QueryBridgeResponse{
+		{
+			BridgeId:     1,
+			BridgeAddr:   types.BridgeAddress(1).String(),
+			BridgeConfig: config1,
+		}, {
+			BridgeId:     2,
+			BridgeAddr:   types.BridgeAddress(2).String(),
+			BridgeConfig: config2,
+		},
+	}, res.Bridges)
+}
+
+func Test_QueryTokenPair(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	pair := types.TokenPair{
+		L1Denom: "l1denom",
+		L2Denom: types.L2Denom(1, "l1denom"),
+	}
+	input.OPHostKeeper.SetTokenPair(ctx, 1, pair.L2Denom, pair.L1Denom)
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.TokenPairByL1Denom(sdk.WrapSDKContext(ctx), &types.QueryTokenPairByL1DenomRequest{
+		BridgeId: 1,
+		L1Denom:  pair.L1Denom,
+	})
+	require.NoError(t, err)
+	require.Equal(t, pair, res.TokenPair)
+
+	res2, err := q.TokenPairByL2Denom(sdk.WrapSDKContext(ctx), &types.QueryTokenPairByL2DenomRequest{
+		BridgeId: 1,
+		L2Denom:  pair.L2Denom,
+	})
+	require.NoError(t, err)
+	require.Equal(t, pair, res2.TokenPair)
+}
+
+func Test_QueryTokenPairs(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	pair1 := types.TokenPair{
+		L1Denom: "l1denom1",
+		L2Denom: types.L2Denom(1, "l1denom1"),
+	}
+	pair2 := types.TokenPair{
+		L1Denom: "l1denom2",
+		L2Denom: types.L2Denom(1, "l1denom2"),
+	}
+	input.OPHostKeeper.SetTokenPair(ctx, 1, pair1.L2Denom, pair1.L1Denom)
+	input.OPHostKeeper.SetTokenPair(ctx, 1, pair2.L2Denom, pair2.L1Denom)
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.TokenPairs(sdk.WrapSDKContext(ctx), &types.QueryTokenPairsRequest{
+		BridgeId: 1,
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, []types.TokenPair{
+		pair1, pair2,
+	}, res.TokenPairs)
+}
+
+func Test_QueryOutputProposal(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	output := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   time.Now().UTC(),
+		L2BlockNumber: 100,
+	}
+	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output))
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.OutputProposal(sdk.WrapSDKContext(ctx), &types.QueryOutputProposalRequest{
+		BridgeId:    1,
+		OutputIndex: 1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, output, res.OutputProposal)
+}
+
+func Test_QueryOutputProposals(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	output1 := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   time.Now().UTC(),
+		L2BlockNumber: 100,
+	}
+	output2 := types.Output{
+		OutputRoot:    []byte{3, 4, 5},
+		L1BlockTime:   time.Now().UTC(),
+		L2BlockNumber: 100,
+	}
+	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output1))
+	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 2, output2))
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.OutputProposals(sdk.WrapSDKContext(ctx), &types.QueryOutputProposalsRequest{
+		BridgeId: 1,
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, []types.QueryOutputProposalResponse{
+		{
+			BridgeId:       1,
+			OutputIndex:    1,
+			OutputProposal: output1,
+		}, {
+			BridgeId:       1,
+			OutputIndex:    2,
+			OutputProposal: output2,
+		},
+	}, res.OutputProposals)
+}

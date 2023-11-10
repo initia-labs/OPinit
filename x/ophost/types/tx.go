@@ -47,8 +47,8 @@ func NewMsgRecordBatch(
 	submitter sdk.AccAddress,
 	bridgeId uint64,
 	batchBytes []byte,
-) MsgRecordBatch {
-	return MsgRecordBatch{
+) *MsgRecordBatch {
+	return &MsgRecordBatch{
 		Submitter:  submitter.String(),
 		BridgeId:   bridgeId,
 		BatchBytes: batchBytes,
@@ -95,8 +95,8 @@ func (msg MsgRecordBatch) GetSigners() []sdk.AccAddress {
 func NewMsgCreateBridge(
 	creator sdk.AccAddress,
 	config BridgeConfig,
-) MsgCreateBridge {
-	return MsgCreateBridge{
+) *MsgCreateBridge {
+	return &MsgCreateBridge{
 		Creator: creator.String(),
 		Config:  config,
 	}
@@ -149,8 +149,8 @@ func NewMsgProposeOutput(
 	bridgeId uint64,
 	l2BlockNumber uint64,
 	outputRoot []byte,
-) MsgProposeOutput {
-	return MsgProposeOutput{
+) *MsgProposeOutput {
+	return &MsgProposeOutput{
 		Proposer:      proposer.String(),
 		BridgeId:      bridgeId,
 		L2BlockNumber: l2BlockNumber,
@@ -206,8 +206,8 @@ func NewMsgDeleteOutput(
 	challenger sdk.AccAddress,
 	bridgeId uint64,
 	outputIndex uint64,
-) MsgDeleteOutput {
-	return MsgDeleteOutput{
+) *MsgDeleteOutput {
+	return &MsgDeleteOutput{
 		Challenger:  challenger.String(),
 		BridgeId:    bridgeId,
 		OutputIndex: outputIndex,
@@ -327,17 +327,17 @@ func (msg MsgInitiateTokenDeposit) GetSigners() []sdk.AccAddress {
 func NewMsgFinalizeTokenWithdrawal(
 	bridgeId uint64,
 	outputIndex uint64,
+	sequence uint64,
 	withdrawalProofs [][]byte,
 	sender sdk.AccAddress,
 	receiver sdk.AccAddress,
-	sequence uint64,
 	amount sdk.Coin,
 	version []byte,
 	stateRoot []byte,
 	storageRoot []byte,
 	latestBlockHash []byte,
-) MsgFinalizeTokenWithdrawal {
-	return MsgFinalizeTokenWithdrawal{
+) *MsgFinalizeTokenWithdrawal {
+	return &MsgFinalizeTokenWithdrawal{
 		BridgeId:         bridgeId,
 		OutputIndex:      outputIndex,
 		WithdrawalProofs: withdrawalProofs,
@@ -435,8 +435,8 @@ func NewMsgUpdateProposer(
 	authority sdk.AccAddress,
 	bridgeId uint64,
 	newProposer sdk.AccAddress,
-) MsgUpdateProposer {
-	return MsgUpdateProposer{
+) *MsgUpdateProposer {
+	return &MsgUpdateProposer{
 		Authority:   authority.String(),
 		BridgeId:    bridgeId,
 		NewProposer: newProposer.String(),
@@ -492,8 +492,8 @@ func NewMsgUpdateChallenger(
 	authority sdk.AccAddress,
 	bridgeId uint64,
 	newChallenger sdk.AccAddress,
-) MsgUpdateChallenger {
-	return MsgUpdateChallenger{
+) *MsgUpdateChallenger {
+	return &MsgUpdateChallenger{
 		Authority:     authority.String(),
 		BridgeId:      bridgeId,
 		NewChallenger: newChallenger.String(),

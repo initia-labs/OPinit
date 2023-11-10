@@ -33,6 +33,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	ophost "github.com/initia-labs/OPinit/x/ophost"
@@ -252,7 +253,7 @@ func _createTestInput(
 		authtypes.ProtoBaseAccount, // prototype
 		maccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
-		authtypes.NewModuleAddress(ophosttypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	blockedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
@@ -264,7 +265,7 @@ func _createTestInput(
 		keys[banktypes.StoreKey],
 		accountKeeper,
 		blockedAddrs,
-		authtypes.NewModuleAddress(ophosttypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
 
@@ -278,7 +279,7 @@ func _createTestInput(
 		accountKeeper,
 		bankKeeper,
 		bridgeHook,
-		authtypes.NewModuleAddress(ophosttypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	ophostParams := ophosttypes.DefaultParams()

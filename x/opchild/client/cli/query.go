@@ -15,22 +15,21 @@ import (
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
-	rollupQueryCmd := &cobra.Command{
+	opchildQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the rollup module",
+		Short:                      "Querying commands for the opchild module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	rollupQueryCmd.AddCommand(
+	opchildQueryCmd.AddCommand(
 		GetCmdQueryValidator(),
 		GetCmdQueryValidators(),
-		//GetCmdQueryHistoricalInfo(), TODO: remove it if not needed
 		GetCmdQueryParams(),
 	)
 
-	return rollupQueryCmd
+	return opchildQueryCmd
 }
 
 // GetCmdQueryValidator implements the validator query command.
@@ -44,7 +43,7 @@ func GetCmdQueryValidator() *cobra.Command {
 			fmt.Sprintf(`Query details about an individual validator.
 
 Example:
-$ %s query rollup validator %s1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ %s query opchild validator %s1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 `,
 				version.AppName, bech32PrefixValAddr,
 			),
@@ -87,7 +86,7 @@ func GetCmdQueryValidators() *cobra.Command {
 			fmt.Sprintf(`Query details about all validators on a network.
 
 Example:
-$ %s query rollup validators
+$ %s query opchild validators
 `,
 				version.AppName,
 			),
@@ -121,61 +120,17 @@ $ %s query rollup validators
 	return cmd
 }
 
-/* TODO: remove it if not needed
-// GetCmdQueryHistoricalInfo implements the historical info query command
-func GetCmdQueryHistoricalInfo() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "historical-info [height]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Query historical info at given height",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query historical info at given height.
-
-Example:
-$ %s query rollup historical-info 5
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(clientCtx)
-
-			height, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil || height < 0 {
-				return fmt.Errorf("height argument provided must be a non-negative-integer: %v", err)
-			}
-
-			params := &types.QueryHistoricalInfoRequest{Height: height}
-			res, err := queryClient.HistoricalInfo(cmd.Context(), params)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res.Hist)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-*/
-
 // GetCmdQueryParams implements the params query command.
 func GetCmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",
 		Args:  cobra.NoArgs,
-		Short: "Query the current rollup parameters information",
+		Short: "Query the current opchild parameters information",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as rollup parameters.
+			fmt.Sprintf(`Query values set as opchild parameters.
 
 Example:
-$ %s query rollup params
+$ %s query opchild params
 `,
 				version.AppName,
 			),

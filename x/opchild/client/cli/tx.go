@@ -18,15 +18,15 @@ import (
 
 // GetTxCmd returns a root CLI command handler for all x/opchild transaction commands.
 func GetTxCmd() *cobra.Command {
-	rollupTxCmd := &cobra.Command{
+	opchildTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Rollup transaction subcommands",
+		Short:                      "OPChild transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	rollupTxCmd.AddCommand(
+	opchildTxCmd.AddCommand(
 		NewExecuteMessagesCmd(),
 		NewDepositCmd(),
 		NewWithdrawCmd(),
@@ -35,7 +35,7 @@ func GetTxCmd() *cobra.Command {
 		NewLegacyContentSubmitUpgradeCmd(),
 	)
 
-	return rollupTxCmd
+	return opchildTxCmd
 }
 
 // NewDepositCmd returns a CLI command handler for the transaction sending a deposit to an user account.
