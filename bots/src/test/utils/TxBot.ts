@@ -1,116 +1,83 @@
 import {
-  Wallet as mWallet,
-  MsgSend,
+  Wallet,
+  MsgInitiateTokenDeposit,
   Coin,
-  MsgExecute,
-  MnemonicKey as mMnemonicKey
-} from '@initia/minitia.js';
-
-import {
-  Wallet as iWallet,
-  MnemonicKey as iMnemonicKey
+  MsgInitiateTokenWithdrawal,
+  MnemonicKey
 } from '@initia/initia.js';
-import axios from 'axios';
-import { getConfig } from 'config';
-import { bcs, executor, getOutput, getTx, makeFinalizeMsg } from './helper';
+import { makeFinalizeMsg } from './helper';
 import { sendTx } from 'lib/tx';
-import { computeCoinMetadata, normalizeMetadata } from 'lib/lcd';
+import { getOutputFromExecutor, getWithdrawalTxFromExecutor } from 'lib/query';
+import { getConfig } from 'config';
 
 const config = getConfig();
 
 export class TxBot {
-  l1CoinMetadata: string;
-  l1sender: iWallet;
-  l2sender: mWallet;
-  l1receiver: iWallet;
-  l2receiver: mWallet;
+  l1sender = new Wallet(
+    config.l1lcd,
+    new MnemonicKey({
+      mnemonic:
+        // init1wzenw7r2t2ra39k4l9yqq95pw55ap4sm4vsa9g
+        ''
+    })
+  );
 
-  constructor() {
-    this.l1CoinMetadata = normalizeMetadata(
-      computeCoinMetadata('0x1', 'uinit')
-    );
-    this.l1sender = this.createWallet(
-      config.l1lcd,
-      iWallet,
-      iMnemonicKey,
-      'banner december bunker moral nasty glide slow property pen twist doctor exclude novel top material flee appear imitate cat state domain consider then age'
-    );
-    this.l2sender = this.createWallet(
-      config.l2lcd,
-      iWallet,
-      iMnemonicKey,
-      'banner december bunker moral nasty glide slow property pen twist doctor exclude novel top material flee appear imitate cat state domain consider then age'
-    );
-    this.l1receiver = this.createWallet(
-      config.l1lcd,
-      mWallet,
-      mMnemonicKey,
-      'diamond donkey opinion claw cool harbor tree elegant outer mother claw amount message result leave tank plunge harbor garment purity arrest humble figure endless'
-    );
-    this.l2receiver = this.createWallet(
-      config.l2lcd,
-      mWallet,
-      mMnemonicKey,
-      'diamond donkey opinion claw cool harbor tree elegant outer mother claw amount message result leave tank plunge harbor garment purity arrest humble figure endless'
-    );
-  }
+  l1receiver = new Wallet(
+    config.l1lcd,
+    new MnemonicKey({
+      mnemonic:
+        // init174knscjg688ddtxj8smyjz073r3w5mmsp3m0m2
+        ''
+    })
+  );
 
-  createWallet(lcd, WalletClass, MnemonicKeyClass, mnemonic) {
-    return new WalletClass(lcd, new MnemonicKeyClass({ mnemonic }));
-  }
+  l2sender = new Wallet(
+    config.l2lcd,
+    new MnemonicKey({
+      mnemonic: ''
+    })
+  );
 
-  async deposit(sender: iWallet, reciever: mWallet, amount: number) {
-    const msg = new MsgExecute(
+  l2receiver = new Wallet(
+    config.l2lcd,
+    new MnemonicKey({
+      mnemonic: ''
+    })
+  );
+
+  constructor(public bridgeId: number) {}
+
+  async deposit(sender: Wallet, reciever: Wallet, coin: Coin) {
+    const msg = new MsgInitiateTokenDeposit(
       sender.key.accAddress,
-      '0x1',
-      'op_bridge',
-      'deposit_token',
-      [],
-      [
-        bcs.serialize('address', executor.key.accAddress),
-        bcs.serialize('string', config.L2ID),
-        bcs.serialize('object', this.l1CoinMetadata),
-        bcs.serialize('address', reciever.key.accAddress),
-        bcs.serialize('u64', amount)
-      ]
+      this.bridgeId,
+      reciever.key.accAddress,
+      coin
     );
+
     return await sendTx(sender, [msg]);
   }
 
-  async withdrawal(wallet: mWallet, amount: number) {
-    const res = await axios.get(
-      `${config.EXECUTOR_URI}/coin/${this.l1CoinMetadata}`
+  async withdrawal(sender: Wallet, receiver: Wallet, coin: Coin) {
+    const msg = new MsgInitiateTokenWithdrawal(
+      sender.key.accAddress,
+      receiver.key.accAddress,
+      coin
     );
-    const l2CoinMetadata = res.data.coin.l2Metadata;
-
-    const msg = new MsgExecute(
-      wallet.key.accAddress,
-      '0x1',
-      'op_bridge',
-      'withdraw_token',
-      [],
-      [
-        bcs.serialize('address', wallet.key.accAddress),
-        bcs.serialize('object', l2CoinMetadata),
-        bcs.serialize('u64', amount)
-      ]
-    );
-    return await sendTx(wallet, [msg]);
-  }
-
-  async claim(sender: iWallet, txSequence: number, outputIndex: number) {
-    const txRes = await getTx(this.l1CoinMetadata, txSequence);
-    const outputRes: any = await getOutput(outputIndex);
-    const finalizeMsg = await makeFinalizeMsg(sender, txRes, outputRes.output);
-    return await sendTx(sender, [finalizeMsg]);
-  }
-
-  // only for L2 account public key gen
-  async sendCoin(sender: any, receiver: any, amount: number, denom: string) {
-    const msg = new MsgSend(sender.key.accAddress, receiver.key.accAddress, [
-      new Coin(denom, amount)
-    ]);
 
     return await sendTx(sender, [msg]);
+  }
+
+  async claim(sender: Wallet, txSequence: number, outputIndex: number) {
+    const txRes = await getWithdrawalTxFromExecutor(this.bridgeId, txSequence);
+    const outputRes: any = await getOutputFromExecutor(outputIndex);
+    const finalizeMsg = await makeFinalizeMsg(
+      txRes.withdrawalTx,
+      outputRes.output
+    );
+
+    const { account_number: accountNumber, sequence } =
+      await sender.accountNumberAndSequence();
+    return await sendTx(sender, [finalizeMsg], accountNumber, sequence);
   }
 }

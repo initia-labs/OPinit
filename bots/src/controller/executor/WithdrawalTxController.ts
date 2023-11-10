@@ -8,23 +8,25 @@ import {
 } from 'koa-joi-controllers';
 import { ErrorCodes } from 'lib/error';
 import { success } from 'lib/response';
-import { getTx } from 'service';
+import { getWithdrawalTx } from 'service';
 
 const Joi = Validator.Joi;
 
 @Controller('')
-export class TxController extends KoaController {
+export class WithdrawalTxController extends KoaController {
   /**
    *
-   * @api {get} /tx/:l1_metadata/:sequence Get tx entity
+   * @api {get} /tx/:bridge_id/:sequence Get tx entity
    * @apiName getTx
    * @apiGroup Tx
    *
-   * @apiParam {String} l1Metadata L1 coin metadata
+   * @apiParam {String} bridge_id L2 bridge id
    * @apiParam {Number} sequence L2 withdrawal tx sequence
    *
-   * @apiSuccess {String} l1Metadata L1 coin metadata
+   * @apiSuccess {String} bridge_id L2 bridge id
    * @apiSuccess {Number} sequence L2 sequence
+   * @apiSuccess {String} l1Denom Withdrawal coin L1 denom
+   * @apiSuccess {String} l2Denom Withdrawal coin L2 denom
    * @apiSuccess {String} sender   Withdrawal tx sender
    * @apiSuccess {String} receiver Withdrawal tx receiver
    * @apiSuccess {Number} amount   Withdrawal amount
@@ -32,17 +34,17 @@ export class TxController extends KoaController {
    * @apiSuccess {String} merkleRoot Withdrawal tx merkle root
    * @apiSuccess {String[]} merkleProof Withdrawal txs merkle proof
    */
-  @Get('/tx/:l1_metadata/:sequence')
+  @Get('/tx/withdrawal/:bridge_id/:sequence')
   @Validate({
     params: {
-      l1_metadata: Joi.string().description('L1 Metadata'),
+      bridge_id: Joi.string().description('L2 bridge id'),
       sequence: Joi.number().description('Sequence')
     },
     failure: ErrorCodes.INVALID_REQUEST_ERROR
   })
-  async getTx(ctx: Context): Promise<void> {
-    const l1_metadata: string = ctx.params.l1_metadata as string;
+  async getWithdrawalTx(ctx: Context): Promise<void> {
+    const bridge_id: string = ctx.params.bridge_id as string;
     const sequence: number = ctx.params.sequence as number;
-    success(ctx, await getTx(l1_metadata, sequence));
+    success(ctx, await getWithdrawalTx(bridge_id, sequence));
   }
 }

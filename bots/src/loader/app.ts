@@ -9,8 +9,6 @@ import { KoaController, configureRoutes } from 'koa-joi-controllers';
 import { createApiDocApp } from './apidoc';
 import * as mount from 'koa-mount';
 
-const API_VERSION_PREFIX = '/v1';
-
 const notFoundMiddleware: Koa.Middleware = (ctx) => {
   ctx.status = 404;
 };

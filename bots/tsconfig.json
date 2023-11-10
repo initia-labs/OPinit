@@ -20,6 +20,6 @@
       "*": ["*"],
     }
   },
-  "include": ["src/**/*.ts", "test", "lib", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test", "lib", "test/**/*.ts", "src/worker/bridgeExecutor/db.ts"],
   "exclude": ["node_modules", "apidoc", "dist"]
 }

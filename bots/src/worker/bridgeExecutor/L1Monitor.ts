@@ -1,188 +1,134 @@
 import { Monitor } from './Monitor';
+import { Coin, Msg, MsgFinalizeTokenDeposit, Wallet } from '@initia/initia.js';
 import {
-  CoinInfo,
-  computeCoinMetadata,
-  normalizeMetadata,
-  resolveFAMetadata
-} from 'lib/lcd';
-import {
-  AccAddress,
-  Coin,
-  Msg,
-  MsgCreateToken,
-  MsgDeposit
-} from '@initia/minitia.js';
-
-import {
-  ExecutorCoinEntity,
   ExecutorDepositTxEntity,
   ExecutorFailedTxEntity,
   ExecutorOutputEntity
 } from 'orm';
-import { WalletType, getWallet, TxWallet } from 'lib/wallet';
 import { EntityManager } from 'typeorm';
-import { RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from 'lib/rpc';
 import { getDB } from './db';
 import winston from 'winston';
 import { getConfig } from 'config';
+import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
 
 const config = getConfig();
 
 export class L1Monitor extends Monitor {
-  constructor(public socket: RPCSocket, logger: winston.Logger) {
-    super(socket, logger);
+  executor: TxWallet;
+
+  constructor(
+    public socket: RPCSocket,
+    public rpcClient: RPCClient,
+    logger: winston.Logger
+  ) {
+    super(socket, rpcClient, logger);
     [this.db] = getDB();
+    initWallet(WalletType.Executor, config.l2lcd);
+    this.executor = getWallet(WalletType.Executor);
   }
 
   public name(): string {
     return 'executor_l1_monitor';
   }
 
-  public async handleTokenRegisteredEvent(
-    wallet: TxWallet,
+  public async handleInitiateTokenDeposit(
+    wallet: Wallet,
     manager: EntityManager,
     data: { [key: string]: string }
-  ): Promise<MsgCreateToken> {
-    const l1Metadata = data['l1_token'];
-    const l2Metadata = normalizeMetadata(
-      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
-    );
-
-    const l1CoinInfo: CoinInfo = await resolveFAMetadata(
-      config.l1lcd,
-      l1Metadata
-    );
-
-    const l1Denom = l1CoinInfo.denom;
-    const l2Denom = 'l2/' + data['l2_token'];
-
-    const coin: ExecutorCoinEntity = {
-      l1Metadata: l1Metadata,
-      l1Denom: l1Denom,
-      l2Metadata: l2Metadata,
-      l2Denom: l2Denom,
-      isChecked: false
-    };
-
-    await this.helper.saveEntity(manager, ExecutorCoinEntity, coin);
-
-    return new MsgCreateToken(
-      wallet.key.accAddress,
-      l1CoinInfo.name,
-      l2Denom,
-      l1CoinInfo.decimals
-    );
-  }
-
-  public async handleTokenBridgeInitiatedEvent(
-    wallet: TxWallet,
-    manager: EntityManager,
-    data: { [key: string]: string }
-  ): Promise<MsgDeposit> {
+  ): Promise<[ExecutorDepositTxEntity, MsgFinalizeTokenDeposit]> {
     const lastIndex = await this.helper.getLastOutputIndex(
       manager,
       ExecutorOutputEntity
     );
 
-    const l2Metadata = normalizeMetadata(
-      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
-    );
-    const l2Denom = 'l2/' + data['l2_token'];
-
     const entity: ExecutorDepositTxEntity = {
-      sequence: Number.parseInt(data['l1_sequence']),
+      sequence: data['l1_sequence'],
       sender: data['from'],
       receiver: data['to'],
-      amount: Number.parseInt(data['amount']),
+      l1Denom: data['l1_denom'],
+      l2Denom: data['l2_denom'],
+      amount: data['amount'],
+      data: data['data'],
       outputIndex: lastIndex + 1,
-      metadata: l2Metadata,
-      height: this.syncedHeight
+      bridgeId: this.bridgeId.toString(),
+      l1Height: this.currentHeight
     };
 
-    this.logger.info(`Deposit tx in height ${this.syncedHeight}`);
-    await manager.getRepository(ExecutorDepositTxEntity).save(entity);
-
-    return new MsgDeposit(
-      wallet.key.accAddress,
-      AccAddress.fromHex(data['from']),
-      AccAddress.fromHex(data['to']),
-      new Coin(l2Denom, data['amount']),
-      Number.parseInt(data['l1_sequence']),
-      this.syncedHeight,
-      Buffer.from(data['data'])
-    );
+    return [
+      entity,
+      new MsgFinalizeTokenDeposit(
+        wallet.key.accAddress,
+        data['from'],
+        data['to'],
+        new Coin(data['l2_denom'], data['amount']),
+        parseInt(data['l1_sequence']),
+        this.currentHeight,
+        Buffer.from(data['data'], 'hex').toString('base64')
+      )
+    ];
   }
 
-  public async handleEvents(): Promise<void> {
-    await this.db.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        const msgs: Msg[] = [];
-        const executor: TxWallet = getWallet(WalletType.Executor);
-
-        const events = await this.helper.fetchEvents(
-          config.l1lcd,
-          this.syncedHeight,
-          'move'
-        );
-
-        for (const evt of events) {
-          const attrMap = this.helper.eventsToAttrMap(evt);
-          const data = this.helper.parseData(attrMap);
-          if (data['l2_id'] !== config.L2ID) continue;
-
-          switch (attrMap['type_tag']) {
-            case '0x1::op_bridge::TokenRegisteredEvent': {
-              const msg: MsgCreateToken = await this.handleTokenRegisteredEvent(
-                executor,
-                transactionalEntityManager,
-                data
-              );
-              msgs.push(msg);
-              break;
-            }
-            case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
-              const msg: MsgDeposit =
-                await this.handleTokenBridgeInitiatedEvent(
-                  executor,
-                  transactionalEntityManager,
-                  data
-                );
-              msgs.push(msg);
-              break;
-            }
-          }
-        }
-
-        if (msgs.length > 0) {
-          const stringfyMsgs = msgs.map((msg) => msg.toJSON().toString());
-          await executor
-            .transaction(msgs)
-            .then((info) => {
-              this.logger.info(
-                `succeed to submit tx in height: ${this.syncedHeight}\ntxhash: ${info?.txhash}\nmsgs: ${stringfyMsgs}`
-              );
-            })
-            .catch(async (err) => {
-              const errMsg = err.response?.data
-                ? JSON.stringify(err.response?.data)
-                : err;
-              this.logger.error(
-                `Failed to submit tx in height: ${this.syncedHeight}\nMsg: ${stringfyMsgs}\n${errMsg}`
-              );
-              const failedTx: ExecutorFailedTxEntity = {
-                height: this.syncedHeight,
-                monitor: this.name(),
-                messages: stringfyMsgs,
-                error: errMsg
-              };
-              await this.helper.saveEntity(
-                transactionalEntityManager,
-                ExecutorFailedTxEntity,
-                failedTx
-              );
-            });
-        }
-      }
+  public async handleEvents(manager: EntityManager): Promise<any> {
+    const [isEmpty, depositEvents] = await this.helper.fetchEvents(
+      config.l1lcd,
+      this.currentHeight,
+      'initiate_token_deposit'
     );
+
+    if (isEmpty) return false;
+
+    const msgs: Msg[] = [];
+    const entities: ExecutorDepositTxEntity[] = [];
+
+    for (const evt of depositEvents) {
+      const attrMap = this.helper.eventsToAttrMap(evt);
+      if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
+      const [entity, msg] = await this.handleInitiateTokenDeposit(
+        this.executor,
+        manager,
+        attrMap
+      );
+
+      entities.push(entity);
+      if (msg) msgs.push(msg);
+    }
+
+    await this.processMsgs(manager, msgs, entities);
+    return true;
+  }
+
+  async processMsgs(
+    manager: EntityManager,
+    msgs: Msg[],
+    entities: ExecutorDepositTxEntity[]
+  ): Promise<void> {
+    if (msgs.length == 0) return;
+    const stringfyMsgs = msgs.map((msg) => msg.toJSON().toString());
+    try {
+      for (const entity of entities) {
+        await this.helper.saveEntity(manager, ExecutorDepositTxEntity, entity);
+      }
+      await this.executor.transaction(msgs);
+      this.logger.info(
+        `Succeeded to submit tx in height: ${this.currentHeight} ${stringfyMsgs}`
+      );
+    } catch (err) {
+      const errMsg = err.response?.data
+        ? JSON.stringify(err.response?.data)
+        : err.toString();
+      this.logger.error(
+        `Failed to submit tx in height: ${this.currentHeight}\nMsg: ${stringfyMsgs}\nError: ${errMsg}`
+      );
+
+      // Save all entities in a single batch operation, if possible
+      for (const entity of entities) {
+        await this.helper.saveEntity(manager, ExecutorFailedTxEntity, {
+          ...entity,
+          error: errMsg,
+          processed: false
+        });
+      }
+    }
   }
 }

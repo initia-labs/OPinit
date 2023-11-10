@@ -1,4 +1,4 @@
-import { LCDClient, TxSearchResult, TxInfo } from '@initia/minitia.js';
+import { LCDClient, TxSearchResult, TxInfo } from '@initia/initia.js';
 
 export async function txSearch(
   lcd: LCDClient,

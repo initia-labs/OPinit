@@ -1,5 +1,5 @@
 export * from './executor/OutputService';
-export * from './executor/TxService';
-export * from './executor/CoinService';
+export * from './executor/WithdrawalTxService';
+export * from './executor/DepositTxService';
 
 export * from './batch/BatchService';

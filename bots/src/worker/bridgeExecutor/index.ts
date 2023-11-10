@@ -1,5 +1,4 @@
-import { RPCSocket } from 'lib/rpc';
-import { Monitor } from './Monitor';
+import { RPCClient, RPCSocket } from 'lib/rpc';
 import { L1Monitor } from './L1Monitor';
 import { L2Monitor } from './L2Monitor';
 import { executorController } from 'controller';
@@ -8,16 +7,25 @@ import { executorLogger as logger } from 'lib/logger';
 import { initORM, finalizeORM } from './db';
 import { initServer, finalizeServer } from 'loader';
 import { once } from 'lodash';
-import { WalletType, initWallet } from 'lib/wallet';
 import { getConfig } from 'config';
+import { Resurrector } from './Resurrector';
 
 const config = getConfig();
-let monitors: Monitor[];
+let monitors;
 
 async function runBot(): Promise<void> {
   monitors = [
-    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 1000, logger), logger),
-    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 1000, logger), logger)
+    new L1Monitor(
+      new RPCSocket(config.L1_RPC_URI, 10000, logger),
+      new RPCClient(config.L1_RPC_URI, logger),
+      logger
+    ),
+    new L2Monitor(
+      new RPCSocket(config.L2_RPC_URI, 10000, logger),
+      new RPCClient(config.L2_RPC_URI, logger),
+      logger
+    ),
+    new Resurrector(logger)
   ];
   try {
     await Promise.all(
@@ -52,7 +60,6 @@ export async function startExecutor(): Promise<void> {
   try {
     await initORM();
     await initServer(executorController, config.EXECUTOR_PORT);
-    initWallet(WalletType.Executor, config.l2lcd);
     await runBot();
   } catch (err) {
     throw new Error(err);

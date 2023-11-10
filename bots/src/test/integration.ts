@@ -1,75 +1,61 @@
 import Bridge from './utils/Bridge';
-import DockerHelper from './utils/DockerHelper';
-import * as path from 'path';
-import { startBatch } from 'worker/batchSubmitter';
-import { startOutput } from 'worker/outputSubmitter';
-import { startExecutor } from 'worker/bridgeExecutor';
-import { startChallenger } from 'worker/challenger';
 import { Config } from 'config';
 import { TxBot } from './utils/TxBot';
-import { computeCoinMetadata, normalizeMetadata } from 'lib/lcd';
-import { checkHealth } from './utils/helper';
+import { Coin } from '@initia/initia.js';
+import { startBatch } from 'worker/batchSubmitter';
+import { startExecutor } from 'worker/bridgeExecutor';
+import { startOutput } from 'worker/outputSubmitter';
+import { delay } from 'bluebird';
+import { getBalanceByDenom, getTokenPairByL1Denom } from 'lib/query';
 
 const config = Config.getConfig();
-const docker = new DockerHelper(path.join(__dirname, '..', '..'));
+const SUBMISSION_INTERVAL = 5;
+const FINALIZED_TIME = 5;
+const DEPOSIT_AMOUNT = 1_000_000;
+const DEPOSIT_INTERVAL_MS = 100;
 
-async function setup() {
-  await docker.start();
-  await checkHealth(config.L1_LCD_URI, 20_000);
-  await checkHealth(config.L2_LCD_URI, 20_000);
-  await setupBridge(10, 10, 1);
-}
-
-async function setupBridge(
-  submissionInterval: number,
-  finalizedTime: number,
-  l2StartBlockHeight: number
-) {
-  const bridge = new Bridge(
-    submissionInterval,
-    finalizedTime,
-    l2StartBlockHeight,
-    config.L2ID,
-    path.join(__dirname, 'contract')
-  );
-  const UINIT_METADATA = normalizeMetadata(computeCoinMetadata('0x1', 'uinit')); // '0x8e4733bdabcf7d4afc3d14f0dd46c9bf52fb0fce9e4b996c939e195b8bc891d9'
-
-  await bridge.deployBridge(UINIT_METADATA);
+async function setupBridge(submissionInterval: number, finalizedTime: number) {
+  const bridge = new Bridge(submissionInterval, finalizedTime);
+  const relayerMetadata = '';
+  await bridge.clearDB();
+  await bridge.tx(relayerMetadata);
   console.log('Bridge deployed');
 }
 
 async function startBot() {
   try {
-    await Promise.all([
-      startBatch(),
-      startExecutor(),
-      startChallenger(),
-      startOutput()
-    ]);
+    await Promise.all([startBatch(), startExecutor(), startOutput()]);
   } catch (err) {
     console.log(err);
   }
 }
 
-async function startTxBot() {
-  const txBot = new TxBot();
-
-  try {
-    // TODO: Make withdraw and claim sequentially
-    await txBot.deposit(txBot.l1sender, txBot.l2receiver, 1_000);
-    // await txBot.withdrawal(txBot.l2receiver, 100);          // WARN: run after deposit done
-    // await txBot.claim(txBot.l1receiver, 1, 19); // WARN: run after withdrawal done
-    console.log('tx bot done');
-  } catch (err) {
-    console.log(err);
+async function startDepositTxBot() {
+  const txBot = new TxBot(config.BRIDGE_ID);
+  const pair = await getTokenPairByL1Denom('uinit');
+  for (;;) {
+    const balance = await getBalanceByDenom(
+      config.l2lcd,
+      txBot.l2sender.key.accAddress,
+      pair.l2_denom
+    );
+    const res = await txBot.deposit(
+      txBot.l1sender,
+      txBot.l2sender,
+      new Coin('uinit', DEPOSIT_AMOUNT)
+    );
+    console.log(
+      `[DepositBot] Deposited height ${res.height} to ${txBot.l2sender.key.accAddress} ${balance?.amount}`
+    );
+    await delay(DEPOSIT_INTERVAL_MS);
   }
 }
 
 async function main() {
   try {
-    await setup();
+    await setupBridge(SUBMISSION_INTERVAL, FINALIZED_TIME);
     await startBot();
-    await startTxBot();
+    await startDepositTxBot();
   } catch (err) {
     console.log(err);
   }

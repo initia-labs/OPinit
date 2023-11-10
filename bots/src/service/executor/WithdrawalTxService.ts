@@ -2,25 +2,31 @@ import { ExecutorWithdrawalTxEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
 import { APIError, ErrorTypes } from 'lib/error';
 
-export async function getTx(
-  metadata: string,
+export interface GetWithdrawalTxResponse {
+  withdrawalTx: ExecutorWithdrawalTxEntity;
+}
+
+export async function getWithdrawalTx(
+  bridgeId: string,
   sequence: number
-): Promise<ExecutorWithdrawalTxEntity> {
+): Promise<GetWithdrawalTxResponse> {
   const [db] = getDB();
   const queryRunner = db.createQueryRunner('slave');
   try {
     const qb = queryRunner.manager
       .createQueryBuilder(ExecutorWithdrawalTxEntity, 'tx')
-      .where('tx.metadata = :metadata', { metadata })
+      .where('tx.bridge_id = :bridgeId', { bridgeId })
       .andWhere('tx.sequence = :sequence', { sequence });
 
-    const tx = await qb.getOne();
+    const withdrawalTx = await qb.getOne();
 
-    if (!tx) {
+    if (!withdrawalTx) {
       throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
     }
 
-    return tx;
+    return {
+      withdrawalTx
+    };
   } finally {
     queryRunner.release();
   }

@@ -1,5 +1,5 @@
 import { SHA3 } from 'sha3';
-import { sha256 } from '@initia/minitia.js';
+import { sha256 } from '@initia/initia.js';
 
 export function sha3_256(value: Buffer | string | number) {
   value = toBuffer(value);
@@ -86,32 +86,4 @@ function intToBuffer(i: number) {
 function intToHex(i: number) {
   const hex = i.toString(16);
   return `0x${hex}`;
-}
-
-export function createOutputRoot(
-  version: number,
-  stateRoot: string,
-  storageRoot: string,
-  latestBlockHash: string
-): string {
-  return sha3_256(
-    Buffer.concat([
-      Buffer.from(version.toString()),
-      Buffer.from(stateRoot, 'hex'),
-      Buffer.from(storageRoot, 'hex'),
-      Buffer.from(latestBlockHash, 'base64')
-    ])
-  ).toString('hex');
-}
-
-export function structTagToDenom(structTag: string): string {
-  if (structTag.startsWith('0x1::native_')) {
-    return structTag.split('::')[1].split('_')[1];
-  } else if (structTag.startsWith('0x1::ibc_')) {
-    return `ibc/${structTag.split('::')[1].split('_')[1]}`;
-  } else {
-    const shaSum = sha256(Buffer.from(structTag));
-    const hash = Buffer.from(shaSum).toString('hex');
-    return `move/${hash}`;
-  }
 }

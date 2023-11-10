@@ -1,96 +1,74 @@
-import { BCS, Msg, MsgExecute, Wallet, MnemonicKey } from '@initia/initia.js';
+import { Wallet, MnemonicKey, MsgProposeOutput } from '@initia/initia.js';
 import { INTERVAL_OUTPUT } from 'config';
 import { ExecutorOutputEntity } from 'orm';
-import { APIRequest } from 'lib/apiRequest';
 import { delay } from 'bluebird';
 import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
-import { GetOutputResponse } from 'service';
 import { getConfig } from 'config';
 import { sendTx } from 'lib/tx';
+import { getLastOutputInfo } from 'lib/query';
+import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
+import { DataSource, EntityManager } from 'typeorm';
+import { getDB } from './db';
 
 const config = getConfig();
-const bcs = BCS.getInstance();
 
 export class OutputSubmitter {
+  private db: DataSource;
   private submitter: Wallet;
-  private executor: Wallet;
-  private apiRequester: APIRequest;
-  private syncedHeight = 0;
+  private syncedOutputIndex = 1;
+  private processedBlockNumber = 1;
   private isRunning = false;
+  private bridgeId: number;
+  helper: MonitorHelper = new MonitorHelper();
 
   async init() {
+    [this.db] = getDB();
     this.submitter = new Wallet(
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC })
     );
-    this.executor = new Wallet(
-      config.l1lcd,
-      new MnemonicKey({ mnemonic: config.EXECUTOR_MNEMONIC })
-    );
-
-    this.apiRequester = new APIRequest(config.EXECUTOR_URI);
+    this.bridgeId = config.BRIDGE_ID;
     this.isRunning = true;
-  }
-
-  public name(): string {
-    return 'output_submitter';
-  }
-
-  async getNextBlockHeight(): Promise<number> {
-    const nextBlockHeight = await config.l1lcd.move.viewFunction<string>(
-      '0x1',
-      'op_output',
-      'next_block_num',
-      [],
-      [
-        bcs.serialize('address', this.executor.key.accAddress),
-        bcs.serialize('string', config.L2ID)
-      ]
-    );
-    return parseInt(nextBlockHeight);
-  }
-
-  async proposeL2Output(outputRoot: Buffer, l2BlockHeight: number) {
-    const executeMsg: Msg = new MsgExecute(
-      this.submitter.key.accAddress,
-      '0x1',
-      'op_output',
-      'propose_l2_output',
-      [],
-      [
-        bcs.serialize('address', this.executor.key.accAddress),
-        bcs.serialize('string', config.L2ID),
-        bcs.serialize('vector<u8>', outputRoot, 33), // 33 is the length of output root
-        bcs.serialize('u64', l2BlockHeight)
-      ]
-    );
-    await sendTx(this.submitter, [executeMsg]);
   }
 
   public async run() {
     await this.init();
 
     while (this.isRunning) {
-      try {
-        const nextBlockHeight = await this.getNextBlockHeight();
-        if (nextBlockHeight <= this.syncedHeight) continue;
+      await this.proccessOutput();
+    }
+  }
 
-        const res: GetOutputResponse =
-          await this.apiRequester.getQuery<GetOutputResponse>(
-            `/output/height/${nextBlockHeight}`
-          );
-        await this.processOutputEntity(res.output, nextBlockHeight);
-      } catch (err) {
-        if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-          logger.warn(
-            `waiting for next output. not found output from executor height`
-          );
-          await delay(INTERVAL_OUTPUT);
-        } else {
-          logger.error(err);
-          this.stop();
+  async proccessOutput() {
+    try {
+      await this.db.transaction(async (manager: EntityManager) => {
+        const lastOutputInfo = await getLastOutputInfo(this.bridgeId);
+        if (lastOutputInfo) {
+          this.syncedOutputIndex = lastOutputInfo.output_index + 1;
         }
+
+        const output = await this.helper.getOutputByIndex(
+          manager,
+          ExecutorOutputEntity,
+          this.syncedOutputIndex
+        );
+        if (!output) return;
+
+        await this.proposeOutput(output);
+        logger.info(
+          `successfully submitted! output index: ${this.syncedOutputIndex}, output root: ${output.outputRoot}`
+        );
+      });
+    } catch (err) {
+      if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
+        logger.warn(
+          `waiting for output index: ${this.syncedOutputIndex}, processed block number: ${this.processedBlockNumber}`
+        );
+        await delay(INTERVAL_OUTPUT);
+      } else {
+        logger.error(err);
+        this.stop();
       }
     }
   }
@@ -99,17 +77,19 @@ export class OutputSubmitter {
     this.isRunning = false;
   }
 
-  private async processOutputEntity(
-    outputEntity: ExecutorOutputEntity,
-    nextBlockHeight: number
-  ) {
-    await this.proposeL2Output(
-      Buffer.from(outputEntity.outputRoot, 'hex'),
-      nextBlockHeight
+  private async proposeOutput(outputEntity: ExecutorOutputEntity) {
+    const msg = new MsgProposeOutput(
+      this.submitter.key.accAddress,
+      this.bridgeId,
+      outputEntity.endBlockNumber,
+      outputEntity.outputRoot
     );
-    this.syncedHeight = nextBlockHeight;
-    logger.info(
-      `successfully submitted! height: ${nextBlockHeight}, output root: ${outputEntity.outputRoot}`
-    );
+
+    const { account_number, sequence } =
+      await this.submitter.accountNumberAndSequence();
+
+    await sendTx(this.submitter, [msg], account_number, sequence);
+
+    this.processedBlockNumber = outputEntity.endBlockNumber;
   }
 }

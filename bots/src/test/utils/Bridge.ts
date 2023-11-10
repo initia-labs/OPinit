@@ -1,161 +1,104 @@
-import { MsgPublish, MsgExecute } from '@initia/initia.js';
-import * as fs from 'fs';
-import * as path from 'path';
-import { getDB, initORM } from 'worker/bridgeExecutor/db';
+import { MsgCreateBridge, BridgeConfig, Duration } from '@initia/initia.js';
+import {
+  getDB as getExecutorDB,
+  initORM as initExecutorORM
+} from 'worker/bridgeExecutor/db';
+import {
+  getDB as getChallengerDB,
+  initORM as initChallengerORM
+} from 'worker/challenger/db';
+import {
+  getDB as getBatchDB,
+  initORM as initBatchORM
+} from 'worker/batchSubmitter/db';
 import { DataSource, EntityManager } from 'typeorm';
 import {
-  ExecutorCoinEntity,
   ExecutorOutputEntity,
   StateEntity,
-  ExecutorWithdrawalTxEntity
+  ExecutorWithdrawalTxEntity,
+  ExecutorDepositTxEntity,
+  ExecutorFailedTxEntity,
+  ChallengerDepositTxEntity,
+  ChallengerFinalizeDepositTxEntity,
+  ChallengerFinalizeWithdrawalTxEntity,
+  ChallengerOutputEntity,
+  ChallengerWithdrawalTxEntity,
+  ChallengerDeletedOutputEntity,
+  RecordEntity
 } from 'orm';
-import { getConfig } from 'config';
-import { build, executor, challenger, outputSubmitter, bcs } from './helper';
+import { executor, challenger, outputSubmitter } from './helper';
 import { sendTx } from 'lib/tx';
 
-const config = getConfig();
-
 class Bridge {
-  db: DataSource;
-  submissionInterval: number;
-  finalizedTime: number;
-  l2StartBlockHeight: number;
+  executorDB: DataSource;
+  challengerDB: DataSource;
+  batchDB: DataSource;
   l1BlockHeight: number;
   l2BlockHeight: number;
-  l2id: string;
-  moduleName: string;
-  contractDir: string;
 
   constructor(
-    submissionInterval: number,
-    finalizedTime: number,
-    l2StartBlockHeight: number,
-    l2id: string,
-    contractDir: string
-  ) {
-    [this.db] = getDB();
-    this.submissionInterval = submissionInterval;
-    this.finalizedTime = finalizedTime;
-    this.l2StartBlockHeight = l2StartBlockHeight;
-    this.l2id = l2id;
-    this.moduleName = this.l2id.split('::')[1];
-    this.contractDir = contractDir;
-  }
+    public submissionInterval: number,
+    public finalizedTime: number
+  ) {}
 
-  async init() {
-    await this.setDB();
-    this.updateL2ID();
-  }
-
-  async setDB() {
-    const l1Monitor = `executor_l1_monitor`;
-    const l2Monitor = `executor_l2_monitor`;
-    this.l1BlockHeight = parseInt(
-      (await config.l1lcd.tendermint.blockInfo()).block.header.height
-    );
-
-    this.l2BlockHeight = parseInt(
-      (await config.l2lcd.tendermint.blockInfo()).block.header.height
-    );
-    this.l2BlockHeight = Math.floor(this.l2BlockHeight / 100) * 100;
-
+  async clearDB() {
     // remove and initialize
-    await this.db.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        await transactionalEntityManager.getRepository(StateEntity).clear();
-        await transactionalEntityManager
-          .getRepository(ExecutorWithdrawalTxEntity)
-          .clear();
-        await transactionalEntityManager
-          .getRepository(ExecutorCoinEntity)
-          .clear();
-        await transactionalEntityManager
-          .getRepository(ExecutorOutputEntity)
-          .clear();
+    await initExecutorORM();
+    await initChallengerORM();
+    await initBatchORM();
 
-        await transactionalEntityManager
-          .getRepository(StateEntity)
-          .save({ name: l1Monitor, height: this.l1BlockHeight - 1 });
-        await transactionalEntityManager
-          .getRepository(StateEntity)
-          .save({ name: l2Monitor, height: this.l2BlockHeight - 1 });
-      }
-    );
+    [this.executorDB] = getExecutorDB();
+    [this.challengerDB] = getChallengerDB();
+    [this.batchDB] = getBatchDB();
+
+    await this.executorDB.transaction(async (manager: EntityManager) => {
+      await manager.getRepository(StateEntity).clear();
+      await manager.getRepository(ExecutorWithdrawalTxEntity).clear();
+      await manager.getRepository(ExecutorOutputEntity).clear();
+      await manager.getRepository(ExecutorDepositTxEntity).clear();
+      await manager.getRepository(ExecutorFailedTxEntity).clear();
+    });
+
+    await this.challengerDB.transaction(async (manager: EntityManager) => {
+      await manager.getRepository(ChallengerDepositTxEntity).clear();
+      await manager.getRepository(ChallengerFinalizeDepositTxEntity).clear();
+      await manager.getRepository(ChallengerFinalizeWithdrawalTxEntity).clear();
+      await manager.getRepository(ChallengerOutputEntity).clear();
+      await manager.getRepository(ChallengerWithdrawalTxEntity).clear();
+      await manager.getRepository(ChallengerDeletedOutputEntity).clear();
+    });
+
+    await this.batchDB.transaction(async (manager: EntityManager) => {
+      await manager.getRepository(RecordEntity).clear();
+    });
   }
 
-  // update module name in l2id.move
-  updateL2ID() {
-    const filePath = path.join(this.contractDir, 'sources', 'l2id.move');
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const updatedContent = fileContent.replace(
-      /(addr::)[^\s{]+( \{)/g,
-      `$1${this.moduleName}$2`
-    );
-    fs.writeFileSync(filePath, updatedContent, 'utf-8');
-  }
-
-  publishL2IDMsg(module: string) {
-    return new MsgPublish(executor.key.accAddress, [module], 0);
-  }
-
-  bridgeInitializeMsg(
+  MsgCreateBridge(
     submissionInterval: number,
     finalizedTime: number,
-    l2StartBlockHeight: number
+    metadata: string
   ) {
-    return new MsgExecute(
-      executor.key.accAddress,
-      '0x1',
-      'op_bridge',
-      'initialize',
-      [],
-      [
-        bcs.serialize('string', this.l2id),
-        bcs.serialize('u64', submissionInterval),
-        bcs.serialize('address', outputSubmitter.key.accAddress),
-        bcs.serialize('address', challenger.key.accAddress),
-        bcs.serialize('u64', finalizedTime),
-        bcs.serialize('u64', l2StartBlockHeight)
-      ]
+    const bridgeConfig = new BridgeConfig(
+      challenger.key.accAddress,
+      outputSubmitter.key.accAddress,
+      Duration.fromString(submissionInterval.toString()),
+      Duration.fromString(finalizedTime.toString()),
+      new Date(),
+      metadata
     );
-  }
-
-  bridgeRegisterTokenMsg(metadata: string) {
-    return new MsgExecute(
-      executor.key.accAddress,
-      '0x1',
-      'op_bridge',
-      'register_token',
-      [],
-      [bcs.serialize('string', this.l2id), bcs.serialize('object', metadata)]
-    );
+    return new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
   }
 
   async tx(metadata: string) {
-    const module = await build(this.contractDir, this.moduleName);
     const msgs = [
-      this.publishL2IDMsg(module),
-      this.bridgeInitializeMsg(
+      this.MsgCreateBridge(
         this.submissionInterval,
         this.finalizedTime,
-        this.l2StartBlockHeight
-      ),
-      this.bridgeRegisterTokenMsg(metadata)
+        metadata
+      )
     ];
-    await sendTx(executor, msgs);
-  }
 
-  async deployBridge(metadata: string) {
-    await initORM();
-    const bridge = new Bridge(
-      this.submissionInterval,
-      this.finalizedTime,
-      this.l2StartBlockHeight,
-      this.l2id,
-      this.contractDir
-    );
-    await bridge.init();
-    await bridge.tx(metadata);
+    return await sendTx(executor, msgs);
   }
 }
 

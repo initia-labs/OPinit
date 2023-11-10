@@ -15,7 +15,6 @@ import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 import {
   ExecutorOutputEntity,
   ExecutorWithdrawalTxEntity,
-  ExecutorCoinEntity,
   ExecutorDepositTxEntity,
   ExecutorFailedTxEntity,
   StateEntity
@@ -27,7 +26,6 @@ const staticOptions = {
   entities: [
     ExecutorOutputEntity,
     ExecutorWithdrawalTxEntity,
-    ExecutorCoinEntity,
     ExecutorDepositTxEntity,
     ExecutorFailedTxEntity,
     StateEntity

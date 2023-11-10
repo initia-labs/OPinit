@@ -1,33 +1,36 @@
 export TYPEORM_CONNECTION=postgres
 export TYPEORM_HOST=localhost
-export TYPEORM_USERNAME=jungsuhan
-export TYPEORM_PASSWORD=jungsuhan
-export TYPEORM_DATABASE=challenger
+export TYPEORM_USERNAME=user
+export TYPEORM_PASSWORD=password
+export TYPEORM_DATABASE=rollup
 export TYPEORM_PORT=5432
 export TYPEORM_SYNCHRONIZE=true
 export TYPEORM_LOGGING=false
 export TYPEORM_ENTITIES=src/orm/*Entity.ts
 export USE_LOG_FILE=false
 
-export EXECUTOR_PORT=3000
-export BATCH_PORT=3001
+export EXECUTOR_PORT=5000
+export BATCH_PORT=5001
 
-export L1_LCD_URI=https://next-stone-rest.initia.tech
-export L1_RPC_URI=https://next-stone-rpc.initia.tech
+# l2 setup (need challenger, output, executor mnemonic)
+export SUBMISSION_INTERVAL=10000
+export FINALIZED_TIME=10000
+export IBC_METADATA='channel-1'
+
+export L1_LCD_URI=http://localhost:1317
+export L1_RPC_URI=http://localhost:26657
 export L2_LCD_URI=http://localhost:1318
-export L2_RPC_URI=http://localhost:26658
-export L2ID=0x56ccf33c45b99546cd1da172cf6849395bbf8573::s10r1::Minitia
-
+export L2_RPC_URI=http://localhost:26667
+export BRIDGE_ID=1
 
 # executor config
-export EXECUTOR_MNEMONIC='recycle sight world spoon leopard shine dizzy before public use jungle either arctic detail hawk output option august hedgehog menu keen night work become'
+export EXECUTOR_MNEMONIC=''
 
 # batch submitter config
-export BATCH_SUBMITTER_MNEMONIC='broken umbrella tent include pet simple amount renew insect page sound whip shock dynamic deputy left outside churn lounge raise mirror toss annual fat'
+export BATCH_SUBMITTER_MNEMONIC=''
 
 # challenger config
-export CHALLENGER_MNEMONIC='purity yard brush wagon note forest athlete seek offer clown surround cover present ski bargain obvious cute admit gloom text shaft super impose rubber'
+export CHALLENGER_MNEMONIC=''
 
 # output submitter config
-export OUTPUT_SUBMITTER_MNEMONIC='airport hidden cake dry bleak alcohol enough tower charge cash modify feature analyst suffer bus oyster initial coffee wine plug paper damp sock afraid'
-export EXECUTOR_URI=http://localhost:3000
+export OUTPUT_SUBMITTER_MNEMONIC=''

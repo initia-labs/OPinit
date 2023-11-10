@@ -1,17 +1,10 @@
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
 import {
-  ChallengerCoinEntity,
   ChallengerDepositTxEntity,
-  ChallengerOutputEntity
+  ChallengerFinalizeWithdrawalTxEntity
 } from 'orm';
-import {
-  CoinInfo,
-  computeCoinMetadata,
-  normalizeMetadata,
-  resolveFAMetadata
-} from 'lib/lcd';
 import { EntityManager } from 'typeorm';
-import { RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from 'lib/rpc';
 import { getDB } from './db';
 import winston from 'winston';
 import { getConfig } from 'config';
@@ -19,8 +12,12 @@ import { getConfig } from 'config';
 const config = getConfig();
 
 export class L1Monitor extends Monitor {
-  constructor(public socket: RPCSocket, logger: winston.Logger) {
-    super(socket, logger);
+  constructor(
+    public socket: RPCSocket,
+    public rpcClient: RPCClient,
+    logger: winston.Logger
+  ) {
+    super(socket, rpcClient, logger);
     [this.db] = getDB();
   }
 
@@ -28,94 +25,69 @@ export class L1Monitor extends Monitor {
     return 'challenger_l1_monitor';
   }
 
-  public async handleTokenRegisteredEvent(
+  public async handleInitiateTokenDeposit(
     manager: EntityManager,
     data: { [key: string]: string }
-  ) {
-    const l1Metadata = data['l1_token'];
-    const l2Metadata = normalizeMetadata(
-      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
-    );
-
-    const l1CoinInfo: CoinInfo = await resolveFAMetadata(
-      config.l1lcd,
-      l1Metadata
-    );
-
-    const l1Denom = l1CoinInfo.denom;
-    const l2Denom = 'l2/' + data['l2_token'];
-
-    const coin: ChallengerCoinEntity = {
-      l1Metadata: l1Metadata,
-      l1Denom: l1Denom,
-      l2Metadata: l2Metadata,
-      l2Denom: l2Denom,
-      isChecked: false
-    };
-
-    await this.helper.saveEntity(manager, ChallengerCoinEntity, coin);
-  }
-
-  public async handleTokenBridgeInitiatedEvent(
-    manager: EntityManager,
-    data: { [key: string]: string }
-  ) {
-    const lastIndex = await this.helper.getLastOutputIndex(
-      manager,
-      ChallengerOutputEntity
-    );
-
-    const l2Metadata = normalizeMetadata(
-      computeCoinMetadata('0x1', 'l2/' + data['l2_token'])
-    );
-
+  ): Promise<void> {
     const entity: ChallengerDepositTxEntity = {
-      sequence: Number.parseInt(data['l1_sequence']),
+      sequence: data['l1_sequence'],
       sender: data['from'],
       receiver: data['to'],
-      amount: Number.parseInt(data['amount']),
-      outputIndex: lastIndex + 1,
-      metadata: l2Metadata,
-      height: this.syncedHeight,
-      finalizedOutputIndex: null,
-      isChecked: false
+      l1Denom: data['l1_denom'],
+      l2Denom: data['l2_denom'],
+      amount: data['amount'],
+      data: data['data']
     };
-
     await manager.getRepository(ChallengerDepositTxEntity).save(entity);
   }
 
-  public async handleEvents(): Promise<void> {
-    await this.db.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        const events = await this.helper.fetchEvents(
-          config.l1lcd,
-          this.syncedHeight,
-          'move'
-        );
+  public async handleFinalizeTokenWithdrawalEvent(
+    manager: EntityManager,
+    data: { [key: string]: string }
+  ): Promise<void> {
+    const entity: ChallengerFinalizeWithdrawalTxEntity = {
+      bridgeId: data['bridge_id'],
+      outputIndex: parseInt(data['output_index']),
+      sequence: data['l2_sequence'],
+      sender: data['from'],
+      receiver: data['to'],
+      l1Denom: data['l1_denom'],
+      l2Denom: data['l2_denom'],
+      amount: data['amount']
+    };
 
-        for (const evt of events) {
-          const attrMap = this.helper.eventsToAttrMap(evt);
-          const data = this.helper.parseData(attrMap);
-          if (data['l2_id'] !== config.L2ID) continue;
+    await manager
+      .getRepository(ChallengerFinalizeWithdrawalTxEntity)
+      .save(entity);
+  }
 
-          switch (attrMap['type_tag']) {
-            case '0x1::op_bridge::TokenRegisteredEvent': {
-              await this.handleTokenRegisteredEvent(
-                transactionalEntityManager,
-                data
-              );
-              break;
-            }
-            case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
-              await this.handleTokenBridgeInitiatedEvent(
-                transactionalEntityManager,
-                data
-              );
-              break;
-            }
-          }
-        }
-      }
+  public async handleEvents(manager: EntityManager): Promise<boolean> {
+    const [isEmpty, depositEvents] = await this.helper.fetchEvents(
+      config.l1lcd,
+      this.currentHeight,
+      'initiate_token_deposit'
     );
+
+    if (isEmpty) return false;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, withdrawalEvents] = await this.helper.fetchEvents(
+      config.l1lcd,
+      this.currentHeight,
+      'finalize_token_withdrawal'
+    );
+
+    for (const evt of depositEvents) {
+      const attrMap = this.helper.eventsToAttrMap(evt);
+      if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
+      await this.handleInitiateTokenDeposit(manager, attrMap);
+    }
+
+    for (const evt of withdrawalEvents) {
+      const attrMap = this.helper.eventsToAttrMap(evt);
+      if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
+      await this.handleFinalizeTokenWithdrawalEvent(manager, attrMap);
+    }
+    return true;
   }
 }

@@ -10,28 +10,12 @@ import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
 const debug = require('debug')('orm');
 
-import {
-  ChallengerOutputEntity,
-  ChallengerDepositTxEntity,
-  StateEntity,
-  ChallengerWithdrawalTxEntity,
-  ChallengerDeletedOutputEntity,
-  ChallengerFinalizeDepositTxEntity,
-  ChallengerFinalizeWithdrawalTxEntity
-} from 'orm';
+import { ExecutorOutputEntity } from 'orm';
 
 const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
-  entities: [
-    StateEntity,
-    ChallengerFinalizeDepositTxEntity,
-    ChallengerFinalizeWithdrawalTxEntity,
-    ChallengerWithdrawalTxEntity,
-    ChallengerDepositTxEntity,
-    ChallengerOutputEntity,
-    ChallengerDeletedOutputEntity
-  ]
+  entities: [ExecutorOutputEntity]
 };
 
 let DB: DataSource[] = [];
@@ -47,7 +31,7 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   return new DataSource({
     ...options,
     ...staticOptions,
-    namingStrategy: new CamelToSnakeNamingStrategy()
+    namingStrategy: new CamelToSnakeNamingStrategy() as any
   }).initialize();
 }
 

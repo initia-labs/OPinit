@@ -2,12 +2,15 @@ import {
   Key,
   Wallet,
   Msg,
-  TxInfo,
   MnemonicKey,
-  LCDClient
-} from '@initia/minitia.js';
+  LCDClient,
+  WaitTxBroadcastResult,
+  Coins
+} from '@initia/initia.js';
 import { sendTx } from './tx';
 import { getConfig } from 'config';
+import { getBalanceByDenom } from './query';
+import { buildNotEnoughBalanceNotification, notifySlack } from './slack';
 
 const config = getConfig();
 
@@ -31,6 +34,8 @@ export const wallets: {
 };
 
 export function initWallet(type: WalletType, lcd: LCDClient): void {
+  if (wallets[type]) return;
+
   switch (type) {
     case WalletType.Challenger:
       wallets[type] = new TxWallet(
@@ -76,7 +81,23 @@ export class TxWallet extends Wallet {
     super(lcd, key);
   }
 
-  async transaction(msgs: Msg[]): Promise<TxInfo | undefined> {
+  async checkEnoughBalance() {
+    const gasPrices = new Coins(this.lcd.config.gasPrices);
+    const denom = gasPrices.denoms()[0];
+    const balance = await getBalanceByDenom(
+      this.lcd,
+      this.key.accAddress,
+      denom
+    );
+
+    if (balance?.amount && parseInt(balance.amount) < 1_000_000_000) {
+      await notifySlack(
+        buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
+      );
+    }
+  }
+
+  async transaction(msgs: Msg[]): Promise<WaitTxBroadcastResult> {
     if (!this.managedAccountNumber && !this.managedSequence) {
       const { account_number: accountNumber, sequence } =
         await this.accountNumberAndSequence();
@@ -85,6 +106,7 @@ export class TxWallet extends Wallet {
     }
 
     try {
+      await this.checkEnoughBalance();
       const txInfo = await sendTx(
         this,
         msgs,
@@ -93,10 +115,10 @@ export class TxWallet extends Wallet {
       );
       this.managedSequence += 1;
       return txInfo;
-    } catch (error) {
+    } catch (err) {
       delete this.managedAccountNumber;
       delete this.managedSequence;
-      throw error;
+      throw err;
     }
   }
 }

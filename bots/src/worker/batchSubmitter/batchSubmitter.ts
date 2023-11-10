@@ -1,40 +1,36 @@
 import { getDB } from './db';
-import { DataSource } from 'typeorm';
-import { batchLogger as logger } from 'lib/logger';
-
-import { BlockBulk, getBlockBulk } from 'lib/rpc';
+import { DataSource, EntityManager } from 'typeorm';
+import { batchLogger, batchLogger as logger } from 'lib/logger';
+import { BlockBulk, RPCClient } from 'lib/rpc';
 import { compressor } from 'lib/compressor';
-import { getLatestBlockHeight } from 'lib/tx';
-import { RecordEntity } from 'orm';
-import { Wallet, MnemonicKey, MsgExecute, BCS } from '@initia/initia.js';
-import { fetchBridgeConfig } from 'lib/lcd';
+import { ExecutorOutputEntity, RecordEntity } from 'orm';
+import { Wallet, MnemonicKey, MsgRecordBatch } from '@initia/initia.js';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
 import { getConfig } from 'config';
 import { sendTx } from 'lib/tx';
+import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
 
 const config = getConfig();
-const bcs = BCS.getInstance();
 
 export class BatchSubmitter {
   private batchIndex = 0;
-  private batchL2StartHeight: number;
-  private latestBlockHeight: number;
-  private dataSource: DataSource;
+  private db: DataSource;
   private submitter: Wallet;
-  private submissionInterval: number;
+  private bridgeId: number;
   private isRunning = false;
+  private rpcClient: RPCClient;
+  helper: MonitorHelper = new MonitorHelper();
 
   async init() {
-    [this.dataSource] = getDB();
-    this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd);
+    [this.db] = getDB();
+    this.rpcClient = new RPCClient(config.L2_RPC_URI, batchLogger);
     this.submitter = new Wallet(
       config.l1lcd,
       new MnemonicKey({ mnemonic: config.BATCH_SUBMITTER_MNEMONIC })
     );
-    const bridgeCfg = await fetchBridgeConfig();
-    this.batchL2StartHeight = parseInt(bridgeCfg.starting_block_number);
-    this.submissionInterval = parseInt(bridgeCfg.submission_interval);
+
+    this.bridgeId = config.BRIDGE_ID;
     this.isRunning = true;
   }
 
@@ -46,39 +42,47 @@ export class BatchSubmitter {
     await this.init();
 
     while (this.isRunning) {
-      try {
-        const latestBatch = await this.getStoredBatch(this.dataSource);
-        if (latestBatch) {
-          this.batchIndex = latestBatch.batchIndex + 1;
-        }
+      await this.processBatch();
+    }
+  }
 
-        // e.g [start_height + 0, start_height + 99], [start_height + 100, start_height + 199], ...
-        const startHeight =
-          this.batchL2StartHeight + this.batchIndex * this.submissionInterval;
-        const endHeight =
-          this.batchL2StartHeight +
-          (this.batchIndex + 1) * this.submissionInterval -
-          1;
+  async processBatch() {
+    try {
+      await this.db.transaction(async (manager: EntityManager) => {
+        const latestBatch = await this.getStoredBatch(manager);
+        this.batchIndex = latestBatch ? latestBatch.batchIndex + 1 : 1;
+        const output = await this.helper.getOutputByIndex(
+          manager,
+          ExecutorOutputEntity,
+          this.batchIndex
+        );
 
-        this.latestBlockHeight = await getLatestBlockHeight(config.l2lcd);
-        if (endHeight > this.latestBlockHeight) {
-          await delay(INTERVAL_BATCH);
-          continue;
-        }
+        if (!output) return;
 
-        const batch = await this.getBatch(startHeight, endHeight);
+        const batch = await this.getBatch(
+          output.startBlockNumber,
+          output.endBlockNumber
+        );
         await this.publishBatchToL1(batch);
-        await this.saveBatchToDB(this.dataSource, batch, this.batchIndex);
+        await this.saveBatchToDB(
+          manager,
+          batch,
+          this.batchIndex,
+          output.startBlockNumber,
+          output.endBlockNumber
+        );
         logger.info(`${this.batchIndex}th batch is successfully saved`);
-      } catch (err) {
-        throw new Error(`Error in BatchSubmitter: ${err}`);
-      }
+      });
+    } catch (err) {
+      throw new Error(`Error in BatchSubmitter: ${err}`);
+    } finally {
+      await delay(INTERVAL_BATCH);
     }
   }
 
   // Get [start, end] batch from L2
   async getBatch(start: number, end: number): Promise<Buffer> {
-    const bulk: BlockBulk | null = await getBlockBulk(
+    const bulk: BlockBulk | null = await this.rpcClient.getBlockBulk(
       start.toString(),
       end.toString()
     );
@@ -89,33 +93,24 @@ export class BatchSubmitter {
     return compressor(bulk.blocks);
   }
 
-  async getStoredBatch(db: DataSource): Promise<RecordEntity | null> {
-    const storedRecord = await db
-      .getRepository(RecordEntity)
-      .find({
-        order: {
-          batchIndex: 'DESC'
-        },
-        take: 1
-      })
-      .catch((err) => {
-        logger.error(`Error getting stored batch: ${err}`);
-        return null;
-      });
+  async getStoredBatch(manager: EntityManager): Promise<RecordEntity | null> {
+    const storedRecord = await manager.getRepository(RecordEntity).find({
+      order: {
+        batchIndex: 'DESC'
+      },
+      take: 1
+    });
 
-    return storedRecord ? storedRecord[0] : null;
+    return storedRecord[0] ?? null;
   }
 
   // Publish a batch to L1
   async publishBatchToL1(batch: Buffer) {
     try {
-      const executeMsg = new MsgExecute(
+      const executeMsg = new MsgRecordBatch(
         this.submitter.key.accAddress,
-        '0x1',
-        'op_batch_inbox',
-        'record_batch',
-        [config.L2ID],
-        [bcs.serialize('vector<u8>', batch, this.submissionInterval * 1000)]
+        this.bridgeId,
+        batch.toString('base64')
       );
 
       return await sendTx(this.submitter, [executeMsg]);
@@ -126,22 +121,26 @@ export class BatchSubmitter {
 
   // Save batch record to database
   async saveBatchToDB(
-    db: DataSource,
+    manager: EntityManager,
     batch: Buffer,
-    batchIndex: number
+    batchIndex: number,
+    startBlockNumber: number,
+    endBlockNumber: number
   ): Promise<RecordEntity> {
     const record = new RecordEntity();
 
-    record.l2Id = config.L2ID;
+    record.bridgeId = this.bridgeId;
     record.batchIndex = batchIndex;
     record.batch = batch;
+    record.startBlockNumber = startBlockNumber;
+    record.endBlockNumber = endBlockNumber;
 
-    await db
+    await manager
       .getRepository(RecordEntity)
       .save(record)
       .catch((error) => {
         throw new Error(
-          `Error saving record ${record.l2Id} batch ${batchIndex} to database: ${error}`
+          `Error saving record ${record.bridgeId} batch ${batchIndex} to database: ${error}`
         );
       });
 
