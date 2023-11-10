@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"github.com/initia-labs/OPinit/x/ophost/client/cli"
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -64,12 +65,12 @@ func (b AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client
 
 // GetTxCmd returns the root tx command for the move module.
 func (b AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the move module.
 func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
+	return cli.GetQueryCmd()
 }
 
 // RegisterInterfaces implements InterfaceModule
