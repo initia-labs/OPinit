@@ -1,0 +1,227 @@
+syntax = "proto3";
+package opinit.opchild.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "opinit/opchild/v1/types.proto";
+
+option go_package                      = "github.com/initia-labs/OPinit/x/opchild/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the rollup Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  ////////////////////////////
+  // Validator Messages
+
+  // ExecuteMessages defines a rpc handler method for MsgExecuteMessages.
+  rpc ExecuteMessages(MsgExecuteMessages) returns (MsgExecuteMessagesResponse);
+
+  // ExecuteLegacyContents defines a rpc handler method for
+  // MsgExecuteLegacyContents.
+  rpc ExecuteLegacyContents(MsgExecuteLegacyContents) returns (MsgExecuteLegacyContentsResponse);
+
+  ////////////////////////////
+  // Bridge Executor Messages
+
+  // FinalizeTokenDeposit defines a rpc handler method for MsgFinalizeTokenDeposit.
+  rpc FinalizeTokenDeposit(MsgFinalizeTokenDeposit) returns (MsgFinalizeTokenDepositResponse);
+
+  ////////////////////////////
+  // User Messages
+
+  // InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
+  rpc InitiateTokenWithdrawal(MsgInitiateTokenWithdrawal) returns (MsgInitiateTokenWithdrawalResponse);
+
+  ////////////////////////////
+  // Authority Messages
+
+  // AddValidator defines a rpc handler method for MsgAddValidator.
+  rpc AddValidator(MsgAddValidator) returns (MsgAddValidatorResponse);
+
+  // RemoveValidator defines a rpc handler method for MsgRemoveValidator.
+  rpc RemoveValidator(MsgRemoveValidator) returns (MsgRemoveValidatorResponse);
+
+  // UpdateParams defines an operation for updating the
+  // x/opchild module parameters.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // SpendFeePool defines an operation that spend fee pool to a recipient.
+  rpc SpendFeePool(MsgSpendFeePool) returns (MsgSpendFeePoolResponse);
+}
+
+///////////////////////////
+// Validator Messages
+
+// MsgExecuteMessages is a message to execute the given
+// authority messages with validator permission.
+message MsgExecuteMessages {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name)           = "opchild/MsgExecuteMessages";
+
+  // Sender is the that actor that signed a messages
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // messages are the arbitrary messages to be executed.
+  repeated google.protobuf.Any messages = 2;
+}
+
+// MsgExecuteMessagesResponse returns MsgExecuteMessages message result data
+message MsgExecuteMessagesResponse {}
+
+// MsgExecuteLegacyContents is a message to execute legacy
+// (gov) contents with validator permission.
+message MsgExecuteLegacyContents {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name)           = "opchild/MsgExecuteLegacyContents";
+
+  // Sender is the that actor that signed a messages
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // contents are the arbitrary legacy (gov) contents to be executed.
+  repeated google.protobuf.Any contents = 2;
+}
+
+// MsgExecuteLegacyContentsResponse returns MsgExecuteLegacyContents message
+// result data
+message MsgExecuteLegacyContentsResponse {}
+
+/////////////////////////////
+// Bridge Executor messages
+
+// MsgFinalizeTokenDeposit is a message to submit deposit funds from upper layer
+message MsgFinalizeTokenDeposit {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name)           = "opchild/MsgFinalizeTokenDeposit";
+
+  // the sender address
+  string sender = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // from is l1 sender address
+  string from = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // to is l2 recipient address
+  string to = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // amount is the coin amount to deposit.
+  cosmos.base.v1beta1.Coin amount = 4
+      [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // sequence is the sequence number of l1 bridge
+  uint64 sequence = 5;
+
+  // height is the height of l1 which is including the deposit message
+  uint64 height = 6;
+
+  /// data is a extra bytes for hooks.
+  bytes data = 7 [(gogoproto.nullable) = true, (amino.dont_omitempty) = true];
+}
+
+// MsgFinalizeTokenDepositResponse returns deposit result data
+message MsgFinalizeTokenDepositResponse {}
+
+// MsgInitiateTokenWithdrawal is a message to withdraw a new token from L2 to L1.
+message MsgInitiateTokenWithdrawal {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name)           = "opchild/MsgInitiateTokenWithdrawal";
+
+  // the l2 sender address
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // to is l1 recipient address
+  string to = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // amount is the coin amount to withdraw.
+  cosmos.base.v1beta1.Coin amount = 4
+      [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// MsgInitiateTokenWithdrawalResponse returns create token result data
+message MsgInitiateTokenWithdrawalResponse {
+  uint64 sequence = 1;
+}
+
+///////////////////////////
+// Authority Messages
+
+// MsgAddValidator defines a SDK message for adding a new validator.
+message MsgAddValidator {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name)           = "opchild/MsgAddValidator";
+
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address that controls the module
+  // (defaults to x/opchild unless overwritten).
+  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  string              moniker           = 2;
+  string              validator_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  google.protobuf.Any pubkey            = 4 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+}
+
+// MsgAddValidatorResponse returns add result data
+message MsgAddValidatorResponse {}
+
+// MsgAddValidator is a message to remove a validator from designated list
+message MsgRemoveValidator {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name)           = "opchild/MsgRemoveValidator";
+
+  // authority is the address that controls the module
+  // (defaults to x/opchild unless overwritten).
+  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // validator is the validator to remove.
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgAddValidatorResponse returns remove result data
+message MsgRemoveValidatorResponse {}
+
+// MsgUpdateParams is a message to update parameters
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name)           = "opchild/MsgUpdateParams";
+
+  // authority is the address that controls the module
+  // (defaults to x/opchild unless overwritten).
+  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params are the arbitrary parameters to be updated.
+  Params params = 2;
+}
+
+// MsgUpdateParamsResponse returns parameter update result data
+message MsgUpdateParamsResponse {}
+
+// MsgSpendFeePool is a message to withdraw collected fees from the module
+// account to the recipient address.
+message MsgSpendFeePool {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name)           = "opchild/MsgSpendFeePool";
+
+  // authority is the address that controls the module
+  // (defaults to x/opchild unless overwritten).
+  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // recipient is address to receive the coins.
+  string recipient = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // the coin amount to spend.
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.moretags)     = "yaml:\"amount\"",
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// MsgSpendFeePoolResponse returns deposit result data
+message MsgSpendFeePoolResponse {}
