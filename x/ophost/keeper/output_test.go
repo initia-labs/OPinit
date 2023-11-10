@@ -79,11 +79,10 @@ func Test_IsFinalized(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challenger:          "",
-		Proposer:            "",
-		SubmissionInterval:  100,
-		StartingBlockNumber: 100,
-		FinalizationPeriod:  time.Second * 10,
+		Challenger:         "",
+		Proposer:           "",
+		SubmissionInterval: 100,
+		FinalizationPeriod: time.Second * 10,
 	})
 
 	proposeTime := time.Now().UTC()

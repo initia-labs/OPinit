@@ -98,25 +98,6 @@ func (ms MsgServer) ProposeOutput(context context.Context, req *types.MsgPropose
 	// fetch next output index
 	outputIndex := ms.IncreaseNextOutputIndex(ctx, bridgeId)
 
-	// calculate next l2 block number
-	startingBlockNumber := bridgeConfig.StartingBlockNumber
-	nextL2BlockNumber := startingBlockNumber
-
-	// check this is first submission or not
-	if outputIndex != 1 {
-		lastOutputProposal, err := ms.GetOutputProposal(ctx, bridgeId, outputIndex-1)
-		if err != nil {
-			return nil, err
-		}
-
-		nextL2BlockNumber = lastOutputProposal.L2BlockNumber + bridgeConfig.SubmissionInterval
-	}
-
-	// check submitted output has proper l2 block number
-	if l2BlockNumber != nextL2BlockNumber {
-		return nil, types.ErrSubmissionInterval
-	}
-
 	// store output proposal
 	if err := ms.SetOutputProposal(ctx, bridgeId, outputIndex, types.Output{
 		OutputRoot:    outputRoot,

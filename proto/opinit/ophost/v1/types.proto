@@ -32,8 +32,14 @@ message BridgeConfig {
   string challenger = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The address of the proposer.
   string proposer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // The l2 block number interval at which checkpoints must be submitted.
-  uint64 submission_interval = 3;
+  // The time interval at which checkpoints must be submitted.
+  // NOTE: this param is currently not used, but will be used for challenge in future.
+  google.protobuf.Duration submission_interval = 3 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag)     = "submission_interval,omitempty",
+    (gogoproto.nullable)    = false,
+    (amino.dont_omitempty)  = true
+  ];
   // The minium time duration that must elapse before a withdrawal can be finalized.
   google.protobuf.Duration finalization_period = 4 [
     (gogoproto.stdduration) = true,
@@ -41,8 +47,10 @@ message BridgeConfig {
     (gogoproto.nullable)    = false,
     (amino.dont_omitempty)  = true
   ];
-  // The block number of the first l2 block recorded.
-  uint64 starting_block_number = 5;
+  // The time of the first l2 block recorded.
+  // NOTE: this param is currently not used, but will be used for challenge in future.
+  google.protobuf.Timestamp submission_start_time = 5
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // Normally it is IBC channelID for permissioned IBC relayer.
   bytes metadata = 6;
 }
@@ -60,6 +68,6 @@ message Output {
   // Timestamp of the l1 block that the output root was submitted in.
   google.protobuf.Timestamp l1_block_time = 2
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-  // Timestamp of the l2 block that the output root was submitted in.
+  // The l2 block number that the output root was submitted in.
   uint64 l2_block_number = 3;
 }
