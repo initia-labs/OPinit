@@ -30,7 +30,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 		k.SetValidator(ctx, validator)
 
 		// Manually set indices for the first time
-		k.SetValidatorByConsAddr(ctx, validator)
+		if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+			panic(err)
+		}
 	}
 
 	// don't need to run Tendermint updates if we exported
