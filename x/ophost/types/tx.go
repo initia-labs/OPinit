@@ -71,6 +71,10 @@ func (msg MsgRecordBatch) ValidateBasic() error {
 		return err
 	}
 
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
 	return nil
 }
 
