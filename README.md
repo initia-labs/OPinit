@@ -10,7 +10,7 @@ Initia Layer 2 solution with Optimistic Rollup.
 
 #### [Bridge Module](./specs/l1_bridge.md)
 
-The bridge module triggers the deposit event for the bridge executor, which acts as a relayer between L1 and L2. It has two interfaces: `initialize_deposit` for users and `finalize_withdrawal` for the bridge executor. Both interfaces can be executed by anyone who wants to move the tokens between L1 and L2.
+The bridge module triggers a deposit event for the bridge executor, which acts as a relayer between L1 and L2. It has two interfaces: `initialize_deposit` for users and `finalize_withdrawal` for the bridge executor. Both interfaces can be executed by anyone who wants to move the tokens between L1 and L2.
 
 A deposit does not require any proving or confirmation period, but a withdrawal requires [withdrawal proving](./specs/withdrawal_proving.md) and a finalized output root which contains the withdrawal transaction.
 
@@ -39,7 +39,7 @@ The bridge executor is the core component in minitia rollup, which is charge of 
 
 #### [Minitia](./specs/minitia.md)
 
-The L2 app chain implementation provides rollup-specific interfaces for a bridge executor. The minitia is a minimized version of the initia app chain, so it does not include staking-related modules such as `staking`, `distribution`, `crisis`, and `evidence`. Instead, it has a new module called `rollup`, which provides a permissioned interface for adding and removing validators, as well as executing [bridge messages](./specs/l2_bridge.md) that can be executed by the bridge executor.
+The L2 app chain implementation provides rollup-specific interfaces for a bridge executor. The minitia is a minimized version of the initia app chain, so it does not include staking-related modules such as `staking`, `distribution`, `crisis`, and `evidence`. Instead, it has a new module called `opchild`, which provides a permissioned interface for adding and removing validators, as well as executing [bridge messages](./specs/l2_bridge.md) that can be executed by the bridge executor.
 
 #### BatchSubmitter
 
@@ -61,6 +61,6 @@ The dispute process works as follows:
 
 1. A `challenger` deletes the invalid output root from the output oracle module.
 2. Both a `challenger` and a `proposer` make a governance proposal to update invalid operator addresses:
-    * The `challenger` make a governance proposal to change the `proposer` to another address if the `proposer` keeps submitting an invalid output root.
-    * The `proposer` make a governance proposal to change the `challenger` to another address if the `challenger` keeps deleting a valid output root.
+    * The `challenger` makes a governance proposal to change the `proposer` to another address if the `proposer` keeps submitting an invalid output root.
+    * The `proposer` makes a governance proposal to change the `challenger` to another address if the `challenger` keeps deleting a valid output root.
 3. L1 validators make a validity decision by running an L2 node with L2 state and data inputs.
