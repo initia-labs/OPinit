@@ -55,3 +55,13 @@ func Test_TrackHistoricalInfo(t *testing.T) {
 	_, found = input.OPChildKeeper.GetHistoricalInfo(ctx, 100)
 	require.False(t, found)
 }
+
+func Test_DeleteHistoricalInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	emptyHistoricalInfo := cosmostypes.HistoricalInfo{}
+	input.OPChildKeeper.SetHistoricalInfo(ctx, 100, &emptyHistoricalInfo)
+
+	input.OPChildKeeper.DeleteHistoricalInfo(ctx, 100)
+	_, found := input.OPChildKeeper.GetHistoricalInfo(ctx, 100)
+	require.False(t, found)
+}

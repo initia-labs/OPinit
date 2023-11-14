@@ -180,7 +180,9 @@ func (ms MsgServer) AddValidator(context context.Context, req *types.MsgAddValid
 	}
 
 	ms.SetValidator(ctx, validator)
-	ms.SetValidatorByConsAddr(ctx, validator)
+	if err = ms.SetValidatorByConsAddr(ctx, validator); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -206,7 +208,7 @@ func (ms MsgServer) RemoveValidator(context context.Context, req *types.MsgRemov
 
 	val, found := ms.Keeper.GetValidator(ctx, valAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
+		return nil, errors.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
 	}
 	val.ConsPower = 0
 
