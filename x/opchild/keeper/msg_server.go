@@ -208,7 +208,7 @@ func (ms MsgServer) RemoveValidator(context context.Context, req *types.MsgRemov
 
 	val, found := ms.Keeper.GetValidator(ctx, valAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
+		return nil, errors.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
 	}
 	val.ConsPower = 0
 
