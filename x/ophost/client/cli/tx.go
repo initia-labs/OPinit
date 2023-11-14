@@ -90,12 +90,12 @@ func NewCreateBridge() *cobra.Command {
 				
 				Where bridge-config.json contains:
 				{
-					"challenger": "init1...",
-					"proposer": "initi1...",
-					"submissionIntervan": "100s",
-					"finalizationPeriod": "100s",
-					"submissionStartTime" : "2023-12-01T00:00:00Z", // rfc3339
-					"metadata": "channel-0"
+					"challenger": "bech32-address",
+					"proposer": "bech32-addresss",
+					"submissionIntervan": "duration",
+					"finalizationPeriod": "duration",
+					"submissionStartTime" : "rfc3339-datetime",
+					"metadata": "channel-id"
 				}`, version.AppName,
 			),
 		),
