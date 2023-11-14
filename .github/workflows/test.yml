@@ -1,4 +1,4 @@
-name: Build & Test
+name: Test
 on:
   pull_request:
     paths:
@@ -42,9 +42,6 @@ jobs:
             go.sum
       # for private repo access
       - run: git config --global url.https://${GITHUB_ACCESS_TOKEN}:x-oauth-basic@github.com/.insteadOf https://github.com/
-      - name: build
-        run: |
-          make build
       - name: test & coverage report creation
         run: |
           go test ./... -mod=readonly -timeout 12m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock'
