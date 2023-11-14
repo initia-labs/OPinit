@@ -24,7 +24,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgFinalizeTokenDeposit{}, "opchild/MsgFinalizeTokenDeposit")
 	legacy.RegisterAminoMsg(cdc, &MsgInitiateTokenWithdrawal{}, "opchild/MsgInitiateTokenWithdrawal")
 
-	//cdc.RegisterConcrete(&PublishAuthorization{}, "move/PublishAuthorization", nil)
 	cdc.RegisterConcrete(Params{}, "opchild/Params", nil)
 }
 
