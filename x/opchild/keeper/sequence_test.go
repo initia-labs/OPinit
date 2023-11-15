@@ -42,7 +42,7 @@ func Test_SetAndSetNextL2Sequence(t *testing.T) {
 	require.Equal(t, uint64(1204), seq)
 }
 
-func Test_IncreseNextL2Sequence(t *testing.T) {
+func Test_IncreaseNextL2Sequence(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	seq := input.OPChildKeeper.GetNextL2Sequence(ctx)

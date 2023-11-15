@@ -58,12 +58,16 @@ func (k Keeper) GetNextL2Sequence(ctx sdk.Context) uint64 {
 func (k Keeper) IncreaseNextL2Sequence(ctx sdk.Context) uint64 {
 	kvStore := ctx.KVStore(k.storeKey)
 	bz := kvStore.Get(types.NextL2SequenceKey)
-	sequence := uint64(1)
-	if len(bz) > 0 {
-		sequence = binary.BigEndian.Uint64(bz)
+
+	nextL2Sequence := uint64(1)
+	if len(bz) != 0 {
+		nextL2Sequence = binary.BigEndian.Uint64(bz)
 	}
 
-	k.SetNextL2Sequence(ctx, sequence+1)
+	// increase next l2 sequence
+	_nextL2Sequence := [8]byte{}
+	binary.BigEndian.PutUint64(_nextL2Sequence[:], nextL2Sequence+1)
+	kvStore.Set(types.NextL2SequenceKey, _nextL2Sequence[:])
 
-	return sequence
+	return nextL2Sequence
 }
