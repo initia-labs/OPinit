@@ -21,10 +21,12 @@ func NewGenesisState(params Params, validators []Validator) *GenesisState {
 // DefaultGenesisState gets the raw genesis raw message for testing
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:              DefaultParams(),
-		LastValidatorPowers: []LastValidatorPower{},
-		Validators:          []Validator{},
-		Exported:            false,
+		Params:               DefaultParams(),
+		LastValidatorPowers:  []LastValidatorPower{},
+		Validators:           []Validator{},
+		Exported:             false,
+		NextL2Sequence:       1,
+		FinalizedL1Sequences: []uint64{},
 	}
 }
 
