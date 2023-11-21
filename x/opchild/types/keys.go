@@ -10,7 +10,7 @@ import (
 
 const (
 	// ModuleName is the name of the opchild module
-	// module addr: init1vl25je2ntvjy7u9dnz9qzju674vfe25tkhhp92
+	// module addr: init1gz9n8jnu9fgqw7vem9ud67gqjk5q4m2w0aejne
 	ModuleName = "opchild"
 
 	// StoreKey is the string store representation
