@@ -20,7 +20,8 @@ type Keeper struct {
 	bridgeHook types.BridgeHook
 
 	// Msg server router
-	router *baseapp.MsgServiceRouter
+	router       *baseapp.MsgServiceRouter
+	abciListener *ABCIListener
 
 	// Legacy Proposal router
 	legacyRouter govv1beta1.Router
@@ -44,15 +45,22 @@ func NewKeeper(
 		panic("authority is not a valid acc address")
 	}
 
-	return Keeper{
-		cdc:        cdc,
-		storeKey:   key,
-		authKeeper: ak,
-		bankKeeper: bk,
-		bridgeHook: bh,
-		router:     router,
-		authority:  authority,
+	abciListener := &ABCIListener{}
+	k := Keeper{
+		cdc:          cdc,
+		storeKey:     key,
+		authKeeper:   ak,
+		bankKeeper:   bk,
+		bridgeHook:   bh,
+		router:       router,
+		authority:    authority,
+		abciListener: abciListener,
 	}
+
+	_abciListener := newABCIListener(&k)
+	*abciListener = _abciListener
+
+	return k
 }
 
 // GetAuthority returns the x/move module's authority.
@@ -63,6 +71,11 @@ func (ak Keeper) GetAuthority() string {
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
+}
+
+// GetABCIListener return ABCIListener pointer
+func (k Keeper) GetABCIListener() *ABCIListener {
+	return k.abciListener
 }
 
 // Router returns the gov keeper's router
