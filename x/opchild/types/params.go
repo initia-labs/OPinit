@@ -48,5 +48,9 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if p.MaxValidators == 0 {
+		return ErrZeroMaxValidators
+	}
+
 	return nil
 }

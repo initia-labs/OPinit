@@ -16,4 +16,5 @@ var (
 	ErrDepositAlreadyFinalized         = errorsmod.Register(ModuleName, 9, "deposit already finalized")
 	ErrInvalidAmount                   = errorsmod.Register(ModuleName, 10, "invalid amount")
 	ErrInvalidSequence                 = errorsmod.Register(ModuleName, 11, "invalid sequence")
+	ErrZeroMaxValidators               = errorsmod.Register(ModuleName, 12, "max validators must be non-zero")
 )
