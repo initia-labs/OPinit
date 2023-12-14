@@ -85,16 +85,7 @@ export abstract class Monitor {
               );
             }
 
-            // WARN: THIS SHOULD BE REMOVED AFTER MINITIA UPDATED
-            // every block except the first block has at least one tx (skip blockSDK).
-            if (
-              parseInt(metadata.num_txs) === 0 ||
-              (this.name() == 'executor_l2_monitor' &&
-                ((this.currentHeight !== 1 &&
-                  parseInt(metadata.num_txs) === 1) ||
-                  (this.currentHeight === 1 &&
-                    parseInt(metadata.num_txs) === 0)))
-            ) {
+            if (parseInt(metadata.num_txs) === 0) {
               await this.handleBlockWithStateUpdate(manager);
               continue;
             }

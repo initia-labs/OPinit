@@ -90,7 +90,7 @@ export class TxWallet extends Wallet {
       denom
     );
 
-    if (balance?.amount && parseInt(balance.amount) < 1_000_000_000) {
+    if (balance?.amount && parseInt(balance.amount) < 100_000_000) {
       await notifySlack(
         buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
       );
