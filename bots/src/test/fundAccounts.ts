@@ -104,7 +104,7 @@ async function startDepositTxBot() {
   for (;;) {
     const res = await txBot.deposit(
       txBot.l1sender,
-      txBot.l2sender,
+      txBot.l2receiver,
       new Coin('uinit', 1_000_000)
     );
     console.log(`Deposited height ${res.height} ${res.txhash}`);

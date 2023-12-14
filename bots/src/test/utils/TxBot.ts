@@ -2,48 +2,16 @@ import {
   Wallet,
   MsgInitiateTokenDeposit,
   Coin,
-  MsgInitiateTokenWithdrawal,
-  MnemonicKey
+  MsgInitiateTokenWithdrawal
 } from '@initia/initia.js';
 import { makeFinalizeMsg } from './helper';
 import { sendTx } from 'lib/tx';
 import { getOutputFromExecutor, getWithdrawalTxFromExecutor } from 'lib/query';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { L1_SENDER, L2_RECEIVER } from './consts';
 
 export class TxBot {
-  l1sender = new Wallet(
-    config.l1lcd,
-    new MnemonicKey({
-      mnemonic:
-        // init1wzenw7r2t2ra39k4l9yqq95pw55ap4sm4vsa9g
-        ''
-    })
-  );
-
-  l1receiver = new Wallet(
-    config.l1lcd,
-    new MnemonicKey({
-      mnemonic:
-        // init174knscjg688ddtxj8smyjz073r3w5mmsp3m0m2
-        ''
-    })
-  );
-
-  l2sender = new Wallet(
-    config.l2lcd,
-    new MnemonicKey({
-      mnemonic: ''
-    })
-  );
-
-  l2receiver = new Wallet(
-    config.l2lcd,
-    new MnemonicKey({
-      mnemonic: ''
-    })
-  );
+  l1sender = L1_SENDER;
+  l2receiver = L2_RECEIVER;
 
   constructor(public bridgeId: number) {}
 

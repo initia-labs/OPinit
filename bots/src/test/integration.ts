@@ -36,16 +36,16 @@ async function startDepositTxBot() {
   for (;;) {
     const balance = await getBalanceByDenom(
       config.l2lcd,
-      txBot.l2sender.key.accAddress,
+      txBot.l2receiver.key.accAddress,
       pair.l2_denom
     );
     const res = await txBot.deposit(
       txBot.l1sender,
-      txBot.l2sender,
+      txBot.l2receiver,
       new Coin('uinit', DEPOSIT_AMOUNT)
     );
     console.log(
-      `[DepositBot] Deposited height ${res.height} to ${txBot.l2sender.key.accAddress} ${balance?.amount}`
+      `[DepositBot] Deposited height ${res.height} to ${txBot.l2receiver.key.accAddress} ${balance?.amount}`
     );
     await delay(DEPOSIT_INTERVAL_MS);
   }
