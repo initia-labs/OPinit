@@ -31,9 +31,9 @@ export class Challenger {
   private db: DataSource;
   bridgeId: number;
   bridgeInfo: BridgeInfo;
-  l1LastChallengedSequence: number;
-  l1DepositSequenceToChallenge: number;
-  l2OutputIndexToChallenge: number;
+  l1LastCheckedSequence: number;
+  l1DepositSequenceToCheck: number;
+  l2OutputIndexToCheck: number;
   submissionIntervalMs: number;
   missCount: number; // count of miss interval to finalize deposit tx
   threshold: number; // threshold of miss interval to finalize deposit tx
@@ -70,14 +70,16 @@ export class Challenger {
     if (!state) {
       await this.db.getRepository(ChallengeEntity).save({
         name: this.name(),
-        l1DepositSequenceToChallenge: 1,
-        l2OutputIndexToChallenge: 1
+        l1DepositSequenceToCheck: 1,
+        l1LastCheckedSequence: 0,
+        l2OutputIndexToCheck: 1,
       });
     }
-    this.l1DepositSequenceToChallenge =
-      state?.l1DepositSequenceToChallenge || 1;
-    this.l2OutputIndexToChallenge = state?.l2OutputIndexToChallenge || 1;
-    this.l1LastChallengedSequence = this.l1DepositSequenceToChallenge - 1;
+    
+    this.l1DepositSequenceToCheck =
+      state?.l1DepositSequenceToCheck || 1;
+    this.l2OutputIndexToCheck = state?.l2OutputIndexToCheck || 1;
+    this.l1LastCheckedSequence = state?.l1LastCheckedSequence || 0;
   }
 
   public async run(): Promise<void> {
@@ -98,32 +100,45 @@ export class Challenger {
   }
 
   public async l1Challenge(manager: EntityManager) {
+    if (this.l1LastCheckedSequence == this.l1DepositSequenceToCheck) {
+      // get next sequence from db with smallest sequence but bigger than last challenged sequence
+      const nextDepositSequenceToCheck = await manager
+      .getRepository(ChallengerDepositTxEntity)
+      .find({
+        where: { sequence: MoreThan(this.l1DepositSequenceToCheck) } as any,
+        order: { sequence: 'ASC' },
+        take: 1
+      });
+
+      if (nextDepositSequenceToCheck.length === 0) return;
+      this.l1DepositSequenceToCheck = Number(
+        nextDepositSequenceToCheck[0].sequence
+      );
+    }
+
     const lastOutputInfo = await getLastOutputInfo(this.bridgeId);
     const depositTxFromChallenger = await manager
       .getRepository(ChallengerDepositTxEntity)
       .findOne({
-        where: { sequence: this.l1DepositSequenceToChallenge } as any
+        where: { sequence: this.l1DepositSequenceToCheck } as any
       });
 
     if (!depositTxFromChallenger) return;
-    this.l1DepositSequenceToChallenge = Number(
+    this.l1DepositSequenceToCheck = Number(
       depositTxFromChallenger.sequence
     );
-
-    if (this.l1LastChallengedSequence == this.l1DepositSequenceToChallenge)
-      return;
 
     // case 1. not finalized deposit tx
     const depositFinalizeTxFromChallenger = await manager
       .getRepository(ChallengerFinalizeDepositTxEntity)
       .findOne({
-        where: { sequence: this.l1DepositSequenceToChallenge } as any
+        where: { sequence: this.l1DepositSequenceToCheck } as any
       });
 
     if (!depositFinalizeTxFromChallenger) {
       this.missCount += 1;
       this.logger.warn(
-        `[L1 Challenger] deposit tx with sequence "${this.l1DepositSequenceToChallenge}" is not finialized`
+        `[L1 Challenger] deposit tx with sequence "${this.l1DepositSequenceToCheck}" is not finialized`
       );
       if (this.missCount <= THRESHOLD_MISS_INTERVAL || !lastOutputInfo) {
         return await delay(this.submissionIntervalMs);
@@ -158,27 +173,17 @@ export class Challenger {
     }
 
     logger.info(
-      `[L1 Challenger] deposit tx matched in sequence : ${this.l1DepositSequenceToChallenge}`
+      `[L1 Challenger] deposit tx matched in sequence : ${this.l1DepositSequenceToCheck}`
     );
 
     this.missCount = 0;
-    this.l1LastChallengedSequence = this.l1DepositSequenceToChallenge;
-    // get next sequence from db with smallest sequence but bigger than last challenged sequence
-    const nextDepositSequenceToChallenge = await manager
-      .getRepository(ChallengerDepositTxEntity)
-      .find({
-        where: { sequence: MoreThan(this.l1DepositSequenceToChallenge) } as any,
-        order: { sequence: 'ASC' },
-        take: 1
-      });
-    if (nextDepositSequenceToChallenge.length === 0) return;
-    this.l1DepositSequenceToChallenge = Number(
-      nextDepositSequenceToChallenge[0].sequence
-    );
+    this.l1LastCheckedSequence = this.l1DepositSequenceToCheck;
+    
     await manager.getRepository(ChallengeEntity).update(
       { name: this.name() },
       {
-        l1DepositSequenceToChallenge: this.l1DepositSequenceToChallenge
+        l1DepositSequenceToCheck: this.l1DepositSequenceToCheck,
+        l1LastCheckedSequence: this.l1LastCheckedSequence
       }
     );
   }
@@ -245,7 +250,7 @@ export class Challenger {
     // condition 1. ouptut should be submitted
     const outputInfoToChallenge = await getOutputInfoByIndex(
       this.bridgeId,
-      this.l2OutputIndexToChallenge
+      this.l2OutputIndexToCheck
     ).catch(() => {
       return null;
     });
@@ -254,11 +259,11 @@ export class Challenger {
 
     // case 1. output root not matched
     const outputRootFromContract = await this.getContractOutputRoot(
-      this.l2OutputIndexToChallenge
+      this.l2OutputIndexToCheck
     );
     const outputRootFromChallenger = await this.getChallengerOutputRoot(
       manager,
-      this.l2OutputIndexToChallenge
+      this.l2OutputIndexToCheck
     );
 
     if (!outputRootFromContract || !outputRootFromChallenger) return;
@@ -266,19 +271,19 @@ export class Challenger {
     if (outputRootFromContract !== outputRootFromChallenger) {
       await this.handleChallengedOutputProposal(
         manager,
-        this.l2OutputIndexToChallenge,
+        this.l2OutputIndexToCheck,
         `not equal output root from contract: ${outputRootFromContract}, from challenger: ${outputRootFromChallenger}`
       );
     }
 
     logger.info(
-      `[L2 Challenger] output root matched in output index : ${this.l2OutputIndexToChallenge}`
+      `[L2 Challenger] output root matched in output index : ${this.l2OutputIndexToCheck}`
     );
-    this.l2OutputIndexToChallenge += 1;
+    this.l2OutputIndexToCheck += 1;
     await manager.getRepository(ChallengeEntity).update(
       { name: this.name() },
       {
-        l2OutputIndexToChallenge: this.l2OutputIndexToChallenge
+        l2OutputIndexToCheck: this.l2OutputIndexToCheck
       }
     );
   }

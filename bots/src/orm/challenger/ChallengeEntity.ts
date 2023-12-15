@@ -6,8 +6,11 @@ export default class ChallengeEntity {
   name: string;
 
   @Column('int')
-  l1DepositSequenceToChallenge: number;
+  l1DepositSequenceToCheck: number;
 
   @Column('int')
-  l2OutputIndexToChallenge: number;
+  l1LastCheckedSequence: number;
+
+  @Column('int')
+  l2OutputIndexToCheck: number;
 }
