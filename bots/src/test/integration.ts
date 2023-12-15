@@ -6,11 +6,11 @@ import { startBatch } from 'worker/batchSubmitter';
 import { startExecutor } from 'worker/bridgeExecutor';
 import { startOutput } from 'worker/outputSubmitter';
 import { delay } from 'bluebird';
-import { getBalanceByDenom, getTokenPairByL1Denom } from 'lib/query';
+import { getTokenPairByL1Denom } from 'lib/query';
 
 const config = Config.getConfig();
 const SUBMISSION_INTERVAL = 5;
-const FINALIZED_TIME = 5;
+const FINALIZATION_PERIOD = 5;
 const DEPOSIT_AMOUNT = 1_000_000;
 const DEPOSIT_INTERVAL_MS = 100;
 
@@ -34,8 +34,7 @@ async function startDepositTxBot() {
   const txBot = new TxBot(config.BRIDGE_ID);
   const pair = await getTokenPairByL1Denom('uinit');
   for (;;) {
-    const balance = await getBalanceByDenom(
-      config.l2lcd,
+    const balance = await config.l2lcd.bank.balanceByDenom(
       txBot.l2receiver.key.accAddress,
       pair.l2_denom
     );
@@ -53,7 +52,7 @@ async function startDepositTxBot() {
 
 async function main() {
   try {
-    await setupBridge(SUBMISSION_INTERVAL, FINALIZED_TIME);
+    await setupBridge(SUBMISSION_INTERVAL, FINALIZATION_PERIOD);
     await startBot();
     await startDepositTxBot();
   } catch (err) {

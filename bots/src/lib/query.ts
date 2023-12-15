@@ -21,11 +21,15 @@ const config = getConfig();
 export async function getLastOutputInfo(
   bridgeId: number
 ): Promise<OutputInfo | null> {
-  const [outputInfos, pagination] = await config.l1lcd.ophost.outputInfos(
-    bridgeId
+  const [outputInfos, _pagination] = await config.l1lcd.ophost.outputInfos(
+    bridgeId,
+    {
+      'pagination.limit': '1',
+      'pagination.reverse': 'true'
+    }
   );
   if (outputInfos.length === 0) return null;
-  return await config.l1lcd.ophost.outputInfo(bridgeId, pagination.total);
+  return outputInfos[0];
 }
 
 // get the output by index from L1 chain
@@ -38,15 +42,6 @@ export async function getOutputInfoByIndex(
 
 export async function getBridgeInfo(bridgeId: number): Promise<BridgeInfo> {
   return await config.l1lcd.ophost.bridgeInfo(bridgeId);
-}
-
-export async function getBalanceByDenom(
-  lcd: LCDClient,
-  account: string,
-  denom: string
-): Promise<Coin | undefined> {
-  const [coins, _pagination] = await lcd.bank.balance(account);
-  return coins.get(denom);
 }
 
 export async function getTokenPairByL1Denom(denom: string): Promise<TokenPair> {

@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('challenger_deleted_output')
-export default class ChallengerDeletedOutputEntity {
+export default class ChallengedOutputEntity {
   @PrimaryColumn('bigint')
   outputIndex: number;
 

@@ -12,9 +12,12 @@ export USE_LOG_FILE=false
 export EXECUTOR_PORT=5000
 export BATCH_PORT=5001
 
+# slack notification
+export SLACK_WEB_HOOK=
+
 # l2 setup (need challenger, output, executor mnemonic)
 export SUBMISSION_INTERVAL=10000
-export FINALIZED_TIME=10000
+export FINALIZATION_PERIOD=10000
 export IBC_METADATA='channel-1'
 
 export L1_LCD_URI=http://localhost:1317
@@ -34,3 +37,4 @@ export CHALLENGER_MNEMONIC=''
 
 # output submitter config
 export OUTPUT_SUBMITTER_MNEMONIC=''
+export DELETE_OUTPUT_PROPOSAL='false'

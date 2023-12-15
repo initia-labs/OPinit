@@ -12,7 +12,8 @@ import ChallengerFinalizeDepositTxEntity from './challenger/FinalizeDepositTxEnt
 import ChallengerFinalizeWithdrawalTxEntity from './challenger/FinalizeWithdrawalTxEntity';
 
 import ChallengerOutputEntity from './challenger/OutputEntity';
-import ChallengerDeletedOutputEntity from './challenger/DeletedOutputEntity';
+import ChallengedOutputEntity from './challenger/DeletedOutputEntity';
+import ChallengeEntity from './challenger/ChallengeEntity';
 
 export * from './RecordEntity';
 export * from './StateEntity';
@@ -23,6 +24,7 @@ export * from './challenger/FinalizeDepositTxEntity';
 export * from './challenger/FinalizeWithdrawalTxEntity';
 export * from './challenger/OutputEntity';
 export * from './challenger/DeletedOutputEntity';
+export * from './challenger/ChallengeEntity';
 
 export * from './executor/OutputEntity';
 export * from './executor/DepositTxEntity';
@@ -41,5 +43,6 @@ export {
   ChallengerOutputEntity,
   ChallengerFinalizeDepositTxEntity,
   ChallengerFinalizeWithdrawalTxEntity,
-  ChallengerDeletedOutputEntity
+  ChallengedOutputEntity,
+  ChallengeEntity
 };

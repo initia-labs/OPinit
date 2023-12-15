@@ -1,4 +1,4 @@
-import { BridgeInfo } from '@initia/initia.js';
+import { BridgeInfo, MsgDeleteOutput } from '@initia/initia.js';
 import { DataSource, MoreThan } from 'typeorm';
 import { getDB } from './db';
 import {
@@ -6,7 +6,8 @@ import {
   ChallengerFinalizeDepositTxEntity,
   ChallengerOutputEntity,
   ChallengerWithdrawalTxEntity,
-  ChallengerDeletedOutputEntity
+  ChallengedOutputEntity,
+  ChallengeEntity
 } from 'orm';
 import { delay } from 'bluebird';
 import { challengerLogger as logger } from 'lib/logger';
@@ -19,8 +20,10 @@ import {
 } from 'lib/query';
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
 import winston from 'winston';
+import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
 
 const config = getConfig();
+const { DELETE_OUTPUT_PROPOSAL } = process.env;
 const THRESHOLD_MISS_INTERVAL = 5;
 
 export class Challenger {
@@ -35,16 +38,21 @@ export class Challenger {
   missCount: number; // count of miss interval to finalize deposit tx
   threshold: number; // threshold of miss interval to finalize deposit tx
   helper: MonitorHelper;
+  challenger: TxWallet;
 
   constructor(public logger: winston.Logger) {
     [this.db] = getDB();
     this.bridgeId = config.BRIDGE_ID;
     this.isRunning = true;
-    this.l1DepositSequenceToChallenge = 1;
-    this.l2OutputIndexToChallenge = 1;
     this.missCount = 0;
 
     this.helper = new MonitorHelper();
+    initWallet(WalletType.Challenger, config.l1lcd);
+    this.challenger = getWallet(WalletType.Challenger);
+  }
+
+  public name(): string {
+    return 'challenge';
   }
 
   async init(): Promise<void> {
@@ -52,6 +60,24 @@ export class Challenger {
     this.submissionIntervalMs =
       this.bridgeInfo.bridge_config.submission_interval.seconds.toNumber() *
       1000;
+
+    const state = await this.db.getRepository(ChallengeEntity).findOne({
+      where: {
+        name: this.name()
+      }
+    });
+
+    if (!state) {
+      await this.db.getRepository(ChallengeEntity).save({
+        name: this.name(),
+        l1DepositSequenceToChallenge: 1,
+        l2OutputIndexToChallenge: 1
+      });
+    }
+    this.l1DepositSequenceToChallenge =
+      state?.l1DepositSequenceToChallenge || 1;
+    this.l2OutputIndexToChallenge = state?.l2OutputIndexToChallenge || 1;
+    this.l1LastChallengedSequence = this.l1DepositSequenceToChallenge - 1;
   }
 
   public async run(): Promise<void> {
@@ -79,12 +105,13 @@ export class Challenger {
         where: { sequence: this.l1DepositSequenceToChallenge } as any
       });
 
-    if (!depositTxFromChallenger) {
-      return;
-    }
+    if (!depositTxFromChallenger) return;
     this.l1DepositSequenceToChallenge = Number(
       depositTxFromChallenger.sequence
     );
+
+    if (this.l1LastChallengedSequence == this.l1DepositSequenceToChallenge)
+      return;
 
     // case 1. not finalized deposit tx
     const depositFinalizeTxFromChallenger = await manager
@@ -96,12 +123,12 @@ export class Challenger {
     if (!depositFinalizeTxFromChallenger) {
       this.missCount += 1;
       this.logger.warn(
-        `[L1 Challenger] not finalized deposit tx in sequence : ${this.l1DepositSequenceToChallenge}`
+        `[L1 Challenger] deposit tx with sequence "${this.l1DepositSequenceToChallenge}" is not finialized`
       );
       if (this.missCount <= THRESHOLD_MISS_INTERVAL || !lastOutputInfo) {
         return await delay(this.submissionIntervalMs);
       }
-      return await this.deleteOutputProposal(
+      return await this.handleChallengedOutputProposal(
         manager,
         lastOutputInfo.output_index,
         `not finalized deposit tx within ${THRESHOLD_MISS_INTERVAL} submission interval ${depositFinalizeTxFromChallenger}`
@@ -123,18 +150,16 @@ export class Challenger {
       pair.l2_denom === depositFinalizeTxFromChallenger.l2Denom;
 
     if (!isEqaul && lastOutputInfo) {
-      await this.deleteOutputProposal(
+      await this.handleChallengedOutputProposal(
         manager,
         lastOutputInfo.output_index,
         `not equal deposit tx between L1 and L2`
       );
     }
 
-    if (this.l1LastChallengedSequence != this.l1DepositSequenceToChallenge) {
-      logger.info(
-        `[L1 Challenger] deposit tx matched in sequence : ${this.l1DepositSequenceToChallenge}`
-      );
-    }
+    logger.info(
+      `[L1 Challenger] deposit tx matched in sequence : ${this.l1DepositSequenceToChallenge}`
+    );
 
     this.missCount = 0;
     this.l1LastChallengedSequence = this.l1DepositSequenceToChallenge;
@@ -149,6 +174,12 @@ export class Challenger {
     if (nextDepositSequenceToChallenge.length === 0) return;
     this.l1DepositSequenceToChallenge = Number(
       nextDepositSequenceToChallenge[0].sequence
+    );
+    await manager.getRepository(ChallengeEntity).update(
+      { name: this.name() },
+      {
+        l1DepositSequenceToChallenge: this.l1DepositSequenceToChallenge
+      }
     );
   }
 
@@ -233,7 +264,7 @@ export class Challenger {
     if (!outputRootFromContract || !outputRootFromChallenger) return;
 
     if (outputRootFromContract !== outputRootFromChallenger) {
-      await this.deleteOutputProposal(
+      await this.handleChallengedOutputProposal(
         manager,
         this.l2OutputIndexToChallenge,
         `not equal output root from contract: ${outputRootFromContract}, from challenger: ${outputRootFromChallenger}`
@@ -244,22 +275,41 @@ export class Challenger {
       `[L2 Challenger] output root matched in output index : ${this.l2OutputIndexToChallenge}`
     );
     this.l2OutputIndexToChallenge += 1;
+    await manager.getRepository(ChallengeEntity).update(
+      { name: this.name() },
+      {
+        l2OutputIndexToChallenge: this.l2OutputIndexToChallenge
+      }
+    );
   }
 
-  async deleteOutputProposal(
+  async deleteOutputProposal(outputIndex: number) {
+    const msg = new MsgDeleteOutput(
+      this.challenger.key.accAddress,
+      this.bridgeId,
+      outputIndex
+    );
+
+    await this.challenger.transaction([msg]);
+  }
+
+  async handleChallengedOutputProposal(
     manager: EntityManager,
     outputIndex: number,
     reason?: string
   ) {
-    const deletedOutput: ChallengerDeletedOutputEntity = {
+    const challengedOutput: ChallengedOutputEntity = {
       outputIndex,
       bridgeId: this.bridgeId.toString(),
       reason: reason ?? 'unknown'
     };
-    await manager
-      .getRepository(ChallengerDeletedOutputEntity)
-      .save(deletedOutput);
+    await manager.getRepository(ChallengedOutputEntity).save(challengedOutput);
+
+    if (DELETE_OUTPUT_PROPOSAL === 'true') {
+      await this.deleteOutputProposal(outputIndex);
+    }
 
     logger.info(`output index ${outputIndex} is deleted, reason: ${reason}`);
+    process.exit();
   }
 }

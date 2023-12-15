@@ -5,10 +5,24 @@ import { getConfig } from 'config';
 import * as http from 'http';
 import * as https from 'https';
 import FailedTxEntity from 'orm/executor/FailedTxEntity';
+import { ChallengedOutputEntity } from 'orm/index';
 
 const config = getConfig();
 
 const { SLACK_WEB_HOOK } = process.env;
+
+const ax = axios.create({
+  httpAgent: new http.Agent({ keepAlive: true }),
+  httpsAgent: new https.Agent({ keepAlive: true }),
+  timeout: 15000
+});
+
+export async function notifySlack(text: { text: string }) {
+  if (SLACK_WEB_HOOK == undefined || SLACK_WEB_HOOK == '') return;
+  await ax.post(SLACK_WEB_HOOK, text).catch(() => {
+    console.error('Slack Notification Error');
+  });
+}
 
 export function buildNotEnoughBalanceNotification(
   wallet: Wallet,
@@ -57,15 +71,19 @@ export function buildFailedTxNotification(data: FailedTxEntity): {
   };
 }
 
-const ax = axios.create({
-  httpAgent: new http.Agent({ keepAlive: true }),
-  httpsAgent: new https.Agent({ keepAlive: true }),
-  timeout: 15000
-});
+export function buildChallengerNotification(
+  challengedOutput: ChallengedOutputEntity
+): { text: string } {
+  let notification = '```';
+  notification += `[WARN] Challenger Notification\n`;
+  notification += `\n`;
+  notification += `Bridge ID   : ${challengedOutput.bridgeId}\n`;
+  notification += `OutputIndex : ${challengedOutput.outputIndex}\n`;
+  notification += `Reason      : ${challengedOutput.reason}\n`;
+  notification += '```';
+  const text = `${notification}`;
 
-export async function notifySlack(text: { text: string }) {
-  if (SLACK_WEB_HOOK == undefined || SLACK_WEB_HOOK == '') return;
-  await ax.post(SLACK_WEB_HOOK, text).catch(() => {
-    console.error('Slack Notification Error');
-  });
+  return {
+    text
+  };
 }

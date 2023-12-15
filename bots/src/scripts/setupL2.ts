@@ -5,7 +5,7 @@ import { executor, challenger, outputSubmitter } from 'test/utils/helper';
 
 const config = getConfig();
 const SUBMISSION_INTERVAL = parseInt(process.env.SUBMISSION_INTERVAL ?? '3600');
-const FINALIZED_TIME = parseInt(process.env.SUBMISSION_INTERVAL ?? '3600');
+const FINALIZATION_PERIOD = parseInt(process.env.SUBMISSION_INTERVAL ?? '3600');
 const IBC_METADATA = process.env.IBC_METADATA ?? ''; // ibc channel name
 
 class L2Initializer {
@@ -42,7 +42,7 @@ async function main() {
   try {
     const initializer = new L2Initializer(
       SUBMISSION_INTERVAL,
-      FINALIZED_TIME,
+      FINALIZATION_PERIOD,
       IBC_METADATA
     );
     console.log('=========Initializing L2=========');

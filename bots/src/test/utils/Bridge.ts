@@ -23,8 +23,9 @@ import {
   ChallengerFinalizeWithdrawalTxEntity,
   ChallengerOutputEntity,
   ChallengerWithdrawalTxEntity,
-  ChallengerDeletedOutputEntity,
-  RecordEntity
+  ChallengedOutputEntity,
+  RecordEntity,
+  ChallengeEntity
 } from 'orm';
 import { executor, challenger, outputSubmitter } from './helper';
 import { sendTx } from 'lib/tx';
@@ -65,7 +66,8 @@ class Bridge {
       await manager.getRepository(ChallengerFinalizeWithdrawalTxEntity).clear();
       await manager.getRepository(ChallengerOutputEntity).clear();
       await manager.getRepository(ChallengerWithdrawalTxEntity).clear();
-      await manager.getRepository(ChallengerDeletedOutputEntity).clear();
+      await manager.getRepository(ChallengedOutputEntity).clear();
+      await manager.getRepository(ChallengeEntity).clear();
     });
 
     await this.batchDB.transaction(async (manager: EntityManager) => {

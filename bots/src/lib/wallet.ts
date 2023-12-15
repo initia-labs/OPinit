@@ -9,7 +9,6 @@ import {
 } from '@initia/initia.js';
 import { sendTx } from './tx';
 import { getConfig } from 'config';
-import { getBalanceByDenom } from './query';
 import { buildNotEnoughBalanceNotification, notifySlack } from './slack';
 
 const config = getConfig();
@@ -84,13 +83,13 @@ export class TxWallet extends Wallet {
   async checkEnoughBalance() {
     const gasPrices = new Coins(this.lcd.config.gasPrices);
     const denom = gasPrices.denoms()[0];
-    const balance = await getBalanceByDenom(
-      this.lcd,
+
+    const balance = await this.lcd.bank.balanceByDenom(
       this.key.accAddress,
       denom
     );
 
-    if (balance?.amount && parseInt(balance.amount) < 100_000_000) {
+    if (balance.amount && parseInt(balance.amount) < 100_000_000) {
       await notifySlack(
         buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
       );

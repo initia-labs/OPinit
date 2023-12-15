@@ -42,6 +42,8 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
+| SLACK_WEB_HOOK            | Slack web hook for notification                        | ''                               |
+
 
 > In OPinit bots, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample).
 

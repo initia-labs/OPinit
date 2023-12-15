@@ -25,8 +25,8 @@ export class WithdrawStorage {
         Buffer.concat([
           bridge_id_buf,
           sequence_buf,
-          Buffer.from(AccAddress.toHex(tx.sender).replace('0x', ''), 'hex'),
-          Buffer.from(AccAddress.toHex(tx.receiver).replace('0x', ''), 'hex'),
+          AccAddress.toBuffer(tx.sender),
+          AccAddress.toBuffer(tx.receiver),
           Buffer.from(tx.l1_denom, 'utf8'),
           amount_buf
         ])
@@ -56,8 +56,8 @@ export class WithdrawStorage {
           Buffer.concat([
             bridge_id_buf,
             sequence_buf,
-            Buffer.from(AccAddress.toHex(tx.sender).replace('0x', ''), 'hex'),
-            Buffer.from(AccAddress.toHex(tx.receiver).replace('0x', ''), 'hex'),
+            AccAddress.toBuffer(tx.sender),
+            AccAddress.toBuffer(tx.receiver),
             Buffer.from(tx.l1_denom, 'utf8'),
             amount_buf
           ])
@@ -90,8 +90,8 @@ export class WithdrawStorage {
       Buffer.concat([
         bridge_id_buf,
         sequence_buf,
-        Buffer.from(AccAddress.toHex(tx.sender).replace('0x', ''), 'hex'),
-        Buffer.from(AccAddress.toHex(tx.receiver).replace('0x', ''), 'hex'),
+        AccAddress.toBuffer(tx.sender),
+        AccAddress.toBuffer(tx.receiver),
         Buffer.from(tx.l1_denom, 'utf8'),
         amount_buf
       ])
