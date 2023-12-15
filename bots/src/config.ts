@@ -67,7 +67,7 @@ export const config = {
   l2lcd: new LCDClient(
     L2_LCD_URI ? L2_LCD_URI.split(',')[0] : 'http://localhost:1317',
     {
-      gasPrices: `0.15${L2_DENOM || 'umin'}`,
+      gasPrices: `0${L2_DENOM || 'umin'}`,
       gasAdjustment: '2'
     }
   ),
