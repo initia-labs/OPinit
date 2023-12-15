@@ -45,7 +45,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 
-> In OPinit bots, we use .dotenv for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
+> In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. See [.env_sample](.env_sample). If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
 For example, if you want to set `.env` for `executor`, you should name it as `.env.executor` and set `WORKER_NAME=executor` in local environment.
 
 ## Bridge Executor
