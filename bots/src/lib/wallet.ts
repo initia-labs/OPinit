@@ -8,10 +8,8 @@ import {
   Coins
 } from '@initia/initia.js';
 import { sendTx } from './tx';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { buildNotEnoughBalanceNotification, notifySlack } from './slack';
-
-const config = getConfig();
 
 export enum WalletType {
   Challenger = 'challenger',

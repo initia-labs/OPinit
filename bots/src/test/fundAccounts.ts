@@ -1,10 +1,9 @@
 import { Coin, MnemonicKey, MsgSend, Wallet } from '@initia/initia.js';
 import { delay } from 'bluebird';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { sendTx } from 'lib/tx';
 import { TxBot } from 'test/utils/TxBot';
 
-const config = getConfig();
 const L1_FUNDER = new Wallet(
   config.l1lcd,
   new MnemonicKey({

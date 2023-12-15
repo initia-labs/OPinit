@@ -4,14 +4,12 @@ import { ExecutorOutputEntity } from 'orm';
 import { delay } from 'bluebird';
 import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { sendTx } from 'lib/tx';
 import { getLastOutputInfo } from 'lib/query';
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
 import { DataSource, EntityManager } from 'typeorm';
 import { getDB } from './db';
-
-const config = getConfig();
 
 export class OutputSubmitter {
   private db: DataSource;

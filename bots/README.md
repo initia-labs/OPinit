@@ -31,10 +31,10 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 
 | Name                      | Description                                            | Default                          |
 | ------------------------- | ------------------------------------------------------ | -------------------------------- |
-| L1_LCD_URI                | L1 node LCD URI                                        | <https://stone-rest.initia.tech> |
-| L1_RPC_URI                | L1 node RPC URI                                        | <https://stone-rpc.initia.tech>  |
-| L2_LCD_URI                | L2 node LCD URI                                        | <https://minitia-rest.initia.tech>|
-| L2_RPC_URI                | L2 node RPC URI                                        | <https://minitia-rpc.initia.tech>|
+| L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| L2_LCD_URI                | L2 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
 | BRIDGE_ID                 | Bridge ID                                              | ''                               |
 | EXECUTOR_PORT             | Executor port                                          | 5000                             |
 | BATCH_PORT                | Batch submitter port                                   | 5001                             |
@@ -42,16 +42,17 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
-| SLACK_WEB_HOOK            | Slack web hook for notification                        | ''                               |
+| SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 
-> In OPinit bots, we use [direnv](https://direnv.net) for managing environment variable for development. See [sample of .envrc](.envrc_sample).
+> In OPinit bots, we use .dotenv for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
+For example, if you want to set `.env` for `executor`, you should name it as `.env.executor` and set `WORKER_NAME=executor` in local environment.
 
 ## Bridge Executor
 
 Bridge executor is a bot that monitor L1, L2 node and execute bridge transaction. It will execute following steps.
 
-1. Set bridge executor mnemonic on `.envrc`.
+1. Set bridge executor mnemonic on `.env`.
     ```bash
     export EXECUTOR_MNEMONIC="..."
     ```
@@ -64,7 +65,7 @@ Bridge executor is a bot that monitor L1, L2 node and execute bridge transaction
 
 Batch submitter is a background process that submits transaction batches to the BatchInbox module of L1.
 
-1. Set batch submitter mnemonic on `.envrc`.
+1. Set batch submitter mnemonic on `.env`.
     ```bash
     export BATCH_SUBMITTER_MNEMONIC="..."
     ```
@@ -78,7 +79,7 @@ Batch submitter is a background process that submits transaction batches to the 
 Output submitter is the component to store the L2 output root for block finalization.
 Output submitter will get the L2 output results from executor and submit it to L1.
 
-1. Set output submitter mnemonic on `.envrc`.
+1. Set output submitter mnemonic on `.env`.
     ```bash
     export OUTPUT_SUBMITTER_MNEMONIC="..."
     ```
@@ -91,7 +92,7 @@ Output submitter will get the L2 output results from executor and submit it to L
 
 Challenger is an entity capable of deleting invalid output proposals from the output oracle.
 
-1. Set challenger mnemonic on `.envrc`.
+1. Set challenger mnemonic on `.env`.
     ```bash
     export CHALLENGER_MNEMONIC="..."
     ```

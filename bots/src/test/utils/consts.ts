@@ -1,8 +1,6 @@
 import { MnemonicKey } from '@initia/initia.js';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { TxWallet } from 'lib/wallet';
-
-const config = getConfig();
 
 export const { DEPOSITOR_MNEMONIC } = process.env;
 

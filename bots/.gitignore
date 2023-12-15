@@ -12,6 +12,8 @@ static/
 
 .envrc
 .env
+.env.*
+
 build
 logs/
 testing/

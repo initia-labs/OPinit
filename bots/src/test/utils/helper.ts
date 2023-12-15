@@ -8,12 +8,11 @@ import {
 } from '@initia/initia.js';
 
 import { MoveBuilder } from '@initia/builder.js';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { sha3_256 } from 'lib/util';
 import { ExecutorOutputEntity } from 'orm/index';
 import WithdrawalTxEntity from 'orm/executor/WithdrawalTxEntity';
 
-const config = getConfig();
 export const bcs = BCS.getInstance();
 export const executor = new Wallet(
   config.l1lcd,

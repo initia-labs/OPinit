@@ -7,10 +7,9 @@ import { executorLogger as logger } from 'lib/logger';
 import { initORM, finalizeORM } from './db';
 import { initServer, finalizeServer } from 'loader';
 import { once } from 'lodash';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { Resurrector } from './Resurrector';
 
-const config = getConfig();
 let monitors;
 
 async function runBot(): Promise<void> {

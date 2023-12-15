@@ -1,14 +1,12 @@
 import { getDB } from './db';
 import FailedTxEntity from 'orm/executor/FailedTxEntity';
 import { Coin, MsgFinalizeTokenDeposit } from '@initia/initia.js';
-import { INTERVAL_MONITOR, getConfig } from 'config';
+import { INTERVAL_MONITOR, config } from 'config';
 import { DataSource } from 'typeorm';
 import * as Bluebird from 'bluebird';
 import winston from 'winston';
 import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
 import { buildFailedTxNotification, notifySlack } from 'lib/slack';
-
-const config = getConfig();
 
 export class Resurrector {
   private db: DataSource;

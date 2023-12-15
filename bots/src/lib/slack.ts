@@ -1,15 +1,11 @@
 import { Wallet } from '@initia/initia.js';
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
-import { getConfig } from 'config';
+import { config } from 'config';
 import * as http from 'http';
 import * as https from 'https';
 import FailedTxEntity from 'orm/executor/FailedTxEntity';
 import { ChallengedOutputEntity } from 'orm/index';
-
-const config = getConfig();
-
-const { SLACK_WEB_HOOK } = process.env;
 
 const ax = axios.create({
   httpAgent: new http.Agent({ keepAlive: true }),
@@ -18,8 +14,8 @@ const ax = axios.create({
 });
 
 export async function notifySlack(text: { text: string }) {
-  if (SLACK_WEB_HOOK == undefined || SLACK_WEB_HOOK == '') return;
-  await ax.post(SLACK_WEB_HOOK, text).catch(() => {
+  if (config.SLACK_WEB_HOOK == '') return;
+  await ax.post(config.SLACK_WEB_HOOK, text).catch(() => {
     console.error('Slack Notification Error');
   });
 }

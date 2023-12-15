@@ -5,15 +5,13 @@ import {
   OutputInfo,
   TokenPair
 } from '@initia/initia.js';
-import { getConfig } from 'config';
+import { config } from 'config';
 import {
   DepositTxResponse,
   OutputResponse,
   WithdrawalTxResponse
 } from './types';
 import axios from 'axios';
-
-const config = getConfig();
 
 /// LCD query
 

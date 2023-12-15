@@ -1,8 +1,6 @@
-import { getConfig } from 'config';
+import { config } from 'config';
 import { TxBot } from './utils/TxBot';
 import { Coin } from '@initia/initia.js';
-
-const config = getConfig();
 
 const txBot = new TxBot(config.BRIDGE_ID);
 

@@ -7,9 +7,7 @@ import { EntityManager } from 'typeorm';
 import { RPCClient, RPCSocket } from 'lib/rpc';
 import { getDB } from './db';
 import winston from 'winston';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { config } from 'config';
 
 export class L1Monitor extends Monitor {
   constructor(

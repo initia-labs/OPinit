@@ -1,9 +1,7 @@
 import * as winston from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
 import chalk from 'chalk';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { config } from 'config';
 
 function pad(input: number | string, width: number, z = '0') {
   const n = typeof input === 'number' ? input.toString() : input;
@@ -78,7 +76,7 @@ function createLogger(name: string) {
     );
   }
 
-  if (!config.USE_LOG_FILE || process.env.HOST_ENV === 'docker') {
+  if (!config.USE_LOG_FILE) {
     logger.add(new winston.transports.Console());
   }
 

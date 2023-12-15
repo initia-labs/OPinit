@@ -11,7 +11,7 @@ import {
 } from 'orm';
 import { delay } from 'bluebird';
 import { challengerLogger as logger } from 'lib/logger';
-import { INTERVAL_MONITOR, getConfig } from 'config';
+import { INTERVAL_MONITOR, config } from 'config';
 import { EntityManager } from 'typeorm';
 import {
   getLastOutputInfo,
@@ -22,8 +22,6 @@ import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
 import winston from 'winston';
 import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
 
-const config = getConfig();
-const { DELETE_OUTPUT_PROPOSAL } = process.env;
 const THRESHOLD_MISS_INTERVAL = 5;
 
 export class Challenger {
@@ -72,12 +70,11 @@ export class Challenger {
         name: this.name(),
         l1DepositSequenceToCheck: 1,
         l1LastCheckedSequence: 0,
-        l2OutputIndexToCheck: 1,
+        l2OutputIndexToCheck: 1
       });
     }
-    
-    this.l1DepositSequenceToCheck =
-      state?.l1DepositSequenceToCheck || 1;
+
+    this.l1DepositSequenceToCheck = state?.l1DepositSequenceToCheck || 1;
     this.l2OutputIndexToCheck = state?.l2OutputIndexToCheck || 1;
     this.l1LastCheckedSequence = state?.l1LastCheckedSequence || 0;
   }
@@ -103,12 +100,12 @@ export class Challenger {
     if (this.l1LastCheckedSequence == this.l1DepositSequenceToCheck) {
       // get next sequence from db with smallest sequence but bigger than last challenged sequence
       const nextDepositSequenceToCheck = await manager
-      .getRepository(ChallengerDepositTxEntity)
-      .find({
-        where: { sequence: MoreThan(this.l1DepositSequenceToCheck) } as any,
-        order: { sequence: 'ASC' },
-        take: 1
-      });
+        .getRepository(ChallengerDepositTxEntity)
+        .find({
+          where: { sequence: MoreThan(this.l1DepositSequenceToCheck) } as any,
+          order: { sequence: 'ASC' },
+          take: 1
+        });
 
       if (nextDepositSequenceToCheck.length === 0) return;
       this.l1DepositSequenceToCheck = Number(
@@ -124,9 +121,7 @@ export class Challenger {
       });
 
     if (!depositTxFromChallenger) return;
-    this.l1DepositSequenceToCheck = Number(
-      depositTxFromChallenger.sequence
-    );
+    this.l1DepositSequenceToCheck = Number(depositTxFromChallenger.sequence);
 
     // case 1. not finalized deposit tx
     const depositFinalizeTxFromChallenger = await manager
@@ -178,7 +173,7 @@ export class Challenger {
 
     this.missCount = 0;
     this.l1LastCheckedSequence = this.l1DepositSequenceToCheck;
-    
+
     await manager.getRepository(ChallengeEntity).update(
       { name: this.name() },
       {
@@ -310,7 +305,7 @@ export class Challenger {
     };
     await manager.getRepository(ChallengedOutputEntity).save(challengedOutput);
 
-    if (DELETE_OUTPUT_PROPOSAL === 'true') {
+    if (config.DELETE_OUTPUT_PROPOSAL === 'true') {
       await this.deleteOutputProposal(outputIndex);
     }
 

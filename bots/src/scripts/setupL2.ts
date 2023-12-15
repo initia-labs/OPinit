@@ -1,12 +1,7 @@
 import { MsgCreateBridge, BridgeConfig, Duration } from '@initia/initia.js';
 import { sendTx } from 'lib/tx';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { executor, challenger, outputSubmitter } from 'test/utils/helper';
-
-const config = getConfig();
-const SUBMISSION_INTERVAL = parseInt(process.env.SUBMISSION_INTERVAL ?? '3600');
-const FINALIZATION_PERIOD = parseInt(process.env.SUBMISSION_INTERVAL ?? '3600');
-const IBC_METADATA = process.env.IBC_METADATA ?? ''; // ibc channel name
 
 class L2Initializer {
   l2id = config.BRIDGE_ID;
@@ -41,9 +36,9 @@ class L2Initializer {
 async function main() {
   try {
     const initializer = new L2Initializer(
-      SUBMISSION_INTERVAL,
-      FINALIZATION_PERIOD,
-      IBC_METADATA
+      config.SUBMISSION_INTERVAL,
+      config.FINALIZATION_PERIOD,
+      config.IBC_METADATA
     );
     console.log('=========Initializing L2=========');
     console.log('submissionInterval: ', initializer.submissionInterval);

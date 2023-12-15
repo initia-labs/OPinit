@@ -6,9 +6,7 @@ import { initORM, finalizeORM } from './db';
 import { challengerLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
 import { L2Monitor } from './L2Monitor';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { config } from 'config';
 
 let monitors: (Monitor | Challenger)[];
 

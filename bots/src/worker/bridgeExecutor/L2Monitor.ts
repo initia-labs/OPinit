@@ -7,10 +7,8 @@ import { BlockInfo } from '@initia/initia.js';
 import { getDB } from './db';
 import { RPCClient, RPCSocket } from 'lib/rpc';
 import winston from 'winston';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { getBridgeInfo } from 'lib/query';
-
-const config = getConfig();
 
 export class L2Monitor extends Monitor {
   submissionInterval: number;

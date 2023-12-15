@@ -1,5 +1,5 @@
 import Bridge from './utils/Bridge';
-import { Config } from 'config';
+import { config } from 'config';
 import { TxBot } from './utils/TxBot';
 import { Coin } from '@initia/initia.js';
 import { startBatch } from 'worker/batchSubmitter';
@@ -8,7 +8,6 @@ import { startOutput } from 'worker/outputSubmitter';
 import { delay } from 'bluebird';
 import { getTokenPairByL1Denom } from 'lib/query';
 
-const config = Config.getConfig();
 const SUBMISSION_INTERVAL = 5;
 const FINALIZATION_PERIOD = 5;
 const DEPOSIT_AMOUNT = 1_000_000;

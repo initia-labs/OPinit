@@ -4,9 +4,8 @@ import { StateEntity } from 'orm';
 import { DataSource, EntityManager } from 'typeorm';
 import MonitorHelper from './MonitorHelper';
 import winston from 'winston';
-import { INTERVAL_MONITOR, getConfig } from 'config';
+import { INTERVAL_MONITOR, config } from 'config';
 
-const config = getConfig();
 const MAX_BLOCKS = 20; // DO NOT CHANGE THIS, hard limit is 20 in cometbft.
 const MAX_RETRY_INTERVAL = 30_000;
 

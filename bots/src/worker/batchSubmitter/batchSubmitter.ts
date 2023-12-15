@@ -7,11 +7,9 @@ import { ExecutorOutputEntity, RecordEntity } from 'orm';
 import { Wallet, MnemonicKey, MsgRecordBatch } from '@initia/initia.js';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
-import { getConfig } from 'config';
+import { config } from 'config';
 import { sendTx } from 'lib/tx';
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
-
-const config = getConfig();
 
 export class BatchSubmitter {
   private batchIndex = 0;
