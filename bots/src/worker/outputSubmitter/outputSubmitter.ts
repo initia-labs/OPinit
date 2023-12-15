@@ -1,19 +1,19 @@
-import { Wallet, MnemonicKey, MsgProposeOutput } from '@initia/initia.js';
+import { MsgProposeOutput } from '@initia/initia.js';
 import { INTERVAL_OUTPUT } from 'config';
 import { ExecutorOutputEntity } from 'orm';
 import { delay } from 'bluebird';
 import { outputLogger as logger } from 'lib/logger';
 import { ErrorTypes } from 'lib/error';
 import { config } from 'config';
-import { sendTx } from 'lib/tx';
 import { getLastOutputInfo } from 'lib/query';
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
 import { DataSource, EntityManager } from 'typeorm';
 import { getDB } from './db';
+import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
 
 export class OutputSubmitter {
   private db: DataSource;
-  private submitter: Wallet;
+  private submitter: TxWallet;
   private syncedOutputIndex = 1;
   private processedBlockNumber = 1;
   private isRunning = false;
@@ -22,10 +22,8 @@ export class OutputSubmitter {
 
   async init() {
     [this.db] = getDB();
-    this.submitter = new Wallet(
-      config.l1lcd,
-      new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC })
-    );
+    initWallet(WalletType.OutputSubmitter, config.l1lcd);
+    this.submitter = getWallet(WalletType.OutputSubmitter);
     this.bridgeId = config.BRIDGE_ID;
     this.isRunning = true;
   }
@@ -83,10 +81,7 @@ export class OutputSubmitter {
       outputEntity.outputRoot
     );
 
-    const { account_number, sequence } =
-      await this.submitter.accountNumberAndSequence();
-
-    await sendTx(this.submitter, [msg], account_number, sequence);
+    await this.submitter.transaction([msg]);
 
     this.processedBlockNumber = outputEntity.endBlockNumber;
   }

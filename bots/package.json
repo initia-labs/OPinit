@@ -7,19 +7,19 @@
     "node": ">=16"
   },
   "scripts": {
-    "executor": "ts-node -r tsconfig-paths/register ./src/worker/bridgeExecutor/index.ts",
-    "batch": "ts-node -r tsconfig-paths/register ./src/worker/batchSubmitter/index.ts",
-    "challenger": "ts-node -r tsconfig-paths/register ./src/worker/challenger/index.ts",
-    "output": "ts-node -r tsconfig-paths/register ./src/worker/outputSubmitter/index.ts",
+    "executor": "export WORKER_NAME=executor && ts-node -r tsconfig-paths/register ./src/worker/bridgeExecutor/index.ts",
+    "batch": "export WORKER_NAME=batch && ts-node -r tsconfig-paths/register ./src/worker/batchSubmitter/index.ts",
+    "challenger": "export WORKER_NAME=challenger && ts-node -r tsconfig-paths/register ./src/worker/challenger/index.ts",
+    "output": "export WORKER_NAME=output && ts-node -r tsconfig-paths/register ./src/worker/outputSubmitter/index.ts",
     "build": "tsc --module commonjs && webpack --mode production",
     "test": "jest",
-    "test:integration": "ts-node -r tsconfig-paths/register ./src/test/integration.ts",
+    "test:integration": "export NODE_ENV=test && ts-node -r tsconfig-paths/register ./src/test/integration.ts",
     "prettier": "prettier --write ./src/**/**/**/**/*.ts",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "do": "ts-node -T --files -r tsconfig-paths/register",
     "apidoc": "npm run do src/loader/generateApiDoc.ts",
     "prepublishOnly": "npm run build",
-    "l2setup": "ts-node -r tsconfig-paths/register ./src/scripts/setupL2.ts"
+    "l2setup": "export NODE_ENV=test && ts-node -r tsconfig-paths/register ./src/scripts/setupL2.ts"
   },
   "repository": {
     "type": "git",

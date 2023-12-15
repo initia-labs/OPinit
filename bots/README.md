@@ -29,6 +29,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 
 ## Configuration
 
+- `.env.executor`
 | Name                      | Description                                            | Default                          |
 | ------------------------- | ------------------------------------------------------ | -------------------------------- |
 | L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
@@ -37,15 +38,42 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
 | BRIDGE_ID                 | Bridge ID                                              | ''                               |
 | EXECUTOR_PORT             | Executor port                                          | 5000                             |
-| BATCH_PORT                | Batch submitter port                                   | 5001                             |
 | EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
-| BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
+| SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
+
+- `.env.output`
+| Name                      | Description                                            | Default                          |
+| ------------------------- | ------------------------------------------------------ | -------------------------------- |
+| L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| BRIDGE_ID                 | Bridge ID                                              | ''                               |
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |
+| SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
+
+- `.env.batch`
+| Name                      | Description                                            | Default                          |
+| ------------------------- | ------------------------------------------------------ | -------------------------------- |
+| L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| L2_LCD_URI                | L2 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| BRIDGE_ID                 | Bridge ID                                              | ''                               |
+| BATCH_PORT                | Batch submitter port                                   | 5001                             |
+| BATCH_SUBMITTER_MNEMONIC  | Mnemonic seed for submitter                            | ''                               |
+| SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
+
+- `.env.challenger`
+| Name                      | Description                                            | Default                          |
+| ------------------------- | ------------------------------------------------------ | -------------------------------- |
+| L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| L2_LCD_URI                | L2 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| BRIDGE_ID                 | Bridge ID                                              | ''                               |
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
-
-> In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. See [.env_sample](.env_sample). If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
+> In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
 For example, if you want to set `.env` for `executor`, you should name it as `.env.executor` and set `WORKER_NAME=executor` in local environment.
 
 ## Bridge Executor
