@@ -71,6 +71,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
 | BRIDGE_ID                 | Bridge ID                                              | ''                               |
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
+| DELETE_OUTPUT_PROPOSAL    | Enable delete output proposal instantly                | ''                               |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 > In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
