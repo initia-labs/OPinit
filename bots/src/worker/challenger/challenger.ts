@@ -21,6 +21,7 @@ import {
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
 import winston from 'winston';
 import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
+import { buildChallengerNotification, notifySlack } from 'lib/slack';
 
 const THRESHOLD_MISS_INTERVAL = 5;
 
@@ -309,7 +310,7 @@ export class Challenger {
       await this.deleteOutputProposal(outputIndex);
     }
 
-    logger.info(`output index ${outputIndex} is deleted, reason: ${reason}`);
+    await notifySlack(buildChallengerNotification(challengedOutput))
     process.exit();
   }
 }
