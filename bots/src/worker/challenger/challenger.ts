@@ -133,7 +133,7 @@ export class Challenger {
 
     if (!depositFinalizeTxFromChallenger) {
       this.missCount += 1;
-      this.logger.warn(
+      this.logger.info(
         `[L1 Challenger] deposit tx with sequence "${this.l1DepositSequenceToCheck}" is not finialized`
       );
       if (this.missCount <= THRESHOLD_MISS_INTERVAL || !lastOutputInfo) {
@@ -235,7 +235,7 @@ export class Challenger {
       );
       return outputInfo.output_proposal.output_root;
     } catch (err) {
-      logger.warn(
+      logger.info(
         `[L2 Challenger] waiting for submitting output root in output index ${outputIndex}`
       );
       return null;

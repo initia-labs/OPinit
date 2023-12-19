@@ -79,7 +79,7 @@ export class RPCSocket {
     // no responsed more than 3 minutes, it is down
     if (this.isAlive && Date.now() - this.alivedAt > 3 * 60 * 1000) {
       const msg = `${this.constructor.name} is no response!`;
-      this.logger.warn(msg);
+      this.logger.info(msg);
       this.isAlive = false;
     }
   }

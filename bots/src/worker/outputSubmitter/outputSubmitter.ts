@@ -58,7 +58,7 @@ export class OutputSubmitter {
       });
     } catch (err) {
       if (err.response?.data.type === ErrorTypes.NOT_FOUND_ERROR) {
-        logger.warn(
+        logger.info(
           `waiting for output index: ${this.syncedOutputIndex}, processed block number: ${this.processedBlockNumber}`
         );
         await delay(INTERVAL_OUTPUT);
