@@ -514,8 +514,8 @@ var xxx_messageInfo_MsgFinalizeTokenWithdrawalResponse proto.InternalMessageInfo
 
 // MsgUpdateProposer is a message to change a proposer
 type MsgUpdateProposer struct {
-	// authority is the address that controls the module
-	// (defaults to x/gov unless overwritten).
+	// authority is the address that controls the module (defaults to x/gov unless overwritten)
+	// or the current proposer address.
 	Authority   string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
 	BridgeId    uint64 `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
 	NewProposer string `protobuf:"bytes,3,opt,name=new_proposer,json=newProposer,proto3" json:"new_proposer,omitempty" yaml:"new_proposer"`
@@ -593,8 +593,8 @@ var xxx_messageInfo_MsgUpdateProposerResponse proto.InternalMessageInfo
 
 // MsgUpdateChallenger is a message to change a challenger
 type MsgUpdateChallenger struct {
-	// authority is the address that controls the module
-	// (defaults to x/gov unless overwritten).
+	// authority is the address that controls the module (defaults to x/gov unless overwritten)
+	// or the current challenger address.
 	Authority     string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
 	BridgeId      uint64 `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
 	NewChallenger string `protobuf:"bytes,3,opt,name=new_challenger,json=newChallenger,proto3" json:"new_challenger,omitempty" yaml:"new_challenger"`

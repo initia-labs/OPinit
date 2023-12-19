@@ -21,7 +21,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -50,8 +49,6 @@ var ModuleBasics = module.NewBasicManager(
 )
 
 var (
-	valPubKeys = testutilsims.CreateTestPubKeys(5)
-
 	pubKeys = []crypto.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
@@ -66,14 +63,6 @@ var (
 		sdk.AccAddress(pubKeys[2].Address()),
 		sdk.AccAddress(pubKeys[3].Address()),
 		sdk.AccAddress(pubKeys[4].Address()),
-	}
-
-	valAddrs = []sdk.ValAddress{
-		sdk.ValAddress(pubKeys[0].Address()),
-		sdk.ValAddress(pubKeys[1].Address()),
-		sdk.ValAddress(pubKeys[2].Address()),
-		sdk.ValAddress(pubKeys[3].Address()),
-		sdk.ValAddress(pubKeys[4].Address()),
 	}
 
 	testDenoms = []string{
