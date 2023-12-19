@@ -310,7 +310,7 @@ export class Challenger {
       await this.deleteOutputProposal(outputIndex);
     }
 
-    await notifySlack(buildChallengerNotification(challengedOutput))
+    await notifySlack(buildChallengerNotification(challengedOutput));
     process.exit();
   }
 }

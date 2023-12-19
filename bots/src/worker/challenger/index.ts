@@ -31,7 +31,7 @@ async function runBot(): Promise<void> {
       })
     );
   } catch (err) {
-    logger.error(err);
+    logger.info(err);
     stopChallenger();
   }
 }

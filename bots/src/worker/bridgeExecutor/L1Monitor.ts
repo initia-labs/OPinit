@@ -115,7 +115,7 @@ export class L1Monitor extends Monitor {
       const errMsg = err.response?.data
         ? JSON.stringify(err.response?.data)
         : err.toString();
-      this.logger.error(
+      this.logger.info(
         `Failed to submit tx in height: ${this.currentHeight}\nMsg: ${stringfyMsgs}\nError: ${errMsg}`
       );
 

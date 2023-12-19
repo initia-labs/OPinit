@@ -63,7 +63,7 @@ export class OutputSubmitter {
         );
         await delay(INTERVAL_OUTPUT);
       } else {
-        logger.error(err);
+        logger.info(err);
         this.stop();
       }
     }

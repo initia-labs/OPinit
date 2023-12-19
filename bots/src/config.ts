@@ -1,9 +1,8 @@
 import { LCDClient } from '@initia/initia.js';
 import * as dotenv from 'dotenv';
 
-const envFile = process.env.NODE_ENV === 'test'
-  ? `.env`
-  : `.env.${process.env.WORKER_NAME}`;
+const envFile =
+  process.env.NODE_ENV === 'test' ? `.env` : `.env.${process.env.WORKER_NAME}`;
 
 console.log(envFile);
 dotenv.config({ path: envFile });

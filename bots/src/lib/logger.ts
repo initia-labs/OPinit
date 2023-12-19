@@ -39,9 +39,13 @@ function createLogger(name: string) {
       }
     }
 
+    const message = info.stack
+      ? `${info.message}\n${info.stack}`
+      : info.message;
+
     const log = `${getDateString()} [${
       level ? level : info.level
-    } - ${name}]: ${info.message}`;
+    } - ${name}]: ${message}`;
 
     return log;
   });

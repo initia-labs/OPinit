@@ -129,7 +129,7 @@ export class RPCSocket {
 
   // eslint-disable-next-line
   protected onError(error): void {
-    this.logger.error(`${this.constructor.name} websocket: `, error);
+    this.logger.info(`${this.constructor.name} websocket: `, error);
   }
 
   // eslint-disable-next-line
@@ -139,7 +139,7 @@ export class RPCSocket {
     try {
       data = JSON.parse(raw);
     } catch (error) {
-      this.logger.error(`${this.constructor.name}: JSON parse error ${raw}`);
+      this.logger.info(`${this.constructor.name}: JSON parse error ${raw}`);
       return;
     }
 
@@ -150,7 +150,7 @@ export class RPCSocket {
         );
       }
     } catch (error) {
-      this.logger.error(error);
+      this.logger.info(error);
     }
 
     this.alive();
@@ -223,7 +223,7 @@ export class RPCClient {
     });
 
     if (!blockchainResult) {
-      this.logger.error('failed get blockchain from rpc');
+      this.logger.info('failed get blockchain from rpc');
       return null;
     }
 
@@ -237,7 +237,7 @@ export class RPCClient {
     });
 
     if (!blockBulksResult) {
-      this.logger.error('failed get block bulks from rpc');
+      this.logger.info('failed get block bulks from rpc');
       return null;
     }
 

@@ -106,7 +106,7 @@ export abstract class Monitor {
         });
       } catch (err) {
         this.stop();
-        this.logger.error(err);
+        this.logger.info(err);
         throw new Error(`Error in ${this.name()} ${err}`);
       } finally {
         await Bluebird.delay(INTERVAL_MONITOR);
