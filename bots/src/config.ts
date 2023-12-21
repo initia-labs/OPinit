@@ -2,9 +2,9 @@ import { LCDClient } from '@initia/initia.js';
 import * as dotenv from 'dotenv';
 
 const envFile =
-  process.env.NODE_ENV === 'test' ? `.env` : `.env.${process.env.WORKER_NAME}`;
+  ( process.env.NODE_ENV === 'test' || !process.env.WORKER_NAME ) ? `.env` : `.env.${process.env.WORKER_NAME}`;
 
-console.log(envFile);
+console.log('activate ', envFile);
 dotenv.config({ path: envFile });
 
 const {
@@ -21,7 +21,7 @@ const {
   BATCH_SUBMITTER_MNEMONIC,
   CHALLENGER_MNEMONIC,
   USE_LOG_FILE,
-  L2_DENOM,
+  L2_GAS_PRICES,
   L1_CHAIN_ID,
   L2_CHAIN_ID,
   SLACK_WEB_HOOK,
@@ -53,7 +53,6 @@ export const config = {
     ? CHALLENGER_MNEMONIC.replace(/'/g, '')
     : '',
   USE_LOG_FILE: USE_LOG_FILE ? JSON.parse(USE_LOG_FILE) : false,
-  L2_DENOM: L2_DENOM || 'umin',
   L1_CHAIN_ID: L1_CHAIN_ID ? L1_CHAIN_ID : 'local-initia',
   L2_CHAIN_ID: L2_CHAIN_ID ? L2_CHAIN_ID : 'local-minitia',
   l1lcd: new LCDClient(
@@ -66,7 +65,7 @@ export const config = {
   l2lcd: new LCDClient(
     L2_LCD_URI ? L2_LCD_URI.split(',')[0] : 'http://localhost:1317',
     {
-      gasPrices: `0${L2_DENOM || 'umin'}`,
+      gasPrices: L2_GAS_PRICES || '0.15umin',
       gasAdjustment: '2'
     }
   ),
