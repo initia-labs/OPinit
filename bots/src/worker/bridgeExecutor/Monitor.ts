@@ -75,7 +75,7 @@ export abstract class Monitor {
         if (blockchainData === null) continue;
 
         await this.db.transaction(async (manager: EntityManager) => {
-          for (const metadata of blockchainData?.block_metas.reverse()) {
+          for (const metadata of blockchainData.block_metas.reverse()) {
             this.currentHeight = this.syncedHeight + 1;
 
             if (this.currentHeight !== parseInt(metadata.header.height)) {
