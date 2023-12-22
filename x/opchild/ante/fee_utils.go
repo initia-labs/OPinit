@@ -17,7 +17,7 @@ func CombinedMinGasPrices(minGasPrices sdk.DecCoins, configMinGasPrices sdk.DecC
 }
 
 // computeRequiredFees returns required fees
-func computeRequiredFees(gas sdk.Gas, minGasPrices sdk.DecCoins) sdk.Coins {
+func computeRequiredFees(gas uint64, minGasPrices sdk.DecCoins) sdk.Coins {
 	// special case: if minGasPrices=[], requiredFees=[]
 	requiredFees := make(sdk.Coins, len(minGasPrices))
 
@@ -25,9 +25,8 @@ func computeRequiredFees(gas sdk.Gas, minGasPrices sdk.DecCoins) sdk.Coins {
 	if !minGasPrices.IsZero() {
 		// Determine the required fees by multiplying each required minimum gas
 		// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-		glDec := sdk.NewDec(int64(gas))
 		for i, gp := range minGasPrices {
-			fee := gp.Amount.Mul(glDec)
+			fee := gp.Amount.MulInt64(int64(gas))
 			requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
 	}

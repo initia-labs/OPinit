@@ -1,22 +1,20 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+import "context"
 
 type BridgeHook interface {
 	BridgeCreated(
-		ctx sdk.Context,
+		ctx context.Context,
 		bridgeId uint64,
 		bridgeConfig BridgeConfig,
 	) error
 	BridgeChallengerUpdated(
-		ctx sdk.Context,
+		ctx context.Context,
 		bridgeId uint64,
 		bridgeConfig BridgeConfig,
 	) error
 	BridgeProposerUpdated(
-		ctx sdk.Context,
+		ctx context.Context,
 		bridgeId uint64,
 		bridgeConfig BridgeConfig,
 	) error
@@ -31,7 +29,7 @@ func NewBridgeHooks(hooks ...BridgeHook) BridgeHooks {
 var _ BridgeHook = BridgeHooks{}
 
 func (hooks BridgeHooks) BridgeCreated(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig BridgeConfig,
 ) error {
@@ -45,7 +43,7 @@ func (hooks BridgeHooks) BridgeCreated(
 }
 
 func (hooks BridgeHooks) BridgeChallengerUpdated(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig BridgeConfig,
 ) error {
@@ -59,7 +57,7 @@ func (hooks BridgeHooks) BridgeChallengerUpdated(
 }
 
 func (hooks BridgeHooks) BridgeProposerUpdated(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig BridgeConfig,
 ) error {

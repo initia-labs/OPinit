@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -14,13 +15,15 @@ import (
 // setting the indexes. In addition, it also sets any delegations found in
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
-func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []abci.ValidatorUpdate) {
+func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res []abci.ValidatorUpdate) {
 	// We need to pretend to be "n blocks before genesis", where "n" is the
 	// validator update delay, so that e.g. slashing periods are correctly
 	// initialized for the validator set e.g. with a one-block offset - the
 	// first TM block is at height 1, so state updates applied from
 	// genesis.json are in block 0.
-	ctx = ctx.WithBlockHeight(1 - sdk.ValidatorUpdateDelay)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx = sdkCtx.WithBlockHeight(1 - sdk.ValidatorUpdateDelay)
+	ctx = sdkCtx
 
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
@@ -38,7 +41,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 	// don't need to run Tendermint updates if we exported
 	if data.Exported {
 		for _, lv := range data.LastValidatorPowers {
-			valAddr, err := sdk.ValAddressFromBech32(lv.Address)
+			valAddr, err := k.validatorAddressCodec.StringToBytes(lv.Address)
 			if err != nil {
 				panic(err)
 			}
@@ -75,27 +78,46 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 // ExportGenesis returns a GenesisState for a given context and keeper. The
 // GenesisState will contain the pool, params, validators, and bonds found in
 // the keeper.
-func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-
+func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	var lastValidatorPowers []types.LastValidatorPower
-
-	k.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
-		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr.String(), Power: power})
-		return false
+	err := k.IterateLastValidatorPowers(ctx, func(addr []byte, power int64) (stop bool, err error) {
+		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: sdk.ValAddress(addr).String(), Power: power})
+		return false, nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	var finalizedL1Sequences []uint64
-	k.IterateFinalizedL1Sequences(ctx, func(l1Sequence uint64) bool {
+	err = k.IterateFinalizedL1Sequences(ctx, func(l1Sequence uint64) (bool, error) {
 		finalizedL1Sequences = append(finalizedL1Sequences, l1Sequence)
-		return false
+		return false, nil
 	})
+	if err != nil {
+		panic(err)
+	}
+
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	validators, err := k.GetAllValidators(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	nextL2Sequence, err := k.GetNextL2Sequence(ctx)
+	if err != nil {
+		panic(err)
+	}
 
 	return &types.GenesisState{
-		Params:               k.GetParams(ctx),
+		Params:               params,
 		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           k.GetAllValidators(ctx),
+		Validators:           validators,
 		Exported:             true,
 		FinalizedL1Sequences: finalizedL1Sequences,
-		NextL2Sequence:       k.GetNextL2Sequence(ctx),
+		NextL2Sequence:       nextL2Sequence,
 	}
 }

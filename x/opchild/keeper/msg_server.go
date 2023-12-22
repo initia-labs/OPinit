@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"strconv"
 
@@ -12,12 +13,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
-)
-
-const (
-	bridgeModuleName           = "op_bridge"
-	bridgeFinalizeFunctionName = "finalize_token_bridge"
-	bridgeRegisterFunctionName = "register_token"
 )
 
 type MsgServer struct {
@@ -32,8 +27,8 @@ func NewMsgServerImpl(k Keeper) MsgServer {
 }
 
 // checkValidatorPermission checks if the sender is the one of validator
-func (ms MsgServer) checkValidatorPermission(ctx sdk.Context, sender string) error {
-	addr, err := sdk.AccAddressFromBech32(sender)
+func (ms MsgServer) checkValidatorPermission(ctx context.Context, sender string) error {
+	addr, err := ms.authKeeper.AddressCodec().StringToBytes(sender)
 	if err != nil {
 		return err
 	}
@@ -47,14 +42,18 @@ func (ms MsgServer) checkValidatorPermission(ctx sdk.Context, sender string) err
 }
 
 // checkBridgeExecutorPermission checks if the sender is the registered bridge executor to send messages
-func (ms MsgServer) checkBridgeExecutorPermission(ctx sdk.Context, sender string) error {
-	senderAddr, err := sdk.AccAddressFromBech32(sender)
+func (ms MsgServer) checkBridgeExecutorPermission(ctx context.Context, sender string) error {
+	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(sender)
 	if err != nil {
 		return err
 	}
 
-	bridgeExecutor := ms.BridgeExecutor(ctx)
-	if !bridgeExecutor.Equals(senderAddr) {
+	bridgeExecutor, err := ms.BridgeExecutor(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !bridgeExecutor.Equals(sdk.AccAddress(senderAddr)) {
 		return errors.Wrapf(sdkerrors.ErrUnauthorized, "expected %s, got %s", bridgeExecutor, sender)
 	}
 	return nil
@@ -64,33 +63,57 @@ func (ms MsgServer) checkBridgeExecutorPermission(ctx sdk.Context, sender string
 // The messages for Validator
 
 // ExecuteMessages implements a ExecuteMessages message handling
-func (ms MsgServer) ExecuteMessages(context context.Context, req *types.MsgExecuteMessages) (*types.MsgExecuteMessagesResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
-	authority := sdk.MustAccAddressFromBech32(ms.authority)
+func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMessages) (*types.MsgExecuteMessagesResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
 	// permission check
 	if err := ms.checkValidatorPermission(ctx, req.Sender); err != nil {
 		return nil, err
 	}
 
-	cachtCtx, writeCache := ctx.CacheContext()
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	cacheCtx, writeCache := sdkCtx.CacheContext()
 	messages, err := req.GetMsgs()
+	if err != nil {
+		return nil, err
+	}
+
+	authority, err := ms.authKeeper.AddressCodec().StringToBytes(ms.authority)
 	if err != nil {
 		return nil, err
 	}
 
 	events := sdk.EmptyEvents()
 	for _, msg := range messages {
-		signers := msg.GetSigners()
-		// assert that the rollup module account is the only signer for ExecuteMessages message
-		if !signers[0].Equals(authority) {
-			return nil, errors.Wrapf(types.ErrInvalidSigner, signers[0].String())
+		// perform a basic validation of the message
+		if m, ok := msg.(sdk.HasValidateBasic); ok {
+			if err := m.ValidateBasic(); err != nil {
+				return nil, errors.Wrap(types.ErrInvalidExecuteMsg, err.Error())
+			}
+		}
+
+		signers, _, err := ms.cdc.GetMsgV1Signers(msg)
+		if err != nil {
+			return nil, err
+		}
+		if len(signers) != 1 {
+			return nil, types.ErrInvalidSigner
+		}
+
+		// assert that the opchild module account is the only signer for ExecuteMessages message
+		if !bytes.Equal(signers[0], authority) {
+			return nil, errors.Wrapf(types.ErrInvalidSigner, sdk.AccAddress(signers[0]).String())
 		}
 
 		handler := ms.Router().Handler(msg)
+		if handler == nil {
+			return nil, errors.Wrap(types.ErrUnroutableExecuteMsg, sdk.MsgTypeURL(msg))
+		}
 
 		var res *sdk.Result
-		res, err = handler(cachtCtx, msg)
+		res, err = handler(cacheCtx, msg)
 		if err != nil {
 			break
 		}
@@ -104,14 +127,23 @@ func (ms MsgServer) ExecuteMessages(context context.Context, req *types.MsgExecu
 	writeCache()
 
 	// TODO - merge events of MsgExecuteMessages itself
-	ctx.EventManager().EmitEvents(events)
+	sdkCtx.EventManager().EmitEvents(events)
 
 	return &types.MsgExecuteMessagesResponse{}, nil
 }
 
 // ExecuteLegacyContents implements a ExecuteLegacyContents message handling
-func (ms MsgServer) ExecuteLegacyContents(context context.Context, req *types.MsgExecuteLegacyContents) (*types.MsgExecuteLegacyContentsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) ExecuteLegacyContents(ctx context.Context, req *types.MsgExecuteLegacyContents) (*types.MsgExecuteLegacyContentsResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// permission check
+	if err := ms.checkValidatorPermission(ctx, req.Sender); err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, content := range req.GetContents() {
 		// Ensure that the content has a respective handler
 		if !ms.Keeper.legacyRouter.HasRoute(content.ProposalRoute()) {
@@ -119,7 +151,7 @@ func (ms MsgServer) ExecuteLegacyContents(context context.Context, req *types.Ms
 		}
 
 		handler := ms.Keeper.legacyRouter.GetRoute(content.ProposalRoute())
-		if err := handler(ctx, content); err != nil {
+		if err := handler(sdkCtx, content); err != nil {
 			return nil, errors.Wrapf(govtypes.ErrInvalidProposalContent, "failed to run legacy handler %s, %+v", content.ProposalRoute(), err)
 		}
 	}
@@ -131,13 +163,17 @@ func (ms MsgServer) ExecuteLegacyContents(context context.Context, req *types.Ms
 // Authority messages
 
 // AddValidator implements adding a validator to the designated validator set
-func (ms MsgServer) AddValidator(context context.Context, req *types.MsgAddValidator) (*types.MsgAddValidatorResponse, error) {
+func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator) (*types.MsgAddValidatorResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
+		return nil, err
+	}
+
 	if ms.authority != req.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	ctx := sdk.UnwrapSDKContext(context)
-	valAddr, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	valAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.ValidatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +192,8 @@ func (ms MsgServer) AddValidator(context context.Context, req *types.MsgAddValid
 		return nil, types.ErrValidatorPubKeyExists
 	}
 
-	cp := ctx.ConsensusParams()
-	if cp != nil && cp.Validator != nil {
+	cp := sdkCtx.ConsensusParams()
+	if cp.Validator != nil {
 		pkType := pk.Type()
 		hasKeyType := false
 		for _, keyType := range cp.Validator.PubKeyTypes {
@@ -184,7 +220,7 @@ func (ms MsgServer) AddValidator(context context.Context, req *types.MsgAddValid
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAddValidator,
 			sdk.NewAttribute(types.AttributeKeyValidator, req.ValidatorAddress),
@@ -195,13 +231,17 @@ func (ms MsgServer) AddValidator(context context.Context, req *types.MsgAddValid
 }
 
 // RemoveValidator implements removing a validator from the designated validator set
-func (ms MsgServer) RemoveValidator(context context.Context, req *types.MsgRemoveValidator) (*types.MsgRemoveValidatorResponse, error) {
+func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveValidator) (*types.MsgRemoveValidatorResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
+		return nil, err
+	}
+
 	if ms.authority != req.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	ctx := sdk.UnwrapSDKContext(context)
-	valAddr, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	valAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.ValidatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +256,7 @@ func (ms MsgServer) RemoveValidator(context context.Context, req *types.MsgRemov
 	// then `val_state_change` will execute `k.RemoveValidator`.
 	ms.Keeper.SetValidator(ctx, val)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRemoveValidator,
 			sdk.NewAttribute(types.AttributeKeyValidator, req.ValidatorAddress),
@@ -227,12 +267,15 @@ func (ms MsgServer) RemoveValidator(context context.Context, req *types.MsgRemov
 }
 
 // UpdateParams implements updating the parameters
-func (ms MsgServer) UpdateParams(context context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
 	if ms.authority != req.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	ctx := sdk.UnwrapSDKContext(context)
 	if err := ms.SetParams(ctx, *req.Params); err != nil {
 		return nil, err
 	}
@@ -242,13 +285,16 @@ func (ms MsgServer) UpdateParams(context context.Context, req *types.MsgUpdatePa
 }
 
 // SpendFeePool implements MsgServer interface.
-func (ms MsgServer) SpendFeePool(context context.Context, req *types.MsgSpendFeePool) (*types.MsgSpendFeePoolResponse, error) {
+func (ms MsgServer) SpendFeePool(ctx context.Context, req *types.MsgSpendFeePool) (*types.MsgSpendFeePoolResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
 	if ms.authority != req.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	ctx := sdk.UnwrapSDKContext(context)
-	recipientAddr, err := sdk.AccAddressFromBech32(req.Recipient)
+	recipientAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Recipient)
 	if err != nil {
 		return nil, err
 	}
@@ -265,8 +311,12 @@ func (ms MsgServer) SpendFeePool(context context.Context, req *types.MsgSpendFee
 // The messages for Bridge Executor
 
 // FinalizeTokenDeposit implements send a deposit from the upper layer to the recipient
-func (ms MsgServer) FinalizeTokenDeposit(context context.Context, req *types.MsgFinalizeTokenDeposit) (*types.MsgFinalizeTokenDepositResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFinalizeTokenDeposit) (*types.MsgFinalizeTokenDepositResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	coin := req.Amount
 
 	// permission check
@@ -275,16 +325,18 @@ func (ms MsgServer) FinalizeTokenDeposit(context context.Context, req *types.Msg
 	}
 
 	// check already finalized
-	if ok := ms.HasFinalizedL1Sequence(ctx, req.Sequence); ok {
+	if ok, err := ms.HasFinalizedL1Sequence(ctx, req.Sequence); err != nil {
+		return nil, err
+	} else if ok {
 		return nil, types.ErrDepositAlreadyFinalized
 	}
 
-	fromAddr, err := sdk.AccAddressFromBech32(req.From)
+	fromAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.From)
 	if err != nil {
 		return nil, err
 	}
 
-	toAddr, err := sdk.AccAddressFromBech32(req.To)
+	toAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +364,7 @@ func (ms MsgServer) FinalizeTokenDeposit(context context.Context, req *types.Msg
 
 	// handle hook
 	if len(req.Data) > 0 {
-		subCtx, commit := ctx.CacheContext()
+		subCtx, commit := sdkCtx.CacheContext()
 
 		err = ms.bridgeHook(subCtx, fromAddr, req.Data)
 		if err == nil {
@@ -322,7 +374,7 @@ func (ms MsgServer) FinalizeTokenDeposit(context context.Context, req *types.Msg
 			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, "false"))
 		}
 	}
-	ctx.EventManager().EmitEvent(event)
+	sdkCtx.EventManager().EmitEvent(event)
 
 	return &types.MsgFinalizeTokenDepositResponse{}, nil
 }
@@ -331,17 +383,24 @@ func (ms MsgServer) FinalizeTokenDeposit(context context.Context, req *types.Msg
 // The messages for User
 
 // InitiateTokenWithdrawal implements creating a token from the upper layer
-func (ms MsgServer) InitiateTokenWithdrawal(context context.Context, req *types.MsgInitiateTokenWithdrawal) (*types.MsgInitiateTokenWithdrawalResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgInitiateTokenWithdrawal) (*types.MsgInitiateTokenWithdrawalResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	coin := req.Amount
 
-	senderAddr, err := sdk.AccAddressFromBech32(req.Sender)
+	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {
 		return nil, err
 	}
 
 	coins := sdk.NewCoins(coin)
-	l2Sequence := ms.IncreaseNextL2Sequence(ctx)
+	l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, coins); err != nil {
 		return nil, err
 	}
@@ -349,7 +408,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(context context.Context, req *types.
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
 		sdk.NewAttribute(types.AttributeKeyTo, req.To),

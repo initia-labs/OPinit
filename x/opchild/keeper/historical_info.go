@@ -1,44 +1,47 @@
 package keeper
 
 import (
+	"context"
+	"errors"
+
+	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // GetHistoricalInfo gets the historical info at a given height
-func (k Keeper) GetHistoricalInfo(ctx sdk.Context, height int64) (cosmostypes.HistoricalInfo, bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := cosmostypes.GetHistoricalInfoKey(height)
+func (k Keeper) GetHistoricalInfo(ctx context.Context, height int64) (*cosmostypes.HistoricalInfo, bool, error) {
+	historicalInfo, err := k.HistoricalInfos.Get(ctx, height)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, false, nil
+		}
 
-	value := store.Get(key)
-	if value == nil {
-		return cosmostypes.HistoricalInfo{}, false
+		return nil, false, err
 	}
 
-	return cosmostypes.MustUnmarshalHistoricalInfo(k.cdc, value), true
+	return &historicalInfo, true, nil
 }
 
 // SetHistoricalInfo sets the historical info at a given height
-func (k Keeper) SetHistoricalInfo(ctx sdk.Context, height int64, hi *cosmostypes.HistoricalInfo) {
-	store := ctx.KVStore(k.storeKey)
-	key := cosmostypes.GetHistoricalInfoKey(height)
-	value := k.cdc.MustMarshal(hi)
-	store.Set(key, value)
+func (k Keeper) SetHistoricalInfo(ctx context.Context, height int64, hi *cosmostypes.HistoricalInfo) error {
+	return k.HistoricalInfos.Set(ctx, height, *hi)
 }
 
 // DeleteHistoricalInfo deletes the historical info at a given height
-func (k Keeper) DeleteHistoricalInfo(ctx sdk.Context, height int64) {
-	store := ctx.KVStore(k.storeKey)
-	key := cosmostypes.GetHistoricalInfoKey(height)
-
-	store.Delete(key)
+func (k Keeper) DeleteHistoricalInfo(ctx context.Context, height int64) error {
+	return k.HistoricalInfos.Remove(ctx, height)
 }
 
 // TrackHistoricalInfo saves the latest historical-info and deletes the oldest
 // heights that are below pruning height
-func (k Keeper) TrackHistoricalInfo(ctx sdk.Context) {
-	entryNum := k.HistoricalEntries(ctx)
+func (k Keeper) TrackHistoricalInfo(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	entryNum, err := k.HistoricalEntries(ctx)
+	if err != nil {
+		return err
+	}
 
 	// Prune store to ensure we only have parameter-defined historical entries.
 	// In most cases, this will involve removing a single historical entry.
@@ -47,9 +50,11 @@ func (k Keeper) TrackHistoricalInfo(ctx sdk.Context) {
 	// Since the entries to be deleted are always in a continuous range, we can iterate
 	// over the historical entries starting from the most recent version to be pruned
 	// and then return at the first empty entry.
-	for i := ctx.BlockHeight() - int64(entryNum); i >= 0; i-- {
-		_, found := k.GetHistoricalInfo(ctx, i)
-		if found {
+	for i := sdkCtx.BlockHeight() - int64(entryNum); i >= 0; i-- {
+		_, found, err := k.GetHistoricalInfo(ctx, i)
+		if err != nil {
+			return err
+		} else if found {
 			k.DeleteHistoricalInfo(ctx, i)
 		} else {
 			break
@@ -58,22 +63,26 @@ func (k Keeper) TrackHistoricalInfo(ctx sdk.Context) {
 
 	// if there is no need to persist historicalInfo, return
 	if entryNum == 0 {
-		return
+		return nil
 	}
 
 	// Create HistoricalInfo struct
-	lastVals := k.GetLastValidators(ctx)
+	lastVals, err := k.GetLastValidators(ctx)
+	if err != nil {
+		return err
+	}
 	var lastCosmosVals cosmostypes.Validators
 	for _, v := range lastVals {
-		lastCosmosVals = append(lastCosmosVals, cosmostypes.Validator{
+		lastCosmosVals.Validators = append(lastCosmosVals.Validators, cosmostypes.Validator{
 			ConsensusPubkey: v.ConsensusPubkey,
 			Tokens:          math.NewInt(v.ConsensusPower() * sdk.DefaultPowerReduction.Int64()),
 			Status:          cosmostypes.Bonded,
 		})
 	}
+	lastCosmosVals.ValidatorCodec = k.validatorAddressCodec
 
-	historicalEntry := cosmostypes.NewHistoricalInfo(ctx.BlockHeader(), lastCosmosVals, sdk.DefaultPowerReduction)
+	historicalEntry := cosmostypes.NewHistoricalInfo(sdkCtx.BlockHeader(), lastCosmosVals, sdk.DefaultPowerReduction)
 
 	// Set latest HistoricalInfo at current height
-	k.SetHistoricalInfo(ctx, ctx.BlockHeight(), &historicalEntry)
+	return k.SetHistoricalInfo(ctx, sdkCtx.BlockHeight(), &historicalEntry)
 }

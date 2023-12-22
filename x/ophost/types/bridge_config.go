@@ -1,15 +1,15 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/core/address"
 )
 
-func (config BridgeConfig) Validate() error {
-	if _, err := sdk.AccAddressFromBech32(config.Challenger); err != nil {
+func (config BridgeConfig) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(config.Challenger); err != nil {
 		return err
 	}
 
-	if _, err := sdk.AccAddressFromBech32(config.Proposer); err != nil {
+	if _, err := ac.StringToBytes(config.Proposer); err != nil {
 		return err
 	}
 

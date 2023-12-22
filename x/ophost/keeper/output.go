@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"encoding/binary"
+	"context"
+	"errors"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -13,62 +13,23 @@ import (
 ////////////////////////////////////
 // OutputProposal
 
-func (k Keeper) SetOutputProposal(ctx sdk.Context, bridgeId, outputIndex uint64, outputProposal types.Output) error {
-	bz, err := k.cdc.Marshal(&outputProposal)
-	if err != nil {
-		return err
-	}
-
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetOutputProposalKey(bridgeId, outputIndex), bz)
-
-	return nil
+func (k Keeper) SetOutputProposal(ctx context.Context, bridgeId, outputIndex uint64, outputProposal types.Output) error {
+	return k.OutputProposals.Set(ctx, collections.Join(bridgeId, outputIndex), outputProposal)
 }
 
-func (k Keeper) GetOutputProposal(ctx sdk.Context, bridgeId, outputIndex uint64) (outputProposal types.Output, err error) {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.GetOutputProposalKey(bridgeId, outputIndex))
-	if len(bz) == 0 {
-		err = errors.ErrKeyNotFound.Wrap("failed to fetch output_proposal")
-		return
-	}
-
-	err = k.cdc.Unmarshal(bz, &outputProposal)
-	return
+func (k Keeper) GetOutputProposal(ctx context.Context, bridgeId, outputIndex uint64) (outputProposal types.Output, err error) {
+	return k.OutputProposals.Get(ctx, collections.Join(bridgeId, outputIndex))
 }
 
-func (k Keeper) DeleteOutputProposal(ctx sdk.Context, bridgeId, outputIndex uint64) {
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Delete(types.GetOutputProposalKey(bridgeId, outputIndex))
+func (k Keeper) DeleteOutputProposal(ctx context.Context, bridgeId, outputIndex uint64) error {
+	return k.OutputProposals.Remove(ctx, collections.Join(bridgeId, outputIndex))
 }
 
-func (k Keeper) IterateOutputProposals(ctx sdk.Context, bridgeId uint64, cb func(bridgeId, outputIndex uint64, output types.Output) bool) error {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	prefixStore := prefix.NewStore(kvStore, types.GetOutputProposalBridgePrefixKey(bridgeId))
-	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-		val := iterator.Value()
-
-		outputIndex := binary.BigEndian.Uint64(key)
-
-		var output types.Output
-		if err := k.cdc.Unmarshal(val, &output); err != nil {
-			return err
-		}
-
-		if cb(bridgeId, outputIndex, output) {
-			break
-		}
-	}
-
-	return nil
+func (k Keeper) IterateOutputProposals(ctx context.Context, bridgeId uint64, cb func(key collections.Pair[uint64, uint64], output types.Output) (stop bool, err error)) error {
+	return k.OutputProposals.Walk(ctx, collections.NewPrefixedPairRange[uint64, uint64](bridgeId), cb)
 }
 
-func (k Keeper) IsFinalized(ctx sdk.Context, bridgeId, outputIndex uint64) (bool, error) {
+func (k Keeper) IsFinalized(ctx context.Context, bridgeId, outputIndex uint64) (bool, error) {
 	output, err := k.GetOutputProposal(ctx, bridgeId, outputIndex)
 	if err != nil {
 		return false, err
@@ -79,46 +40,39 @@ func (k Keeper) IsFinalized(ctx sdk.Context, bridgeId, outputIndex uint64) (bool
 		return false, err
 	}
 
-	return ctx.BlockTime().Unix() >= output.L1BlockTime.Add(bridgeConfig.FinalizationPeriod).Unix(), nil
+	return sdk.UnwrapSDKContext(ctx).BlockTime().Unix() >= output.L1BlockTime.Add(bridgeConfig.FinalizationPeriod).Unix(), nil
 }
 
 ////////////////////////////////////
 // NextOutputIndex
 
-func (k Keeper) SetNextOutputIndex(ctx sdk.Context, bridgeId, nextOutputIndex uint64) {
-	_nextOutputIndex := [8]byte{}
-	binary.BigEndian.PutUint64(_nextOutputIndex[:], nextOutputIndex)
-
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetNextOutputIndexKey(bridgeId), _nextOutputIndex[:])
+func (k Keeper) SetNextOutputIndex(ctx context.Context, bridgeId, nextOutputIndex uint64) error {
+	return k.NextOutputIndexes.Set(ctx, bridgeId, nextOutputIndex)
 }
 
-func (k Keeper) GetNextOutputIndex(ctx sdk.Context, bridgeId uint64) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.GetNextOutputIndexKey(bridgeId))
-	if len(bz) == 0 {
-		return 1
+func (k Keeper) GetNextOutputIndex(ctx context.Context, bridgeId uint64) (uint64, error) {
+	nextOutputIndex, err := k.NextOutputIndexes.Get(ctx, bridgeId)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			nextOutputIndex = 1
+		} else {
+			return 0, err
+		}
 	}
 
-	return binary.BigEndian.Uint64(bz)
+	return nextOutputIndex, nil
 }
 
-func (k Keeper) IncreaseNextOutputIndex(ctx sdk.Context, bridgeId uint64) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	// load next output index
-	key := types.GetNextOutputIndexKey(bridgeId)
-	bz := kvStore.Get(key)
-
-	nextOutputIndex := uint64(1)
-	if len(bz) != 0 {
-		nextOutputIndex = binary.BigEndian.Uint64(bz)
+func (k Keeper) IncreaseNextOutputIndex(ctx context.Context, bridgeId uint64) (uint64, error) {
+	nextOutputIndex, err := k.GetNextOutputIndex(ctx, bridgeId)
+	if err != nil {
+		return 0, err
 	}
 
-	// increase next output index
-	_nextOutputIndex := [8]byte{}
-	binary.BigEndian.PutUint64(_nextOutputIndex[:], nextOutputIndex+1)
-	kvStore.Set(key, _nextOutputIndex[:])
+	// increase NextOutputIndex
+	if err := k.NextOutputIndexes.Set(ctx, bridgeId, nextOutputIndex+1); err != nil {
+		return 0, err
+	}
 
-	return nextOutputIndex
+	return nextOutputIndex, nil
 }

@@ -2,10 +2,8 @@ package keeper
 
 import (
 	"context"
-	"encoding/binary"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/collections"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,9 +22,7 @@ func NewQuerier(k Keeper) Querier {
 	return Querier{k}
 }
 
-func (q Querier) Bridge(context context.Context, req *types.QueryBridgeRequest) (*types.QueryBridgeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
-
+func (q Querier) Bridge(ctx context.Context, req *types.QueryBridgeRequest) (*types.QueryBridgeResponse, error) {
 	bridgeId := req.BridgeId
 	config, err := q.GetBridgeConfig(ctx, bridgeId)
 	if err != nil {
@@ -40,32 +36,14 @@ func (q Querier) Bridge(context context.Context, req *types.QueryBridgeRequest) 
 	}, nil
 }
 
-func (q Querier) Bridges(context context.Context, req *types.QueryBridgesRequest) (*types.QueryBridgesResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
-
-	var bridges []types.QueryBridgeResponse
-
-	store := ctx.KVStore(q.storeKey)
-	bridgeStore := prefix.NewStore(store, types.BridgeConfigKey)
-
-	pageRes, err := query.FilteredPaginate(bridgeStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		bridgeId := binary.BigEndian.Uint64(key)
-		var config types.BridgeConfig
-		if err := q.cdc.Unmarshal(value, &config); err != nil {
-			return false, err
-		}
-
-		if accumulate {
-			bridges = append(bridges, types.QueryBridgeResponse{
-				BridgeId:     bridgeId,
-				BridgeAddr:   types.BridgeAddress(bridgeId).String(),
-				BridgeConfig: config,
-			})
-		}
-
-		return true, nil
+func (q Querier) Bridges(ctx context.Context, req *types.QueryBridgesRequest) (*types.QueryBridgesResponse, error) {
+	bridges, pageRes, err := query.CollectionPaginate(ctx, q.Keeper.BridgeConfigs, req.Pagination, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (types.QueryBridgeResponse, error) {
+		return types.QueryBridgeResponse{
+			BridgeId:     bridgeId,
+			BridgeAddr:   types.BridgeAddress(bridgeId).String(),
+			BridgeConfig: bridgeConfig,
+		}, nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -76,7 +54,7 @@ func (q Querier) Bridges(context context.Context, req *types.QueryBridgesRequest
 	}, nil
 }
 
-func (q Querier) TokenPairByL1Denom(context context.Context, req *types.QueryTokenPairByL1DenomRequest) (*types.QueryTokenPairByL1DenomResponse, error) {
+func (q Querier) TokenPairByL1Denom(_ context.Context, req *types.QueryTokenPairByL1DenomRequest) (*types.QueryTokenPairByL1DenomResponse, error) {
 	l2Denom := types.L2Denom(req.BridgeId, req.L1Denom)
 	return &types.QueryTokenPairByL1DenomResponse{
 		TokenPair: types.TokenPair{
@@ -86,8 +64,7 @@ func (q Querier) TokenPairByL1Denom(context context.Context, req *types.QueryTok
 	}, nil
 }
 
-func (q Querier) TokenPairByL2Denom(context context.Context, req *types.QueryTokenPairByL2DenomRequest) (*types.QueryTokenPairByL2DenomResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (q Querier) TokenPairByL2Denom(ctx context.Context, req *types.QueryTokenPairByL2DenomRequest) (*types.QueryTokenPairByL2DenomResponse, error) {
 	l1Denom, err := q.GetTokenPair(ctx, req.BridgeId, req.L2Denom)
 	if err != nil {
 		return nil, err
@@ -101,29 +78,13 @@ func (q Querier) TokenPairByL2Denom(context context.Context, req *types.QueryTok
 	}, nil
 }
 
-func (q Querier) TokenPairs(context context.Context, req *types.QueryTokenPairsRequest) (*types.QueryTokenPairsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
-
-	var pairs []types.TokenPair
-	bridgeId := req.BridgeId
-
-	store := ctx.KVStore(q.storeKey)
-	pairStore := prefix.NewStore(store, types.GetTokenPairBridgePrefixKey(bridgeId))
-
-	pageRes, err := query.FilteredPaginate(pairStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		l2Denom := string(key)
-		l1Denom := string(value)
-
-		if accumulate {
-			pairs = append(pairs, types.TokenPair{
-				L1Denom: l1Denom,
-				L2Denom: l2Denom,
-			})
-		}
-
-		return true, nil
-	})
-
+func (q Querier) TokenPairs(ctx context.Context, req *types.QueryTokenPairsRequest) (*types.QueryTokenPairsResponse, error) {
+	pairs, pageRes, err := query.CollectionPaginate(ctx, q.Keeper.TokenPairs, req.Pagination, func(key collections.Pair[uint64, string], l1Denom string) (types.TokenPair, error) {
+		return types.TokenPair{
+			L1Denom: l1Denom,
+			L2Denom: key.K2(),
+		}, nil
+	}, query.WithCollectionPaginationPairPrefix[uint64, string](req.BridgeId))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -134,8 +95,7 @@ func (q Querier) TokenPairs(context context.Context, req *types.QueryTokenPairsR
 	}, nil
 }
 
-func (q Querier) OutputProposal(context context.Context, req *types.QueryOutputProposalRequest) (*types.QueryOutputProposalResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (q Querier) OutputProposal(ctx context.Context, req *types.QueryOutputProposalRequest) (*types.QueryOutputProposalResponse, error) {
 	output, err := q.GetOutputProposal(ctx, req.BridgeId, req.OutputIndex)
 	if err != nil {
 		return nil, err
@@ -148,33 +108,14 @@ func (q Querier) OutputProposal(context context.Context, req *types.QueryOutputP
 	}, nil
 }
 
-func (q Querier) OutputProposals(context context.Context, req *types.QueryOutputProposalsRequest) (*types.QueryOutputProposalsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
-
-	var outputs []types.QueryOutputProposalResponse
-	bridgeId := req.BridgeId
-
-	store := ctx.KVStore(q.storeKey)
-	outputStore := prefix.NewStore(store, types.GetOutputProposalBridgePrefixKey(bridgeId))
-
-	pageRes, err := query.FilteredPaginate(outputStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		outputIndex := binary.BigEndian.Uint64(key)
-		var output types.Output
-		if err := q.cdc.Unmarshal(value, &output); err != nil {
-			return false, err
-		}
-
-		if accumulate {
-			outputs = append(outputs, types.QueryOutputProposalResponse{
-				BridgeId:       bridgeId,
-				OutputIndex:    outputIndex,
-				OutputProposal: output,
-			})
-		}
-
-		return true, nil
-	})
-
+func (q Querier) OutputProposals(ctx context.Context, req *types.QueryOutputProposalsRequest) (*types.QueryOutputProposalsResponse, error) {
+	outputs, pageRes, err := query.CollectionPaginate(ctx, q.Keeper.OutputProposals, req.Pagination, func(key collections.Pair[uint64, uint64], outputProposal types.Output) (types.QueryOutputProposalResponse, error) {
+		return types.QueryOutputProposalResponse{
+			BridgeId:       req.BridgeId,
+			OutputIndex:    key.K2(),
+			OutputProposal: outputProposal,
+		}, nil
+	}, query.WithCollectionPaginationPairPrefix[uint64, uint64](req.BridgeId))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -185,8 +126,6 @@ func (q Querier) OutputProposals(context context.Context, req *types.QueryOutput
 	}, nil
 }
 
-func (q Querier) Params(context context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
-
+func (q Querier) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	return &types.QueryParamsResponse{Params: q.GetParams(ctx)}, nil
 }

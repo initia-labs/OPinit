@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -24,9 +25,9 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis performs basic validation of rollup genesis data returning an
 // error for any failed validation criteria.
-func ValidateGenesis(data *GenesisState) error {
+func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 	for _, bridge := range data.Bridges {
-		if err := bridge.BridgeConfig.Validate(); err != nil {
+		if err := bridge.BridgeConfig.Validate(ac); err != nil {
 			return err
 		}
 

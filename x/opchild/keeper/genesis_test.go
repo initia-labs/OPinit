@@ -13,9 +13,11 @@ func Test_GenesisImportExport(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	input.OPChildKeeper.SetNextL2Sequence(ctx, 1)
 
-	seq := input.OPChildKeeper.IncreaseNextL2Sequence(ctx)
+	seq, err := input.OPChildKeeper.IncreaseNextL2Sequence(ctx)
+	require.NoError(t, err)
 	require.Equal(t, uint64(1), seq)
-	seq = input.OPChildKeeper.IncreaseNextL2Sequence(ctx)
+	seq, err = input.OPChildKeeper.IncreaseNextL2Sequence(ctx)
+	require.NoError(t, err)
 	require.Equal(t, uint64(2), seq)
 
 	input.OPChildKeeper.RecordFinalizedL1Sequence(ctx, 1)

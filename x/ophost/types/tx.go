@@ -1,8 +1,8 @@
 package types
 
 import (
+	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 // rollup message types
@@ -28,16 +28,6 @@ var (
 	_ sdk.Msg = &MsgUpdateProposer{}
 	_ sdk.Msg = &MsgUpdateChallenger{}
 	_ sdk.Msg = &MsgUpdateParams{}
-
-	_ legacytx.LegacyMsg = &MsgRecordBatch{}
-	_ legacytx.LegacyMsg = &MsgCreateBridge{}
-	_ legacytx.LegacyMsg = &MsgProposeOutput{}
-	_ legacytx.LegacyMsg = &MsgDeleteOutput{}
-	_ legacytx.LegacyMsg = &MsgFinalizeTokenWithdrawal{}
-	_ legacytx.LegacyMsg = &MsgInitiateTokenDeposit{}
-	_ legacytx.LegacyMsg = &MsgUpdateProposer{}
-	_ legacytx.LegacyMsg = &MsgUpdateChallenger{}
-	_ legacytx.LegacyMsg = &MsgUpdateParams{}
 )
 
 /* MsgRecordBatch */
@@ -55,19 +45,9 @@ func NewMsgRecordBatch(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgRecordBatch) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgRecordBatch) Type() string {
-	return TypeMsgRecordBatch
-}
-
-// ValidateBasic performs basic MsgRecordBatch message validation.
-func (msg MsgRecordBatch) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Submitter); err != nil {
+// Validate performs basic MsgRecordBatch message validation.
+func (msg MsgRecordBatch) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Submitter); err != nil {
 		return err
 	}
 
@@ -76,21 +56,6 @@ func (msg MsgRecordBatch) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgRecordBatch) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgRecordBatch) GetSigners() []sdk.AccAddress {
-	submitterAddr, err := sdk.AccAddressFromBech32(msg.Submitter)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{submitterAddr}
 }
 
 /* MsgCreateBridge */
@@ -106,42 +71,17 @@ func NewMsgCreateBridge(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgCreateBridge) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgCreateBridge) Type() string {
-	return TypeMsgCreateBridge
-}
-
-// ValidateBasic performs basic MsgCreateBridge message validation.
-func (msg MsgCreateBridge) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
+// Validate performs basic MsgCreateBridge message validation.
+func (msg MsgCreateBridge) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Creator); err != nil {
 		return err
 	}
 
-	if err := msg.Config.Validate(); err != nil {
+	if err := msg.Config.Validate(ac); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgCreateBridge) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgCreateBridge) GetSigners() []sdk.AccAddress {
-	creatorAddr, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{creatorAddr}
 }
 
 /* MsgProposeOutput */
@@ -162,19 +102,9 @@ func NewMsgProposeOutput(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgProposeOutput) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgProposeOutput) Type() string {
-	return TypeMsgProposeOutput
-}
-
-// ValidateBasic performs basic MsgProposeOutput message validation.
-func (msg MsgProposeOutput) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Proposer)
+// Validate performs basic MsgProposeOutput message validation.
+func (msg MsgProposeOutput) Validate(accAddressCodec address.Codec) error {
+	_, err := accAddressCodec.StringToBytes(msg.Proposer)
 	if err != nil {
 		return err
 	}
@@ -188,19 +118,6 @@ func (msg MsgProposeOutput) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgProposeOutput) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgProposeOutput) GetSigners() []sdk.AccAddress {
-	proposer, _ := sdk.AccAddressFromBech32(msg.Proposer)
-
-	return []sdk.AccAddress{proposer}
 }
 
 /* MsgDeleteOutput */
@@ -218,19 +135,9 @@ func NewMsgDeleteOutput(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgDeleteOutput) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgDeleteOutput) Type() string {
-	return TypeMsgDeleteOutput
-}
-
-// ValidateBasic performs basic MsgDeleteOutput message validation.
-func (msg MsgDeleteOutput) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Challenger); err != nil {
+// Validate performs basic MsgDeleteOutput message validation.
+func (msg MsgDeleteOutput) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Challenger); err != nil {
 		return err
 	}
 
@@ -243,21 +150,6 @@ func (msg MsgDeleteOutput) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgDeleteOutput) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgDeleteOutput) GetSigners() []sdk.AccAddress {
-	challengerAddr, err := sdk.AccAddressFromBech32(msg.Challenger)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{challengerAddr}
 }
 
 /* MsgInitiateTokenDeposit */
@@ -279,23 +171,13 @@ func NewMsgInitiateTokenDeposit(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgInitiateTokenDeposit) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgInitiateTokenDeposit) Type() string {
-	return TypeMsgInitiateTokenDeposit
-}
-
-// ValidateBasic performs basic MsgInitiateTokenDeposit message validation.
-func (msg MsgInitiateTokenDeposit) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
+// Validate performs basic MsgInitiateTokenDeposit message validation.
+func (msg MsgInitiateTokenDeposit) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Sender); err != nil {
 		return err
 	}
 
-	if _, err := sdk.AccAddressFromBech32(msg.To); err != nil {
+	if _, err := accAddressCodec.StringToBytes(msg.To); err != nil {
 		return err
 	}
 
@@ -308,21 +190,6 @@ func (msg MsgInitiateTokenDeposit) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgInitiateTokenDeposit) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgInitiateTokenDeposit) GetSigners() []sdk.AccAddress {
-	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{senderAddr}
 }
 
 /* MsgFinalizeTokenWithdrawal */
@@ -356,23 +223,13 @@ func NewMsgFinalizeTokenWithdrawal(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgFinalizeTokenWithdrawal) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgFinalizeTokenWithdrawal) Type() string {
-	return TypeMsgFinalizeTokenWithdrawal
-}
-
-// ValidateBasic performs basic MsgFinalizeTokenWithdrawal message validation.
-func (msg MsgFinalizeTokenWithdrawal) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
+// Validate performs basic MsgFinalizeTokenWithdrawal message validation.
+func (msg MsgFinalizeTokenWithdrawal) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Sender); err != nil {
 		return err
 	}
 
-	if _, err := sdk.AccAddressFromBech32(msg.Receiver); err != nil {
+	if _, err := accAddressCodec.StringToBytes(msg.Receiver); err != nil {
 		return err
 	}
 
@@ -417,21 +274,6 @@ func (msg MsgFinalizeTokenWithdrawal) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgFinalizeTokenWithdrawal) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgFinalizeTokenWithdrawal) GetSigners() []sdk.AccAddress {
-	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{senderAddr}
-}
-
 /* MsgUpdateProposer */
 
 // NewMsgUpdateProposer creates a new MsgUpdateProposer instance.
@@ -447,19 +289,9 @@ func NewMsgUpdateProposer(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgUpdateProposer) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgUpdateProposer) Type() string {
-	return TypeMsgUpdateProposer
-}
-
-// ValidateBasic performs basic MsgUpdateProposer message validation.
-func (msg MsgUpdateProposer) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+// Validate performs basic MsgUpdateProposer message validation.
+func (msg MsgUpdateProposer) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -467,26 +299,11 @@ func (msg MsgUpdateProposer) ValidateBasic() error {
 		return ErrInvalidBridgeId
 	}
 
-	if _, err := sdk.AccAddressFromBech32(msg.NewProposer); err != nil {
+	if _, err := accAddressCodec.StringToBytes(msg.NewProposer); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgUpdateProposer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgUpdateProposer) GetSigners() []sdk.AccAddress {
-	authorityAddr, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{authorityAddr}
 }
 
 /* MsgUpdateChallenger */
@@ -504,19 +321,9 @@ func NewMsgUpdateChallenger(
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgUpdateChallenger) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgUpdateChallenger) Type() string {
-	return TypeMsgUpdateChallenger
-}
-
-// ValidateBasic performs basic MsgUpdateChallenger message validation.
-func (msg MsgUpdateChallenger) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+// Validate performs basic MsgUpdateChallenger message validation.
+func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -524,26 +331,11 @@ func (msg MsgUpdateChallenger) ValidateBasic() error {
 		return ErrInvalidBridgeId
 	}
 
-	if _, err := sdk.AccAddressFromBech32(msg.NewChallenger); err != nil {
+	if _, err := accAddressCodec.StringToBytes(msg.NewChallenger); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgUpdateChallenger) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgUpdateChallenger) GetSigners() []sdk.AccAddress {
-	authorityAddr, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{authorityAddr}
 }
 
 /* MsgUpdateParams */
@@ -556,19 +348,9 @@ func NewMsgUpdateParams(authority sdk.AccAddress, params *Params) *MsgUpdatePara
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgUpdateParams) Route() string {
-	return RouterKey
-}
-
-// Type implements the sdk.Msg interface.
-func (msg MsgUpdateParams) Type() string {
-	return TypeMsgUpdateParams
-}
-
-// ValidateBasic performs basic MsgUpdateParams message validation.
-func (msg MsgUpdateParams) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+// Validate performs basic MsgUpdateParams message validation.
+func (msg MsgUpdateParams) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -577,19 +359,4 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgUpdateParams) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-// GetSigners returns the signer addresses that are expected to sign the result
-// of GetSignBytes.
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	senderAddr, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil { // should never happen as valid basic rejects invalid addresses
-		panic(err.Error())
-	}
-	return []sdk.AccAddress{senderAddr}
 }

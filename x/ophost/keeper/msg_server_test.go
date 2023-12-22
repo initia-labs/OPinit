@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
@@ -17,7 +18,7 @@ func Test_RecordBatch(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	_, err := ms.RecordBatch(sdk.WrapSDKContext(ctx), types.NewMsgRecordBatch(addrs[0], 1, []byte{1, 2, 3}))
+	_, err := ms.RecordBatch(ctx, types.NewMsgRecordBatch(addrs[0], 1, []byte{1, 2, 3}))
 	require.NoError(t, err)
 }
 
@@ -33,7 +34,7 @@ func Test_CreateBridge(t *testing.T) {
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	res, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
+	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), res.BridgeId)
 
@@ -54,7 +55,7 @@ func Test_ProposeOutput(t *testing.T) {
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	createRes, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
+	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
@@ -62,11 +63,11 @@ func Test_ProposeOutput(t *testing.T) {
 	ctx = ctx.WithBlockTime(blockTime)
 
 	// unauthorized
-	_, err = ms.ProposeOutput(sdk.WrapSDKContext(ctx), types.NewMsgProposeOutput(addrs[1], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[1], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.Error(t, err)
 
 	// valid
-	proposeRes, err := ms.ProposeOutput(sdk.WrapSDKContext(ctx), types.NewMsgProposeOutput(addrs[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
@@ -92,23 +93,23 @@ func Test_DeleteOutput(t *testing.T) {
 		Metadata:            []byte{1, 2, 3},
 	}
 	createReq := types.NewMsgCreateBridge(addrs[0], config)
-	createRes, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), createReq)
+	createRes, err := ms.CreateBridge(ctx, createReq)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
 	blockTime := time.Now().UTC()
 	ctx = ctx.WithBlockTime(blockTime)
 
-	proposeRes, err := ms.ProposeOutput(sdk.WrapSDKContext(ctx), types.NewMsgProposeOutput(addrs[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
 	// unauthorized
-	_, err = ms.DeleteOutput(sdk.WrapSDKContext(ctx), types.NewMsgDeleteOutput(addrs[0], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrs[0], 1, 1))
 	require.Error(t, err)
 
 	// valid
-	_, err = ms.DeleteOutput(sdk.WrapSDKContext(ctx), types.NewMsgDeleteOutput(addrs[1], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrs[1], 1, 1))
 	require.NoError(t, err)
 
 	// should return error; deleted
@@ -128,14 +129,14 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	createRes, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
+	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
-	amount := sdk.NewCoin(baseDenom, sdk.NewInt(100))
+	amount := sdk.NewCoin(baseDenom, math.NewInt(100))
 	input.Faucet.Fund(ctx, addrs[1], amount)
 	_, err = ms.InitiateTokenDeposit(
-		sdk.WrapSDKContext(ctx),
+		ctx,
 		types.NewMsgInitiateTokenDeposit(addrs[1], 1, addrs[2], amount, []byte("messages")),
 	)
 	require.NoError(t, err)
@@ -155,11 +156,11 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	_, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 
 	// fund amount
-	amount := sdk.NewCoin("l1denom", sdk.NewInt(3_000_000))
+	amount := sdk.NewCoin("l1denom", math.NewInt(3_000_000))
 	input.Faucet.Fund(ctx, types.BridgeAddress(1), amount)
 
 	outputRoot := decodeHex(t, "d87b15f515e52e234f5ddca84627128ad842fa6c741d6b85d589a13bbdad3a89")
@@ -175,11 +176,11 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	now := time.Now().UTC()
 	ctx = ctx.WithBlockTime(now)
-	_, err = ms.ProposeOutput(sdk.WrapSDKContext(ctx), types.NewMsgProposeOutput(addrs[0], 1, 100, outputRoot))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[0], 1, 100, outputRoot))
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
-	_, err = ms.FinalizeTokenWithdrawal(sdk.WrapSDKContext(ctx), types.NewMsgFinalizeTokenWithdrawal(
+	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
 		1, 1, 4, proofs,
 		decodeHex(t, "0000000000000000000000000000000000000004"),
 		decodeHex(t, "0000000000000000000000000000000000000001"),
@@ -210,12 +211,12 @@ func Test_UpdateProposal(t *testing.T) {
 		Metadata:            []byte{1, 2, 3},
 	}
 
-	_, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 
 	// gov signer
 	msg := types.NewMsgUpdateProposer(authtypes.NewModuleAddress("gov"), 1, addrs[1])
-	_, err = ms.UpdateProposer(sdk.WrapSDKContext(ctx), msg)
+	_, err = ms.UpdateProposer(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
@@ -236,7 +237,7 @@ func Test_UpdateProposal(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = ms.UpdateProposer(
-		sdk.WrapSDKContext(ctx),
+		ctx,
 		msg,
 	)
 	require.Error(t, err)
@@ -255,12 +256,12 @@ func Test_UpdateChallenger(t *testing.T) {
 		Metadata:            []byte{1, 2, 3},
 	}
 
-	_, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 
 	// gov signer
 	msg := types.NewMsgUpdateChallenger(authtypes.NewModuleAddress("gov"), 1, addrs[2])
-	_, err = ms.UpdateChallenger(sdk.WrapSDKContext(ctx), msg)
+	_, err = ms.UpdateChallenger(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
@@ -281,7 +282,7 @@ func Test_UpdateChallenger(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = ms.UpdateChallenger(
-		sdk.WrapSDKContext(ctx),
+		ctx,
 		msg,
 	)
 	require.Error(t, err)
@@ -292,10 +293,10 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	params := ms.GetParams(ctx)
-	params.RegistrationFee = sdk.NewCoins(sdk.NewCoin("foo", sdk.NewInt(100)))
+	params.RegistrationFee = sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(100)))
 
 	msg := types.NewMsgUpdateParams(authtypes.NewModuleAddress("gov"), &params)
-	_, err := ms.UpdateParams(sdk.WrapSDKContext(ctx), msg)
+	_, err := ms.UpdateParams(ctx, msg)
 	require.NoError(t, err)
 	require.Equal(t, params, ms.GetParams(ctx))
 
@@ -304,7 +305,7 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = ms.UpdateParams(
-		sdk.WrapSDKContext(ctx),
+		ctx,
 		msg,
 	)
 	require.Error(t, err)

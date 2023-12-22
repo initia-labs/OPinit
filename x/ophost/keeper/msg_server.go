@@ -31,8 +31,12 @@ func NewMsgServerImpl(k Keeper) MsgServer {
 // The messages for Batch Submitter
 
 // RecordBatch implements a RecordBatch message handling
-func (ms MsgServer) RecordBatch(context context.Context, req *types.MsgRecordBatch) (*types.MsgRecordBatchResponse, error) {
-	sdk.UnwrapSDKContext(context).EventManager().EmitEvent(
+func (ms MsgServer) RecordBatch(ctx context.Context, req *types.MsgRecordBatch) (*types.MsgRecordBatchResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRecordBatch,
 			sdk.NewAttribute(types.AttributeKeySubmitter, req.Submitter),
@@ -45,19 +49,27 @@ func (ms MsgServer) RecordBatch(context context.Context, req *types.MsgRecordBat
 /////////////////////////////////////////////////////
 // The messages for Bridge Creator
 
-func (ms MsgServer) CreateBridge(context context.Context, req *types.MsgCreateBridge) (*types.MsgCreateBridgeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge) (*types.MsgCreateBridgeResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
-	bridgeId := ms.IncreaseNextBridgeId(ctx)
-	err := ms.SetBridgeConfig(ctx, bridgeId, req.Config)
+	bridgeId, err := ms.IncreaseNextBridgeId(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// create bridge account
-	ms.authKeeper.SetAccount(ctx, types.NewBridgeAccountWithAddress(types.BridgeAddress(bridgeId)))
+	// store bridge config
+	if err := ms.SetBridgeConfig(ctx, bridgeId, req.Config); err != nil {
+		return nil, err
+	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	// create bridge account
+	bridgeAcc := types.NewBridgeAccountWithAddress(types.BridgeAddress(bridgeId))
+	bridgeAcc.AccountNumber = ms.authKeeper.NextAccountNumber(ctx)
+	ms.authKeeper.SetAccount(ctx, bridgeAcc)
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeCreateBridge,
 		sdk.NewAttribute(types.AttributeKeyCreator, req.Creator),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
@@ -77,8 +89,11 @@ func (ms MsgServer) CreateBridge(context context.Context, req *types.MsgCreateBr
 	}, nil
 }
 
-func (ms MsgServer) ProposeOutput(context context.Context, req *types.MsgProposeOutput) (*types.MsgProposeOutputResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutput) (*types.MsgProposeOutputResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
 	proposer := req.Proposer
 	bridgeId := req.BridgeId
@@ -96,7 +111,10 @@ func (ms MsgServer) ProposeOutput(context context.Context, req *types.MsgPropose
 	}
 
 	// fetch next output index
-	outputIndex := ms.IncreaseNextOutputIndex(ctx, bridgeId)
+	outputIndex, err := ms.IncreaseNextOutputIndex(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
 
 	// check this is first submission or not
 	if outputIndex != 1 {
@@ -113,13 +131,13 @@ func (ms MsgServer) ProposeOutput(context context.Context, req *types.MsgPropose
 	// store output proposal
 	if err := ms.SetOutputProposal(ctx, bridgeId, outputIndex, types.Output{
 		OutputRoot:    outputRoot,
-		L1BlockTime:   ctx.BlockTime(),
+		L1BlockTime:   sdkCtx.BlockTime(),
 		L2BlockNumber: l2BlockNumber,
 	}); err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeProposeOutput,
 		sdk.NewAttribute(types.AttributeKeyProposer, proposer),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
@@ -133,8 +151,10 @@ func (ms MsgServer) ProposeOutput(context context.Context, req *types.MsgPropose
 	}, nil
 }
 
-func (ms MsgServer) DeleteOutput(context context.Context, req *types.MsgDeleteOutput) (*types.MsgDeleteOutputResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput) (*types.MsgDeleteOutputResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
 	challenger := req.Challenger
 	bridgeId := req.BridgeId
@@ -153,7 +173,7 @@ func (ms MsgServer) DeleteOutput(context context.Context, req *types.MsgDeleteOu
 	// delete output proposal
 	ms.DeleteOutputProposal(ctx, bridgeId, outputIndex)
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeDeleteOutput,
 		sdk.NewAttribute(types.AttributeKeyChallenger, challenger),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
@@ -163,17 +183,22 @@ func (ms MsgServer) DeleteOutput(context context.Context, req *types.MsgDeleteOu
 	return &types.MsgDeleteOutputResponse{}, nil
 }
 
-func (ms MsgServer) InitiateTokenDeposit(context context.Context, req *types.MsgInitiateTokenDeposit) (*types.MsgInitiateTokenDepositResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInitiateTokenDeposit) (*types.MsgInitiateTokenDepositResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
-	sender, err := sdk.AccAddressFromBech32(req.Sender)
+	sender, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {
 		return nil, err
 	}
 
 	coin := req.Amount
 	bridgeId := req.BridgeId
-	l1Sequence := ms.IncreaseNextL1Sequence(ctx, bridgeId)
+	l1Sequence, err := ms.IncreaseNextL1Sequence(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
 
 	// send the funds to bridge address
 	bridgeAddr := types.BridgeAddress(bridgeId)
@@ -183,12 +208,14 @@ func (ms MsgServer) InitiateTokenDeposit(context context.Context, req *types.Msg
 
 	// record token pairs
 	l2Denom := types.L2Denom(bridgeId, coin.Denom)
-	if !ms.HasTokenPair(ctx, bridgeId, l2Denom) {
+	if ok, err := ms.HasTokenPair(ctx, bridgeId, l2Denom); err != nil {
+		return nil, err
+	} else if !ok {
 		ms.SetTokenPair(ctx, bridgeId, l2Denom, coin.Denom)
 	}
 
 	// emit events for bridge executor
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeInitiateTokenDeposit,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyL1Sequence, strconv.FormatUint(l1Sequence, 10)),
@@ -203,14 +230,16 @@ func (ms MsgServer) InitiateTokenDeposit(context context.Context, req *types.Msg
 	return &types.MsgInitiateTokenDepositResponse{}, nil
 }
 
-func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.MsgFinalizeTokenWithdrawal) (*types.MsgFinalizeTokenWithdrawalResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgFinalizeTokenWithdrawal) (*types.MsgFinalizeTokenWithdrawalResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
-	sender, err := sdk.AccAddressFromBech32(req.Sender)
+	sender, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {
 		return nil, err
 	}
-	receiver, err := sdk.AccAddressFromBech32(req.Receiver)
+	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.Receiver)
 	if err != nil {
 		return nil, err
 	}
@@ -254,15 +283,17 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 			seed := []byte{}
 			seed = binary.BigEndian.AppendUint64(seed, bridgeId)
 			seed = binary.BigEndian.AppendUint64(seed, req.Sequence)
-			seed = append(seed, sender[:]...)
-			seed = append(seed, receiver[:]...)
+			seed = append(seed, sender...)
+			seed = append(seed, receiver...)
 			seed = append(seed, []byte(denom)...)
 			seed = binary.BigEndian.AppendUint64(seed, amount.Uint64())
 
 			withdrawalHash = sha3.Sum256(seed)
 		}
 
-		if ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash) {
+		if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
+			return nil, err
+		} else if ok {
 			return nil, types.ErrWithdrawalAlreadyFinalized
 		}
 
@@ -292,13 +323,13 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeFinalizeTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyOutputIndex, strconv.FormatUint(outputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
-		sdk.NewAttribute(types.AttributeKeyFrom, sender.String()),
-		sdk.NewAttribute(types.AttributeKeyTo, receiver.String()),
+		sdk.NewAttribute(types.AttributeKeyFrom, sdk.AccAddress(sender).String()),
+		sdk.NewAttribute(types.AttributeKeyTo, sdk.AccAddress(receiver).String()),
 		sdk.NewAttribute(types.AttributeKeyL1Denom, denom),
 		sdk.NewAttribute(types.AttributeKeyL2Denom, types.L2Denom(bridgeId, denom)),
 		sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
@@ -307,8 +338,10 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 	return &types.MsgFinalizeTokenWithdrawalResponse{}, nil
 }
 
-func (ms MsgServer) UpdateProposer(context context.Context, req *types.MsgUpdateProposer) (*types.MsgUpdateProposerResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProposer) (*types.MsgUpdateProposerResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
 	bridgeId := req.BridgeId
 	config, err := ms.GetBridgeConfig(ctx, bridgeId)
@@ -330,11 +363,19 @@ func (ms MsgServer) UpdateProposer(context context.Context, req *types.MsgUpdate
 		return nil, err
 	}
 
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateProposer,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyProposer, req.NewProposer),
+	))
+
 	return &types.MsgUpdateProposerResponse{}, nil
 }
 
-func (ms MsgServer) UpdateChallenger(context context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
 
 	bridgeId := req.BridgeId
 	config, err := ms.GetBridgeConfig(ctx, bridgeId)
@@ -356,16 +397,25 @@ func (ms MsgServer) UpdateChallenger(context context.Context, req *types.MsgUpda
 		return nil, err
 	}
 
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateChallenger,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyChallenger, req.NewChallenger),
+	))
+
 	return &types.MsgUpdateChallengerResponse{}, nil
 }
 
 // UpdateParams implements updating the parameters
-func (ms MsgServer) UpdateParams(context context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
 	if ms.authority != req.Authority {
 		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	ctx := sdk.UnwrapSDKContext(context)
 	if err := ms.SetParams(ctx, *req.Params); err != nil {
 		return nil, err
 	}

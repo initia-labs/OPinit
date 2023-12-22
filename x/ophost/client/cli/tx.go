@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/core/address"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -20,7 +22,7 @@ import (
 )
 
 // GetTxCmd returns a root CLI command handler for all x/ophost transaction commands.
-func GetTxCmd() *cobra.Command {
+func GetTxCmd(ac address.Codec) *cobra.Command {
 	ophostTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "OPHost transaction subcommands",
@@ -30,19 +32,19 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	ophostTxCmd.AddCommand(
-		NewRecordBatchCmd(),
-		NewCreateBridge(),
-		NewProposeOutput(),
-		NewDeleteOutput(),
-		NewInitiateTokenDeposit(),
-		NewFinalizeTokenWithdrawal(),
+		NewRecordBatchCmd(ac),
+		NewCreateBridge(ac),
+		NewProposeOutput(ac),
+		NewDeleteOutput(ac),
+		NewInitiateTokenDeposit(ac),
+		NewFinalizeTokenWithdrawal(ac),
 	)
 
 	return ophostTxCmd
 }
 
 // NewRecordBatchCmd returns a CLI command handler for transaction to submitting a batch record.
-func NewRecordBatchCmd() *cobra.Command {
+func NewRecordBatchCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "record-batch [bridge_id] [base64-encoded-batch-bytes]",
 		Short: "send a batch-recording tx",
@@ -64,7 +66,7 @@ func NewRecordBatchCmd() *cobra.Command {
 			}
 
 			msg := types.NewMsgRecordBatch(clientCtx.GetFromAddress(), bridgeId, batchBytes)
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
@@ -78,7 +80,7 @@ func NewRecordBatchCmd() *cobra.Command {
 }
 
 // NewCreateBridgeCmd returns a CLI command handler for transaction to creating a bridge.
-func NewCreateBridge() *cobra.Command {
+func NewCreateBridge(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-bridge [path/to/bridge-config.json]",
 		Short: "send a bridge creating tx",
@@ -132,6 +134,7 @@ func NewCreateBridge() *cobra.Command {
 				return err
 			}
 
+			fmt.Println("SIBONG", origConfig)
 			config := types.BridgeConfig{
 				Challenger:          origConfig.Challenger,
 				Proposer:            origConfig.Proposer,
@@ -140,12 +143,12 @@ func NewCreateBridge() *cobra.Command {
 				SubmissionStartTime: submissionStartTime,
 				Metadata:            []byte(origConfig.Metadata),
 			}
-			if err = config.Validate(); err != nil {
+			if err = config.Validate(ac); err != nil {
 				return err
 			}
 
 			msg := types.NewMsgCreateBridge(clientCtx.GetFromAddress(), config)
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
@@ -159,7 +162,7 @@ func NewCreateBridge() *cobra.Command {
 }
 
 // NewProposeOutput returns a CLI command handler for transaction to propose an output.
-func NewProposeOutput() *cobra.Command {
+func NewProposeOutput(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "propose-output [bridge-id] [l2-block-number] [output-root-hash]",
 		Short: "send a output-proposing tx",
@@ -186,7 +189,7 @@ func NewProposeOutput() *cobra.Command {
 			}
 
 			msg := types.NewMsgProposeOutput(clientCtx.GetFromAddress(), bridgeId, l2BlockNumber, outputBytes)
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
@@ -200,7 +203,7 @@ func NewProposeOutput() *cobra.Command {
 }
 
 // NewDeleteOutput returns a CLI command handler for transaction to remove an output.
-func NewDeleteOutput() *cobra.Command {
+func NewDeleteOutput(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-output [bridge-id] [output-index]",
 		Short: "send a output-proposing tx",
@@ -222,7 +225,7 @@ func NewDeleteOutput() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeleteOutput(clientCtx.GetFromAddress(), bridgeId, outputIndex)
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
@@ -236,7 +239,7 @@ func NewDeleteOutput() *cobra.Command {
 }
 
 // NewInitiateTokenDeposit returns a CLI command handler for transaction to initiate token deposit.
-func NewInitiateTokenDeposit() *cobra.Command {
+func NewInitiateTokenDeposit(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "initiate-token-deposit [bridge-id] [to] [amount] [data]",
 		Short: "send a token deposit initiating tx",
@@ -252,7 +255,7 @@ func NewInitiateTokenDeposit() *cobra.Command {
 				return err
 			}
 
-			to, err := sdk.AccAddressFromBech32(args[1])
+			to, err := ac.StringToBytes(args[1])
 			if err != nil {
 				return err
 			}
@@ -268,7 +271,7 @@ func NewInitiateTokenDeposit() *cobra.Command {
 			}
 
 			msg := types.NewMsgInitiateTokenDeposit(clientCtx.GetFromAddress(), bridgeId, to, amount, data)
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
@@ -282,7 +285,7 @@ func NewInitiateTokenDeposit() *cobra.Command {
 }
 
 // NewFinalizeTokenWithdrawal returns a CLI command handler for transaction to finalize token withdrawal.
-func NewFinalizeTokenWithdrawal() *cobra.Command {
+func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "finalize-token-withdrawal [path/to/withdrawal-info.json]",
 		Short: "send a token deposit initiating tx",
@@ -332,7 +335,7 @@ func NewFinalizeTokenWithdrawal() *cobra.Command {
 				}
 			}
 
-			receiver, err := sdk.AccAddressFromBech32(withdrawalInfo.Receiver)
+			receiver, err := ac.StringToBytes(withdrawalInfo.Receiver)
 			if err != nil {
 				return err
 			}
@@ -375,7 +378,7 @@ func NewFinalizeTokenWithdrawal() *cobra.Command {
 				storageRoot,
 				latestBlockHash,
 			)
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 

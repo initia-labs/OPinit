@@ -1,18 +1,21 @@
 package keeper
 
 import (
-	"github.com/cometbft/cometbft/libs/log"
+	"context"
+
+	"cosmossdk.io/collections"
+	corestoretypes "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type Keeper struct {
-	cdc      codec.BinaryCodec
-	storeKey storetypes.StoreKey
+	cdc          codec.Codec
+	storeService corestoretypes.KVStoreService
 
 	authKeeper types.AccountKeeper
 	bankKeeper types.BankKeeper
@@ -21,29 +24,57 @@ type Keeper struct {
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
+
+	Schema            collections.Schema
+	NextBridgeId      collections.Item[uint64]
+	Params            collections.Item[types.Params]
+	BridgeConfigs     collections.Map[uint64, types.BridgeConfig]
+	NextL1Sequences   collections.Map[uint64, uint64]
+	TokenPairs        collections.Map[collections.Pair[uint64, string], string]
+	OutputProposals   collections.Map[collections.Pair[uint64, uint64], types.Output]
+	NextOutputIndexes collections.Map[uint64, uint64]
+	ProvenWithdrawals collections.Map[collections.Pair[uint64, []byte], bool]
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+	cdc codec.Codec,
+	storeService corestoretypes.KVStoreService,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	bridgeHook types.BridgeHook,
 	authority string,
-) Keeper {
+) *Keeper {
 	// ensure that authority is a valid AccAddress
-	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
+	if _, err := ak.AddressCodec().StringToBytes(authority); err != nil {
 		panic("authority is not a valid acc address")
 	}
 
-	return Keeper{
-		cdc:        cdc,
-		storeKey:   key,
-		authKeeper: ak,
-		bankKeeper: bk,
-		bridgeHook: bridgeHook,
-		authority:  authority,
+	sb := collections.NewSchemaBuilder(storeService)
+
+	k := &Keeper{
+		cdc:               cdc,
+		storeService:      storeService,
+		authKeeper:        ak,
+		bankKeeper:        bk,
+		bridgeHook:        bridgeHook,
+		authority:         authority,
+		NextBridgeId:      collections.NewItem(sb, types.NextBridgeIdKey, "next_bridge_id", collections.Uint64Value),
+		Params:            collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
+		BridgeConfigs:     collections.NewMap(sb, types.BridgeConfigPrefix, "bridge_configs", collections.Uint64Key, codec.CollValue[types.BridgeConfig](cdc)),
+		NextL1Sequences:   collections.NewMap(sb, types.NextL1SequencePrefix, "next_l1_sequences", collections.Uint64Key, collections.Uint64Value),
+		TokenPairs:        collections.NewMap(sb, types.TokenPairPrefix, "token_pairs", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), collections.StringValue),
+		OutputProposals:   collections.NewMap(sb, types.OutputProposalPrefix, "output_proposals", collections.PairKeyCodec(collections.Uint64Key, collections.Uint64Key), codec.CollValue[types.Output](cdc)),
+		NextOutputIndexes: collections.NewMap(sb, types.NextOutputIndexPrefix, "next_output_indexes", collections.Uint64Key, collections.Uint64Value),
+		ProvenWithdrawals: collections.NewMap(sb, types.ProvenWithdrawalPrefix, "proven_withdrawals", collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey), collections.BoolValue),
 	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.Schema = schema
+
+	return k
 }
 
 // GetAuthority returns the x/move module's authority.
@@ -52,6 +83,7 @@ func (ak Keeper) GetAuthority() string {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+types.ModuleName)
+func (k *Keeper) Logger(ctx context.Context) log.Logger {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return sdkCtx.Logger().With("module", "x/"+types.ModuleName)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/collections"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
@@ -58,9 +59,9 @@ func Test_IterateOutputProposal(t *testing.T) {
 	err = input.OPHostKeeper.SetOutputProposal(ctx, 2, 1, output4)
 	require.NoError(t, err)
 
-	input.OPHostKeeper.IterateOutputProposals(ctx, 1, func(bridgeId, outputIndex uint64, output types.Output) bool {
-		require.Equal(t, bridgeId, uint64(1))
-		switch outputIndex {
+	input.OPHostKeeper.IterateOutputProposals(ctx, 1, func(key collections.Pair[uint64, uint64], output types.Output) (stop bool, err error) {
+		require.Equal(t, key.K1(), uint64(1))
+		switch key.K2() {
 		case 1:
 			require.Equal(t, output1, output)
 		case 2:
@@ -71,7 +72,7 @@ func Test_IterateOutputProposal(t *testing.T) {
 			require.Fail(t, "should not enter here")
 		}
 
-		return false
+		return false, nil
 	})
 }
 
@@ -105,12 +106,27 @@ func Test_IsFinalized(t *testing.T) {
 func Test_NextOutputIndex(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	require.Equal(t, uint64(1), input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1))
-	require.Equal(t, uint64(2), input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1))
-	require.Equal(t, uint64(3), input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1))
-	require.Equal(t, uint64(4), input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1))
+	index, err := input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), index)
+	index, err = input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), index)
+	index, err = input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(3), index)
+	index, err = input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(4), index)
 
-	input.OPHostKeeper.SetNextOutputIndex(ctx, 1, 100)
-	require.Equal(t, uint64(100), input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1))
-	require.Equal(t, uint64(101), input.OPHostKeeper.GetNextOutputIndex(ctx, 1))
+	err = input.OPHostKeeper.SetNextOutputIndex(ctx, 1, 100)
+	require.NoError(t, err)
+
+	index, err = input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(100), index)
+
+	index, err = input.OPHostKeeper.GetNextOutputIndex(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(101), index)
 }

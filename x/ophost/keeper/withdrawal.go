@@ -1,42 +1,27 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"context"
+
+	"cosmossdk.io/collections"
 )
 
-func (k Keeper) RecordProvenWithdrawal(ctx sdk.Context, bridgeId uint64, withdrawalHash [32]byte) {
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetProvenWithdrawalKey(bridgeId, withdrawalHash), []byte{1})
+func (k Keeper) RecordProvenWithdrawal(ctx context.Context, bridgeId uint64, withdrawalHash [32]byte) error {
+	return k.ProvenWithdrawals.Set(ctx, collections.Join(bridgeId, withdrawalHash[:]), true)
 }
 
-func (k Keeper) HasProvenWithdrawal(ctx sdk.Context, bridgeId uint64, withdrawalHash [32]byte) bool {
-	kvStore := ctx.KVStore(k.storeKey)
-	return kvStore.Has(types.GetProvenWithdrawalKey(bridgeId, withdrawalHash))
+func (k Keeper) HasProvenWithdrawal(ctx context.Context, bridgeId uint64, withdrawalHash [32]byte) (bool, error) {
+	return k.ProvenWithdrawals.Has(ctx, collections.Join(bridgeId, withdrawalHash[:]))
 }
 
 func (k Keeper) IterateProvenWithdrawals(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
-	cb func(bridgeId uint64, withdrawalHash [32]byte) bool,
+	cb func(bridgeId uint64, withdrawalHash [32]byte) (bool, error),
 ) error {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	prefixStore := prefix.NewStore(kvStore, types.GetProvenWithdrawalPrefixKey(bridgeId))
-	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-
+	return k.ProvenWithdrawals.Walk(ctx, collections.NewPrefixedPairRange[uint64, []byte](bridgeId), func(key collections.Pair[uint64, []byte], value bool) (stop bool, err error) {
 		withdrawalHash := [32]byte{}
-		copy(withdrawalHash[:], key)
-
-		if cb(bridgeId, withdrawalHash) {
-			break
-		}
-	}
-
-	return nil
+		copy(withdrawalHash[:], key.K2())
+		return cb(bridgeId, withdrawalHash)
+	})
 }

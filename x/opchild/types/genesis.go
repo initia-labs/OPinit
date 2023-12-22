@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/address"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
@@ -32,12 +33,12 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis performs basic validation of rollup genesis data returning an
 // error for any failed validation criteria.
-func ValidateGenesis(data *GenesisState) error {
+func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 	if err := validateGenesisStateValidators(data.Validators); err != nil {
 		return err
 	}
 
-	return data.Params.Validate()
+	return data.Params.Validate(ac)
 }
 
 func validateGenesisStateValidators(validators []Validator) error {

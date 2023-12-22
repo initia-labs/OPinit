@@ -9,6 +9,7 @@ import (
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"sigs.k8s.io/yaml"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -67,10 +68,13 @@ func (v Validator) GetMoniker() string {
 }
 
 // Validators is a collection of Validator
-type Validators []Validator
+type Validators struct {
+	Validators     []Validator
+	ValidatorCodec address.Codec
+}
 
 func (v Validators) String() (out string) {
-	for _, val := range v {
+	for _, val := range v.Validators {
 		out += val.String() + "\n"
 	}
 
@@ -79,7 +83,7 @@ func (v Validators) String() (out string) {
 
 // ToSDKValidators -  convenience function convert []Validator to []sdk.ValidatorI
 func (v Validators) ToSDKValidators() (validators []ValidatorI) {
-	for _, val := range v {
+	for _, val := range v.Validators {
 		validators = append(validators, val)
 	}
 
@@ -93,17 +97,26 @@ func (v Validators) Sort() {
 
 // Implements sort interface
 func (v Validators) Len() int {
-	return len(v)
+	return len(v.Validators)
 }
 
 // Implements sort interface
 func (v Validators) Less(i, j int) bool {
-	return bytes.Compare(v[i].GetOperator().Bytes(), v[j].GetOperator().Bytes()) == -1
+	vi, err := v.ValidatorCodec.StringToBytes(v.Validators[i].GetOperator())
+	if err != nil {
+		panic(err)
+	}
+	vj, err := v.ValidatorCodec.StringToBytes(v.Validators[j].GetOperator())
+	if err != nil {
+		panic(err)
+	}
+
+	return bytes.Compare(vi, vj) == -1
 }
 
 // Implements sort interface
 func (v Validators) Swap(i, j int) {
-	v[i], v[j] = v[j], v[i]
+	v.Validators[i], v.Validators[j] = v.Validators[j], v.Validators[i]
 }
 
 // ValidatorsByVotingPower implements sort.Interface for []Validator based on
@@ -133,8 +146,8 @@ func (valz ValidatorsByVotingPower) Swap(i, j int) {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v Validators) UnpackInterfaces(c codectypes.AnyUnpacker) error {
-	for i := range v {
-		if err := v[i].UnpackInterfaces(c); err != nil {
+	for i := range v.Validators {
+		if err := v.Validators[i].UnpackInterfaces(c); err != nil {
 			return err
 		}
 	}
@@ -200,15 +213,8 @@ func (v *Validator) Equal(v2 *Validator) bool {
 		v.ConsensusPubkey.Equal(v2.ConsensusPubkey)
 }
 
-func (v Validator) GetOperator() sdk.ValAddress {
-	if v.OperatorAddress == "" {
-		return nil
-	}
-	addr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
-	return addr
+func (v Validator) GetOperator() string {
+	return v.OperatorAddress
 }
 
 // ConsPubKey returns the validator PubKey as a cryptotypes.PubKey.

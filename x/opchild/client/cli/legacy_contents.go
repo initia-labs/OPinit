@@ -8,6 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/core/address"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,17 +18,16 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramscutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 // NewLegacyContentParamChangeTxCmd returns a CLI command handler for creating
 // a parameter change legacy content validator transaction.
-func NewLegacyContentParamChangeTxCmd() *cobra.Command {
+func NewLegacyContentParamChangeTxCmd(ac address.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "param-change [proposal-file]",
 		Args:  cobra.ExactArgs(1),
@@ -84,13 +85,17 @@ Where proposal.json contains:
 				return err
 			}
 
+			if err := msg.Validate(ac); err != nil {
+				return err
+			}
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 }
 
 // NewLegacyContentSubmitUpdateClientCmd implements a command handler for submitting an update IBC client transaction.
-func NewLegacyContentSubmitUpdateClientCmd() *cobra.Command {
+func NewLegacyContentSubmitUpdateClientCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-client [subject-client-id] [substitute-client-id]",
 		Args:  cobra.ExactArgs(2),
@@ -125,7 +130,7 @@ func NewLegacyContentSubmitUpdateClientCmd() *cobra.Command {
 				return err
 			}
 
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
@@ -140,7 +145,7 @@ func NewLegacyContentSubmitUpdateClientCmd() *cobra.Command {
 }
 
 // NewLegacyContentSubmitUpgradeCmd implements a command handler for submitting an upgrade IBC client transaction.
-func NewLegacyContentSubmitUpgradeCmd() *cobra.Command {
+func NewLegacyContentSubmitUpgradeCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ibc-upgrade [name] [height] [path/to/upgraded_client_state.json] [flags]",
 		Args:  cobra.ExactArgs(3),
@@ -213,7 +218,7 @@ func NewLegacyContentSubmitUpgradeCmd() *cobra.Command {
 				return err
 			}
 
-			if err = msg.ValidateBasic(); err != nil {
+			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 

@@ -1,11 +1,10 @@
 package keeper
 
 import (
-	"encoding/binary"
+	"context"
+	"errors"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
+	"cosmossdk.io/collections"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -14,143 +13,91 @@ import (
 // BridgeConfig
 
 func (k Keeper) SetBridgeConfig(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig types.BridgeConfig,
 ) error {
-	bz, err := k.cdc.Marshal(&bridgeConfig)
-	if err != nil {
-		return err
-	}
-
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetBridgeConfigKey(bridgeId), bz)
-	return nil
+	return k.BridgeConfigs.Set(ctx, bridgeId, bridgeConfig)
 }
 
 func (k Keeper) GetBridgeConfig(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 ) (bridgeConfig types.BridgeConfig, err error) {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.GetBridgeConfigKey(bridgeId))
-
-	if len(bz) == 0 {
-		err = errors.ErrKeyNotFound
-		return
-	}
-
-	err = k.cdc.Unmarshal(bz, &bridgeConfig)
-	return
+	return k.BridgeConfigs.Get(ctx, bridgeId)
 }
 
 func (k Keeper) IterateBridgeConfig(
-	ctx sdk.Context,
-	cb func(bridgeId uint64, bridgeConfig types.BridgeConfig) bool,
+	ctx context.Context,
+	cb func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error),
 ) error {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	prefixStore := prefix.NewStore(kvStore, types.BridgeConfigKey)
-	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-		val := iterator.Value()
-
-		bridgeId := binary.BigEndian.Uint64(key)
-
-		var bridgeConfig types.BridgeConfig
-		if err := k.cdc.Unmarshal(val, &bridgeConfig); err != nil {
-			return err
-		}
-
-		if cb(bridgeId, bridgeConfig) {
-			break
-		}
-	}
-
-	return nil
+	return k.BridgeConfigs.Walk(ctx, nil, cb)
 }
 
 ////////////////////////////////////
 // NextL1Sequence
 
-func (k Keeper) SetNextL1Sequence(ctx sdk.Context, bridgeId, nextL1Sequence uint64) {
-	_nextL1Sequence := [8]byte{}
-	binary.BigEndian.PutUint64(_nextL1Sequence[:], nextL1Sequence)
-
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetNextL1SequenceKey(bridgeId), _nextL1Sequence[:])
+func (k Keeper) SetNextL1Sequence(ctx context.Context, bridgeId, nextL1Sequence uint64) error {
+	return k.NextL1Sequences.Set(ctx, bridgeId, nextL1Sequence)
 }
 
-func (k Keeper) GetNextL1Sequence(ctx sdk.Context, bridgeId uint64) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.GetNextL1SequenceKey(bridgeId))
-	if len(bz) == 0 {
-		return 1
+func (k Keeper) GetNextL1Sequence(ctx context.Context, bridgeId uint64) (uint64, error) {
+	nextSequence, err := k.NextL1Sequences.Get(ctx, bridgeId)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			nextSequence = 1
+		} else {
+			return 0, err
+		}
 	}
 
-	return binary.BigEndian.Uint64(bz)
+	return nextSequence, nil
 }
 
-func (k Keeper) IncreaseNextL1Sequence(ctx sdk.Context, bridgeId uint64) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	// load next bridge sequence
-	key := types.GetNextL1SequenceKey(bridgeId)
-	bz := kvStore.Get(key)
-
-	nextL1Sequence := uint64(1)
-	if len(bz) != 0 {
-		nextL1Sequence = binary.BigEndian.Uint64(bz)
+func (k Keeper) IncreaseNextL1Sequence(ctx context.Context, bridgeId uint64) (uint64, error) {
+	nextL1Sequence, err := k.GetNextL1Sequence(ctx, bridgeId)
+	if err != nil {
+		return 0, err
 	}
 
-	// increase next bridge sequence
-	_nextL1Sequence := [8]byte{}
-	binary.BigEndian.PutUint64(_nextL1Sequence[:], nextL1Sequence+1)
-	kvStore.Set(key, _nextL1Sequence[:])
+	// increase NextL1Sequence
+	if err = k.NextL1Sequences.Set(ctx, bridgeId, nextL1Sequence+1); err != nil {
+		return 0, err
+	}
 
-	return nextL1Sequence
+	return nextL1Sequence, err
 }
 
 ////////////////////////////////////
 // NextBridgeId
 
-func (k Keeper) SetNextBridgeId(ctx sdk.Context, nextBridgeId uint64) {
-	_nextBridgeId := [8]byte{}
-	binary.BigEndian.PutUint64(_nextBridgeId[:], nextBridgeId)
-
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.NextBridgeIdKey, _nextBridgeId[:])
+func (k Keeper) SetNextBridgeId(ctx context.Context, nextBridgeId uint64) error {
+	return k.NextBridgeId.Set(ctx, nextBridgeId)
 }
 
-func (k Keeper) GetNextBridgeId(ctx sdk.Context) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.NextBridgeIdKey)
-	if len(bz) == 0 {
-		return 1
+func (k Keeper) GetNextBridgeId(ctx context.Context) (uint64, error) {
+	nextBridgeId, err := k.NextBridgeId.Get(ctx)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			nextBridgeId = 1
+		} else {
+			return 0, err
+		}
 	}
 
-	return binary.BigEndian.Uint64(bz)
+	return nextBridgeId, nil
 }
 
-func (k Keeper) IncreaseNextBridgeId(ctx sdk.Context) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	// load next bridge id
-	key := types.NextBridgeIdKey
-	bz := kvStore.Get(key)
-
-	nextBridgeId := uint64(1)
-	if len(bz) != 0 {
-		nextBridgeId = binary.BigEndian.Uint64(bz)
+func (k Keeper) IncreaseNextBridgeId(ctx context.Context) (uint64, error) {
+	nextBridgeId, err := k.GetNextBridgeId(ctx)
+	if err != nil {
+		return 0, err
 	}
 
-	// increase next bridge id
-	_nextBridgeId := [8]byte{}
-	binary.BigEndian.PutUint64(_nextBridgeId[:], nextBridgeId+1)
-	kvStore.Set(key, _nextBridgeId[:])
+	// increase NextBridgeId
+	if err := k.NextBridgeId.Set(ctx, nextBridgeId+1); err != nil {
+		return 0, err
+	}
 
-	return nextBridgeId
+	return nextBridgeId, nil
 }

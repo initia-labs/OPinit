@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,50 +11,26 @@ import (
 // Validator Set
 
 // iterate through the validator set and perform the provided function
-func (k Keeper) IterateValidators(ctx sdk.Context, fn func(index int64, validator types.ValidatorI) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-
-	iterator := sdk.KVStorePrefixIterator(store, types.ValidatorsKey)
-	defer iterator.Close()
-
-	i := int64(0)
-
-	for ; iterator.Valid(); iterator.Next() {
-		validator := types.MustUnmarshalValidator(k.cdc, iterator.Value())
-		stop := fn(i, validator) // XXX is this safe will the validator unexposed fields be able to get written to?
-
-		if stop {
-			break
-		}
-		i++
-	}
+func (k Keeper) IterateValidators(ctx context.Context, fn func(validator types.ValidatorI) (stop bool, err error)) error {
+	return k.Validators.Walk(ctx, nil, func(_ []byte, validator types.Validator) (stop bool, err error) {
+		return fn(validator)
+	})
 }
 
 // iterate through the active validator set and perform the provided function
-func (k Keeper) IterateLastValidators(ctx sdk.Context, fn func(index int64, validator types.ValidatorI) (stop bool)) {
-	iterator := k.LastValidatorsIterator(ctx)
-	defer iterator.Close()
-
-	i := int64(0)
-
-	for ; iterator.Valid(); iterator.Next() {
-		address := types.AddressFromLastValidatorPowerKey(iterator.Key())
-
-		validator, found := k.GetValidator(ctx, address)
+func (k Keeper) IterateLastValidators(ctx context.Context, fn func(validator types.ValidatorI, power int64) (stop bool, err error)) error {
+	return k.IterateLastValidatorPowers(ctx, func(operator []byte, power int64) (stop bool, err error) {
+		validator, found := k.GetValidator(ctx, operator)
 		if !found {
-			panic(fmt.Sprintf("validator record not found for address: %v\n", address))
+			return true, fmt.Errorf("validator record not found for address: %v", sdk.ValAddress(operator))
 		}
 
-		stop := fn(i, validator) // XXX is this safe will the validator unexposed fields be able to get written to?
-		if stop {
-			break
-		}
-		i++
-	}
+		return fn(validator, power)
+	})
 }
 
 // Validator gets the Validator interface for a particular address
-func (k Keeper) Validator(ctx sdk.Context, address sdk.ValAddress) types.ValidatorI {
+func (k Keeper) Validator(ctx context.Context, address sdk.ValAddress) types.ValidatorI {
 	val, found := k.GetValidator(ctx, address)
 	if !found {
 		return nil
@@ -63,7 +40,7 @@ func (k Keeper) Validator(ctx sdk.Context, address sdk.ValAddress) types.Validat
 }
 
 // ValidatorByConsAddr gets the validator interface for a particular pubkey
-func (k Keeper) ValidatorByConsAddr(ctx sdk.Context, addr sdk.ConsAddress) types.ValidatorI {
+func (k Keeper) ValidatorByConsAddr(ctx context.Context, addr sdk.ConsAddress) types.ValidatorI {
 	val, found := k.GetValidatorByConsAddr(ctx, addr)
 	if !found {
 		return nil
