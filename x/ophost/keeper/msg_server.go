@@ -309,14 +309,16 @@ func (ms MsgServer) FinalizeTokenWithdrawal(context context.Context, req *types.
 
 func (ms MsgServer) UpdateProposer(context context.Context, req *types.MsgUpdateProposer) (*types.MsgUpdateProposerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(context)
-	if ms.authority != req.Authority {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
-	}
 
 	bridgeId := req.BridgeId
 	config, err := ms.GetBridgeConfig(ctx, bridgeId)
 	if err != nil {
 		return nil, err
+	}
+
+	// gov or current proposer can update proposer.
+	if ms.authority != req.Authority && config.Proposer != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
 	}
 
 	config.Proposer = req.NewProposer
@@ -333,14 +335,16 @@ func (ms MsgServer) UpdateProposer(context context.Context, req *types.MsgUpdate
 
 func (ms MsgServer) UpdateChallenger(context context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(context)
-	if ms.authority != req.Authority {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
-	}
 
 	bridgeId := req.BridgeId
 	config, err := ms.GetBridgeConfig(ctx, bridgeId)
 	if err != nil {
 		return nil, err
+	}
+
+	// gov or current challenger can update challenger.
+	if ms.authority != req.Authority && config.Challenger != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Challenger, req.Authority)
 	}
 
 	config.Challenger = req.NewChallenger

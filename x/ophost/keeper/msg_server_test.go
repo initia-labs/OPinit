@@ -213,6 +213,7 @@ func Test_UpdateProposal(t *testing.T) {
 	_, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 
+	// gov signer
 	msg := types.NewMsgUpdateProposer(authtypes.NewModuleAddress("gov"), 1, addrs[1])
 	_, err = ms.UpdateProposer(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
@@ -220,6 +221,15 @@ func Test_UpdateProposal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, addrs[1].String(), _config.Proposer)
 	require.Equal(t, addrs[1].String(), input.BridgeHook.proposer)
+
+	// current proposer signer
+	msg = types.NewMsgUpdateProposer(addrs[1], 1, addrs[2])
+	_, err = ms.UpdateProposer(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+	_config, err = ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, addrs[2].String(), _config.Proposer)
+	require.Equal(t, addrs[2].String(), input.BridgeHook.proposer)
 
 	// invalid signer
 	msg = types.NewMsgUpdateProposer(authtypes.NewModuleAddress(types.ModuleName), 1, addrs[1])
@@ -248,6 +258,7 @@ func Test_UpdateChallenger(t *testing.T) {
 	_, err := ms.CreateBridge(sdk.WrapSDKContext(ctx), types.NewMsgCreateBridge(addrs[0], config))
 	require.NoError(t, err)
 
+	// gov signer
 	msg := types.NewMsgUpdateChallenger(authtypes.NewModuleAddress("gov"), 1, addrs[2])
 	_, err = ms.UpdateChallenger(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
@@ -255,6 +266,15 @@ func Test_UpdateChallenger(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, addrs[2].String(), _config.Challenger)
 	require.Equal(t, addrs[2].String(), input.BridgeHook.challenger)
+
+	// current challenger
+	msg = types.NewMsgUpdateChallenger(addrs[2], 1, addrs[3])
+	_, err = ms.UpdateChallenger(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+	_config, err = ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, addrs[3].String(), _config.Challenger)
+	require.Equal(t, addrs[3].String(), input.BridgeHook.challenger)
 
 	// invalid signer
 	msg = types.NewMsgUpdateChallenger(authtypes.NewModuleAddress(types.ModuleName), 1, addrs[1])
