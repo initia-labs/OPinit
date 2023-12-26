@@ -13,7 +13,6 @@ import (
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -56,49 +55,6 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, vals, 1)
 	require.Equal(t, vals[0].Moniker, "val2")
-}
-
-func Test_MsgServer_ExecuteLegacyContents(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
-	valPubKeys := testutilsims.CreateTestPubKeys(2)
-
-	// register validator
-	val, err := types.NewValidator(valAddrs[0], valPubKeys[0], "val1")
-	require.NoError(t, err)
-
-	input.OPChildKeeper.SetValidator(ctx, val)
-
-	// apply validator updates
-	input.OPChildKeeper.BlockValidatorUpdates(ctx)
-
-	// valid legacy content
-	legacyContent := testLegacyContent{
-		Title:       "title",
-		Description: "description",
-		Message:     "test",
-	}
-	msg, err := types.NewMsgExecuteLegacyContents(addrs[0], []govv1beta1.Content{&legacyContent})
-	require.NoError(t, err)
-
-	_, err = ms.ExecuteLegacyContents(ctx, msg)
-	require.NoError(t, err)
-
-	// unauthorized executor
-	msg, err = types.NewMsgExecuteLegacyContents(addrs[1], []govv1beta1.Content{&legacyContent})
-	require.NoError(t, err)
-
-	_, err = ms.ExecuteLegacyContents(ctx, msg)
-	require.Error(t, err)
-
-	// legacy content with wrong message
-	legacyContent.Message = "wrong message"
-	msg, err = types.NewMsgExecuteLegacyContents(addrs[0], []govv1beta1.Content{&legacyContent})
-	require.NoError(t, err)
-
-	_, err = ms.ExecuteLegacyContents(ctx, msg)
-	require.Error(t, err)
 }
 
 /////////////////////////////////////////

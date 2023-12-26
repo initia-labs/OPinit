@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"cosmossdk.io/core/address"
 	errors "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -11,14 +9,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 // rollup message types
 const (
-	TypeMsgExecuteMessages       = "execute_messages"
-	TypeMsgExecuteLegacyContents = "execute_legacy_contents"
+	TypeMsgExecuteMessages = "execute_messages"
 
 	TypeMsgAddValidator    = "add_validator"
 	TypeMsgRemoveValidator = "remove_validator"
@@ -32,7 +27,6 @@ const (
 
 var (
 	_ sdk.Msg = &MsgExecuteMessages{}
-	_ sdk.Msg = &MsgExecuteLegacyContents{}
 	_ sdk.Msg = &MsgAddValidator{}
 	_ sdk.Msg = &MsgRemoveValidator{}
 	_ sdk.Msg = &MsgUpdateParams{}
@@ -40,7 +34,7 @@ var (
 	_ sdk.Msg = &MsgFinalizeTokenDeposit{}
 	_ sdk.Msg = &MsgInitiateTokenWithdrawal{}
 
-	_, _ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}, &MsgExecuteLegacyContents{}
+	_ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}
 )
 
 // should refer initiavm/precompile/modules/minlib/sources/coin.move
@@ -89,92 +83,6 @@ func (msg MsgExecuteMessages) Validate(ac address.Codec) error {
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (m MsgExecuteMessages) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return sdktx.UnpackInterfaces(unpacker, m.Messages)
-}
-
-/* MsgExecuteLegacyContents */
-
-// NewMsgExecuteLegacyContents creates a new MsgExecuteLegacyContents instance.
-func NewMsgExecuteLegacyContents(
-	sender sdk.AccAddress, //nolint:interfacer
-	contents []govv1beta1.Content,
-) (*MsgExecuteLegacyContents, error) {
-	msg := &MsgExecuteLegacyContents{
-		Sender: sender.String(),
-	}
-
-	if err := msg.SetContents(contents); err != nil {
-		return nil, err
-	}
-
-	return msg, nil
-}
-
-// GetContents returns the contents of MsgExecuteLegacyContents.
-func (m *MsgExecuteLegacyContents) GetContents() []govv1beta1.Content {
-	contents := make([]govv1beta1.Content, len(m.Contents))
-	for i, content := range m.Contents {
-		content, ok := content.GetCachedValue().(govv1beta1.Content)
-		if !ok {
-			return nil
-		}
-
-		contents[i] = content
-	}
-
-	return contents
-}
-
-// SetContents sets the contents for MsgExecuteLegacyContents.
-func (m *MsgExecuteLegacyContents) SetContents(contents []govv1beta1.Content) error {
-	anys := make([]*codectypes.Any, len(contents))
-	for i, content := range contents {
-		msg, ok := content.(proto.Message)
-		if !ok {
-			return fmt.Errorf("can't proto marshal %T", msg)
-		}
-		any, err := codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			return err
-		}
-
-		anys[i] = any
-	}
-
-	m.Contents = anys
-	return nil
-}
-
-// Validate performs basic MsgExecuteLegacyContents message validation.
-func (msg MsgExecuteLegacyContents) Validate(ac address.Codec) error {
-	if _, err := ac.StringToBytes(msg.Sender); err != nil {
-		return err
-	}
-
-	// Check Msgs length is non nil.
-	if len(msg.Contents) == 0 {
-		return errors.Wrap(govtypes.ErrNoProposalMsgs, "Contents length must be non-zero")
-	}
-
-	contents := msg.GetContents()
-	for idx, content := range contents {
-		if err := content.ValidateBasic(); err != nil {
-			return errors.Wrapf(govtypes.ErrInvalidProposalContent, "content: %d, err: %s", idx, err.Error())
-		}
-	}
-
-	return nil
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (c MsgExecuteLegacyContents) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	for _, anyContent := range c.Contents {
-		var content govv1beta1.Content
-		if err := unpacker.UnpackAny(anyContent, &content); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 /* MsgAddValidator */

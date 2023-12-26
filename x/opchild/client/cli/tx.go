@@ -31,9 +31,6 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewExecuteMessagesCmd(ac),
 		NewDepositCmd(ac),
 		NewWithdrawCmd(ac),
-		NewLegacyContentParamChangeTxCmd(ac),
-		NewLegacyContentSubmitUpdateClientCmd(ac),
-		NewLegacyContentSubmitUpgradeCmd(ac),
 	)
 
 	return opchildTxCmd

@@ -6,14 +6,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // RegisterLegacyAminoCodec registers the move types and interface
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	legacy.RegisterAminoMsg(cdc, &MsgExecuteMessages{}, "opchild/MsgExecuteMessages")
-	legacy.RegisterAminoMsg(cdc, &MsgExecuteLegacyContents{}, "opchild/MsgExecuteLegacyContents")
 	legacy.RegisterAminoMsg(cdc, &MsgAddValidator{}, "opchild/MsgAddValidator")
 	legacy.RegisterAminoMsg(cdc, &MsgRemoveValidator{}, "opchild/MsgRemoveAddValidator")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "opchild/MsgUpdateParams")
@@ -32,10 +30,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateParams{},
 		&MsgFinalizeTokenDeposit{},
 		&MsgInitiateTokenWithdrawal{},
-	)
-	registry.RegisterInterface(
-		"cosmos.gov.v1beta1.Content",
-		(*govv1beta1.Content)(nil),
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

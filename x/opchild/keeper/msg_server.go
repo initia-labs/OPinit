@@ -132,33 +132,6 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 	return &types.MsgExecuteMessagesResponse{}, nil
 }
 
-// ExecuteLegacyContents implements a ExecuteLegacyContents message handling
-func (ms MsgServer) ExecuteLegacyContents(ctx context.Context, req *types.MsgExecuteLegacyContents) (*types.MsgExecuteLegacyContentsResponse, error) {
-	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
-		return nil, err
-	}
-
-	// permission check
-	if err := ms.checkValidatorPermission(ctx, req.Sender); err != nil {
-		return nil, err
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	for _, content := range req.GetContents() {
-		// Ensure that the content has a respective handler
-		if !ms.Keeper.legacyRouter.HasRoute(content.ProposalRoute()) {
-			return nil, errors.Wrap(govtypes.ErrNoProposalHandlerExists, content.ProposalRoute())
-		}
-
-		handler := ms.Keeper.legacyRouter.GetRoute(content.ProposalRoute())
-		if err := handler(sdkCtx, content); err != nil {
-			return nil, errors.Wrapf(govtypes.ErrInvalidProposalContent, "failed to run legacy handler %s, %+v", content.ProposalRoute(), err)
-		}
-	}
-
-	return &types.MsgExecuteLegacyContentsResponse{}, nil
-}
-
 //////////////////////////////////////////////
 // Authority messages
 
