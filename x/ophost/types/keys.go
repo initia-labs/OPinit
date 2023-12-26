@@ -15,16 +15,12 @@ var (
 
 	// Keys for store prefixes
 	NextBridgeIdKey = []byte{0x11}
+	ParamsKey       = []byte{0x12}
 
-	BridgeConfigPrefix   = []byte{0x21}
-	NextL1SequencePrefix = []byte{0x22}
-
-	TokenPairPrefix = []byte{0x31}
-
-	OutputProposalPrefix  = []byte{0x41}
-	NextOutputIndexPrefix = []byte{0x42}
-
-	ProvenWithdrawalPrefix = []byte{0x51}
-
-	ParamsKey = []byte{0x61}
+	BridgeConfigPrefix     = []byte{0x21}
+	NextL1SequencePrefix   = []byte{0x31}
+	TokenPairPrefix        = []byte{0x41}
+	OutputProposalPrefix   = []byte{0x51}
+	NextOutputIndexPrefix  = []byte{0x61}
+	ProvenWithdrawalPrefix = []byte{0x71}
 )

@@ -80,7 +80,7 @@ func NewKeeper(
 		consensusAddressCodec: consensusAddressCodec,
 		NextL2Sequence:        collections.NewItem(sb, types.NextL2SequenceKey, "next_l2_sequence", collections.Uint64Value),
 		Params:                collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
-		FinalizedL1Sequence:   collections.NewMap(sb, types.FinalizedL1SequenceKey, "finalized_l1_sequence", collections.Uint64Key, collections.BoolValue),
+		FinalizedL1Sequence:   collections.NewMap(sb, types.FinalizedL1SequencePrefix, "finalized_l1_sequence", collections.Uint64Key, collections.BoolValue),
 		LastValidatorPowers:   collections.NewMap(sb, types.LastValidatorPowerPrefix, "last_validator_powers", collections.BytesKey, collections.Int64Value),
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),

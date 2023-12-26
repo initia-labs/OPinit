@@ -14,16 +14,12 @@ const (
 
 var (
 	// Keys for store prefixes
-	// Last* values are constant during a block.
-	LastValidatorPowerPrefix = []byte{0x11} // prefix for each key to a validator index, for bonded validators
+	ParamsKey         = []byte{0x11} // prefix for parameters for module x/opchild
+	NextL2SequenceKey = []byte{0x12} // key for the outbound sequence number
 
-	ValidatorsPrefix           = []byte{0x21} // prefix for each key to a validator
-	ValidatorsByConsAddrPrefix = []byte{0x22} // prefix for each key to a validator index, by pubkey
-
-	HistoricalInfoPrefix = []byte{0x31} // prefix for the historical info
-
-	ParamsKey = []byte{0x41} // prefix for parameters for module x/opchild
-
-	NextL2SequenceKey      = []byte{0x51} // key for the outbound sequence number
-	FinalizedL1SequenceKey = []byte{0x62} // prefix for finalized deposit sequences
+	LastValidatorPowerPrefix   = []byte{0x21} // prefix for each key to a validator index, for bonded validators
+	ValidatorsPrefix           = []byte{0x31} // prefix for each key to a validator
+	ValidatorsByConsAddrPrefix = []byte{0x41} // prefix for each key to a validator index, by pubkey
+	FinalizedL1SequencePrefix  = []byte{0x51} // prefix for finalized deposit sequences
+	HistoricalInfoPrefix       = []byte{0x61} // prefix for the historical info
 )
