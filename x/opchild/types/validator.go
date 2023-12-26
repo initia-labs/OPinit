@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"sigs.k8s.io/yaml"
 
 	"cosmossdk.io/core/address"
@@ -227,16 +227,16 @@ func (v Validator) ConsPubKey() (cryptotypes.PubKey, error) {
 	return pk, nil
 }
 
-// TmConsPublicKey casts Validator.ConsensusPubkey to tmprotocrypto.PubKey.
-func (v Validator) TmConsPublicKey() (tmprotocrypto.PublicKey, error) {
+// TmConsPublicKey casts Validator.ConsensusPubkey to cmtprotocrypto.PubKey.
+func (v Validator) TmConsPublicKey() (cmtprotocrypto.PublicKey, error) {
 	pk, err := v.ConsPubKey()
 	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
+		return cmtprotocrypto.PublicKey{}, err
 	}
 
-	tmPk, err := cryptocodec.ToTmProtoPublicKey(pk)
+	tmPk, err := cryptocodec.ToCmtProtoPublicKey(pk)
 	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
+		return cmtprotocrypto.PublicKey{}, err
 	}
 
 	return tmPk, nil

@@ -225,7 +225,7 @@ func Test_UpdateProposal(t *testing.T) {
 
 	// current proposer signer
 	msg = types.NewMsgUpdateProposer(addrs[1], 1, addrs[2])
-	_, err = ms.UpdateProposer(sdk.WrapSDKContext(ctx), msg)
+	_, err = ms.UpdateProposer(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
@@ -270,7 +270,7 @@ func Test_UpdateChallenger(t *testing.T) {
 
 	// current challenger
 	msg = types.NewMsgUpdateChallenger(addrs[2], 1, addrs[3])
-	_, err = ms.UpdateChallenger(sdk.WrapSDKContext(ctx), msg)
+	_, err = ms.UpdateChallenger(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)

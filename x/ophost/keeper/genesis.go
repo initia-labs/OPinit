@@ -21,7 +21,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 			panic(err)
 		}
 
-		k.SetNextL1Sequence(ctx, bridgeId, bridge.NextL1Sequence)
+		if err := k.SetNextL1Sequence(ctx, bridgeId, bridge.NextL1Sequence); err != nil {
+			panic(err)
+		}
 
 		for _, proposal := range bridge.Proposals {
 			if err := k.SetOutputProposal(ctx, bridgeId, proposal.OutputIndex, proposal.OutputProposal); err != nil {
@@ -29,20 +31,28 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 			}
 		}
 
-		k.SetNextOutputIndex(ctx, bridgeId, bridge.NextOutputIndex)
+		if err := k.SetNextOutputIndex(ctx, bridgeId, bridge.NextOutputIndex); err != nil {
+			panic(err)
+		}
 
 		for _, provenWithdrawal := range bridge.ProvenWithdrawals {
 			withdrawalHash := [32]byte{}
 			copy(withdrawalHash[:], provenWithdrawal)
-			k.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash)
+			if err := k.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
+				panic(err)
+			}
 		}
 
 		for _, tokenPair := range bridge.TokenPairs {
-			k.SetTokenPair(ctx, bridgeId, tokenPair.L2Denom, tokenPair.L1Denom)
+			if err := k.SetTokenPair(ctx, bridgeId, tokenPair.L2Denom, tokenPair.L1Denom); err != nil {
+				panic(err)
+			}
 		}
 	}
 
-	k.SetNextBridgeId(ctx, data.NextBridgeId)
+	if err := k.SetNextBridgeId(ctx, data.NextBridgeId); err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper. The
@@ -51,7 +61,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 
 	var bridges []types.Bridge
-	k.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error) {
+	err := k.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error) {
 		nextL1Sequence, err := k.GetNextL1Sequence(ctx, bridgeId)
 		if err != nil {
 			return true, err
@@ -102,6 +112,9 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 
 		return false, nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	nextBridgeId, err := k.GetNextBridgeId(ctx)
 	if err != nil {

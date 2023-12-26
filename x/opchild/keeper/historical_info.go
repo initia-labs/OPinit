@@ -55,7 +55,9 @@ func (k Keeper) TrackHistoricalInfo(ctx context.Context) error {
 		if err != nil {
 			return err
 		} else if found {
-			k.DeleteHistoricalInfo(ctx, i)
+			if err := k.DeleteHistoricalInfo(ctx, i); err != nil {
+				return err
+			}
 		} else {
 			break
 		}

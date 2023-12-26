@@ -57,7 +57,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 		if !found || oldPower != newPower {
 			updates = append(updates, validator.ABCIValidatorUpdate())
 
-			k.SetLastValidatorPower(ctx, valAddr, newPower)
+			if err := k.SetLastValidatorPower(ctx, valAddr, newPower); err != nil {
+				return nil, err
+			}
 		}
 
 		delete(last, validator.GetOperator())
@@ -75,8 +77,14 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 			return nil, err
 		}
 
-		k.RemoveValidator(ctx, valAddr)
-		k.DeleteLastValidatorPower(ctx, valAddr)
+		if err := k.RemoveValidator(ctx, valAddr); err != nil {
+			return nil, err
+		}
+
+		if err := k.DeleteLastValidatorPower(ctx, valAddr); err != nil {
+			return nil, err
+		}
+
 		updates = append(updates, validator.ABCIValidatorUpdateZero())
 	}
 
@@ -91,12 +99,12 @@ type validatorsByAddr map[string]int64
 func (k Keeper) getLastValidatorsByAddr(ctx context.Context) (validatorsByAddr, error) {
 	last := make(validatorsByAddr)
 
-	k.IterateLastValidators(ctx, func(validator types.ValidatorI, power int64) (stop bool, err error) {
+	err := k.IterateLastValidators(ctx, func(validator types.ValidatorI, power int64) (stop bool, err error) {
 		last[validator.GetOperator()] = power
 		return false, nil
 	})
 
-	return last, nil
+	return last, err
 }
 
 // given a map of remaining validators to previous bonded power

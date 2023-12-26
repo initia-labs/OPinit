@@ -188,7 +188,9 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 		return nil, err
 	}
 
-	ms.SetValidator(ctx, validator)
+	if err := ms.SetValidator(ctx, validator); err != nil {
+		return nil, err
+	}
 	if err = ms.SetValidatorByConsAddr(ctx, validator); err != nil {
 		return nil, err
 	}
@@ -227,7 +229,9 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 
 	// set validator consensus power `0`,
 	// then `val_state_change` will execute `k.RemoveValidator`.
-	ms.Keeper.SetValidator(ctx, val)
+	if err := ms.Keeper.SetValidator(ctx, val); err != nil {
+		return nil, err
+	}
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -323,7 +327,9 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, err
 	}
 
-	ms.RecordFinalizedL1Sequence(ctx, req.Sequence)
+	if err := ms.RecordFinalizedL1Sequence(ctx, req.Sequence); err != nil {
+		return nil, err
+	}
 
 	event := sdk.NewEvent(
 		types.EventTypeFinalizeTokenDeposit,

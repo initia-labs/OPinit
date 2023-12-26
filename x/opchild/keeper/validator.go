@@ -94,23 +94,23 @@ func (k Keeper) RemoveValidator(ctx context.Context, address sdk.ValAddress) err
 
 // get the set of all validators with no limits, used during genesis dump
 func (k Keeper) GetAllValidators(ctx context.Context) (validators []types.Validator, err error) {
-	k.Validators.Walk(ctx, nil, func(key []byte, validator types.Validator) (stop bool, err error) {
+	err = k.Validators.Walk(ctx, nil, func(key []byte, validator types.Validator) (stop bool, err error) {
 		validators = append(validators, validator)
 		return false, nil
 	})
 
-	return validators, nil
+	return validators, err
 }
 
 // return a given amount of all the validators
 func (k Keeper) GetValidators(ctx context.Context, maxRetrieve uint32) (validators []types.Validator, err error) {
 	validators = make([]types.Validator, 0, maxRetrieve)
-	k.Validators.Walk(ctx, nil, func(key []byte, validator types.Validator) (stop bool, err error) {
+	err = k.Validators.Walk(ctx, nil, func(key []byte, validator types.Validator) (stop bool, err error) {
 		validators = append(validators, validator)
 		return len(validators) == int(maxRetrieve), nil
 	})
 
-	return validators, nil
+	return validators, err
 }
 
 // Last Validator Index
@@ -154,7 +154,7 @@ func (k Keeper) GetLastValidators(ctx context.Context) (validators []types.Valid
 
 	validators = make([]types.Validator, 0, maxValidators)
 
-	k.IterateLastValidatorPowers(ctx, func(operator []byte, power int64) (stop bool, err error) {
+	err = k.IterateLastValidatorPowers(ctx, func(operator []byte, power int64) (stop bool, err error) {
 		validators = append(validators, k.mustGetValidator(ctx, operator))
 
 		// sanity check
@@ -165,5 +165,5 @@ func (k Keeper) GetLastValidators(ctx context.Context) (validators []types.Valid
 		return false, nil
 	})
 
-	return validators, nil
+	return validators, err
 }

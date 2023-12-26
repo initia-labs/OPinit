@@ -171,7 +171,9 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 	}
 
 	// delete output proposal
-	ms.DeleteOutputProposal(ctx, bridgeId, outputIndex)
+	if err := ms.DeleteOutputProposal(ctx, bridgeId, outputIndex); err != nil {
+		return nil, err
+	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeDeleteOutput,
@@ -211,7 +213,9 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 	if ok, err := ms.HasTokenPair(ctx, bridgeId, l2Denom); err != nil {
 		return nil, err
 	} else if !ok {
-		ms.SetTokenPair(ctx, bridgeId, l2Denom, coin.Denom)
+		if err := ms.SetTokenPair(ctx, bridgeId, l2Denom, coin.Denom); err != nil {
+			return nil, err
+		}
 	}
 
 	// emit events for bridge executor
@@ -314,7 +318,9 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 			return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid storage root proofs")
 		}
 
-		ms.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash)
+		if err := ms.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
+			return nil, err
+		}
 	}
 
 	// transfer asset to a user from the bridge account

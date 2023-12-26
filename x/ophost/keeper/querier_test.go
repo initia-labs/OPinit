@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -26,7 +24,7 @@ func Test_QueryBridge(t *testing.T) {
 	require.NoError(t, err)
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
-	res, err := q.Bridge(sdk.WrapSDKContext(ctx), &types.QueryBridgeRequest{
+	res, err := q.Bridge(ctx, &types.QueryBridgeRequest{
 		BridgeId: 1,
 	})
 
@@ -60,7 +58,7 @@ func Test_QueryBridges(t *testing.T) {
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
-	res, err := q.Bridges(sdk.WrapSDKContext(ctx), &types.QueryBridgesRequest{})
+	res, err := q.Bridges(ctx, &types.QueryBridgesRequest{})
 
 	require.NoError(t, err)
 	require.Equal(t, []types.QueryBridgeResponse{
@@ -85,14 +83,14 @@ func Test_QueryTokenPair(t *testing.T) {
 	input.OPHostKeeper.SetTokenPair(ctx, 1, pair.L2Denom, pair.L1Denom)
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
-	res, err := q.TokenPairByL1Denom(sdk.WrapSDKContext(ctx), &types.QueryTokenPairByL1DenomRequest{
+	res, err := q.TokenPairByL1Denom(ctx, &types.QueryTokenPairByL1DenomRequest{
 		BridgeId: 1,
 		L1Denom:  pair.L1Denom,
 	})
 	require.NoError(t, err)
 	require.Equal(t, pair, res.TokenPair)
 
-	res2, err := q.TokenPairByL2Denom(sdk.WrapSDKContext(ctx), &types.QueryTokenPairByL2DenomRequest{
+	res2, err := q.TokenPairByL2Denom(ctx, &types.QueryTokenPairByL2DenomRequest{
 		BridgeId: 1,
 		L2Denom:  pair.L2Denom,
 	})
@@ -114,7 +112,7 @@ func Test_QueryTokenPairs(t *testing.T) {
 	input.OPHostKeeper.SetTokenPair(ctx, 1, pair2.L2Denom, pair2.L1Denom)
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
-	res, err := q.TokenPairs(sdk.WrapSDKContext(ctx), &types.QueryTokenPairsRequest{
+	res, err := q.TokenPairs(ctx, &types.QueryTokenPairsRequest{
 		BridgeId: 1,
 	})
 
@@ -134,7 +132,7 @@ func Test_QueryOutputProposal(t *testing.T) {
 	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output))
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
-	res, err := q.OutputProposal(sdk.WrapSDKContext(ctx), &types.QueryOutputProposalRequest{
+	res, err := q.OutputProposal(ctx, &types.QueryOutputProposalRequest{
 		BridgeId:    1,
 		OutputIndex: 1,
 	})
@@ -158,7 +156,7 @@ func Test_QueryOutputProposals(t *testing.T) {
 	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 2, output2))
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
-	res, err := q.OutputProposals(sdk.WrapSDKContext(ctx), &types.QueryOutputProposalsRequest{
+	res, err := q.OutputProposals(ctx, &types.QueryOutputProposalsRequest{
 		BridgeId: 1,
 	})
 

@@ -30,7 +30,9 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 	}
 
 	for _, validator := range data.Validators {
-		k.SetValidator(ctx, validator)
+		if err := k.SetValidator(ctx, validator); err != nil {
+			panic(err)
+		}
 
 		// Manually set indices for the first time
 		if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
@@ -46,7 +48,10 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 				panic(err)
 			}
 
-			k.SetLastValidatorPower(ctx, valAddr, lv.Power)
+			if err := k.SetLastValidatorPower(ctx, valAddr, lv.Power); err != nil {
+				panic(err)
+			}
+
 			validator, found := k.GetValidator(ctx, valAddr)
 
 			if !found {
@@ -67,10 +72,14 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 	}
 
 	for _, finalizedL1Sequence := range data.FinalizedL1Sequences {
-		k.RecordFinalizedL1Sequence(ctx, finalizedL1Sequence)
+		if err := k.RecordFinalizedL1Sequence(ctx, finalizedL1Sequence); err != nil {
+			panic(err)
+		}
 	}
 
-	k.SetNextL2Sequence(ctx, data.NextL2Sequence)
+	if err := k.SetNextL2Sequence(ctx, data.NextL2Sequence); err != nil {
+		panic(err)
+	}
 
 	return res
 }
