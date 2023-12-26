@@ -45,16 +45,17 @@ export class Resurrector {
       failedTx.l1Height,
       Buffer.from(failedTx.data, 'hex').toString('base64')
     );
-
-    await this.executor.transaction([msg]).catch(async (_) => {
+    try {
+      await this.executor.transaction([msg])
+      await this.updateProcessed(failedTx);
+    } catch (err) {
       if (this.errorCounter++ < 20) {
         await Bluebird.delay(5 * 1000);
         return;
       }
       this.errorCounter = 0;
       await notifySlack(buildFailedTxNotification(failedTx));
-    });
-    await this.updateProcessed(failedTx);
+    }
   }
 
   async getFailedTxs(): Promise<FailedTxEntity[]> {
