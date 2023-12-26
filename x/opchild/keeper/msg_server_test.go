@@ -36,13 +36,16 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	// apply validator updates
 	input.OPChildKeeper.BlockValidatorUpdates(ctx)
 
-	addMsg, err := types.NewMsgAddValidator("val2", authtypes.NewModuleAddress(types.ModuleName), valAddrs[1], valPubKeys[1])
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	removeMsg, err := types.NewMsgRemoveValidator(authtypes.NewModuleAddress(types.ModuleName), valAddrs[0])
+	addMsg, err := types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
 	require.NoError(t, err)
 
-	msg, err := types.NewMsgExecuteMessages(addrs[0], []sdk.Msg{addMsg, removeMsg})
+	removeMsg, err := types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
+	require.NoError(t, err)
+
+	msg, err := types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
@@ -66,28 +69,31 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
 
-	msg, err := types.NewMsgAddValidator("val1", authtypes.NewModuleAddress(types.ModuleName), valAddrs[0], valPubKeys[0])
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	msg, err := types.NewMsgAddValidator("val1", moduleAddr, valAddrsStr[0], valPubKeys[0])
 	require.NoError(t, err)
 
 	_, err = ms.AddValidator(ctx, msg)
 	require.NoError(t, err)
 
 	// invalid signer
-	msg, err = types.NewMsgAddValidator("val1", addrs[0], valAddrs[0], valPubKeys[0])
+	msg, err = types.NewMsgAddValidator("val1", addrsStr[0], valAddrsStr[0], valPubKeys[0])
 	require.NoError(t, err)
 
 	_, err = ms.AddValidator(ctx, msg)
 	require.Error(t, err)
 
 	// duplicate add validator
-	msg, err = types.NewMsgAddValidator("val1", authtypes.NewModuleAddress(types.ModuleName), valAddrs[0], valPubKeys[1])
+	msg, err = types.NewMsgAddValidator("val1", moduleAddr, valAddrsStr[0], valPubKeys[1])
 	require.NoError(t, err)
 
 	_, err = ms.AddValidator(ctx, msg)
 	require.Error(t, err)
 
 	// duplicate cons pubkey
-	msg, err = types.NewMsgAddValidator("val1", authtypes.NewModuleAddress(types.ModuleName), valAddrs[1], valPubKeys[0])
+	msg, err = types.NewMsgAddValidator("val1", moduleAddr, valAddrsStr[1], valPubKeys[0])
 	require.NoError(t, err)
 
 	_, err = ms.AddValidator(ctx, msg)
@@ -107,7 +113,7 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	input.OPChildKeeper.SetValidator(ctx, val)
 
 	// invalid signer
-	msg, err := types.NewMsgRemoveValidator(addrs[0], valAddrs[0])
+	msg, err := types.NewMsgRemoveValidator(addrsStr[0], valAddrsStr[0])
 	require.NoError(t, err)
 
 	_, err = ms.RemoveValidator(
@@ -116,8 +122,11 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	)
 	require.Error(t, err)
 
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
 	// remove not existing validator
-	msg, err = types.NewMsgRemoveValidator(authtypes.NewModuleAddress(types.ModuleName), valAddrs[1])
+	msg, err = types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[1])
 	require.NoError(t, err)
 
 	_, err = ms.RemoveValidator(
@@ -127,7 +136,7 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	require.Error(t, err)
 
 	// valid remove validator
-	msg, err = types.NewMsgRemoveValidator(authtypes.NewModuleAddress(types.ModuleName), valAddrs[0])
+	msg, err = types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
 	require.NoError(t, err)
 
 	_, err = ms.RemoveValidator(
@@ -147,7 +156,10 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	params.HistoricalEntries = 1
 	params.BridgeExecutor = addrs[1].String()
 
-	msg := types.NewMsgUpdateParams(authtypes.NewModuleAddress(types.ModuleName), &params)
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	msg := types.NewMsgUpdateParams(moduleAddr, &params)
 	_, err = ms.UpdateParams(ctx, msg)
 	require.NoError(t, err)
 	_params, err := ms.GetParams(ctx)
@@ -155,7 +167,10 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	require.Equal(t, params, _params)
 
 	// invalid signer
-	msg = types.NewMsgUpdateParams(authtypes.NewModuleAddress("gov"), &params)
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	msg = types.NewMsgUpdateParams(govAddr, &params)
 	require.NoError(t, err)
 
 	_, err = ms.UpdateParams(
@@ -199,10 +214,12 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 
 	// fund asset
 	account := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
+	accountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(account)
+	require.NoError(t, err)
 
 	// valid
-	msg := types.NewMsgInitiateTokenWithdrawal(account, addrs[1], sdk.NewCoin(denom, math.NewInt(100)))
-	_, err := ms.InitiateTokenWithdrawal(ctx, msg)
+	msg := types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
+	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
 
 }
@@ -218,7 +235,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
 	// unauthorized deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrs[1], addrs[1], addrs[1], sdk.NewCoin(denom, math.NewInt(100)), 1, nil)
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[1], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.Error(t, err)
 
@@ -226,7 +243,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	require.Equal(t, math.ZeroInt(), beforeBalance.Amount)
 
 	// valid deposit
-	msg = types.NewMsgFinalizeTokenDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoin(denom, math.NewInt(100)), 1, nil)
+	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, nil)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -250,7 +267,7 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	input.BridgeHook.err = nil
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoin(denom, math.NewInt(100)), 1, hookMsgBytes)
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, hookMsgBytes)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 	require.Equal(t, hookMsgBytes, input.BridgeHook.msgBytes)
@@ -276,7 +293,7 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	input.BridgeHook.err = errors.New("should be failed")
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrs[0], addrs[1], addrs[1], sdk.NewCoin(denom, math.NewInt(100)), 1, []byte("invalid_message"))
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, []byte("invalid_message"))
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 	require.Empty(t, input.BridgeHook.msgBytes)

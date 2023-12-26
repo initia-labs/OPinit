@@ -65,7 +65,12 @@ func NewRecordBatchCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgRecordBatch(clientCtx.GetFromAddress(), bridgeId, batchBytes)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRecordBatch(fromAddr, bridgeId, batchBytes)
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
@@ -147,7 +152,12 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateBridge(clientCtx.GetFromAddress(), config)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateBridge(fromAddr, config)
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
@@ -188,7 +198,12 @@ func NewProposeOutput(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgProposeOutput(clientCtx.GetFromAddress(), bridgeId, l2BlockNumber, outputBytes)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgProposeOutput(fromAddr, bridgeId, l2BlockNumber, outputBytes)
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
@@ -224,7 +239,12 @@ func NewDeleteOutput(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDeleteOutput(clientCtx.GetFromAddress(), bridgeId, outputIndex)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeleteOutput(fromAddr, bridgeId, outputIndex)
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
@@ -255,7 +275,8 @@ func NewInitiateTokenDeposit(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			to, err := ac.StringToBytes(args[1])
+			toAddr := args[1]
+			_, err = ac.StringToBytes(toAddr)
 			if err != nil {
 				return err
 			}
@@ -270,7 +291,12 @@ func NewInitiateTokenDeposit(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgInitiateTokenDeposit(clientCtx.GetFromAddress(), bridgeId, to, amount, data)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgInitiateTokenDeposit(fromAddr, bridgeId, toAddr, amount, data)
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
@@ -335,7 +361,8 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				}
 			}
 
-			receiver, err := ac.StringToBytes(withdrawalInfo.Receiver)
+			receiver := withdrawalInfo.Receiver
+			_, err = ac.StringToBytes(receiver)
 			if err != nil {
 				return err
 			}
@@ -365,12 +392,17 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgFinalizeTokenWithdrawal(
 				withdrawalInfo.BridgeId,
 				withdrawalInfo.OutputIndex,
 				withdrawalInfo.Sequence,
 				withdrawalProofs,
-				clientCtx.GetFromAddress(),
+				fromAddr,
 				receiver,
 				amount,
 				version,

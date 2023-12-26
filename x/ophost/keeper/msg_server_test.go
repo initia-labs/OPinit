@@ -18,7 +18,7 @@ func Test_RecordBatch(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	_, err := ms.RecordBatch(ctx, types.NewMsgRecordBatch(addrs[0], 1, []byte{1, 2, 3}))
+	_, err := ms.RecordBatch(ctx, types.NewMsgRecordBatch(addrsStr[0], 1, []byte{1, 2, 3}))
 	require.NoError(t, err)
 }
 
@@ -27,14 +27,14 @@ func Test_CreateBridge(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challenger:          addrs[0].String(),
-		Proposer:            addrs[0].String(),
+		Challenger:          addrsStr[0],
+		Proposer:            addrsStr[0],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
+	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), res.BridgeId)
 
@@ -48,14 +48,14 @@ func Test_ProposeOutput(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challenger:          addrs[0].String(),
-		Proposer:            addrs[0].String(),
+		Challenger:          addrsStr[0],
+		Proposer:            addrsStr[0],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
+	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
@@ -63,11 +63,11 @@ func Test_ProposeOutput(t *testing.T) {
 	ctx = ctx.WithBlockTime(blockTime)
 
 	// unauthorized
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[1], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[1], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.Error(t, err)
 
 	// valid
-	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
@@ -85,14 +85,14 @@ func Test_DeleteOutput(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:            addrs[0].String(),
-		Challenger:          addrs[1].String(),
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	createReq := types.NewMsgCreateBridge(addrs[0], config)
+	createReq := types.NewMsgCreateBridge(addrsStr[0], config)
 	createRes, err := ms.CreateBridge(ctx, createReq)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
@@ -100,16 +100,16 @@ func Test_DeleteOutput(t *testing.T) {
 	blockTime := time.Now().UTC()
 	ctx = ctx.WithBlockTime(blockTime)
 
-	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
 	// unauthorized
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrs[0], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[0], 1, 1))
 	require.Error(t, err)
 
 	// valid
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrs[1], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 1))
 	require.NoError(t, err)
 
 	// should return error; deleted
@@ -122,14 +122,14 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:            addrs[0].String(),
-		Challenger:          addrs[1].String(),
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
+	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
@@ -137,7 +137,7 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	input.Faucet.Fund(ctx, addrs[1], amount)
 	_, err = ms.InitiateTokenDeposit(
 		ctx,
-		types.NewMsgInitiateTokenDeposit(addrs[1], 1, addrs[2], amount, []byte("messages")),
+		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, addrsStr[2], amount, []byte("messages")),
 	)
 	require.NoError(t, err)
 	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], baseDenom).IsZero())
@@ -149,14 +149,14 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:            addrs[0].String(),
-		Challenger:          addrs[1].String(),
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
 
 	// fund amount
@@ -176,14 +176,18 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	now := time.Now().UTC()
 	ctx = ctx.WithBlockTime(now)
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrs[0], 1, 100, outputRoot))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, outputRoot))
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
+	addr04, err := input.AccountKeeper.AddressCodec().BytesToString(decodeHex(t, "0000000000000000000000000000000000000004"))
+	require.NoError(t, err)
+	addr01, err := input.AccountKeeper.AddressCodec().BytesToString(decodeHex(t, "0000000000000000000000000000000000000001"))
+	require.NoError(t, err)
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
 		1, 1, 4, proofs,
-		decodeHex(t, "0000000000000000000000000000000000000004"),
-		decodeHex(t, "0000000000000000000000000000000000000001"),
+		addr04,
+		addr01,
 		amount,
 		version, stateRoot, storageRoot, blockHash,
 	))
@@ -203,28 +207,30 @@ func Test_UpdateProposal(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:            addrs[0].String(),
-		Challenger:          addrs[1].String(),
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
-	msg := types.NewMsgUpdateProposer(authtypes.NewModuleAddress("gov"), 1, addrs[1])
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgUpdateProposer(govAddr, 1, addrsStr[1])
 	_, err = ms.UpdateProposer(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, addrs[1].String(), _config.Proposer)
-	require.Equal(t, addrs[1].String(), input.BridgeHook.proposer)
+	require.Equal(t, addrsStr[1], _config.Proposer)
+	require.Equal(t, addrsStr[1], input.BridgeHook.proposer)
 
 	// current proposer signer
-	msg = types.NewMsgUpdateProposer(addrs[1], 1, addrs[2])
+	msg = types.NewMsgUpdateProposer(addrsStr[1], 1, addrsStr[2])
 	_, err = ms.UpdateProposer(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
@@ -233,7 +239,9 @@ func Test_UpdateProposal(t *testing.T) {
 	require.Equal(t, addrs[2].String(), input.BridgeHook.proposer)
 
 	// invalid signer
-	msg = types.NewMsgUpdateProposer(authtypes.NewModuleAddress(types.ModuleName), 1, addrs[1])
+	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+	msg = types.NewMsgUpdateProposer(invalidAddr, 1, addrsStr[1])
 	require.NoError(t, err)
 
 	_, err = ms.UpdateProposer(
@@ -248,19 +256,21 @@ func Test_UpdateChallenger(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:            addrs[0].String(),
-		Challenger:          addrs[1].String(),
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrs[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
-	msg := types.NewMsgUpdateChallenger(authtypes.NewModuleAddress("gov"), 1, addrs[2])
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgUpdateChallenger(govAddr, 1, addrsStr[2])
 	_, err = ms.UpdateChallenger(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
@@ -269,7 +279,7 @@ func Test_UpdateChallenger(t *testing.T) {
 	require.Equal(t, addrs[2].String(), input.BridgeHook.challenger)
 
 	// current challenger
-	msg = types.NewMsgUpdateChallenger(addrs[2], 1, addrs[3])
+	msg = types.NewMsgUpdateChallenger(addrsStr[2], 1, addrsStr[3])
 	_, err = ms.UpdateChallenger(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
@@ -278,7 +288,9 @@ func Test_UpdateChallenger(t *testing.T) {
 	require.Equal(t, addrs[3].String(), input.BridgeHook.challenger)
 
 	// invalid signer
-	msg = types.NewMsgUpdateChallenger(authtypes.NewModuleAddress(types.ModuleName), 1, addrs[1])
+	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+	msg = types.NewMsgUpdateChallenger(invalidAddr, 1, addrsStr[1])
 	require.NoError(t, err)
 
 	_, err = ms.UpdateChallenger(
@@ -295,13 +307,17 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	params := ms.GetParams(ctx)
 	params.RegistrationFee = sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(100)))
 
-	msg := types.NewMsgUpdateParams(authtypes.NewModuleAddress("gov"), &params)
-	_, err := ms.UpdateParams(ctx, msg)
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgUpdateParams(govAddr, &params)
+	_, err = ms.UpdateParams(ctx, msg)
 	require.NoError(t, err)
 	require.Equal(t, params, ms.GetParams(ctx))
 
 	// invalid signer
-	msg = types.NewMsgUpdateParams(authtypes.NewModuleAddress(types.ModuleName), &params)
+	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+	msg = types.NewMsgUpdateParams(invalidAddr, &params)
 	require.NoError(t, err)
 
 	_, err = ms.UpdateParams(

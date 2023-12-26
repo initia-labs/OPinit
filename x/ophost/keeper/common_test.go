@@ -73,6 +73,14 @@ var (
 		sdk.AccAddress(pubKeys[4].Address()),
 	}
 
+	addrsStr = []string{
+		addrs[0].String(),
+		addrs[1].String(),
+		addrs[2].String(),
+		addrs[3].String(),
+		addrs[4].String(),
+	}
+
 	testDenoms = []string{
 		"test1",
 		"test2",

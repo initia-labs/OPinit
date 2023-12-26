@@ -72,12 +72,28 @@ var (
 		sdk.AccAddress(pubKeys[4].Address()),
 	}
 
+	addrsStr = []string{
+		addrs[0].String(),
+		addrs[1].String(),
+		addrs[2].String(),
+		addrs[3].String(),
+		addrs[4].String(),
+	}
+
 	valAddrs = []sdk.ValAddress{
 		sdk.ValAddress(pubKeys[0].Address()),
 		sdk.ValAddress(pubKeys[1].Address()),
 		sdk.ValAddress(pubKeys[2].Address()),
 		sdk.ValAddress(pubKeys[3].Address()),
 		sdk.ValAddress(pubKeys[4].Address()),
+	}
+
+	valAddrsStr = []string{
+		valAddrs[0].String(),
+		valAddrs[1].String(),
+		valAddrs[2].String(),
+		valAddrs[3].String(),
+		valAddrs[4].String(),
 	}
 
 	testDenoms = []string{

@@ -174,7 +174,12 @@ Where proposal.json contains:
 				return err
 			}
 
-			msg, err := types.NewMsgExecuteMessages(clientCtx.GetFromAddress(), msgs)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgExecuteMessages(fromAddr, msgs)
 			if err != nil {
 				return fmt.Errorf("invalid message: %w", err)
 			}
@@ -194,8 +199,17 @@ Where proposal.json contains:
 
 func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
 	sender := clientCtx.GetFromAddress()
+	senderAddr, err := ac.BytesToString(sender)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	msg := types.NewMsgInitiateTokenWithdrawal(sender, to, amount)
+	toAddr, err := ac.BytesToString(to)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	msg := types.NewMsgInitiateTokenWithdrawal(senderAddr, toAddr, amount)
 	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}
@@ -207,8 +221,22 @@ func newBuildDepositMsg(clientCtx client.Context, ac address.Codec, txf tx.Facto
 	sequence uint64, from, to sdk.AccAddress, amount sdk.Coin, hookMsg []byte,
 ) (tx.Factory, *types.MsgFinalizeTokenDeposit, error) {
 	sender := clientCtx.GetFromAddress()
+	senderAddr, err := ac.BytesToString(sender)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	msg := types.NewMsgFinalizeTokenDeposit(sender, from, to, amount, sequence, hookMsg)
+	fromAddr, err := ac.BytesToString(from)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	toAddr, err := ac.BytesToString(to)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	msg := types.NewMsgFinalizeTokenDeposit(senderAddr, fromAddr, toAddr, amount, sequence, hookMsg)
 	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}

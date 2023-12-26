@@ -34,12 +34,12 @@ var (
 
 // NewMsgRecordBatch creates a new MsgRecordBatch instance.
 func NewMsgRecordBatch(
-	submitter sdk.AccAddress,
+	submitter string,
 	bridgeId uint64,
 	batchBytes []byte,
 ) *MsgRecordBatch {
 	return &MsgRecordBatch{
-		Submitter:  submitter.String(),
+		Submitter:  submitter,
 		BridgeId:   bridgeId,
 		BatchBytes: batchBytes,
 	}
@@ -62,11 +62,11 @@ func (msg MsgRecordBatch) Validate(accAddressCodec address.Codec) error {
 
 // NewMsgCreateBridge creates a new MsgCreateBridge instance.
 func NewMsgCreateBridge(
-	creator sdk.AccAddress,
+	creator string,
 	config BridgeConfig,
 ) *MsgCreateBridge {
 	return &MsgCreateBridge{
-		Creator: creator.String(),
+		Creator: creator,
 		Config:  config,
 	}
 }
@@ -89,13 +89,13 @@ func (msg MsgCreateBridge) Validate(ac address.Codec) error {
 // NewMsgProposeOutput creates a new MsgProposeOutput instance.
 // Delegator address and validator address are the same.
 func NewMsgProposeOutput(
-	proposer sdk.AccAddress,
+	proposer string,
 	bridgeId uint64,
 	l2BlockNumber uint64,
 	outputRoot []byte,
 ) *MsgProposeOutput {
 	return &MsgProposeOutput{
-		Proposer:      proposer.String(),
+		Proposer:      proposer,
 		BridgeId:      bridgeId,
 		L2BlockNumber: l2BlockNumber,
 		OutputRoot:    outputRoot,
@@ -124,12 +124,12 @@ func (msg MsgProposeOutput) Validate(accAddressCodec address.Codec) error {
 
 // NewMsgDeleteOutput creates a new MsgDeleteOutput instance.
 func NewMsgDeleteOutput(
-	challenger sdk.AccAddress,
+	challenger string,
 	bridgeId uint64,
 	outputIndex uint64,
 ) *MsgDeleteOutput {
 	return &MsgDeleteOutput{
-		Challenger:  challenger.String(),
+		Challenger:  challenger,
 		BridgeId:    bridgeId,
 		OutputIndex: outputIndex,
 	}
@@ -156,15 +156,15 @@ func (msg MsgDeleteOutput) Validate(accAddressCodec address.Codec) error {
 
 // NewMsgInitiateTokenDeposit creates a new MsgInitiateTokenDeposit instance.
 func NewMsgInitiateTokenDeposit(
-	sender sdk.AccAddress,
+	sender string,
 	bridgeId uint64,
-	to sdk.AccAddress,
+	to string,
 	amount sdk.Coin,
 	data []byte,
 ) *MsgInitiateTokenDeposit {
 	return &MsgInitiateTokenDeposit{
-		Sender:   sender.String(),
-		To:       to.String(),
+		Sender:   sender,
+		To:       to,
 		Amount:   amount,
 		BridgeId: bridgeId,
 		Data:     data,
@@ -200,8 +200,8 @@ func NewMsgFinalizeTokenWithdrawal(
 	outputIndex uint64,
 	sequence uint64,
 	withdrawalProofs [][]byte,
-	sender sdk.AccAddress,
-	receiver sdk.AccAddress,
+	sender string,
+	receiver string,
 	amount sdk.Coin,
 	version []byte,
 	stateRoot []byte,
@@ -212,8 +212,8 @@ func NewMsgFinalizeTokenWithdrawal(
 		BridgeId:         bridgeId,
 		OutputIndex:      outputIndex,
 		WithdrawalProofs: withdrawalProofs,
-		Sender:           sender.String(),
-		Receiver:         receiver.String(),
+		Sender:           sender,
+		Receiver:         receiver,
 		Sequence:         sequence,
 		Amount:           amount,
 		Version:          version,
@@ -278,14 +278,14 @@ func (msg MsgFinalizeTokenWithdrawal) Validate(accAddressCodec address.Codec) er
 
 // NewMsgUpdateProposer creates a new MsgUpdateProposer instance.
 func NewMsgUpdateProposer(
-	authority sdk.AccAddress,
+	authority string,
 	bridgeId uint64,
-	newProposer sdk.AccAddress,
+	newProposer string,
 ) *MsgUpdateProposer {
 	return &MsgUpdateProposer{
-		Authority:   authority.String(),
+		Authority:   authority,
 		BridgeId:    bridgeId,
-		NewProposer: newProposer.String(),
+		NewProposer: newProposer,
 	}
 }
 
@@ -310,14 +310,14 @@ func (msg MsgUpdateProposer) Validate(accAddressCodec address.Codec) error {
 
 // NewMsgUpdateChallenger creates a new MsgUpdateChallenger instance.
 func NewMsgUpdateChallenger(
-	authority sdk.AccAddress,
+	authority string,
 	bridgeId uint64,
-	newChallenger sdk.AccAddress,
+	newChallenger string,
 ) *MsgUpdateChallenger {
 	return &MsgUpdateChallenger{
-		Authority:     authority.String(),
+		Authority:     authority,
 		BridgeId:      bridgeId,
-		NewChallenger: newChallenger.String(),
+		NewChallenger: newChallenger,
 	}
 }
 
@@ -341,9 +341,9 @@ func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
 /* MsgUpdateParams */
 
 // NewMsgUpdateParams returns a new MsgUpdateParams instance
-func NewMsgUpdateParams(authority sdk.AccAddress, params *Params) *MsgUpdateParams {
+func NewMsgUpdateParams(authority string, params *Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
-		Authority: authority.String(),
+		Authority: authority,
 		Params:    params,
 	}
 }

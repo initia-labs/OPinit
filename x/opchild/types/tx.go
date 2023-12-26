@@ -45,11 +45,11 @@ const MAX_TOKEN_SYMBOL_LENGTH = 128
 
 // NewMsgExecuteMessages creates a new MsgExecuteMessages instance.
 func NewMsgExecuteMessages(
-	sender sdk.AccAddress, //nolint:interfacer
+	sender string,
 	messages []sdk.Msg,
 ) (*MsgExecuteMessages, error) {
 	msg := &MsgExecuteMessages{
-		Sender: sender.String(),
+		Sender: sender,
 	}
 
 	anys, err := sdktx.SetMsgs(messages)
@@ -90,8 +90,8 @@ func (m MsgExecuteMessages) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 // NewMsgAddValidator creates a new MsgAddValidator instance.
 // Delegator address and validator address are the same.
 func NewMsgAddValidator(
-	moniker string, authority sdk.AccAddress,
-	valAddr sdk.ValAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
+	moniker string, authority string,
+	valAddr string, pubKey cryptotypes.PubKey,
 ) (*MsgAddValidator, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -102,8 +102,8 @@ func NewMsgAddValidator(
 	}
 	return &MsgAddValidator{
 		Moniker:          moniker,
-		Authority:        authority.String(),
-		ValidatorAddress: valAddr.String(),
+		Authority:        authority,
+		ValidatorAddress: valAddr,
 		Pubkey:           pkAny,
 	}, nil
 }
@@ -137,12 +137,12 @@ func (msg MsgAddValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 
 // NewMsgRemoveValidator creates a new MsgRemoveValidator instance.
 func NewMsgRemoveValidator(
-	authority sdk.AccAddress,
-	valAddr sdk.ValAddress, //nolint:interfacer
+	authority string,
+	valAddr string,
 ) (*MsgRemoveValidator, error) {
 	return &MsgRemoveValidator{
-		Authority:        authority.String(),
-		ValidatorAddress: valAddr.String(),
+		Authority:        authority,
+		ValidatorAddress: valAddr,
 	}, nil
 }
 
@@ -163,13 +163,13 @@ func (msg MsgRemoveValidator) Validate(ac, vc address.Codec) error {
 
 // NewMsgInitiateTokenWithdrawal creates a new MsgInitiateTokenWithdrawal instance.
 func NewMsgInitiateTokenWithdrawal(
-	sender sdk.AccAddress,
-	to sdk.AccAddress,
+	sender string,
+	to string,
 	amount sdk.Coin,
 ) *MsgInitiateTokenWithdrawal {
 	return &MsgInitiateTokenWithdrawal{
-		Sender: sender.String(),
-		To:     to.String(),
+		Sender: sender,
+		To:     to,
 		Amount: amount,
 	}
 }
@@ -195,15 +195,15 @@ func (msg MsgInitiateTokenWithdrawal) Validate(ac address.Codec) error {
 
 // NewMsgFinalizeTokenDeposit creates a new MsgFinalizeTokenDeposit instance.
 func NewMsgFinalizeTokenDeposit(
-	sender, from, to sdk.AccAddress,
+	sender, from, to string,
 	amount sdk.Coin,
 	sequence uint64,
 	data []byte,
 ) *MsgFinalizeTokenDeposit {
 	return &MsgFinalizeTokenDeposit{
-		Sender:   sender.String(),
-		From:     from.String(),
-		To:       to.String(),
+		Sender:   sender,
+		From:     from,
+		To:       to,
 		Amount:   amount,
 		Sequence: sequence,
 		Data:     data,
@@ -238,9 +238,9 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 /* MsgUpdateParams */
 
 // NewMsgUpdateParams returns a new MsgUpdateParams instance
-func NewMsgUpdateParams(authority sdk.AccAddress, params *Params) *MsgUpdateParams {
+func NewMsgUpdateParams(authority string, params *Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
-		Authority: authority.String(),
+		Authority: authority,
 		Params:    params,
 	}
 }
