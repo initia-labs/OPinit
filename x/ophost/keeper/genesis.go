@@ -7,10 +7,6 @@ import (
 )
 
 func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
-	if err := data.Params.Validate(); err != nil {
-		panic(err)
-	}
-
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
 	}

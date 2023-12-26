@@ -19,9 +19,6 @@ func (k Keeper) BridgeExecutor(ctx context.Context) (sdk.AccAddress, error) {
 
 // SetParams sets the x/opchild module parameters.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
-	if err := params.Validate(k.authKeeper.AddressCodec()); err != nil {
-		return err
-	}
 	return k.Params.Set(ctx, params)
 }
 
