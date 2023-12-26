@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"context"
 	"encoding/binary"
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	errors "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	"cosmossdk.io/store"
@@ -31,7 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
@@ -42,7 +39,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -123,11 +119,6 @@ func MakeEncodingConfig(_ testing.TB) EncodingConfig {
 
 	ModuleBasics.RegisterLegacyAminoCodec(legacyAmino)
 	ModuleBasics.RegisterInterfaces(interfaceRegistry)
-
-	interfaceRegistry.RegisterImplementations(
-		(*govv1beta1.Content)(nil),
-		&testLegacyContent{},
-	)
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
@@ -305,11 +296,6 @@ func _createTestInput(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	)
 
-	// set test legacy content handler
-	govRouter := govv1beta1.NewRouter()
-	govRouter.AddRoute("test", NewTestLegacyContentHandler())
-	opchildKeeper.SetLegacyRouter(govRouter)
-
 	opchildParams := opchildtypes.DefaultParams()
 	opchildParams.BridgeExecutor = addrs[0].String()
 	opchildKeeper.SetParams(ctx, opchildParams)
@@ -328,53 +314,6 @@ func _createTestInput(
 		Faucet:         faucet,
 	}
 	return ctx, keepers
-}
-
-type testLegacyContent struct {
-	Title       string
-	Description string
-	Message     string
-}
-
-func (*testLegacyContent) ProtoMessage() {}
-func (m *testLegacyContent) Reset()      { *m = testLegacyContent{} }
-func (c *testLegacyContent) GetTitle() string {
-	return c.Title
-}
-func (c *testLegacyContent) GetDescription() string {
-	return c.Description
-}
-
-func (c *testLegacyContent) ProposalRoute() string {
-	return "test"
-}
-func (c *testLegacyContent) ProposalType() string {
-	return "test"
-}
-func (c *testLegacyContent) ValidateBasic() error {
-	return nil
-}
-func (c testLegacyContent) String() string {
-	return fmt.Sprintf(`Parameter Change Proposal:
-Title:       %s
-Description: %s
-Message:     %s
-`, c.Title, c.Description, c.Message)
-}
-
-func NewTestLegacyContentHandler() govv1beta1.Handler {
-	return func(ctx sdk.Context, content govv1beta1.Content) error {
-		switch c := content.(type) {
-		case *testLegacyContent:
-			if c.Message != "test" {
-				return fmt.Errorf("message must be `test`")
-			}
-			return nil
-
-		default:
-			return errors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized legacy content type: %T", c)
-		}
-	}
 }
 
 type bridgeHook struct {
