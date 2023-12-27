@@ -5,6 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	DefaultBridgeIdStart   = 1
+	DefaultL1SequenceStart = 1
+)
+
 // NewGenesisState creates a new GenesisState instance
 func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64) *GenesisState {
 	return &GenesisState{
@@ -19,7 +24,7 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params:       DefaultParams(),
 		Bridges:      []Bridge{},
-		NextBridgeId: 1,
+		NextBridgeId: DefaultBridgeIdStart,
 	}
 }
 
@@ -35,7 +40,7 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 			return ErrInvalidBridgeId
 		}
 
-		if bridge.NextL1Sequence == 0 {
+		if bridge.NextL1Sequence < DefaultL1SequenceStart {
 			return ErrInvalidSequence
 		}
 
@@ -65,7 +70,7 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 		}
 	}
 
-	if data.NextBridgeId == 0 {
+	if data.NextBridgeId < DefaultBridgeIdStart {
 		return ErrInvalidBridgeId
 	}
 

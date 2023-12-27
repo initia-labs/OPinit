@@ -45,7 +45,7 @@ func (k Keeper) GetNextL1Sequence(ctx context.Context, bridgeId uint64) (uint64,
 	nextSequence, err := k.NextL1Sequences.Get(ctx, bridgeId)
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
-			nextSequence = 1
+			nextSequence = types.DefaultL1SequenceStart
 		} else {
 			return 0, err
 		}
@@ -76,27 +76,30 @@ func (k Keeper) SetNextBridgeId(ctx context.Context, nextBridgeId uint64) error 
 }
 
 func (k Keeper) GetNextBridgeId(ctx context.Context) (uint64, error) {
-	nextBridgeId, err := k.NextBridgeId.Get(ctx)
+	nextBridgeId, err := k.NextBridgeId.Peek(ctx)
 	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			nextBridgeId = 1
-		} else {
-			return 0, err
-		}
+		return 0, err
+	}
+
+	if nextBridgeId == collections.DefaultSequenceStart {
+		return types.DefaultBridgeIdStart, nil
 	}
 
 	return nextBridgeId, nil
 }
 
 func (k Keeper) IncreaseNextBridgeId(ctx context.Context) (uint64, error) {
-	nextBridgeId, err := k.GetNextBridgeId(ctx)
+	nextBridgeId, err := k.NextBridgeId.Next(ctx)
 	if err != nil {
 		return 0, err
 	}
 
-	// increase NextBridgeId
-	if err := k.NextBridgeId.Set(ctx, nextBridgeId+1); err != nil {
-		return 0, err
+	if nextBridgeId == collections.DefaultSequenceStart {
+		if err := k.NextBridgeId.Set(ctx, types.DefaultBridgeIdStart+1); err != nil {
+			return 0, err
+		}
+
+		return types.DefaultBridgeIdStart, nil
 	}
 
 	return nextBridgeId, nil

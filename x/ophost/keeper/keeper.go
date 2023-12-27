@@ -26,7 +26,7 @@ type Keeper struct {
 	authority string
 
 	Schema            collections.Schema
-	NextBridgeId      collections.Item[uint64]
+	NextBridgeId      collections.Sequence
 	Params            collections.Item[types.Params]
 	BridgeConfigs     collections.Map[uint64, types.BridgeConfig]
 	NextL1Sequences   collections.Map[uint64, uint64]
@@ -58,7 +58,7 @@ func NewKeeper(
 		bankKeeper:        bk,
 		bridgeHook:        bridgeHook,
 		authority:         authority,
-		NextBridgeId:      collections.NewItem(sb, types.NextBridgeIdKey, "next_bridge_id", collections.Uint64Value),
+		NextBridgeId:      collections.NewSequence(sb, types.NextBridgeIdKey, "next_bridge_id"),
 		Params:            collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		BridgeConfigs:     collections.NewMap(sb, types.BridgeConfigPrefix, "bridge_configs", collections.Uint64Key, codec.CollValue[types.BridgeConfig](cdc)),
 		NextL1Sequences:   collections.NewMap(sb, types.NextL1SequencePrefix, "next_l1_sequences", collections.Uint64Key, collections.Uint64Value),

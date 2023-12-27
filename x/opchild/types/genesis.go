@@ -9,6 +9,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
+const DefaultL2SequenceStart = 1
+
 // NewGenesisState creates a new GenesisState instance
 func NewGenesisState(params Params, validators []Validator) *GenesisState {
 	return &GenesisState{
@@ -26,7 +28,7 @@ func DefaultGenesisState() *GenesisState {
 		LastValidatorPowers:  []LastValidatorPower{},
 		Validators:           []Validator{},
 		Exported:             false,
-		NextL2Sequence:       1,
+		NextL2Sequence:       DefaultL2SequenceStart,
 		FinalizedL1Sequences: []uint64{},
 	}
 }
@@ -36,6 +38,10 @@ func DefaultGenesisState() *GenesisState {
 func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 	if err := validateGenesisStateValidators(data.Validators); err != nil {
 		return err
+	}
+
+	if data.NextL2Sequence < DefaultL2SequenceStart {
+		return ErrInvalidSequence
 	}
 
 	return data.Params.Validate(ac)
