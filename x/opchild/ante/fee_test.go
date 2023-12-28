@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 )
 
-var baseDenom = sdk.DefaultBondDenom
-
 type TestAnteKeeper struct {
 	minGasPrices sdk.DecCoins
 }
@@ -27,7 +25,7 @@ func (suite *AnteTestSuite) TestEnsureMempoolFees() {
 
 	// set price 0.5 base == 1 quote
 	fc := ante.NewMempoolFeeChecker(TestAnteKeeper{
-		minGasPrices: sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyZeroDec())),
+		minGasPrices: sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyZeroDec())),
 	})
 
 	// keys and addresses
@@ -36,7 +34,7 @@ func (suite *AnteTestSuite) TestEnsureMempoolFees() {
 	// msg and signatures
 	// gas price 0.0005
 	msg := testdata.NewTestMsg(addr1)
-	feeAmount := sdk.NewCoins(sdk.NewCoin(baseDenom, math.NewInt(100)))
+	feeAmount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100)))
 	gasLimit := uint64(200_000)
 
 	suite.Require().NoError(suite.txBuilder.SetMsgs(msg))
@@ -48,7 +46,7 @@ func (suite *AnteTestSuite) TestEnsureMempoolFees() {
 	suite.Require().NoError(err)
 
 	// Set high gas price so standard test fee fails
-	basePrice := sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(200).Quo(math.LegacyNewDec(100000)))
+	basePrice := sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(200).Quo(math.LegacyNewDec(100000)))
 	highGasPrice := []sdk.DecCoin{basePrice}
 	suite.ctx = suite.ctx.WithMinGasPrices(highGasPrice)
 
@@ -70,7 +68,7 @@ func (suite *AnteTestSuite) TestEnsureMempoolFees() {
 	suite.ctx = suite.ctx.WithIsCheckTx(true)
 
 	// gas price = 0.0005
-	basePrice = sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDecWithPrec(5, 4))
+	basePrice = sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDecWithPrec(5, 4))
 	lowGasPrice := []sdk.DecCoin{basePrice}
 	suite.ctx = suite.ctx.WithMinGasPrices(lowGasPrice)
 
@@ -79,7 +77,7 @@ func (suite *AnteTestSuite) TestEnsureMempoolFees() {
 
 	// set high base_min_gas_price to test should be failed
 	fc = ante.NewMempoolFeeChecker(TestAnteKeeper{
-		minGasPrices: sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(200).Quo(math.LegacyNewDec(100000)))),
+		minGasPrices: sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(200).Quo(math.LegacyNewDec(100000)))),
 	})
 
 	suite.txBuilder.SetFeeAmount(feeAmount)
@@ -88,33 +86,33 @@ func (suite *AnteTestSuite) TestEnsureMempoolFees() {
 }
 
 func (suite *AnteTestSuite) TestCombinedMinGasPrices() {
-	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(100)))
-	configMinGasPrices := sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(100)))
+	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(100)))
+	configMinGasPrices := sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(100)))
 
 	combined := ante.CombinedMinGasPrices(minGasPrices, configMinGasPrices)
 	suite.Require().Len(combined, 1)
-	suite.Require().True(combined.AmountOf(baseDenom).Equal(math.LegacyNewDec(100)))
+	suite.Require().True(combined.AmountOf(sdk.DefaultBondDenom).Equal(math.LegacyNewDec(100)))
 
-	configMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(150)))
+	configMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(150)))
 	combined = ante.CombinedMinGasPrices(minGasPrices, configMinGasPrices)
 	suite.Require().Len(combined, 1)
-	suite.Require().True(combined.AmountOf(baseDenom).Equal(math.LegacyNewDec(150)))
+	suite.Require().True(combined.AmountOf(sdk.DefaultBondDenom).Equal(math.LegacyNewDec(150)))
 
-	minGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(200)))
+	minGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(200)))
 	combined = ante.CombinedMinGasPrices(minGasPrices, configMinGasPrices)
 	suite.Require().Len(combined, 1)
-	suite.Require().True(combined.AmountOf(baseDenom).Equal(math.LegacyNewDec(200)))
+	suite.Require().True(combined.AmountOf(sdk.DefaultBondDenom).Equal(math.LegacyNewDec(200)))
 
-	configMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(100)), sdk.NewDecCoinFromDec("test", math.LegacyNewDec(100)))
+	configMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(100)), sdk.NewDecCoinFromDec("test", math.LegacyNewDec(100)))
 	combined = ante.CombinedMinGasPrices(minGasPrices, configMinGasPrices)
 	suite.Require().Len(combined, 2)
-	suite.Require().True(combined.AmountOf(baseDenom).Equal(math.LegacyNewDec(200)))
+	suite.Require().True(combined.AmountOf(sdk.DefaultBondDenom).Equal(math.LegacyNewDec(200)))
 	suite.Require().True(combined.AmountOf("test").Equal(math.LegacyNewDec(100)))
 
-	minGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(baseDenom, math.LegacyNewDec(100)), sdk.NewDecCoinFromDec("test2", math.LegacyNewDec(300)))
+	minGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDec(100)), sdk.NewDecCoinFromDec("test2", math.LegacyNewDec(300)))
 	combined = ante.CombinedMinGasPrices(minGasPrices, configMinGasPrices)
 	suite.Require().Len(combined, 3)
-	suite.Require().True(combined.AmountOf(baseDenom).Equal(math.LegacyNewDec(100)))
+	suite.Require().True(combined.AmountOf(sdk.DefaultBondDenom).Equal(math.LegacyNewDec(100)))
 	suite.Require().True(combined.AmountOf("test").Equal(math.LegacyNewDec(100)))
 	suite.Require().True(combined.AmountOf("test2").Equal(math.LegacyNewDec(300)))
 }

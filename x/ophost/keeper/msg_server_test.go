@@ -133,15 +133,15 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
-	amount := sdk.NewCoin(baseDenom, math.NewInt(100))
+	amount := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100))
 	input.Faucet.Fund(ctx, addrs[1], amount)
 	_, err = ms.InitiateTokenDeposit(
 		ctx,
 		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, addrsStr[2], amount, []byte("messages")),
 	)
 	require.NoError(t, err)
-	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], baseDenom).IsZero())
-	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, types.BridgeAddress(1), baseDenom))
+	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).IsZero())
+	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, types.BridgeAddress(1), sdk.DefaultBondDenom))
 }
 
 func Test_FinalizeTokenWithdrawal(t *testing.T) {

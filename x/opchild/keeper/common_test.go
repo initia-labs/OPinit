@@ -47,8 +47,6 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 )
 
-const baseDenom = "umin"
-
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	bank.AppModuleBasic{},
@@ -145,7 +143,7 @@ func MakeEncodingConfig(_ testing.TB) EncodingConfig {
 }
 
 func initialTotalSupply() sdk.Coins {
-	faucetBalance := sdk.NewCoins(sdk.NewCoin(baseDenom, initiaSupply))
+	faucetBalance := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initiaSupply))
 	for _, testDenom := range testDenoms {
 		faucetBalance = faucetBalance.Add(sdk.NewCoin(testDenom, initiaSupply))
 	}

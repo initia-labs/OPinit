@@ -185,10 +185,10 @@ func Test_MsgServer_SpendFeePool(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
 
 	// fund fee pool
-	collectedFees := sdk.NewCoins(sdk.NewCoin(baseDenom, math.NewInt(100)))
+	collectedFees := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100)))
 	input.Faucet.Fund(ctx, authtypes.NewModuleAddress(authtypes.FeeCollectorName), collectedFees...)
 
-	beforeAmount := input.BankKeeper.GetBalance(ctx, addrs[1], baseDenom).Amount
+	beforeAmount := input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).Amount
 
 	msg := types.NewMsgSpendFeePool(
 		authtypes.NewModuleAddress(types.ModuleName),
@@ -198,7 +198,7 @@ func Test_MsgServer_SpendFeePool(t *testing.T) {
 	_, err := ms.SpendFeePool(ctx, msg)
 	require.NoError(t, err)
 
-	afterAmount := input.BankKeeper.GetBalance(ctx, addrs[1], baseDenom).Amount
+	afterAmount := input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).Amount
 	require.Equal(t, beforeAmount.Add(math.NewInt(100)), afterAmount)
 }
 
