@@ -46,7 +46,7 @@ export class Resurrector {
       Buffer.from(failedTx.data, 'hex').toString('base64')
     );
     try {
-      await this.executor.transaction([msg])
+      await this.executor.transaction([msg]);
       await this.updateProcessed(failedTx);
     } catch (err) {
       if (this.errorCounter++ < 20) {
