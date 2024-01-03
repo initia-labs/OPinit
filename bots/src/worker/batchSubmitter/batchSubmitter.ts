@@ -2,7 +2,7 @@ import { getDB } from './db';
 import { DataSource, EntityManager } from 'typeorm';
 import { batchLogger, batchLogger as logger } from 'lib/logger';
 import { BlockBulk, RPCClient } from 'lib/rpc';
-import { compressor } from 'lib/compressor';
+import { compress } from 'lib/compressor';
 import { ExecutorOutputEntity, RecordEntity } from 'orm';
 import { Wallet, MnemonicKey, MsgRecordBatch } from '@initia/initia.js';
 import { delay } from 'bluebird';
@@ -88,7 +88,7 @@ export class BatchSubmitter {
       throw new Error(`Error getting block bulk from L2`);
     }
 
-    return compressor(bulk.blocks);
+    return compress(bulk.blocks);
   }
 
   async getStoredBatch(manager: EntityManager): Promise<RecordEntity | null> {

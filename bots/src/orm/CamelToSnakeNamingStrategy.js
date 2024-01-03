@@ -1,5 +1,5 @@
-const { DefaultNamingStrategy } = require('typeorm');
-const { snakeCase } = require('lodash');
+import { DefaultNamingStrategy } from 'typeorm';
+import { snakeCase } from 'lodash';
 
 class CamelToSnakeNamingStrategy extends DefaultNamingStrategy {
   tableName(targetName, userSpecifiedName) {
@@ -16,4 +16,4 @@ class CamelToSnakeNamingStrategy extends DefaultNamingStrategy {
   }
 }
 
-module.exports = CamelToSnakeNamingStrategy;
+export default CamelToSnakeNamingStrategy;
