@@ -1,4 +1,3 @@
-import { delay } from 'bluebird';
 import {
   LCDClient,
   Msg,

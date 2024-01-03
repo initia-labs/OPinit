@@ -1,7 +1,5 @@
 import {
   BridgeInfo,
-  Coin,
-  LCDClient,
   OutputInfo,
   TokenPair
 } from '@initia/initia.js';
@@ -19,7 +17,7 @@ import axios from 'axios';
 export async function getLastOutputInfo(
   bridgeId: number
 ): Promise<OutputInfo | null> {
-  const [outputInfos, _pagination] = await config.l1lcd.ophost.outputInfos(
+  const [outputInfos] = await config.l1lcd.ophost.outputInfos(
     bridgeId,
     {
       'pagination.limit': '1',

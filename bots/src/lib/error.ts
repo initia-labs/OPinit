@@ -61,9 +61,9 @@ export class APIError extends Error {
 }
 
 export function errorHandler(
-  callback: (ctx, type: string, code?: string, message?: string) => void
+  callback: (ctx: any, type: string, code?: string, message?: string) => void
 ) {
-  return async (ctx, next) => {
+  return async (ctx: any, next: any) => {
     try {
       await next();
     } catch (err) {
@@ -78,7 +78,7 @@ export function errorHandler(
 
           sentry.withScope((scope) => {
             scope.addEventProcessor((event) =>
-              sentry.Handlers.parseRequest(event, ctx.request)
+              sentry.addRequestDataToEvent(event, ctx.request)
             );
             sentry.captureException(errForThrow);
           });
@@ -90,7 +90,7 @@ export function errorHandler(
       } else {
         sentry.withScope((scope) => {
           scope.addEventProcessor((event) =>
-            sentry.Handlers.parseRequest(event, ctx.request)
+            sentry.addRequestDataToEvent(event, ctx.request)
           );
           sentry.captureException(err);
         });
