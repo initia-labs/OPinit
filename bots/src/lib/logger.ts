@@ -2,14 +2,6 @@ import * as winston from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
 import { config } from 'config';
 
-function getLogsSubdir() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-    2,
-    '0'
-  )}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 function createLogger(name: string) {
   const formats = [winston.format.errors({ stack: true })];
 
@@ -35,13 +27,15 @@ function createLogger(name: string) {
     logger.add(
       new DailyRotateFile({
         level: 'error',
-        filename: `logs/${getLogsSubdir()}/${name}_error.log`,
+        dirname: 'logs',
+        filename: `${name}_error.log`,
         zippedArchive: true
       })
     );
     logger.add(
       new DailyRotateFile({
-        filename: `logs/${getLogsSubdir()}/${name}_combined.log`,
+        dirname: 'logs',
+        filename: `${name}_combined.log`,
         zippedArchive: true
       })
     );
