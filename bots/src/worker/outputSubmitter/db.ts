@@ -1,12 +1,12 @@
 import 'reflect-metadata';
-import * as Bluebird from 'bluebird';
+import Bluebird from 'bluebird';
 import {
   ConnectionOptionsReader,
   DataSource,
   DataSourceOptions
 } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
+import CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
 const debug = require('debug')('orm');
 
@@ -31,7 +31,7 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   return new DataSource({
     ...options,
     ...staticOptions,
-    namingStrategy: new CamelToSnakeNamingStrategy() as any
+    namingStrategy: new CamelToSnakeNamingStrategy()
   }).initialize();
 }
 
