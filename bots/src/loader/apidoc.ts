@@ -1,5 +1,5 @@
 import Koa from 'koa';
-import * as serve from 'koa-static';
+import serve from 'koa-static';
 import * as path from 'path';
 
 const notFoundMiddleware: Koa.Middleware = (ctx) => {
