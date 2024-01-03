@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const { DefaultNamingStrategy } = require('typeorm');
 const { snakeCase } = require('lodash');
 
