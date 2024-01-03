@@ -1,8 +1,4 @@
-import {
-  BridgeInfo,
-  OutputInfo,
-  TokenPair
-} from '@initia/initia.js';
+import { BridgeInfo, OutputInfo, TokenPair } from '@initia/initia.js';
 import { config } from 'config';
 import {
   DepositTxResponse,
@@ -17,13 +13,10 @@ import axios from 'axios';
 export async function getLastOutputInfo(
   bridgeId: number
 ): Promise<OutputInfo | null> {
-  const [outputInfos] = await config.l1lcd.ophost.outputInfos(
-    bridgeId,
-    {
-      'pagination.limit': '1',
-      'pagination.reverse': 'true'
-    }
-  );
+  const [outputInfos] = await config.l1lcd.ophost.outputInfos(bridgeId, {
+    'pagination.limit': '1',
+    'pagination.reverse': 'true'
+  });
   if (outputInfos.length === 0) return null;
   return outputInfos[0];
 }
