@@ -1,4 +1,4 @@
-import * as Bluebird from 'bluebird';
+import Bluebird from 'bluebird';
 import { RPCClient, RPCSocket } from 'lib/rpc';
 import { StateEntity } from 'orm';
 import { DataSource, EntityManager } from 'typeorm';

@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import axios, { AxiosRequestConfig } from 'axios';
-import * as Websocket from 'ws';
+import Websocket from 'ws';
 
 export class RPCSocket {
   public ws: Websocket;

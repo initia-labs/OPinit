@@ -1,13 +1,13 @@
 // import { controllers } from 'controller'
-import * as Koa from 'koa';
-import * as bodyParser from 'koa-body';
-import * as Router from 'koa-router';
-import * as cors from '@koa/cors';
+import Koa from 'koa';
+import bodyParser from 'koa-body';
+import Router from 'koa-router';
+import cors from '@koa/cors';
 import { errorHandler, APIError, ErrorTypes } from 'lib/error';
 import { error } from 'lib/response';
 import { KoaController, configureRoutes } from 'koa-joi-controllers';
 import { createApiDocApp } from './apidoc';
-import * as mount from 'koa-mount';
+import mount from 'koa-mount';
 
 const notFoundMiddleware: Koa.Middleware = (ctx) => {
   ctx.status = 404;
