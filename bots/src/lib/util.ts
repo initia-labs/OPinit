@@ -15,7 +15,7 @@ function toBuffer(value: any): Buffer {
         value = Buffer.from(value);
       }
     } else if (typeof value === 'number') {
-      value = NumberToBuffer(value);
+      value = numberToBuffer(value);
     } else if (value === null || value === undefined) {
       value = Buffer.allocUnsafe(0);
     } else if (value.toArray) {
@@ -56,10 +56,10 @@ function isHexPrefixed(value: string): boolean {
   return value.slice(0, 2) === '0x';
 }
 
-function NumberToBuffer(i: number): Buffer {
-  return Buffer.from(padToEven(NumberToHexString(i).slice(2)), 'hex');
+function numberToBuffer(i: number): Buffer {
+  return Buffer.from(padToEven(numberToHexString(i).slice(2)), 'hex');
 }
 
-function NumberToHexString(i: number): string {
+function numberToHexString(i: number): string {
   return `0x${i.toString(16)}`;
 }
