@@ -45,7 +45,7 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   return new DataSource({
     ...options,
     ...staticOptions,
-    namingStrategy: new CamelToSnakeNamingStrategy() as any
+    namingStrategy: new CamelToSnakeNamingStrategy()
   }).initialize();
 }
 
