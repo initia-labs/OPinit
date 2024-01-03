@@ -149,5 +149,10 @@
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1",
     "zlib": "^1.0.5"
+  },
+  "overrides": {
+    "koa-joi-controllers": {
+      "is-gen-fn": "0.0.2"
+    }
   }
 }
