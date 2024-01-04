@@ -14,6 +14,7 @@ type AccountKeeper interface {
 	NextAccountNumber(ctx context.Context) uint64
 
 	IterateAccounts(ctx context.Context, cb func(account sdk.AccountI) (stop bool))
+	NewAccount(ctx context.Context, acc sdk.AccountI) sdk.AccountI
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	HasAccount(ctx context.Context, addr sdk.AccAddress) bool
 	SetAccount(ctx context.Context, acc sdk.AccountI)

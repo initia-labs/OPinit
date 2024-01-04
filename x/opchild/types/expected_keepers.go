@@ -13,6 +13,7 @@ type AccountKeeper interface {
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 
 	IterateAccounts(ctx context.Context, process func(sdk.AccountI) (stop bool))
+	NewAccount(ctx context.Context, acc sdk.AccountI) sdk.AccountI
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI // only used for simulation
 	HasAccount(ctx context.Context, addr sdk.AccAddress) bool
 	SetAccount(ctx context.Context, acc sdk.AccountI)

@@ -66,8 +66,8 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 
 	// create bridge account
 	bridgeAcc := types.NewBridgeAccountWithAddress(types.BridgeAddress(bridgeId))
-	bridgeAcc.AccountNumber = ms.authKeeper.NextAccountNumber(ctx)
-	ms.authKeeper.SetAccount(ctx, bridgeAcc)
+	bridgeAccI := (ms.authKeeper.NewAccount(ctx, bridgeAcc)) // set the account number
+	ms.authKeeper.SetAccount(ctx, bridgeAccI)
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeCreateBridge,
