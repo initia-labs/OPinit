@@ -1,46 +1,52 @@
 package keeper_test
 
 import (
+	"context"
 	"encoding/binary"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	"github.com/cometbft/cometbft/crypto/secp256k1"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"cosmossdk.io/log"
+	"cosmossdk.io/math"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/x/tx/signing"
+
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/std"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	ophost "github.com/initia-labs/OPinit/x/ophost"
 	ophostkeeper "github.com/initia-labs/OPinit/x/ophost/keeper"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
-
-const baseDenom = "umin"
 
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
@@ -65,6 +71,14 @@ var (
 		sdk.AccAddress(pubKeys[4].Address()),
 	}
 
+	addrsStr = []string{
+		addrs[0].String(),
+		addrs[1].String(),
+		addrs[2].String(),
+		addrs[3].String(),
+		addrs[4].String(),
+	}
+
 	testDenoms = []string{
 		"test1",
 		"test2",
@@ -73,7 +87,7 @@ var (
 		"test5",
 	}
 
-	initiaSupply = sdk.NewInt(100_000_000_000)
+	initiaSupply = math.NewInt(100_000_000_000)
 )
 
 type EncodingConfig struct {
@@ -88,27 +102,33 @@ func MakeTestCodec(t testing.TB) codec.Codec {
 }
 
 func MakeEncodingConfig(_ testing.TB) EncodingConfig {
-	amino := codec.NewLegacyAmino()
-	interfaceRegistry := codectypes.NewInterfaceRegistry()
-	marshaler := codec.NewProtoCodec(interfaceRegistry)
-	txCfg := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
+	interfaceRegistry, _ := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
+		ProtoFiles: proto.HybridResolver,
+		SigningOptions: signing.Options{
+			AddressCodec:          codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+			ValidatorAddressCodec: codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		},
+	})
+	appCodec := codec.NewProtoCodec(interfaceRegistry)
+	legacyAmino := codec.NewLegacyAmino()
+	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
 
 	std.RegisterInterfaces(interfaceRegistry)
-	std.RegisterLegacyAminoCodec(amino)
+	std.RegisterLegacyAminoCodec(legacyAmino)
 
-	ModuleBasics.RegisterLegacyAminoCodec(amino)
+	ModuleBasics.RegisterLegacyAminoCodec(legacyAmino)
 	ModuleBasics.RegisterInterfaces(interfaceRegistry)
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Marshaler:         marshaler,
-		TxConfig:          txCfg,
-		Amino:             amino,
+		Marshaler:         appCodec,
+		TxConfig:          txConfig,
+		Amino:             legacyAmino,
 	}
 }
 
 func initialTotalSupply() sdk.Coins {
-	faucetBalance := sdk.NewCoins(sdk.NewCoin(baseDenom, initiaSupply))
+	faucetBalance := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initiaSupply))
 	for _, testDenom := range testDenoms {
 		faucetBalance = faucetBalance.Add(sdk.NewCoin(testDenom, initiaSupply))
 	}
@@ -170,7 +190,7 @@ type TestKeepers struct {
 	BridgeHook     *bridgeHook
 	EncodingConfig EncodingConfig
 	Faucet         *TestFaucet
-	MultiStore     sdk.CommitMultiStore
+	MultiStore     storetypes.CommitMultiStore
 }
 
 // createDefaultTestInput common settings for createTestInput
@@ -204,14 +224,14 @@ func _createTestInput(
 	isCheckTx bool,
 	db dbm.DB,
 ) (sdk.Context, TestKeepers) {
-	keys := sdk.NewKVStoreKeys(
+	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, ophosttypes.StoreKey,
 	)
-	ms := store.NewCommitMultiStore(db)
+	ms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	for _, v := range keys {
 		ms.MountStoreWithDB(v, storetypes.StoreTypeIAVL, db)
 	}
-	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	memKeys := storetypes.NewMemoryStoreKeys()
 	for _, v := range memKeys {
 		ms.MountStoreWithDB(v, storetypes.StoreTypeMemory, db)
 	}
@@ -238,9 +258,10 @@ func _createTestInput(
 	}
 	accountKeeper := authkeeper.NewAccountKeeper(
 		appCodec,
-		keys[authtypes.StoreKey],   // target store
-		authtypes.ProtoBaseAccount, // prototype
+		runtime.NewKVStoreService(keys[authtypes.StoreKey]), // target store
+		authtypes.ProtoBaseAccount,                          // prototype
 		maccPerms,
+		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -251,10 +272,11 @@ func _createTestInput(
 
 	bankKeeper := bankkeeper.NewBaseKeeper(
 		appCodec,
-		keys[banktypes.StoreKey],
+		runtime.NewKVStoreService(keys[banktypes.StoreKey]),
 		accountKeeper,
 		blockedAddrs,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ctx.Logger(),
 	)
 	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
 
@@ -264,7 +286,7 @@ func _createTestInput(
 	bridgeHook := &bridgeHook{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
-		keys[ophosttypes.StoreKey],
+		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
 		accountKeeper,
 		bankKeeper,
 		bridgeHook,
@@ -275,14 +297,14 @@ func _createTestInput(
 	ophostKeeper.SetParams(ctx, ophostParams)
 
 	// register handlers to msg router
-	ophosttypes.RegisterMsgServer(msgRouter, ophostkeeper.NewMsgServerImpl(ophostKeeper))
+	ophosttypes.RegisterMsgServer(msgRouter, ophostkeeper.NewMsgServerImpl(*ophostKeeper))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
 	keepers := TestKeepers{
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     bankKeeper,
-		OPHostKeeper:   ophostKeeper,
+		OPHostKeeper:   *ophostKeeper,
 		BridgeHook:     bridgeHook,
 		EncodingConfig: encodingConfig,
 		Faucet:         faucet,
@@ -299,7 +321,7 @@ type bridgeHook struct {
 }
 
 func (h *bridgeHook) BridgeCreated(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {
@@ -314,7 +336,7 @@ func (h *bridgeHook) BridgeCreated(
 }
 
 func (h *bridgeHook) BridgeChallengerUpdated(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {
@@ -329,7 +351,7 @@ func (h *bridgeHook) BridgeChallengerUpdated(
 }
 
 func (h *bridgeHook) BridgeProposerUpdated(
-	ctx sdk.Context,
+	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {

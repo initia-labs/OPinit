@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/address"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
+
+const DefaultL2SequenceStart = 1
 
 // NewGenesisState creates a new GenesisState instance
 func NewGenesisState(params Params, validators []Validator) *GenesisState {
@@ -25,19 +28,23 @@ func DefaultGenesisState() *GenesisState {
 		LastValidatorPowers:  []LastValidatorPower{},
 		Validators:           []Validator{},
 		Exported:             false,
-		NextL2Sequence:       1,
+		NextL2Sequence:       DefaultL2SequenceStart,
 		FinalizedL1Sequences: []uint64{},
 	}
 }
 
 // ValidateGenesis performs basic validation of rollup genesis data returning an
 // error for any failed validation criteria.
-func ValidateGenesis(data *GenesisState) error {
+func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 	if err := validateGenesisStateValidators(data.Validators); err != nil {
 		return err
 	}
 
-	return data.Params.Validate()
+	if data.NextL2Sequence < DefaultL2SequenceStart {
+		return ErrInvalidSequence
+	}
+
+	return data.Params.Validate(ac)
 }
 
 func validateGenesisStateValidators(validators []Validator) error {

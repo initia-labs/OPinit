@@ -7,6 +7,8 @@ import (
 	"io"
 	"testing"
 
+	"cosmossdk.io/core/address"
+	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 	"github.com/cosmos/gogoproto/proto"
@@ -14,6 +16,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -34,6 +37,7 @@ var PKs = simtestutil.CreateTestPubKeys(500)
 type CLITestSuite struct {
 	suite.Suite
 
+	ac        address.Codec
 	kr        keyring.Keyring
 	encCfg    testutilmod.TestEncodingConfig
 	baseCtx   client.Context
@@ -42,13 +46,16 @@ type CLITestSuite struct {
 }
 
 func (s *CLITestSuite) SetupSuite() {
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount("init", "initpub")
+	s.ac = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
 	s.encCfg = testutilmod.MakeTestEncodingConfig(opchild.AppModuleBasic{}, bank.AppModuleBasic{})
 	s.kr = keyring.NewInMemory(s.encCfg.Codec)
 	s.baseCtx = client.Context{}.
 		WithKeyring(s.kr).
 		WithTxConfig(s.encCfg.TxConfig).
 		WithCodec(s.encCfg.Codec).
-		WithClient(clitestutil.MockTendermintRPC{Client: rpcclientmock.Client{}}).
+		WithClient(clitestutil.MockCometRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
 		WithChainID("test-chain")
@@ -56,7 +63,7 @@ func (s *CLITestSuite) SetupSuite() {
 	var outBuf bytes.Buffer
 	ctxGen := func() client.Context {
 		bz, _ := s.encCfg.Codec.Marshal(&sdk.TxResponse{})
-		c := clitestutil.NewMockTendermintRPC(abci.ResponseQuery{
+		c := clitestutil.NewMockCometRPC(abci.ResponseQuery{
 			Value: bz,
 		})
 		return s.baseCtx.WithClient(c)
@@ -78,7 +85,7 @@ func (s *CLITestSuite) SetupSuite() {
 
 func (s *CLITestSuite) TestNewWithdrawCmd() {
 	require := s.Require()
-	cmd := cli.NewWithdrawCmd()
+	cmd := cli.NewWithdrawCmd(addresscodec.NewBech32Codec("init"))
 
 	consPrivKey := ed25519.GenPrivKey()
 	consPubKeyBz, err := s.encCfg.Codec.MarshalInterfaceJSON(consPrivKey.PubKey())
@@ -100,7 +107,7 @@ func (s *CLITestSuite) TestNewWithdrawCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -112,7 +119,7 @@ func (s *CLITestSuite) TestNewWithdrawCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -139,7 +146,7 @@ func (s *CLITestSuite) TestNewWithdrawCmd() {
 
 func (s *CLITestSuite) TestNewDepositCmd() {
 	require := s.Require()
-	cmd := cli.NewDepositCmd()
+	cmd := cli.NewDepositCmd(addresscodec.NewBech32Codec("init"))
 
 	consPrivKey := ed25519.GenPrivKey()
 	consPubKeyBz, err := s.encCfg.Codec.MarshalInterfaceJSON(consPrivKey.PubKey())
@@ -168,7 +175,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -182,7 +189,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -196,7 +203,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -210,7 +217,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -224,7 +231,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			false, 0, &sdk.TxResponse{},
 		},
@@ -239,7 +246,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			false, 0, &sdk.TxResponse{},
 		},
@@ -254,7 +261,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			false, 0, &sdk.TxResponse{},
 		},
@@ -281,7 +288,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 
 func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 	require := s.Require()
-	cmd := cli.NewExecuteMessagesCmd()
+	cmd := cli.NewExecuteMessagesCmd(addresscodec.NewBech32Codec("init"))
 
 	consPrivKey := ed25519.GenPrivKey()
 	consPubKeyBz, err := s.encCfg.Codec.MarshalInterfaceJSON(consPrivKey.PubKey())
@@ -306,8 +313,8 @@ func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 	validMessages := `{"messages": [
     {
       "@type": "/cosmos.bank.v1beta1.MsgSend",
-      "from_address": "cosmos12jea62yu8tmhzy7zage0fngyjvsskfygm99h6h",
-      "to_address": "cosmos15hqqzhye49577x45ekz24jhesvc442zzndx9my",
+      "from_address": "init12jea62yu8tmhzy7zage0fngyjvsskfyg4n9y34",
+      "to_address": "init15hqqzhye49577x45ekz24jhesvc442zzamxksx",
       "amount":[{"denom": "umin","amount": "10"}]
     }
     ]}`
@@ -328,7 +335,7 @@ func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -339,7 +346,7 @@ func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			true, 0, &sdk.TxResponse{},
 		},
@@ -350,7 +357,7 @@ func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
 			false, 0, &sdk.TxResponse{},
 		},

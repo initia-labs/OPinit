@@ -1,43 +1,37 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 // BridgeExecutor returns params.BridgeExecutor
-func (k Keeper) BridgeExecutor(ctx sdk.Context) sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(k.GetParams(ctx).BridgeExecutor)
+func (k Keeper) BridgeExecutor(ctx context.Context) (sdk.AccAddress, error) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return k.authKeeper.AddressCodec().StringToBytes(params.BridgeExecutor)
 }
 
 // SetParams sets the x/opchild module parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
-	if err := params.Validate(); err != nil {
-		return err
-	}
-
-	store := ctx.KVStore(k.storeKey)
-	bz, err := k.cdc.Marshal(&params)
-	if err != nil {
-		return err
-	}
-	store.Set(types.ParamsKey, bz)
-
-	return nil
+func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
+	return k.Params.Set(ctx, params)
 }
 
 // GetParams sets the x/opchild module parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamsKey)
-	if bz == nil {
-		return params
-	}
-
-	k.cdc.MustUnmarshal(bz, &params)
-	return params
+func (k Keeper) GetParams(ctx context.Context) (params types.Params, err error) {
+	return k.Params.Get(ctx)
 }
 
-func (k Keeper) MinGasPrices(ctx sdk.Context) sdk.DecCoins {
-	return k.GetParams(ctx).MinGasPrices
+func (k Keeper) MinGasPrices(ctx context.Context) (sdk.DecCoins, error) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return params.MinGasPrices, nil
 }

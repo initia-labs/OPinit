@@ -39,13 +39,13 @@ func Test_IterateTokenPair(t *testing.T) {
 	input.OPHostKeeper.SetTokenPair(ctx, 1, tokenPair2.L2Denom, tokenPair2.L1Denom)
 	input.OPHostKeeper.SetTokenPair(ctx, 2, tokenPair3.L2Denom, tokenPair3.L1Denom)
 
-	input.OPHostKeeper.IterateTokenPair(ctx, 1, func(bridgeId uint64, tokenPair types.TokenPair) bool {
+	input.OPHostKeeper.IterateTokenPair(ctx, 1, func(bridgeId uint64, tokenPair types.TokenPair) (stop bool, err error) {
 		require.Equal(t, bridgeId, uint64(1))
 		if tokenPair.L1Denom == tokenPair1.L1Denom {
 			require.Equal(t, tokenPair1, tokenPair)
 		} else {
 			require.Equal(t, tokenPair2, tokenPair)
 		}
-		return false
+		return false, nil
 	})
 }

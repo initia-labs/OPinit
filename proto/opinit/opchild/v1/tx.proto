@@ -22,10 +22,6 @@ service Msg {
   // ExecuteMessages defines a rpc handler method for MsgExecuteMessages.
   rpc ExecuteMessages(MsgExecuteMessages) returns (MsgExecuteMessagesResponse);
 
-  // ExecuteLegacyContents defines a rpc handler method for
-  // MsgExecuteLegacyContents.
-  rpc ExecuteLegacyContents(MsgExecuteLegacyContents) returns (MsgExecuteLegacyContentsResponse);
-
   ////////////////////////////
   // Bridge Executor Messages
 
@@ -73,23 +69,6 @@ message MsgExecuteMessages {
 
 // MsgExecuteMessagesResponse returns MsgExecuteMessages message result data
 message MsgExecuteMessagesResponse {}
-
-// MsgExecuteLegacyContents is a message to execute legacy
-// (gov) contents with validator permission.
-message MsgExecuteLegacyContents {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "opchild/MsgExecuteLegacyContents";
-
-  // Sender is the that actor that signed a messages
-  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  // contents are the arbitrary legacy (gov) contents to be executed.
-  repeated google.protobuf.Any contents = 2;
-}
-
-// MsgExecuteLegacyContentsResponse returns MsgExecuteLegacyContents message
-// result data
-message MsgExecuteLegacyContentsResponse {}
 
 /////////////////////////////
 // Bridge Executor messages

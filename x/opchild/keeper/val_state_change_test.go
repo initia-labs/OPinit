@@ -25,9 +25,12 @@ func Test_BlockValidatorUpdates(t *testing.T) {
 	input.OPChildKeeper.SetValidator(ctx, val2)
 
 	// apply val updates
-	updates := input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	updates, err := input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
 	valTmConsPubKey1, err := val1.TmConsPublicKey()
+	require.NoError(t, err)
 	valTmConsPubKey2, err := val2.TmConsPublicKey()
+	require.NoError(t, err)
 	require.Len(t, updates, 2)
 	require.Contains(t, updates, abci.ValidatorUpdate{
 		PubKey: valTmConsPubKey1,
@@ -39,12 +42,14 @@ func Test_BlockValidatorUpdates(t *testing.T) {
 	})
 
 	// no changes
-	updates = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	updates, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
 	require.Equal(t, []abci.ValidatorUpdate{}, updates)
 
 	// val2 removed
 	val2.ConsPower = 0
 	input.OPChildKeeper.SetValidator(ctx, val2)
-	updates = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	updates, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
 	require.Equal(t, []abci.ValidatorUpdate{val2.ABCIValidatorUpdateZero()}, updates)
 }

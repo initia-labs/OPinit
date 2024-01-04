@@ -1,73 +1,56 @@
 package keeper
 
 import (
-	"encoding/binary"
+	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"cosmossdk.io/collections"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
-func (k Keeper) RecordFinalizedL1Sequence(ctx sdk.Context, l1Sequence uint64) {
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetFinalizedL1SequenceKey(l1Sequence), []byte{1})
+func (k Keeper) RecordFinalizedL1Sequence(ctx context.Context, l1Sequence uint64) error {
+	return k.FinalizedL1Sequence.Set(ctx, l1Sequence, true)
 }
 
-func (k Keeper) HasFinalizedL1Sequence(ctx sdk.Context, l1Sequence uint64) bool {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.GetFinalizedL1SequenceKey(l1Sequence))
-	return len(bz) != 0
+func (k Keeper) HasFinalizedL1Sequence(ctx context.Context, l1Sequence uint64) (bool, error) {
+	return k.FinalizedL1Sequence.Has(ctx, l1Sequence)
 }
 
-func (k Keeper) IterateFinalizedL1Sequences(ctx sdk.Context, cb func(l1Sequence uint64) bool) {
-	kvStore := ctx.KVStore(k.storeKey)
+func (k Keeper) IterateFinalizedL1Sequences(ctx context.Context, cb func(l1Sequence uint64) (stop bool, err error)) error {
+	return k.FinalizedL1Sequence.Walk(ctx, nil, func(l1sequence uint64, _ bool) (stop bool, err error) {
+		return cb(l1sequence)
+	})
+}
 
-	prefixStore := prefix.NewStore(kvStore, types.FinalizedL1SequenceKey)
-	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
+func (k Keeper) SetNextL2Sequence(ctx context.Context, l2Sequence uint64) error {
+	return k.NextL2Sequence.Set(ctx, l2Sequence)
+}
 
-	for ; iterator.Valid(); iterator.Next() {
-		l1Sequence := binary.BigEndian.Uint64(iterator.Key())
+func (k Keeper) GetNextL2Sequence(ctx context.Context) (uint64, error) {
+	nextL2Sequence, err := k.NextL2Sequence.Peek(ctx)
+	if err != nil {
+		return 0, err
+	}
 
-		if cb(l1Sequence) {
-			break
+	if nextL2Sequence == collections.DefaultSequenceStart {
+		return types.DefaultL2SequenceStart, nil
+	}
+
+	return nextL2Sequence, nil
+}
+
+func (k Keeper) IncreaseNextL2Sequence(ctx context.Context) (uint64, error) {
+	nextL2Sequence, err := k.NextL2Sequence.Next(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if nextL2Sequence == collections.DefaultSequenceStart {
+		if err := k.NextL2Sequence.Set(ctx, types.DefaultL2SequenceStart+1); err != nil {
+			return 0, err
 		}
-	}
-}
 
-func (k Keeper) SetNextL2Sequence(ctx sdk.Context, l2Sequence uint64) {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	_l2Sequence := [8]byte{}
-	binary.BigEndian.PutUint64(_l2Sequence[:], l2Sequence)
-	kvStore.Set(types.NextL2SequenceKey, _l2Sequence[:])
-}
-
-func (k Keeper) GetNextL2Sequence(ctx sdk.Context) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-
-	bz := kvStore.Get(types.NextL2SequenceKey)
-	if len(bz) == 0 {
-		return 1
+		return types.DefaultL2SequenceStart, nil
 	}
 
-	return binary.BigEndian.Uint64(bz)
-}
-
-func (k Keeper) IncreaseNextL2Sequence(ctx sdk.Context) uint64 {
-	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.NextL2SequenceKey)
-
-	nextL2Sequence := uint64(1)
-	if len(bz) != 0 {
-		nextL2Sequence = binary.BigEndian.Uint64(bz)
-	}
-
-	// increase next l2 sequence
-	_nextL2Sequence := [8]byte{}
-	binary.BigEndian.PutUint64(_nextL2Sequence[:], nextL2Sequence+1)
-	kvStore.Set(types.NextL2SequenceKey, _nextL2Sequence[:])
-
-	return nextL2Sequence
+	return nextL2Sequence, nil
 }

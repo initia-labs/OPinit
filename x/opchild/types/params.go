@@ -1,13 +1,15 @@
 package types
 
 import (
+	"cosmossdk.io/core/address"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	DefaultMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, sdk.NewDecWithPrec(15, 2))) // 0.15
+	DefaultMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDecWithPrec(15, 2))) // 0.15
 )
 
 // DefaultParams returns default move parameters
@@ -40,8 +42,8 @@ func (p Params) String() string {
 }
 
 // Validate performs basic validation on move parameters
-func (p Params) Validate() error {
-	if _, err := sdk.AccAddressFromBech32(p.BridgeExecutor); err != nil {
+func (p Params) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(p.BridgeExecutor); err != nil {
 		return err
 	}
 	if err := p.MinGasPrices.Validate(); err != nil {
