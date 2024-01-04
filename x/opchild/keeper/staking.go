@@ -29,6 +29,6 @@ func (k Keeper) HistoricalEntries(ctx context.Context) (uint32, error) {
 }
 
 // UnbondingTime - The time duration for unbonding
-func (k Keeper) UnbondingTime(ctx context.Context) time.Duration {
-	return unbondingTime
+func (k Keeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
+	return unbondingTime, nil
 }

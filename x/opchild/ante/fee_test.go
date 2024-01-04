@@ -1,6 +1,8 @@
 package ante_test
 
 import (
+	"context"
+
 	"github.com/initia-labs/OPinit/x/opchild/ante"
 
 	"cosmossdk.io/math"
@@ -15,8 +17,8 @@ type TestAnteKeeper struct {
 	minGasPrices sdk.DecCoins
 }
 
-func (k TestAnteKeeper) MinGasPrices(ctx sdk.Context) sdk.DecCoins {
-	return k.minGasPrices
+func (k TestAnteKeeper) MinGasPrices(ctx context.Context) (sdk.DecCoins, error) {
+	return k.minGasPrices, nil
 }
 
 func (suite *AnteTestSuite) TestEnsureMempoolFees() {

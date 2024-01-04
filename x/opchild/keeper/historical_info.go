@@ -11,17 +11,8 @@ import (
 )
 
 // GetHistoricalInfo gets the historical info at a given height
-func (k Keeper) GetHistoricalInfo(ctx context.Context, height int64) (*cosmostypes.HistoricalInfo, bool, error) {
-	historicalInfo, err := k.HistoricalInfos.Get(ctx, height)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			return nil, false, nil
-		}
-
-		return nil, false, err
-	}
-
-	return &historicalInfo, true, nil
+func (k Keeper) GetHistoricalInfo(ctx context.Context, height int64) (cosmostypes.HistoricalInfo, error) {
+	return k.HistoricalInfos.Get(ctx, height)
 }
 
 // SetHistoricalInfo sets the historical info at a given height
@@ -51,13 +42,13 @@ func (k Keeper) TrackHistoricalInfo(ctx context.Context) error {
 	// over the historical entries starting from the most recent version to be pruned
 	// and then return at the first empty entry.
 	for i := sdkCtx.BlockHeight() - int64(entryNum); i >= 0; i-- {
-		_, found, err := k.GetHistoricalInfo(ctx, i)
-		if err != nil {
-			return err
-		} else if found {
+		_, err := k.GetHistoricalInfo(ctx, i)
+		if err == nil {
 			if err := k.DeleteHistoricalInfo(ctx, i); err != nil {
 				return err
 			}
+		} else if err != nil && !errors.Is(err, collections.ErrNotFound) {
+			return err
 		} else {
 			break
 		}

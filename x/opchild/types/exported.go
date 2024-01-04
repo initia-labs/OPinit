@@ -1,6 +1,8 @@
 package types
 
 import (
+	context "context"
+
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	"cosmossdk.io/math"
@@ -27,5 +29,5 @@ type ValidatorI interface {
 }
 
 type AnteKeeper interface {
-	MinGasPrices(ctx sdk.Context) sdk.DecCoins
+	MinGasPrices(ctx context.Context) (sdk.DecCoins, error)
 }

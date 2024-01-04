@@ -36,6 +36,7 @@ func Test_HistoricalEntries(t *testing.T) {
 func Test_UnbondingTime(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	unbondingTime := input.OPChildKeeper.UnbondingTime(ctx)
+	unbondingTime, err := input.OPChildKeeper.UnbondingTime(ctx)
+	require.NoError(t, err)
 	require.Equal(t, (60 * 60 * 24 * 7 * time.Second), unbondingTime)
 }

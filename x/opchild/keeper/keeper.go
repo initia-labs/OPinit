@@ -17,6 +17,8 @@ import (
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
+var _ types.AnteKeeper = Keeper{}
+
 type Keeper struct {
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
