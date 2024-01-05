@@ -6,22 +6,23 @@ import {
 } from 'koa-joi-controllers';
 import { ErrorTypes } from 'lib/error';
 import { error, success } from 'lib/response';
+import { getClaimTxList } from 'service';
 import { responses, routeConfig, z } from 'koa-swagger-decorator'
-import { getOutputList } from 'service';
-import { GetOutputResponse } from 'sawgger/executor_model';
+import { GetClaimResponse } from 'sawgger/executor_model';
 
 @Controller('')
-export class OutputController extends KoaController {
+export class ClaimTxController extends KoaController {
   @routeConfig({
     method: 'get',
-    path: '/output',
-    summary: 'Get output proposal data',
-    description: 'Get output proposal data',
-    tags: ['Output'],
-    operationId: 'getOutput',
+    path: '/tx/claim',
+    summary: 'Get tx data for claiming',
+    description: 'Get claim data',
+    tags: ['Claim'],
+    operationId: 'getClaimTx',
     request: {
       query: z.object({
-        output_index: z.number().optional(),
+        address: z.string().optional(),
+        sequence: z.number().optional(),
         limit: z
           .number()
           .optional()
@@ -34,11 +35,11 @@ export class OutputController extends KoaController {
       }),
     },
   })
-  @responses(GetOutputResponse)
-  @Get('/output')
-  async getgetOutputList(ctx: Context): Promise<void> {
-    const outputList = await getOutputList(ctx.query as any)
-    if (outputList) success(ctx, outputList);
+  @responses(GetClaimResponse)
+  @Get('/tx/claim')
+  async getClaimTxList(ctx: Context): Promise<void> {
+    const claimTxList = await getClaimTxList(ctx.query as any);
+    if (claimTxList) success(ctx, claimTxList)
     else error(ctx, ErrorTypes.API_ERROR)
   }
 }

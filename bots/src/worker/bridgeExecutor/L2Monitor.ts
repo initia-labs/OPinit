@@ -105,9 +105,9 @@ export class L2Monitor extends Monitor {
     );
 
     const storage = new WithdrawStorage(txs);
-    const storageRoot = storage.getMerkleRoot();
+    const merkleRoot = storage.getMerkleRoot();
     for (let i = 0; i < entities.length; i++) {
-      entities[i].merkleRoot = storageRoot;
+      entities[i].merkleRoot = merkleRoot;
       entities[i].merkleProof = storage.getMerkleProof(txs[i]);
       await this.helper.saveEntity(
         manager,
@@ -115,7 +115,7 @@ export class L2Monitor extends Monitor {
         entities[i]
       );
     }
-    return storageRoot;
+    return merkleRoot;
   }
 
   public async handleBlock(manager: EntityManager): Promise<void> {
@@ -145,12 +145,12 @@ export class L2Monitor extends Monitor {
       outputIndex
     );
 
-    const storageRoot = await this.saveMerkleRootAndProof(manager, txEntities);
+    const merkleRoot = await this.saveMerkleRootAndProof(manager, txEntities);
 
     const outputEntity = this.helper.calculateOutputEntity(
       outputIndex,
       blockInfo,
-      storageRoot,
+      merkleRoot,
       startBlockNumber,
       endBlockNumber
     );

@@ -209,7 +209,7 @@ export class Challenger {
       outputIndex
     );
 
-    const storageRoot = await this.helper.saveMerkleRootAndProof(
+    const merkleRoot = await this.helper.saveMerkleRootAndProof(
       manager,
       ChallengerWithdrawalTxEntity,
       txEntities
@@ -218,7 +218,7 @@ export class Challenger {
     const outputEntity = this.helper.calculateOutputEntity(
       outputIndex,
       blockInfo,
-      storageRoot,
+      merkleRoot,
       startBlockNumber,
       endBlockNumber
     );

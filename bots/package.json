@@ -118,6 +118,7 @@
     "@types/dockerode": "^3.3.23",
     "@types/pg": "^8.10.9",
     "@types/ws": "^8.5.10",
+    "koa-swagger-decorator": "^2.2.1",
     "apidoc": "^1.2.0",
     "apidoc-core": "^0.15.0",
     "bignumber.js": "^9.1.2",

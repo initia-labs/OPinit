@@ -140,7 +140,7 @@ class MonitorHelper {
   public calculateOutputEntity(
     outputIndex: number,
     blockInfo: BlockInfo,
-    storageRoot: string,
+    merkleRoot: string,
     startBlockNumber: number,
     endBlockNumber: number
   ): OutputEntity {
@@ -151,7 +151,7 @@ class MonitorHelper {
       Buffer.concat([
         sha3_256(version),
         Buffer.from(stateRoot, 'base64'),
-        Buffer.from(storageRoot, 'base64'),
+        Buffer.from(merkleRoot, 'base64'),
         Buffer.from(lastBlockHash, 'base64')
       ])
     ).toString('base64');
@@ -160,7 +160,7 @@ class MonitorHelper {
       outputIndex,
       outputRoot,
       stateRoot,
-      storageRoot,
+      merkleRoot,
       lastBlockHash,
       startBlockNumber,
       endBlockNumber
@@ -184,13 +184,13 @@ class MonitorHelper {
     }));
 
     const storage = new WithdrawStorage(txs);
-    const storageRoot = storage.getMerkleRoot();
+    const merkleRoot = storage.getMerkleRoot();
     for (let i = 0; i < entities.length; i++) {
-      entities[i].merkleRoot = storageRoot;
+      entities[i].merkleRoot = merkleRoot;
       entities[i].merkleProof = storage.getMerkleProof(txs[i]);
       await this.saveEntity(manager, entityClass, entities[i]);
     }
-    return storageRoot;
+    return merkleRoot;
   }
 
   public async getLatestOutputFromExecutor() {

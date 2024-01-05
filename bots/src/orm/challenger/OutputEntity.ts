@@ -12,7 +12,7 @@ export default class OutputEntity {
   stateRoot: string;
 
   @Column('text')
-  storageRoot: string;
+  merkleRoot: string;
 
   @Column('text')
   lastBlockHash: string; // last block hash of the epoch
