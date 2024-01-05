@@ -106,6 +106,7 @@ export abstract class Monitor {
         });
       } catch (err) {
         this.stop();
+        console.log(err)
         this.logger.info(err);
         throw new Error(`Error in ${this.name()} ${err}`);
       } finally {

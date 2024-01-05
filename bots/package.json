@@ -44,8 +44,7 @@
   },
   "homepage": "https://github.com/initia-labs/batch-submitter#readme",
   "devDependencies": {
-    "@initia/builder.js": "^0.0.9",
-    "@initia/initia.js": "^0.1.22",
+    "@initia/initia.js": "^0.1.24",
     "@koa/cors": "^4.0.0",
     "@sentry/node": "^7.91.0",
     "@testcontainers/postgresql": "^10.4.0",
@@ -111,14 +110,11 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
-    "@initia/builder.js": "^0.0.9",
-    "@initia/initia.js": "^0.1.22",
     "@koa/cors": "^4.0.0",
     "@sentry/node": "^7.91.0",
     "@types/dockerode": "^3.3.23",
     "@types/pg": "^8.10.9",
     "@types/ws": "^8.5.10",
-    "koa-swagger-decorator": "^2.2.1",
     "apidoc": "^1.2.0",
     "apidoc-core": "^0.15.0",
     "bignumber.js": "^9.1.2",
@@ -136,6 +132,7 @@
     "koa-mount": "^4.0.0",
     "koa-router": "^12.0.1",
     "koa-static": "^5.0.0",
+    "koa-swagger-decorator": "^2.2.1",
     "merkletreejs": "0.2.16",
     "pako": "^2.1.0",
     "pg": "^8.11.3",

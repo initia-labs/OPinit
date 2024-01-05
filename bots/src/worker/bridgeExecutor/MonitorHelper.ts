@@ -95,14 +95,13 @@ class MonitorHelper {
   ///
   ///  UTIL
   ///
-
   public async fetchEvents(
     lcd: LCDClient,
     height: number,
     eventType: string
   ): Promise<[boolean, any[]]> {
     const searchRes = await lcd.tx.search({
-      events: [{ key: 'tx.height', value: height.toString() }]
+      query: [{ key: 'tx.height', value: height.toString() }]
     });
     const extractEvents = (txs) =>
       txs
