@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/initia-labs/OPinit/x/opchild/client/cli"
@@ -30,13 +31,15 @@ func (s *CLITestSuite) TestGetCmdQueryValidator() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			cmd := cli.GetCmdQueryValidator()
+			cmd := cli.GetCmdQueryValidator(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()))
 			clientCtx := s.clientCtx
 			out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
 			if tc.expectErr {
 				s.Require().Error(err)
 				s.Require().NotEqual("internal", err.Error())
 			} else {
+				s.Require().NoError(err)
+
 				var result types.Validator
 				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &result))
 			}

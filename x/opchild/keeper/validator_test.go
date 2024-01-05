@@ -18,21 +18,21 @@ func Test_GetValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	// should be empty
-	_, found := input.OPChildKeeper.GetValidator(ctx, val.GetOperator())
+	_, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
 	require.False(t, found)
 
 	// set validator
 	input.OPChildKeeper.SetValidator(ctx, val)
 
-	valAfter, found := input.OPChildKeeper.GetValidator(ctx, val.GetOperator())
+	valAfter, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
 	require.True(t, found)
 	require.Equal(t, val, valAfter)
 
 	// remove validator
-	input.OPChildKeeper.RemoveValidator(ctx, val.GetOperator())
+	input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1])
 
 	// should be empty
-	_, found = input.OPChildKeeper.GetValidator(ctx, val.GetOperator())
+	_, found = input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
 	require.False(t, found)
 }
 
@@ -59,7 +59,7 @@ func Test_GetValidatorByConsAddr(t *testing.T) {
 	require.Equal(t, val, valAfter)
 
 	// remove validator
-	input.OPChildKeeper.RemoveValidator(ctx, val.GetOperator())
+	input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1])
 
 	// should be empty
 	_, found = input.OPChildKeeper.GetValidatorByConsAddr(ctx, consAddr)
@@ -79,7 +79,8 @@ func Test_GetAllValidators(t *testing.T) {
 	input.OPChildKeeper.SetValidator(ctx, val1)
 	input.OPChildKeeper.SetValidator(ctx, val2)
 
-	vals := input.OPChildKeeper.GetAllValidators(ctx)
+	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
+	require.NoError(t, err)
 	require.Len(t, vals, 2)
 	require.Contains(t, vals, val1)
 	require.Contains(t, vals, val2)
@@ -98,7 +99,8 @@ func Test_GetValidators(t *testing.T) {
 	input.OPChildKeeper.SetValidator(ctx, val1)
 	input.OPChildKeeper.SetValidator(ctx, val2)
 
-	vals := input.OPChildKeeper.GetValidators(ctx, 1)
+	vals, err := input.OPChildKeeper.GetValidators(ctx, 1)
+	require.NoError(t, err)
 	require.Len(t, vals, 1)
 }
 
@@ -112,43 +114,48 @@ func Test_LastValidatorPower(t *testing.T) {
 	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
-	beforePower := input.OPChildKeeper.GetLastValidatorPower(ctx, val1.GetOperator())
+	beforePower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, valAddrs[1])
+	require.NoError(t, err)
 	require.Equal(t, int64(0), beforePower)
 
 	// set validator with power index
 	input.OPChildKeeper.SetValidator(ctx, val1)
 	input.OPChildKeeper.SetValidator(ctx, val2)
-	input.OPChildKeeper.SetLastValidatorPower(ctx, val1.GetOperator(), 100)
-	input.OPChildKeeper.SetLastValidatorPower(ctx, val2.GetOperator(), 200)
+	input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[1], 100)
+	input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[2], 200)
 
-	afterPower := input.OPChildKeeper.GetLastValidatorPower(ctx, val1.GetOperator())
+	afterPower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, valAddrs[1])
+	require.NoError(t, err)
 	require.Equal(t, int64(100), afterPower)
 
 	// iterate all powers
-	input.OPChildKeeper.IterateLastValidatorPowers(ctx, func(valAddr sdk.ValAddress, power int64) bool {
-		if valAddr.Equals(val1.GetOperator()) {
+	input.OPChildKeeper.IterateLastValidatorPowers(ctx, func(key []byte, power int64) (stop bool, err error) {
+		valAddr := sdk.ValAddress(key)
+		if valAddr.Equals(valAddrs[1]) {
 			require.Equal(t, int64(100), power)
 		} else {
-			require.Equal(t, val2.GetOperator(), val2.GetOperator())
+			require.Equal(t, valAddrs[2], valAddr)
 			require.Equal(t, int64(200), power)
 		}
 
-		return false
+		return false, nil
 	})
 
 	// get last validators from the power index
-	vals := input.OPChildKeeper.GetLastValidators(ctx)
+	vals, err := input.OPChildKeeper.GetLastValidators(ctx)
+	require.NoError(t, err)
 	require.Len(t, vals, 2)
 	require.Contains(t, vals, val1)
 	require.Contains(t, vals, val2)
 
 	// decrease max validator to 1
-	params := input.OPChildKeeper.GetParams(ctx)
+	params, err := input.OPChildKeeper.GetParams(ctx)
+	require.NoError(t, err)
 	params.MaxValidators = 1
 	input.OPChildKeeper.SetParams(ctx, params)
 
 	// should panic if there is more than 1 validators
 	require.Panics(t, func() {
-		_ = input.OPChildKeeper.GetLastValidators(ctx)
+		_, _ = input.OPChildKeeper.GetLastValidators(ctx)
 	})
 }

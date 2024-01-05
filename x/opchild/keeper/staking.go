@@ -1,25 +1,34 @@
 package keeper
 
 import (
+	"context"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // fake staking functions
 
 // MaxValidators - Maximum number of validators
-func (k Keeper) MaxValidators(ctx sdk.Context) uint32 {
-	return k.GetParams(ctx).MaxValidators
+func (k Keeper) MaxValidators(ctx context.Context) (uint32, error) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return params.MaxValidators, nil
 }
 
 // HistoricalEntries = number of historical info entries
 // to persist in store
-func (k Keeper) HistoricalEntries(ctx sdk.Context) uint32 {
-	return k.GetParams(ctx).HistoricalEntries
+func (k Keeper) HistoricalEntries(ctx context.Context) (uint32, error) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return params.HistoricalEntries, nil
 }
 
 // UnbondingTime - The time duration for unbonding
-func (k Keeper) UnbondingTime(ctx sdk.Context) time.Duration {
-	return unbondingTime
+func (k Keeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
+	return unbondingTime, nil
 }

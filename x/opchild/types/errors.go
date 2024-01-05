@@ -17,4 +17,6 @@ var (
 	ErrInvalidAmount                   = errorsmod.Register(ModuleName, 10, "invalid amount")
 	ErrInvalidSequence                 = errorsmod.Register(ModuleName, 11, "invalid sequence")
 	ErrZeroMaxValidators               = errorsmod.Register(ModuleName, 12, "max validators must be non-zero")
+	ErrInvalidExecuteMsg               = errorsmod.Register(ModuleName, 13, "invalid execute message")
+	ErrUnroutableExecuteMsg            = errorsmod.Register(ModuleName, 14, "unroutable execute message")
 )

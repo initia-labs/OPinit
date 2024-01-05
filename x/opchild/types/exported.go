@@ -1,7 +1,11 @@
 package types
 
 import (
+	context "context"
+
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+
+	"cosmossdk.io/math"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,14 +13,14 @@ import (
 
 // DelegationI delegation bond for a delegated proof of stake system
 type DelegationI interface {
-	GetDelegatorAddr() sdk.AccAddress // delegator sdk.AccAddress for the bond
-	GetValidatorAddr() sdk.ValAddress // validator operator address
-	GetShares() sdk.Dec               // amount of validator's shares held in this delegation
+	GetDelegatorAddr() string  // delegator sdk.AccAddress for the bond
+	GetValidatorAddr() string  // validator operator address
+	GetShares() math.LegacyDec // amount of validator's shares held in this delegation
 }
 
 // ValidatorI expected validator functions
 type ValidatorI interface {
-	GetOperator() sdk.ValAddress                       // operator address to receive/return validators coins
+	GetOperator() string                               // operator address to receive/return validators coins
 	ConsPubKey() (cryptotypes.PubKey, error)           // validation consensus pubkey (cryptotypes.PubKey)
 	TmConsPublicKey() (tmprotocrypto.PublicKey, error) // validation consensus pubkey (Tendermint)
 	GetConsAddr() (sdk.ConsAddress, error)             // validation consensus address
@@ -25,5 +29,5 @@ type ValidatorI interface {
 }
 
 type AnteKeeper interface {
-	MinGasPrices(ctx sdk.Context) sdk.DecCoins
+	MinGasPrices(ctx context.Context) (sdk.DecCoins, error)
 }

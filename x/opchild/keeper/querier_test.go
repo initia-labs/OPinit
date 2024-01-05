@@ -47,7 +47,8 @@ func Test_QueryValidators(t *testing.T) {
 func Test_QueryParams(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	params := input.OPChildKeeper.GetParams(ctx)
+	params, err := input.OPChildKeeper.GetParams(ctx)
+	require.NoError(t, err)
 	params.MinGasPrices = sdk.NewDecCoins(sdk.NewInt64DecCoin("stake", 1))
 	input.OPChildKeeper.SetParams(ctx, params)
 

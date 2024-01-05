@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,12 +23,19 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleBasic      = AppModule{}
+	_ module.HasGenesis          = AppModule{}
+	_ module.HasServices         = AppModule{}
+	_ module.HasConsensusVersion = AppModule{}
+	_ module.HasName             = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the move module.
-type AppModuleBasic struct{}
+// AppModuleBasic defines the basic application module used by the ophost module.
+type AppModuleBasic struct {
+	cdc codec.Codec
+}
 
 func (b AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) { //nolint:staticcheck
 	types.RegisterLegacyAminoCodec(amino)
@@ -60,17 +67,17 @@ func (b AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client
 		return err
 	}
 
-	return types.ValidateGenesis(&genState)
+	return types.ValidateGenesis(&genState, b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
 }
 
 // GetTxCmd returns the root tx command for the move module.
 func (b AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return cli.GetTxCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
 }
 
 // GetQueryCmd returns no root query command for the move module.
 func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return cli.GetQueryCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
 }
 
 // RegisterInterfaces implements InterfaceModule
@@ -94,10 +101,11 @@ func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(
+	cdc codec.Codec,
 	k keeper.Keeper,
 ) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
+		AppModuleBasic: AppModuleBasic{cdc},
 		keeper:         k,
 	}
 }
@@ -112,13 +120,11 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // InitGenesis performs genesis initialization for the move module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	validators := am.keeper.InitGenesis(ctx, &genesisState)
-
-	return validators
+	am.keeper.InitGenesis(ctx, &genesisState)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the move
@@ -128,12 +134,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock returns the begin blocker for the move module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-}
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
 
-// EndBlock returns the end blocker for the move module. It returns no validator
-// updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}

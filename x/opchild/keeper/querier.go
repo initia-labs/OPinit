@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
@@ -23,7 +22,7 @@ func NewQuerier(k Keeper) Querier {
 	return Querier{k}
 }
 
-func (q Querier) Validator(context context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {
+func (q Querier) Validator(ctx context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -32,12 +31,11 @@ func (q Querier) Validator(context context.Context, req *types.QueryValidatorReq
 		return nil, status.Error(codes.InvalidArgument, "validator address cannot be empty")
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(req.ValidatorAddr)
+	valAddr, err := q.validatorAddressCodec.StringToBytes(req.ValidatorAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx := sdk.UnwrapSDKContext(context)
 	validator, found := q.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "validator %s not found", req.ValidatorAddr)
@@ -46,30 +44,14 @@ func (q Querier) Validator(context context.Context, req *types.QueryValidatorReq
 	return &types.QueryValidatorResponse{Validator: validator}, nil
 }
 
-func (q Querier) Validators(context context.Context, req *types.QueryValidatorsRequest) (*types.QueryValidatorsResponse, error) {
+func (q Querier) Validators(ctx context.Context, req *types.QueryValidatorsRequest) (*types.QueryValidatorsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	var validators types.Validators
-	ctx := sdk.UnwrapSDKContext(context)
-
-	store := ctx.KVStore(q.storeKey)
-	valStore := prefix.NewStore(store, types.ValidatorsKey)
-
-	pageRes, err := query.FilteredPaginate(valStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		val, err := types.UnmarshalValidator(q.cdc, value)
-		if err != nil {
-			return false, err
-		}
-
-		if accumulate {
-			validators = append(validators, val)
-		}
-
-		return true, nil
+	validators, pageRes, err := query.CollectionPaginate(ctx, q.Keeper.Validators, req.Pagination, func(_ []byte, validator types.Validator) (types.Validator, error) {
+		return validator, nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -79,6 +61,10 @@ func (q Querier) Validators(context context.Context, req *types.QueryValidatorsR
 
 func (q Querier) Params(context context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(context)
+	params, err := q.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	return &types.QueryParamsResponse{Params: q.GetParams(ctx)}, nil
+	return &types.QueryParamsResponse{Params: params}, nil
 }

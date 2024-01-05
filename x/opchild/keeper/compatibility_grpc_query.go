@@ -6,6 +6,7 @@ import (
 	"context"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -28,7 +29,10 @@ var _ cosmostypes.QueryServer = CompatibilityQuerier{}
 // returns a first bond denom.
 func (q CompatibilityQuerier) Params(c context.Context, _ *cosmostypes.QueryParamsRequest) (*cosmostypes.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	params := q.GetParams(ctx)
+	params, err := q.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &cosmostypes.QueryParamsResponse{Params: cosmostypes.Params{
 		UnbondingTime:     unbondingTime,
@@ -36,6 +40,7 @@ func (q CompatibilityQuerier) Params(c context.Context, _ *cosmostypes.QueryPara
 		MaxEntries:        maxEntries,
 		HistoricalEntries: params.HistoricalEntries,
 		BondDenom:         bondDenom,
+		MinCommissionRate: math.LegacyZeroDec(),
 	}}, nil
 }
 

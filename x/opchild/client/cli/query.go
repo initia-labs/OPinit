@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -14,7 +15,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd() *cobra.Command {
+func GetQueryCmd(vc address.Codec) *cobra.Command {
 	opchildQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the opchild module",
@@ -24,7 +25,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	opchildQueryCmd.AddCommand(
-		GetCmdQueryValidator(),
+		GetCmdQueryValidator(vc),
 		GetCmdQueryValidators(),
 		GetCmdQueryParams(),
 	)
@@ -33,7 +34,7 @@ func GetQueryCmd() *cobra.Command {
 }
 
 // GetCmdQueryValidator implements the validator query command.
-func GetCmdQueryValidator() *cobra.Command {
+func GetCmdQueryValidator(vc address.Codec) *cobra.Command {
 	bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
 
 	cmd := &cobra.Command{
@@ -56,12 +57,12 @@ $ %s query opchild validator %s1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			addr, err := sdk.ValAddressFromBech32(args[0])
+			_, err = vc.StringToBytes(args[0])
 			if err != nil {
 				return err
 			}
 
-			params := &types.QueryValidatorRequest{ValidatorAddr: addr.String()}
+			params := &types.QueryValidatorRequest{ValidatorAddr: args[0]}
 			res, err := queryClient.Validator(cmd.Context(), params)
 			if err != nil {
 				return err

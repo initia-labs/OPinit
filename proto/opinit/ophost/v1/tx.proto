@@ -6,8 +6,6 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "google/protobuf/any.proto";
-import "google/protobuf/timestamp.proto";
 import "opinit/ophost/v1/types.proto";
 
 option go_package                      = "github.com/initia-labs/OPinit/x/ophost/types";
@@ -198,8 +196,8 @@ message MsgUpdateProposer {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name)           = "ophost/MsgChallenge";
 
-  // authority is the address that controls the module
-  // (defaults to x/gov unless overwritten).
+  // authority is the address that controls the module (defaults to x/gov unless overwritten) 
+  // or the current proposer address.
   string authority    = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 bridge_id    = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   string new_proposer = 3
@@ -214,8 +212,8 @@ message MsgUpdateChallenger {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name)           = "ophost/MsgChallenge";
 
-  // authority is the address that controls the module
-  // (defaults to x/gov unless overwritten).
+  // authority is the address that controls the module (defaults to x/gov unless overwritten) 
+  // or the current challenger address.
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   string new_challenger = 3

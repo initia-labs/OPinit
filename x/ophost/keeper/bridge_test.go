@@ -45,13 +45,13 @@ func Test_IterateBridgeConfig(t *testing.T) {
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
 
-	input.OPHostKeeper.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) bool {
+	input.OPHostKeeper.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error) {
 		if bridgeId == 1 {
 			require.Equal(t, config1, bridgeConfig)
 		} else {
 			require.Equal(t, config2, bridgeConfig)
 		}
 
-		return false
+		return false, nil
 	})
 }

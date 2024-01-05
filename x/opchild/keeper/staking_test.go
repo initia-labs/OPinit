@@ -10,28 +10,33 @@ import (
 func Test_MaxValidators(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	params := input.OPChildKeeper.GetParams(ctx)
+	params, err := input.OPChildKeeper.GetParams(ctx)
+	require.NoError(t, err)
 	params.MaxValidators = 10
 	input.OPChildKeeper.SetParams(ctx, params)
 
-	maxValidators := input.OPChildKeeper.MaxValidators(ctx)
+	maxValidators, err := input.OPChildKeeper.MaxValidators(ctx)
+	require.NoError(t, err)
 	require.Equal(t, uint32(10), maxValidators)
 }
 
 func Test_HistoricalEntries(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	params := input.OPChildKeeper.GetParams(ctx)
+	params, err := input.OPChildKeeper.GetParams(ctx)
+	require.NoError(t, err)
 	params.HistoricalEntries = 10
 	input.OPChildKeeper.SetParams(ctx, params)
 
-	entries := input.OPChildKeeper.HistoricalEntries(ctx)
+	entries, err := input.OPChildKeeper.HistoricalEntries(ctx)
+	require.NoError(t, err)
 	require.Equal(t, uint32(10), entries)
 }
 
 func Test_UnbondingTime(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	unbondingTime := input.OPChildKeeper.UnbondingTime(ctx)
+	unbondingTime, err := input.OPChildKeeper.UnbondingTime(ctx)
+	require.NoError(t, err)
 	require.Equal(t, (60 * 60 * 24 * 7 * time.Second), unbondingTime)
 }

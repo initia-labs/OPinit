@@ -40,7 +40,12 @@ func (mfd MempoolFeeChecker) CheckTxFeeWithMinGasPrices(ctx sdk.Context, tx sdk.
 
 		minGasPrices := ctx.MinGasPrices()
 		if mfd.keeper != nil {
-			minGasPrices = CombinedMinGasPrices(minGasPrices, mfd.keeper.MinGasPrices(ctx))
+			paramsMinGasPrices, err := mfd.keeper.MinGasPrices(ctx)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			minGasPrices = CombinedMinGasPrices(minGasPrices, paramsMinGasPrices)
 		}
 
 		if !minGasPrices.IsZero() {

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -17,7 +18,7 @@ import (
 )
 
 // GetTxCmd returns a root CLI command handler for all x/opchild transaction commands.
-func GetTxCmd() *cobra.Command {
+func GetTxCmd(ac address.Codec) *cobra.Command {
 	opchildTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "OPChild transaction subcommands",
@@ -27,19 +28,16 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	opchildTxCmd.AddCommand(
-		NewExecuteMessagesCmd(),
-		NewDepositCmd(),
-		NewWithdrawCmd(),
-		NewLegacyContentParamChangeTxCmd(),
-		NewLegacyContentSubmitUpdateClientCmd(),
-		NewLegacyContentSubmitUpgradeCmd(),
+		NewExecuteMessagesCmd(ac),
+		NewDepositCmd(ac),
+		NewWithdrawCmd(ac),
 	)
 
 	return opchildTxCmd
 }
 
 // NewDepositCmd returns a CLI command handler for the transaction sending a deposit to an user account.
-func NewDepositCmd() *cobra.Command {
+func NewDepositCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit [sequence] [from_l1] [to_l2] [amount]",
 		Args:  cobra.ExactArgs(4),
@@ -60,11 +58,11 @@ func NewDepositCmd() *cobra.Command {
 				return err
 			}
 
-			from, err := sdk.AccAddressFromBech32(args[1])
+			from, err := ac.StringToBytes(args[1])
 			if err != nil {
 				return err
 			}
-			to, err := sdk.AccAddressFromBech32(args[2])
+			to, err := ac.StringToBytes(args[2])
 			if err != nil {
 				return err
 			}
@@ -79,7 +77,7 @@ func NewDepositCmd() *cobra.Command {
 				return err
 			}
 
-			txf, msg, err := newBuildDepositMsg(clientCtx, txf, cmd.Flags(), sequence, from, to, amount, []byte(hookMsg))
+			txf, msg, err := newBuildDepositMsg(clientCtx, ac, txf, cmd.Flags(), sequence, from, to, amount, []byte(hookMsg))
 			if err != nil {
 				return err
 			}
@@ -95,7 +93,7 @@ func NewDepositCmd() *cobra.Command {
 }
 
 // NewWithdrawCmd returns a CLI command handler for the transaction sending a deposit to an user account.
-func NewWithdrawCmd() *cobra.Command {
+func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw [to_l1] [amount]",
 		Short: "withdraw a token from L2 to L1",
@@ -111,7 +109,7 @@ func NewWithdrawCmd() *cobra.Command {
 				return err
 			}
 
-			to, err := sdk.AccAddressFromBech32(args[0])
+			to, err := ac.StringToBytes(args[0])
 			if err != nil {
 				return err
 			}
@@ -120,7 +118,7 @@ func NewWithdrawCmd() *cobra.Command {
 				return err
 			}
 
-			txf, msg, err := newBuildWithdrawMsg(clientCtx, txf, cmd.Flags(), to, amount)
+			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, cmd.Flags(), to, amount)
 			if err != nil {
 				return err
 			}
@@ -135,7 +133,7 @@ func NewWithdrawCmd() *cobra.Command {
 }
 
 // NewExecuteMessagesCmd returns a CLI command handler for transaction to administrating the system.
-func NewExecuteMessagesCmd() *cobra.Command {
+func NewExecuteMessagesCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execute-messages [path/to/messages.json]",
 		Short: "send a system administrating tx",
@@ -176,9 +174,18 @@ Where proposal.json contains:
 				return err
 			}
 
-			msg, err := types.NewMsgExecuteMessages(clientCtx.GetFromAddress(), msgs)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgExecuteMessages(fromAddr, msgs)
 			if err != nil {
 				return fmt.Errorf("invalid message: %w", err)
+			}
+
+			if err := msg.Validate(ac); err != nil {
+				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -190,24 +197,47 @@ Where proposal.json contains:
 	return cmd
 }
 
-func newBuildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
+func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
 	sender := clientCtx.GetFromAddress()
+	senderAddr, err := ac.BytesToString(sender)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	msg := types.NewMsgInitiateTokenWithdrawal(sender, to, amount)
-	if err := msg.ValidateBasic(); err != nil {
+	toAddr, err := ac.BytesToString(to)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	msg := types.NewMsgInitiateTokenWithdrawal(senderAddr, toAddr, amount)
+	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}
 
 	return txf, msg, nil
 }
 
-func newBuildDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet,
+func newBuildDepositMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, fs *flag.FlagSet,
 	sequence uint64, from, to sdk.AccAddress, amount sdk.Coin, hookMsg []byte,
 ) (tx.Factory, *types.MsgFinalizeTokenDeposit, error) {
 	sender := clientCtx.GetFromAddress()
+	senderAddr, err := ac.BytesToString(sender)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	msg := types.NewMsgFinalizeTokenDeposit(sender, from, to, amount, sequence, hookMsg)
-	if err := msg.ValidateBasic(); err != nil {
+	fromAddr, err := ac.BytesToString(from)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	toAddr, err := ac.BytesToString(to)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	msg := types.NewMsgFinalizeTokenDeposit(senderAddr, fromAddr, toAddr, amount, sequence, hookMsg)
+	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}
 

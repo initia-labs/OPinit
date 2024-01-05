@@ -1,6 +1,8 @@
 package opchild
 
 import (
+	"context"
+
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -10,17 +12,15 @@ import (
 )
 
 // WriteValidators returns a slice of bonded genesis validators.
-func WriteValidators(ctx sdk.Context, keeper *keeper.Keeper) (vals []tmtypes.GenesisValidator, returnErr error) {
-	keeper.IterateLastValidators(ctx, func(_ int64, validator types.ValidatorI) (stop bool) {
+func WriteValidators(ctx context.Context, keeper *keeper.Keeper) (vals []tmtypes.GenesisValidator, err error) {
+	err = keeper.IterateLastValidators(ctx, func(validator types.ValidatorI, power int64) (stop bool, err error) {
 		pk, err := validator.ConsPubKey()
 		if err != nil {
-			returnErr = err
-			return true
+			return true, err
 		}
-		tmPk, err := cryptocodec.ToTmPubKeyInterface(pk)
+		tmPk, err := cryptocodec.ToCmtPubKeyInterface(pk)
 		if err != nil {
-			returnErr = err
-			return true
+			return true, err
 		}
 
 		vals = append(vals, tmtypes.GenesisValidator{
@@ -30,7 +30,7 @@ func WriteValidators(ctx sdk.Context, keeper *keeper.Keeper) (vals []tmtypes.Gen
 			Name:    validator.GetMoniker(),
 		})
 
-		return false
+		return false, nil
 	})
 
 	return

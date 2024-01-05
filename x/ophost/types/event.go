@@ -7,6 +7,8 @@ const (
 	EventTypeDeleteOutput            = "delete_output"
 	EventTypeInitiateTokenDeposit    = "initiate_token_deposit"
 	EventTypeFinalizeTokenWithdrawal = "finalize_token_withdrawal"
+	EventTypeUpdateProposer          = "update_proposer"
+	EventTypeUpdateChallenger        = "update_challenger"
 
 	AttributeKeySubmitter     = "submitter"
 	AttributeKeyCreator       = "creator"

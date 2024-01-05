@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ authtypes.AccountI       = (*BridgeAccount)(nil)
+	_ sdk.AccountI             = (*BridgeAccount)(nil)
 	_ authtypes.GenesisAccount = (*BridgeAccount)(nil)
 )
 
