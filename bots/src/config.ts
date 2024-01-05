@@ -61,14 +61,16 @@ export const config = {
     L1_LCD_URI ? L1_LCD_URI.split(',')[0] : 'http://localhost:1317',
     {
       gasPrices: '0.15uinit',
-      gasAdjustment: '2'
+      gasAdjustment: '2',
+      chainId: L1_CHAIN_ID
     }
   ),
   l2lcd: new LCDClient(
     L2_LCD_URI ? L2_LCD_URI.split(',')[0] : 'http://localhost:1317',
     {
       gasPrices: L2_GAS_PRICES || '0.15umin',
-      gasAdjustment: '2'
+      gasAdjustment: '2',
+      chainId: L2_CHAIN_ID
     }
   ),
   SLACK_WEB_HOOK: SLACK_WEB_HOOK ? SLACK_WEB_HOOK : '',

@@ -28,6 +28,7 @@ export function buildNotEnoughBalanceNotification(
   let notification = '```';
   notification += `[WARN] Enough Balance Notification\n`;
   notification += `\n`;
+  notification += `Chain ID: ${wallet.lcd.config.chainId}\n`;
   notification += `Endpoint: ${wallet.lcd.URL}\n`;
   notification += `Address : ${wallet.key.accAddress}\n`;
   notification += `Balance : ${new BigNumber(balance)
