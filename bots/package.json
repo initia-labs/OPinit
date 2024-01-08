@@ -110,6 +110,7 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
+    "@initia/initia.js": "^0.1.25",
     "@koa/cors": "^4.0.0",
     "@sentry/node": "^7.91.0",
     "@types/dockerode": "^3.3.23",
