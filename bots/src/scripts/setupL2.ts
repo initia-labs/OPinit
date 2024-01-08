@@ -4,7 +4,7 @@ import { config } from 'config';
 import { executor, challenger, outputSubmitter } from 'test/utils/helper';
 
 class L2Initializer {
-  l2id = config.BRIDGE_ID;
+  bridgeId = config.BRIDGE_ID;
 
   constructor(
     public submissionInterval: number,
@@ -44,7 +44,7 @@ async function main() {
     console.log('submissionInterval: ', initializer.submissionInterval);
     console.log('finalizedTime: ', initializer.finalizedTime);
     console.log('metadata: ', initializer.metadata);
-
+    console.log('bridgeId: ', initializer.bridgeId);
     await initializer.initialize();
     console.log('=========L2 Initialized Done=========');
   } catch (e) {

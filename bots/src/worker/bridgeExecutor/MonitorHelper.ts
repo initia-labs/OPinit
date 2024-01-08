@@ -1,4 +1,4 @@
-import { BlockInfo, LCDClient, TxInfo, TxLog } from '@initia/initia.js';
+import { BlockInfo, Event, LCDClient, TxInfo  } from '@initia/initia.js';
 import { getLatestOutputFromExecutor, getOutputFromExecutor } from 'lib/query';
 import { WithdrawStorage } from 'lib/storage';
 import { WithdrawalTx } from 'lib/types';
@@ -103,13 +103,12 @@ class MonitorHelper {
     const searchRes = await lcd.tx.search({
       query: [{ key: 'tx.height', value: height.toString() }]
     });
-    const extractEvents = (txs) =>
-      txs
-        .filter((tx: TxInfo) => tx.logs && tx.logs.length > 0)
-        .flatMap((tx: TxInfo) => tx.logs ?? [])
-        .flatMap((log: TxLog) => log.events)
-        .filter((evt: Event) => evt.type === eventType);
 
+    const extractEvents = (txs: TxInfo[]) =>
+      txs
+        .filter((tx: TxInfo) => tx.events && tx.events.length > 0)
+        .flatMap((tx: TxInfo) =>tx.events ?? [])
+        .filter((event: Event) => event.type === eventType)
     const isEmpty = searchRes.txs.length === 0;
     const events = extractEvents(searchRes.txs);
 
