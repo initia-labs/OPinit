@@ -58,6 +58,22 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, vals, 1)
 	require.Equal(t, vals[0].Moniker, "val2")
+
+	// should failed with err (denom not sorted)
+	params := types.DefaultParams()
+	params.MinGasPrices = sdk.DecCoins{{
+		Denom:  "22222",
+		Amount: math.LegacyNewDec(1),
+	}, {
+		Denom:  "11111",
+		Amount: math.LegacyNewDec(2),
+	}}
+	updateParamsMsg := types.NewMsgUpdateParams(moduleAddr, &params)
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{updateParamsMsg})
+	require.NoError(t, err)
+
+	_, err = ms.ExecuteMessages(ctx, msg)
+	require.Error(t, err)
 }
 
 /////////////////////////////////////////
