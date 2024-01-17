@@ -103,7 +103,7 @@ class MonitorHelper {
     const searchRes = await lcd.tx.search({
       query: [{ key: 'tx.height', value: height.toString() }]
     });
-
+    
     const extractEvents = (txs: TxInfo[]) =>
       txs
         .filter((tx: TxInfo) => tx.events && tx.events.length > 0)
