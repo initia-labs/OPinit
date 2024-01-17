@@ -1,7 +1,19 @@
-import { MsgCreateBridge, BridgeConfig, Duration } from '@initia/initia.js';
+import { MsgCreateBridge, BridgeConfig, Duration, Wallet, MnemonicKey } from '@initia/initia.js';
 import { sendTx } from 'lib/tx';
 import { config } from 'config';
-import { executor, challenger, outputSubmitter } from 'test/utils/helper';
+
+export const executor = new Wallet(
+  config.l1lcd,
+  new MnemonicKey({ mnemonic: config.EXECUTOR_MNEMONIC })
+);
+export const challenger = new Wallet(
+  config.l1lcd,
+  new MnemonicKey({ mnemonic: config.CHALLENGER_MNEMONIC })
+);
+export const outputSubmitter = new Wallet(
+  config.l1lcd,
+  new MnemonicKey({ mnemonic: config.OUTPUT_SUBMITTER_MNEMONIC })
+);
 
 class L2Initializer {
   bridgeId = config.BRIDGE_ID;
