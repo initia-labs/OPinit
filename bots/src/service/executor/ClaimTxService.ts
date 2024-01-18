@@ -45,7 +45,7 @@ export async function getClaimTxList(
 
     try {
         const offset = param.offset ?? 0
-        const order = param.descending ? 'DESC' : 'ASC'
+        const order = param.descending == 'true' ? 'DESC' : 'ASC'
         const claimTxList: ClaimTx[] = []
         
         const withdrawalQb = queryRunner.manager
