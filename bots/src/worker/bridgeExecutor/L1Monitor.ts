@@ -2,7 +2,7 @@ import { Monitor } from './Monitor';
 import { Coin, Msg, MsgFinalizeTokenDeposit, Wallet } from '@initia/initia.js';
 import {
   ExecutorDepositTxEntity,
-  ExecutorFailedTxEntity,
+  ExecutorUnconfirmedTxEntity,
   ExecutorOutputEntity
 } from 'orm';
 import { EntityManager } from 'typeorm';
@@ -121,7 +121,7 @@ export class L1Monitor extends Monitor {
 
       // Save all entities in a single batch operation, if possible
       for (const entity of entities) {
-        await this.helper.saveEntity(manager, ExecutorFailedTxEntity, {
+        await this.helper.saveEntity(manager, ExecutorUnconfirmedTxEntity, {
           ...entity,
           error: errMsg,
           processed: false

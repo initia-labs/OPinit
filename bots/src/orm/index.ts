@@ -4,7 +4,7 @@ import StateEntity from './StateEntity';
 import ExecutorWithdrawalTxEntity from './executor/WithdrawalTxEntity';
 import ExecutorDepositTxEntity from './executor/DepositTxEntity';
 import ExecutorOutputEntity from './executor/OutputEntity';
-import ExecutorFailedTxEntity from './executor/FailedTxEntity';
+import ExecutorUnconfirmedTxEntity from './executor/UnconfirmedTxEntity';
 
 import ChallengerDepositTxEntity from './challenger/DepositTxEntity';
 import ChallengerWithdrawalTxEntity from './challenger/WithdrawalTxEntity';
@@ -29,7 +29,7 @@ export * from './challenger/ChallengeEntity';
 export * from './executor/OutputEntity';
 export * from './executor/DepositTxEntity';
 export * from './executor/WithdrawalTxEntity';
-export * from './executor/FailedTxEntity';
+export * from './executor/UnconfirmedTxEntity';
 
 export {
   RecordEntity,
@@ -37,7 +37,7 @@ export {
   ExecutorWithdrawalTxEntity,
   ExecutorDepositTxEntity,
   ExecutorOutputEntity,
-  ExecutorFailedTxEntity,
+  ExecutorUnconfirmedTxEntity,
   ChallengerWithdrawalTxEntity,
   ChallengerDepositTxEntity,
   ChallengerOutputEntity,

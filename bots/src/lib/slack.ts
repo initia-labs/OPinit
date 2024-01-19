@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 import { config } from 'config';
 import * as http from 'http';
 import * as https from 'https';
-import FailedTxEntity from 'orm/executor/FailedTxEntity';
+import UnconfirmedTxEntity from 'orm/executor/UnconfirmedTxEntity';
 import { ChallengedOutputEntity } from 'orm/index';
 
 const ax = axios.create({
@@ -41,7 +41,7 @@ export function buildNotEnoughBalanceNotification(
   };
 }
 
-export function buildFailedTxNotification(data: FailedTxEntity): {
+export function buildFailedTxNotification(data: UnconfirmedTxEntity): {
   text: string;
 } {
   let notification = '```';
