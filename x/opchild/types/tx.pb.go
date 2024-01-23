@@ -205,7 +205,7 @@ var xxx_messageInfo_MsgFinalizeTokenDepositResponse proto.InternalMessageInfo
 type MsgRelayOraclePrices struct {
 	// the sender address
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
-	// from is l1 sender address
+	// oracle prices emitted from l1
 	Prices []OraclePrice `protobuf:"bytes,2,rep,name=prices,proto3" json:"prices"`
 }
 
