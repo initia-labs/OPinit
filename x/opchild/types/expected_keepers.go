@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -53,4 +55,8 @@ type ValidatorSet interface {
 
 	// MaxValidators returns the maximum amount of bonded validators
 	MaxValidators(context.Context) (uint32, error)
+}
+
+type OracleKeeper interface {
+	SetPriceForCurrencyPair(ctx sdk.Context, cp oracletypes.CurrencyPair, qp oracletypes.QuotePrice) error
 }

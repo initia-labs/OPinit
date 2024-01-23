@@ -9,6 +9,7 @@ const (
 	EventTypeFinalizeTokenWithdrawal = "finalize_token_withdrawal"
 	EventTypeUpdateProposer          = "update_proposer"
 	EventTypeUpdateChallenger        = "update_challenger"
+	EventTypeOraclePrice             = "oracle_price"
 
 	AttributeKeySubmitter     = "submitter"
 	AttributeKeyCreator       = "creator"
@@ -26,4 +27,11 @@ const (
 	AttributeKeyData          = "data"
 	AttributeKeyL1Sequence    = "l1_sequence"
 	AttributeKeyL2Sequence    = "l2_sequence"
+
+	// oracle
+	AttributeKeyBase        = "base"
+	AttributeKeyQuote       = "quote"
+	AttributeKeyPrice       = "price"
+	AttributeKeyBlockTime   = "block_time"
+	AttributeKeyBlockHeight = "block_height"
 )

@@ -12,6 +12,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -352,6 +354,45 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	sdkCtx.EventManager().EmitEvent(event)
 
 	return &types.MsgFinalizeTokenDepositResponse{}, nil
+}
+
+// RelayOraclePrices implements types.MsgServer.
+func (ms MsgServer) RelayOraclePrices(ctx context.Context, req *types.MsgRelayOraclePrices) (*types.MsgRelayOraclePricesResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// permission check
+	if err := ms.checkBridgeExecutorPermission(ctx, req.Sender); err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	events := make([]sdk.Event, 0, len(req.Prices))
+	for _, price := range req.Prices {
+		if err := ms.oracleKeeper.SetPriceForCurrencyPair(sdkCtx,
+			oracletypes.NewCurrencyPair(price.Base, price.Quote),
+			oracletypes.QuotePrice{
+				Price:          price.Price,
+				BlockTimestamp: price.L1BlockTime,
+				BlockHeight:    price.L1BlockHeight,
+			},
+		); err != nil {
+			return nil, err
+		}
+
+		events = append(events, sdk.NewEvent(
+			types.EventTypeOraclePrice,
+			sdk.NewAttribute(types.AttributeKeyBase, price.Base),
+			sdk.NewAttribute(types.AttributeKeyQuote, price.Quote),
+			sdk.NewAttribute(types.AttributeKeyPrice, price.Price.String()),
+			sdk.NewAttribute(types.AttributeKeyL1BlockHeight, strconv.FormatUint(price.L1BlockHeight, 10)),
+			sdk.NewAttribute(types.AttributeKeyL1BlockTime, price.L1BlockTime.String()),
+		))
+	}
+
+	sdkCtx.EventManager().EmitEvents(events)
+	return &types.MsgRelayOraclePricesResponse{}, nil
 }
 
 /////////////////////////////////////////////////////

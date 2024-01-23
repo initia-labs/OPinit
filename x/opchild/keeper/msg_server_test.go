@@ -325,3 +325,10 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	}
 
 }
+
+func Test_MsgServer_Relay_OraclePrices(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+
+	ms.RelayOraclePrices(ctx)
+}

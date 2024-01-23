@@ -42,6 +42,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	oracle "github.com/skip-mev/slinky/x/oracle"
+	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
@@ -50,6 +54,7 @@ import (
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	bank.AppModuleBasic{},
+	oracle.AppModuleBasic{},
 	opchild.AppModuleBasic{},
 )
 
@@ -201,6 +206,7 @@ func (f *TestFaucet) NewFundedAccount(ctx context.Context, amounts ...sdk.Coin) 
 type TestKeepers struct {
 	AccountKeeper  authkeeper.AccountKeeper
 	BankKeeper     bankkeeper.Keeper
+	OracleKeeper   oraclekeeper.Keeper
 	OPChildKeeper  opchildkeeper.Keeper
 	BridgeHook     *bridgeHook
 	EncodingConfig EncodingConfig
@@ -239,7 +245,7 @@ func _createTestInput(
 	db dbm.DB,
 ) (context.Context, TestKeepers) {
 	keys := storetypes.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, opchildtypes.StoreKey,
+		authtypes.StoreKey, banktypes.StoreKey, oracletypes.StoreKey, opchildtypes.StoreKey,
 	)
 	ms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	for _, v := range keys {
@@ -294,6 +300,12 @@ func _createTestInput(
 	)
 	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
 
+	oracleKeeper := oraclekeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
+		appCodec,
+		authtypes.NewModuleAddress(opchildtypes.ModuleName),
+	)
+
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
@@ -303,6 +315,7 @@ func _createTestInput(
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
 		accountKeeper,
 		bankKeeper,
+		oracleKeeper,
 		bridgeHook.Hook,
 		msgRouter,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),

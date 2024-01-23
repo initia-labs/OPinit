@@ -23,9 +23,10 @@ type Keeper struct {
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
 
-	authKeeper types.AccountKeeper
-	bankKeeper types.BankKeeper
-	bridgeHook types.BridgeHook
+	authKeeper   types.AccountKeeper
+	bankKeeper   types.BankKeeper
+	oracleKeeper types.OracleKeeper
+	bridgeHook   types.BridgeHook
 
 	// Msg server router
 	router *baseapp.MsgServiceRouter
@@ -52,6 +53,7 @@ func NewKeeper(
 	storeService corestoretypes.KVStoreService,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
+	ok types.OracleKeeper,
 	bh types.BridgeHook,
 	router *baseapp.MsgServiceRouter,
 	authority string,
@@ -75,6 +77,7 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
+		oracleKeeper:          ok,
 		bridgeHook:            bh,
 		router:                router,
 		authority:             authority,

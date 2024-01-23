@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -40,4 +42,9 @@ type BankKeeper interface {
 
 	MintCoins(ctx context.Context, moduleName string, amounts sdk.Coins) error
 	BurnCoins(ctx context.Context, moduleName string, amounts sdk.Coins) error
+}
+
+type OracleKeeper interface {
+	GetAllCurrencyPairs(ctx sdk.Context) []oracletypes.CurrencyPair
+	GetPriceForCurrencyPair(ctx sdk.Context, cp oracletypes.CurrencyPair) (oracletypes.QuotePrice, error)
 }

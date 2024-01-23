@@ -9,6 +9,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // rollup message types
@@ -230,6 +232,34 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 
 	if msg.Sequence == 0 {
 		return ErrInvalidSequence
+	}
+
+	return nil
+}
+
+/* MsgRelayOraclePrices */
+
+// NewMsgRelayOraclePrices creates a new MsgRelayOraclePrices instance.
+func NewMsgRelayOraclePrices(
+	sender string,
+	prices []OraclePrice,
+) *MsgRelayOraclePrices {
+	return &MsgRelayOraclePrices{
+		Sender: sender,
+		Prices: prices,
+	}
+}
+
+// Validate performs basic MsgRelayOraclePrices message validation.
+func (msg MsgRelayOraclePrices) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
+	}
+
+	for _, price := range msg.Prices {
+		if err := oracletypes.NewCurrencyPair(price.Base, price.Quote).ValidateBasic(); err != nil {
+			return err
+		}
 	}
 
 	return nil

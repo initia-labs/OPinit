@@ -5,6 +5,7 @@ import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
 import "tendermint/abci/types.proto";
 
@@ -67,4 +68,23 @@ message ValidatorUpdates {
   option (gogoproto.equal) = false;
 
   repeated tendermint.abci.ValidatorUpdate updates = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// OraclePrice defines an price descriptor for a currency pair.
+message OraclePrice {
+  option (gogoproto.equal) = false;
+
+  string base = 1;
+  string quote = 2;
+  string price = 3 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable)   = false,
+    (amino.dont_omitempty) = true
+  ];
+  // The block height at the oracle updates happened in l1.
+  uint64 l1_block_height = 4;
+  // The block timestamp at the oracle updates happened in l1.
+  google.protobuf.Timestamp l1_block_time = 5
+      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true, (gogoproto.stdtime) = true];
 }
