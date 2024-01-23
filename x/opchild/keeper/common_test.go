@@ -335,6 +335,7 @@ func _createTestInput(
 	keepers := TestKeepers{
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     bankKeeper,
+		OracleKeeper:   oracleKeeper,
 		OPChildKeeper:  *opchildKeeper,
 		BridgeHook:     bridgeHook,
 		EncodingConfig: encodingConfig,

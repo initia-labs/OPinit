@@ -370,6 +370,7 @@ func (ms MsgServer) RelayOraclePrices(ctx context.Context, req *types.MsgRelayOr
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	events := make([]sdk.Event, 0, len(req.Prices))
 	for _, price := range req.Prices {
+		// in slinky, it will automatically create currency pair.
 		if err := ms.oracleKeeper.SetPriceForCurrencyPair(sdkCtx,
 			oracletypes.NewCurrencyPair(price.Base, price.Quote),
 			oracletypes.QuotePrice{

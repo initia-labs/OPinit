@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
+
+	"cosmossdk.io/math"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -330,5 +333,47 @@ func Test_MsgServer_Relay_OraclePrices(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
 
-	ms.RelayOraclePrices(ctx)
+	// valid relay
+	msg := types.NewMsgRelayOraclePrices(addrsStr[0], []types.OraclePrice{
+		{
+			Base:          "BITCOIN",
+			Quote:         "USD",
+			Price:         math.NewInt(1),
+			L1BlockHeight: 1,
+			L1BlockTime:   time.Unix(1, 0).UTC(),
+		},
+		{
+			Base:          "ETHEREUM",
+			Quote:         "USD",
+			Price:         math.NewInt(2),
+			L1BlockHeight: 2,
+			L1BlockTime:   time.Unix(2, 0).UTC(),
+		},
+	})
+	_, err := ms.RelayOraclePrices(ctx, msg)
+	require.NoError(t, err)
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	for _, cp := range input.OracleKeeper.GetAllCurrencyPairs(sdkCtx) {
+		price, err := input.OracleKeeper.GetPriceForCurrencyPair(sdkCtx, cp)
+		require.NoError(t, err)
+
+		if cp.Base == "BITCOIN" {
+			require.Equal(t, cp.Quote, "USD")
+			require.Equal(t, math.NewInt(1), price.Price)
+			require.Equal(t, uint64(1), price.BlockHeight)
+			require.Equal(t, time.Unix(1, 0).UTC(), price.BlockTimestamp)
+		} else {
+			require.Equal(t, cp.Base, "ETHEREUM")
+			require.Equal(t, cp.Quote, "USD")
+			require.Equal(t, math.NewInt(2), price.Price)
+			require.Equal(t, uint64(2), price.BlockHeight)
+			require.Equal(t, time.Unix(2, 0).UTC(), price.BlockTimestamp)
+		}
+	}
+
+	// unauthorized
+	msg.Sender = addrsStr[1]
+	_, err = ms.RelayOraclePrices(ctx, msg)
+	require.ErrorIs(t, err, sdkerrors.ErrUnauthorized)
 }
