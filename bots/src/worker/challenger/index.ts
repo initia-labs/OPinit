@@ -1,24 +1,28 @@
-import { RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from 'lib/rpc';
 import { L1Monitor } from './L1Monitor';
 import { Monitor } from 'worker/bridgeExecutor/Monitor';
-import { Challenger } from './Challenger';
+import { Challenger } from './challenger';
 import { initORM, finalizeORM } from './db';
 import { challengerLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
 import { L2Monitor } from './L2Monitor';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { config } from 'config';
 
 let monitors: (Monitor | Challenger)[];
 
-async function runBot(isFetch?: boolean): Promise<void> {
-  const challenger = new Challenger(isFetch ? true : false);
-
+async function runBot(): Promise<void> {
   monitors = [
-    new L1Monitor(new RPCSocket(config.L1_RPC_URI, 10000, logger), logger),
-    new L2Monitor(new RPCSocket(config.L2_RPC_URI, 10000, logger), logger),
-    challenger
+    new L1Monitor(
+      new RPCSocket(config.L1_RPC_URI, 10000, logger),
+      new RPCClient(config.L1_RPC_URI, logger),
+      logger
+    ),
+    new L2Monitor(
+      new RPCSocket(config.L2_RPC_URI, 10000, logger),
+      new RPCClient(config.L2_RPC_URI, logger),
+      logger
+    ),
+    new Challenger(logger)
   ];
   try {
     await Promise.all(
@@ -27,7 +31,7 @@ async function runBot(isFetch?: boolean): Promise<void> {
       })
     );
   } catch (err) {
-    logger.error(err);
+    logger.info(err);
     stopChallenger();
   }
 }
@@ -46,9 +50,9 @@ export async function stopChallenger(): Promise<void> {
   process.exit(0);
 }
 
-export async function startChallenger(isFetch = false): Promise<void> {
+export async function startChallenger(): Promise<void> {
   await initORM();
-  await runBot(isFetch);
+  await runBot();
 
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;
   signals.forEach((signal) => process.on(signal, once(stopChallenger)));

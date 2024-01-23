@@ -1,44 +1,26 @@
-export interface BridgeConfig {
-  submission_interval: string;
-  challenger: string;
-  proposer: string;
-  finalization_period_seconds: string;
-  starting_block_number: string;
-}
+import DepositTxEntity from 'orm/executor/DepositTxEntity';
+import WithdrawalTxEntity from 'orm/executor/WithdrawalTxEntity';
+import { ExecutorOutputEntity } from 'orm/index';
 
 export interface WithdrawalTx {
-  sequence: number;
+  bridge_id: bigint;
+  sequence: bigint;
   sender: string;
   receiver: string;
-  amount: number;
-  l2_id: string;
-  metadata: string;
+  l1_denom: string;
+  amount: bigint;
 }
 
-export interface DepositTx {
-  sequence: number;
-  sender: string;
-  receiver: string;
-  amount: number;
-  l2_id: string;
-  l1_token: string;
-  l2_token: string;
+/// response types
+
+export interface WithdrawalTxResponse {
+  withdrawalTx: WithdrawalTxEntity;
 }
 
-export interface L1TokenBridgeInitiatedEvent {
-  from: string;
-  to: string;
-  l2_id: string;
-  l1_token: string;
-  l2_token: string;
-  amount: number;
-  l1_sequence: number;
+export interface DepositTxResponse {
+  depositTx: DepositTxEntity;
 }
 
-export interface L2TokenBridgeInitiatedEvent {
-  from: string;
-  to: string;
-  l2_token: string;
-  amount: number;
-  l2_sequence: number;
+export interface OutputResponse {
+  output: ExecutorOutputEntity;
 }

@@ -1,10 +1,10 @@
 import { RecordEntity } from 'orm';
 import { APIError, ErrorTypes } from 'lib/error';
 import { getDB } from 'worker/batchSubmitter/db';
-import { decompressor } from 'lib/compressor';
+import { decompress } from 'lib/compressor';
 
 interface GetBatchResponse {
-  l2Id: string;
+  bridgeId: number;
   batchIndex: number;
   batch: string[];
 }
@@ -25,9 +25,9 @@ export async function getBatch(batchIndex: number): Promise<GetBatchResponse> {
     }
 
     return {
-      l2Id: batch.l2Id,
+      bridgeId: batch.bridgeId,
       batchIndex: batch.batchIndex,
-      batch: decompressor(batch.batch)
+      batch: decompress(batch.batch)
     };
   } finally {
     queryRunner.release();

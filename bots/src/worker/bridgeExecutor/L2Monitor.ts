@@ -1,177 +1,113 @@
-import {
-  ExecutorCoinEntity,
-  ExecutorOutputEntity,
-  ExecutorWithdrawalTxEntity
-} from 'orm';
+import { ExecutorOutputEntity, ExecutorWithdrawalTxEntity } from 'orm';
 import { Monitor } from './Monitor';
-import { fetchBridgeConfig } from 'lib/lcd';
-import { WithdrawalStorage } from 'lib/storage';
-import { BridgeConfig, WithdrawalTx } from 'lib/types';
+import { WithdrawStorage } from 'lib/storage';
+import { WithdrawalTx } from 'lib/types';
 import { EntityManager } from 'typeorm';
-import { BlockInfo } from '@initia/minitia.js';
+import { BlockInfo } from '@initia/initia.js';
 import { getDB } from './db';
-import { RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from 'lib/rpc';
 import winston from 'winston';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { config } from 'config';
+import { getBridgeInfo } from 'lib/query';
 
 export class L2Monitor extends Monitor {
   submissionInterval: number;
-  nextCheckpointBlockHeight: number;
+  nextSubmissionTimeSec: number;
 
-  constructor(public socket: RPCSocket, logger: winston.Logger) {
-    super(socket, logger);
+  constructor(
+    public socket: RPCSocket,
+    public rpcClient: RPCClient,
+    logger: winston.Logger
+  ) {
+    super(socket, rpcClient, logger);
     [this.db] = getDB();
+    this.nextSubmissionTimeSec = this.getCurTimeSec();
   }
 
   public name(): string {
     return 'executor_l2_monitor';
   }
 
-  private async configureBridge(
-    lastCheckpointBlockHeight: number
-  ): Promise<void> {
-    const cfg: BridgeConfig = await fetchBridgeConfig();
-    this.submissionInterval = parseInt(cfg.submission_interval);
-
-    const checkpointBlockHeight =
-      lastCheckpointBlockHeight === 0
-        ? parseInt(cfg.starting_block_number)
-        : lastCheckpointBlockHeight + this.submissionInterval;
-
-    this.nextCheckpointBlockHeight =
-      checkpointBlockHeight + this.submissionInterval;
+  dateToSeconds(date: Date): number {
+    return Math.floor(date.getTime() / 1000);
   }
 
-  public async run(): Promise<void> {
-    try {
-      await this.db.transaction(
-        async (transactionalEntityManager: EntityManager) => {
-          const lastCheckpointBlockHeight =
-            await this.helper.getCheckpointBlockHeight(
-              transactionalEntityManager,
-              ExecutorOutputEntity
-            );
-          await this.configureBridge(lastCheckpointBlockHeight);
-          await super.run();
-        }
-      );
-    } catch (err) {
-      throw new Error(err);
-    }
+  private async setNextSubmissionTimeSec(): Promise<void> {
+    const bridgeInfo = await getBridgeInfo(this.bridgeId);
+    this.submissionInterval =
+      bridgeInfo.bridge_config.submission_interval.seconds.toNumber();
+    this.nextSubmissionTimeSec += this.submissionInterval;
   }
 
-  private genTx(
-    data: { [key: string]: string },
-    coin: ExecutorCoinEntity,
-    lastIndex: number
-  ): ExecutorWithdrawalTxEntity {
-    return {
-      sequence: Number.parseInt(data['l2_sequence']),
-      sender: data['from'],
-      receiver: data['to'],
-      amount: Number.parseInt(data['amount']),
-      l2Id: config.L2ID,
-      metadata: coin.l1Metadata,
-      outputIndex: lastIndex + 1,
-      merkleRoot: '',
-      merkleProof: []
-    };
+  private getCurTimeSec(): number {
+    return this.dateToSeconds(new Date());
   }
 
-  private async handleTokenBridgeInitiatedEvent(
+  private async handleInitiateTokenWithdrawalEvent(
     manager: EntityManager,
     data: { [key: string]: string }
-  ) {
-    const lastIndex = await this.helper.getLastOutputIndex(
+  ): Promise<void> {
+    const outputInfo = await this.helper.getLastOutputFromDB(
       manager,
       ExecutorOutputEntity
     );
-
-    const metadata = data['metadata'];
-    const coin = await this.helper.getCoin(
-      manager,
-      ExecutorCoinEntity,
-      metadata
+    if (!outputInfo) return;
+    const pair = await config.l1lcd.ophost.tokenPairByL2Denom(
+      this.bridgeId,
+      data['denom']
     );
 
-    if (!coin) {
-      this.logger.warn(`coin not found for ${metadata}`);
-      return;
-    }
+    const tx: ExecutorWithdrawalTxEntity = {
+      l1Denom: pair.l1_denom,
+      l2Denom: pair.l2_denom,
+      sequence: data['l2_sequence'],
+      sender: data['from'],
+      receiver: data['to'],
+      amount: data['amount'],
+      bridgeId: this.bridgeId.toString(),
+      outputIndex: outputInfo ? outputInfo.outputIndex + 1 : 1,
+      merkleRoot: '',
+      merkleProof: []
+    };
 
-    const tx: ExecutorWithdrawalTxEntity = this.genTx(data, coin, lastIndex);
-    this.logger.info(`withdraw tx in height ${this.syncedHeight}`);
     await this.helper.saveEntity(manager, ExecutorWithdrawalTxEntity, tx);
   }
 
-  public async handleTokenRegisteredEvent(
-    manager: EntityManager,
-    data: { [key: string]: string }
-  ) {
-    const symbol = data['symbol'];
-    await manager.getRepository(ExecutorCoinEntity).update(
-      {
-        l2Denom: symbol
-      },
-      { isChecked: true }
-    )
-  }
-
-
-  public async handleEvents(): Promise<void> {
-    await this.db.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        const events = await this.helper.fetchEvents(
-          config.l2lcd,
-          this.syncedHeight,
-          'move'
-        );
-
-        for (const evt of events) {
-          const attrMap = this.helper.eventsToAttrMap(evt);
-          const data: { [key: string]: string } =
-            this.helper.parseData(attrMap);
-
-          switch (attrMap['type_tag']) {
-            case '0x1::op_bridge::TokenBridgeInitiatedEvent': {
-              await this.handleTokenBridgeInitiatedEvent(
-                transactionalEntityManager,
-                data
-              );
-              break;
-            }
-            case '0x1::op_bridge::TokenRegisteredEvent': {
-              await this.handleTokenRegisteredEvent(
-                transactionalEntityManager,
-                data
-              );
-              break;
-            }
-          }
-        }
-      }
+  public async handleEvents(manager: EntityManager): Promise<boolean> {
+    const [isEmpty, withdrawalEvents] = await this.helper.fetchEvents(
+      config.l2lcd,
+      this.currentHeight,
+      'initiate_token_withdrawal'
     );
+    if (isEmpty) return false;
+
+    for (const evt of withdrawalEvents) {
+      const attrMap = this.helper.eventsToAttrMap(evt);
+      await this.handleInitiateTokenWithdrawalEvent(manager, attrMap);
+    }
+
+    return true;
   }
 
   private async saveMerkleRootAndProof(
     manager: EntityManager,
     entities: ExecutorWithdrawalTxEntity[]
   ): Promise<string> {
-    const txs: WithdrawalTx[] = entities.map((entity) => ({
-      sequence: entity.sequence,
-      sender: entity.sender,
-      receiver: entity.receiver,
-      amount: entity.amount,
-      l2_id: entity.l2Id,
-      metadata: entity.metadata
-    }));
+    const txs: WithdrawalTx[] = entities.map(
+      (entity: ExecutorWithdrawalTxEntity) => ({
+        bridge_id: BigInt(entity.bridgeId),
+        sequence: BigInt(entity.sequence),
+        sender: entity.sender,
+        receiver: entity.receiver,
+        l1_denom: entity.l1Denom,
+        amount: BigInt(entity.amount)
+      })
+    );
 
-    const storage = new WithdrawalStorage(txs);
-    const storageRoot = storage.getMerkleRoot();
+    const storage = new WithdrawStorage(txs);
+    const merkleRoot = storage.getMerkleRoot();
     for (let i = 0; i < entities.length; i++) {
-      entities[i].merkleRoot = storageRoot;
+      entities[i].merkleRoot = merkleRoot;
       entities[i].merkleProof = storage.getMerkleProof(txs[i]);
       await this.helper.saveEntity(
         manager,
@@ -179,48 +115,48 @@ export class L2Monitor extends Monitor {
         entities[i]
       );
     }
-    return storageRoot;
+    return merkleRoot;
   }
 
-  public async handleBlock(): Promise<void> {
-    if (this.syncedHeight < this.nextCheckpointBlockHeight - 1) return;
-
-    await this.db.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        const lastIndex = await this.helper.getLastOutputIndex(
-          transactionalEntityManager,
-          ExecutorOutputEntity
-        );
-        const blockInfo: BlockInfo = await config.l2lcd.tendermint.blockInfo(
-          this.syncedHeight
-        );
-
-        // fetch txs and build merkle tree for withdrawal storage
-        const txEntities = await this.helper.getWithdrawalTxs(
-          transactionalEntityManager,
-          ExecutorWithdrawalTxEntity,
-          lastIndex
-        );
-
-        const storageRoot = await this.saveMerkleRootAndProof(
-          transactionalEntityManager,
-          txEntities
-        );
-
-        const outputEntity = this.helper.calculateOutputEntity(
-          lastIndex,
-          blockInfo,
-          storageRoot,
-          this.nextCheckpointBlockHeight - this.submissionInterval
-        );
-
-        await this.helper.saveEntity(
-          transactionalEntityManager,
-          ExecutorOutputEntity,
-          outputEntity
-        );
-        this.nextCheckpointBlockHeight += this.submissionInterval;
-      }
+  public async handleBlock(manager: EntityManager): Promise<void> {
+    if (this.getCurTimeSec() < this.nextSubmissionTimeSec) return;
+    const lastOutput = await this.helper.getLastOutputFromDB(
+      manager,
+      ExecutorOutputEntity
     );
+
+    const lastOutputEndBlockNumber = lastOutput ? lastOutput.endBlockNumber : 0;
+    const lastOutputIndex = lastOutput ? lastOutput.outputIndex : 0;
+
+    const startBlockNumber = lastOutputEndBlockNumber + 1;
+    const endBlockNumber = this.currentHeight;
+    const outputIndex = lastOutputIndex + 1;
+
+    if (startBlockNumber > endBlockNumber) return;
+
+    const blockInfo: BlockInfo = await config.l2lcd.tendermint.blockInfo(
+      this.currentHeight
+    );
+
+    // fetch txs and build merkle tree for withdrawal storage
+    const txEntities = await this.helper.getWithdrawalTxs(
+      manager,
+      ExecutorWithdrawalTxEntity,
+      outputIndex
+    );
+
+    const merkleRoot = await this.saveMerkleRootAndProof(manager, txEntities);
+
+    const outputEntity = this.helper.calculateOutputEntity(
+      outputIndex,
+      blockInfo,
+      merkleRoot,
+      startBlockNumber,
+      endBlockNumber
+    );
+
+    await this.helper.saveEntity(manager, ExecutorOutputEntity, outputEntity);
+
+    await this.setNextSubmissionTimeSec();
   }
 }

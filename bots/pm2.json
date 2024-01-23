@@ -1,0 +1,34 @@
+{
+    "apps" : [
+        {
+            "name" : "executor",
+            "cwd" : ".",
+            "script" : "npm run executor",
+            "watch" : true,
+            "autorestart" : true,
+            "args": [ "--color"]
+        },
+        {
+            "name" : "output",
+            "cwd" : ".",
+            "script" : "npm run output",
+            "watch" : true,
+            "autorestart" : true,
+            "restart_delay" : 10000
+        },
+        {
+            "name" : "batch",
+            "cwd" : ".",
+            "script" : "npm run batch",
+            "watch" : true,
+            "autorestart" : true
+        },
+        {
+            "name" : "challenger",
+            "cwd" : ".",
+            "script" : "npm run challenger",
+            "watch" : true,
+            "autorestart" : true
+        }
+    ]
+}

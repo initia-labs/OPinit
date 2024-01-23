@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2019",
-    "module": "commonjs",
+	"allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "es2021",
+    "module": "node16",
     "allowJs": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "sourceMap": true,
@@ -17,9 +18,9 @@
     "paths": {
       "graphql": ["node_modules/graphql"],
       "orm/*": ["orm/*"],
-      "*": ["*"],
+      "*": ["*"]
     }
   },
-  "include": ["src/**/*.ts", "test", "lib", "test/**/*.ts"],
-  "exclude": ["node_modules", "apidoc", "dist"]
+  "include": ["src/**/*.ts", "test", "lib", "test/**/*.ts", "src/worker/bridgeExecutor/db.ts"],
+  "exclude": ["node_modules", "apidoc", "dist", "./src/**/*.spec.ts"]
 }

@@ -1,22 +1,24 @@
 import 'reflect-metadata';
-import * as Bluebird from 'bluebird';
+import Bluebird from 'bluebird';
 import {
   ConnectionOptionsReader,
   DataSource,
   DataSourceOptions
 } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import * as CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
+import CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
 const debug = require('debug')('orm');
 
 import {
-  ChallengerCoinEntity,
   ChallengerOutputEntity,
   ChallengerDepositTxEntity,
   StateEntity,
   ChallengerWithdrawalTxEntity,
-  DeletedOutputEntity
+  ChallengedOutputEntity,
+  ChallengerFinalizeDepositTxEntity,
+  ChallengerFinalizeWithdrawalTxEntity,
+  ChallengeEntity
 } from 'orm';
 
 const staticOptions = {
@@ -24,11 +26,13 @@ const staticOptions = {
   bigNumberStrings: true,
   entities: [
     StateEntity,
+    ChallengerFinalizeDepositTxEntity,
+    ChallengerFinalizeWithdrawalTxEntity,
     ChallengerWithdrawalTxEntity,
     ChallengerDepositTxEntity,
     ChallengerOutputEntity,
-    ChallengerCoinEntity,
-    DeletedOutputEntity
+    ChallengedOutputEntity,
+    ChallengeEntity
   ]
 };
 

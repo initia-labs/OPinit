@@ -1,30 +1,32 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('challenger_withdrawal_tx')
-export default class ChallengerWithdrawalTxEntity {
-  @PrimaryColumn('text')
-  metadata: string;
+export default class WithdrawalTxEntity {
+  @PrimaryColumn('bigint')
+  bridgeId: string;
 
-  @PrimaryColumn('int')
-  sequence: number;
+  @PrimaryColumn('bigint')
+  sequence: string;
 
   @Column('text')
-  @Index('withdrawal_tx_sender_index')
+  l1Denom: string;
+
+  @Column('text')
+  l2Denom: string;
+
+  @Column('text')
+  @Index('challenger_tx_sender_index')
   sender: string;
 
   @Column('text')
-  @Index('withdrawal_tx_receiver_index')
+  @Index('challenger_tx_receiver_index')
   receiver: string;
 
   @Column('bigint')
-  amount: number;
-
-  @Column('text')
-  @Index('withdrawal_l2id_index')
-  l2Id: string;
+  amount: string;
 
   @Column('int')
-  @Index('withdrawal_tx_output_index')
+  @Index('challenger_tx_output_index')
   outputIndex: number;
 
   @Column('text')
@@ -32,7 +34,4 @@ export default class ChallengerWithdrawalTxEntity {
 
   @Column('text', { array: true })
   merkleProof: string[];
-
-  @Column('boolean')
-  isChecked: boolean;
 }

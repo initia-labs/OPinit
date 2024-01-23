@@ -1,134 +1,56 @@
 import { ExecutorOutputEntity } from 'orm';
 import { getDB } from 'worker/bridgeExecutor/db';
-import { APIError, ErrorTypes } from 'lib/error';
 
-export interface GetOutputResponse {
-  output: ExecutorOutputEntity;
+export interface GetOutputListParam {
+  output_index?: number
+  height?: number
+  offset?: number
+  limit: number
+  descending: string
 }
 
-export interface GetAllOutputsParam {
-  offset?: number;
-  limit: number;
+export interface GetOutputListResponse {
+  count?: number
+  next?: number
+  limit: number
+  outputList: ExecutorOutputEntity[]
 }
 
-export interface GetAllOutputsResponse {
-  next?: number;
-  limit: number;
-  outputs: ExecutorOutputEntity[];
-}
-
-export interface GetLatestOutputResponse {
-  output: ExecutorOutputEntity;
-}
-
-export interface GetOutputByHeightResponse {
-  output: ExecutorOutputEntity;
-}
-
-export async function getOutput(
-  outputIndex: number
-): Promise<GetOutputResponse> {
+export async function getOutputList(
+  param: GetOutputListParam
+): Promise<GetOutputListResponse> {
   const [db] = getDB();
   const queryRunner = db.createQueryRunner('slave');
-
   try {
+    const offset = param.offset ?? 0
+    const order = param.descending == 'true' ? 'DESC' : 'ASC'
+        
     const qb = queryRunner.manager
       .createQueryBuilder(ExecutorOutputEntity, 'output')
-      .where('output.output_index = :outputIndex', { outputIndex });
 
-    const output = await qb.getOne();
-
-    if (!output) {
-      throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
+    if (param.output_index) {
+      qb.andWhere('output.output_index = :output_index', { output_index: param.output_index })
     }
 
-    return {
-      output
-    };
-  } finally {
-    queryRunner.release();
-  }
-}
-
-export async function getOutputByHeight(
-  height: number
-): Promise<GetOutputByHeightResponse> {
-  const [db] = getDB();
-  const queryRunner = db.createQueryRunner('slave');
-
-  try {
-    const qb = queryRunner.manager
-      .createQueryBuilder(ExecutorOutputEntity, 'output')
-      .where('output.checkpoint_block_height = :height', { height });
-
-    const output = await qb.getOne();
-
-    if (!output) {
-      throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
-    }
-
-    return {
-      output
-    };
-  } finally {
-    queryRunner.release();
-  }
-}
-
-export async function getAllOutputs(
-  param: GetAllOutputsParam
-): Promise<GetAllOutputsResponse> {
-  const [db] = getDB();
-  const queryRunner = db.createQueryRunner('slave');
-
-  try {
-    const offset = param.offset ?? 0;
-    const qb = queryRunner.manager
-      .createQueryBuilder(ExecutorOutputEntity, 'output')
-      .orderBy('output.outputIndex', 'DESC')
+    const outputList = await qb
+      .orderBy('output.output_index', order)
       .skip(offset * param.limit)
-      .take(param.limit);
+      .take(param.limit)
+      .getMany()
 
-    const outputs = await qb.getMany();
-    if (!outputs) {
-      throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
+    const count = await qb.getCount()
+    let next: number | undefined
+
+    if (count > (offset + 1) * param.limit) {
+        next = offset + 1
     }
-
-    let next: number | undefined;
-
-    // we have next result
-    if (param.limit === outputs.length) {
-      next = offset + 1;
-    }
-
+    
     return {
-      next,
-      limit: param.limit,
-      outputs
-    };
-  } finally {
-    queryRunner.release();
-  }
-}
-
-export async function getLatestOutput(): Promise<GetLatestOutputResponse> {
-  const [db] = getDB();
-  const queryRunner = db.createQueryRunner('slave');
-
-  try {
-    const qb = queryRunner.manager
-      .createQueryBuilder(ExecutorOutputEntity, 'output')
-      .orderBy('output.outputIndex', 'DESC');
-
-    const output = await qb.getOne();
-
-    if (!output) {
-      throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
+        count,
+        next,
+        limit: param.limit,
+        outputList,
     }
-
-    return {
-      output
-    };
   } finally {
     queryRunner.release();
   }

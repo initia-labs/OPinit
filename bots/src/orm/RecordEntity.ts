@@ -3,10 +3,16 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 @Entity('record')
 export default class RecordEntity {
   @PrimaryColumn()
-  l2Id: string;
+  bridgeId: number;
 
   @PrimaryColumn()
   batchIndex: number;
+
+  @Column()
+  startBlockNumber: number;
+
+  @Column()
+  endBlockNumber: number;
 
   @Column({
     type: 'bytea'

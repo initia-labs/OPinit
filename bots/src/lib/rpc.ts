@@ -1,9 +1,6 @@
 import * as winston from 'winston';
 import axios, { AxiosRequestConfig } from 'axios';
-import * as Websocket from 'ws';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import Websocket from 'ws';
 
 export class RPCSocket {
   public ws: Websocket;
@@ -14,15 +11,33 @@ export class RPCSocket {
   public updateTimer: NodeJS.Timer;
   public latestHeight?: number;
   logger: winston.Logger;
+  rpcUrl: string;
+  curRPCUrlIndex: number;
 
-  constructor(rpcUrl: string, public interval: number, logger: winston.Logger) {
-    this.wsUrl = rpcUrl.replace('http', 'ws') + '/websocket';
+  constructor(
+    public rpcUrls: string[],
+    public interval: number,
+    logger: winston.Logger
+  ) {
+    if (this.rpcUrls.length === 0) {
+      throw new Error('RPC URLs list cannot be empty');
+    }
+    this.curRPCUrlIndex = 0;
+    this.rpcUrl = this.rpcUrls[this.curRPCUrlIndex];
+    this.wsUrl = this.rpcUrl.replace('http', 'ws') + '/websocket';
     this.logger = logger;
   }
 
   public initialize(): void {
     this.connect();
     this.updateTimer = setTimeout(() => this.tick(), this.interval);
+  }
+
+  public rotateRPC() {
+    this.curRPCUrlIndex = (this.curRPCUrlIndex + 1) % this.rpcUrls.length;
+    this.rpcUrl = this.rpcUrls[this.curRPCUrlIndex];
+    this.wsUrl = this.rpcUrl.replace('http', 'ws') + '/websocket';
+    this.logger.info(`Rotate WS RPC to ${this.rpcUrl}`);
   }
 
   public stop(): void {
@@ -64,7 +79,7 @@ export class RPCSocket {
     // no responsed more than 3 minutes, it is down
     if (this.isAlive && Date.now() - this.alivedAt > 3 * 60 * 1000) {
       const msg = `${this.constructor.name} is no response!`;
-      this.logger.warn(msg);
+      this.logger.info(msg);
       this.isAlive = false;
     }
   }
@@ -104,6 +119,7 @@ export class RPCSocket {
   }
 
   protected onDisconnect(code: number, reason: string): void {
+    this.rotateRPC();
     this.logger.info(
       `${this.constructor.name}: websocket disconnected (${code}: ${reason})`
     );
@@ -113,7 +129,7 @@ export class RPCSocket {
 
   // eslint-disable-next-line
   protected onError(error): void {
-    this.logger.error(`${this.constructor.name} websocket: `, error);
+    this.logger.info(`${this.constructor.name} websocket: `, error);
   }
 
   // eslint-disable-next-line
@@ -123,7 +139,7 @@ export class RPCSocket {
     try {
       data = JSON.parse(raw);
     } catch (error) {
-      this.logger.error(`${this.constructor.name}: JSON parse error ${raw}`);
+      this.logger.info(`${this.constructor.name}: JSON parse error ${raw}`);
       return;
     }
 
@@ -134,73 +150,136 @@ export class RPCSocket {
         );
       }
     } catch (error) {
-      this.logger.error(error);
+      this.logger.info(error);
     }
 
     this.alive();
   }
 }
 
-async function getRequest(
-  rpc: string,
-  path: string,
-  params?: Record<string, string>
-): Promise<any> {
-  const options: AxiosRequestConfig = {
-    headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'initia-rollup'
-    }
-  };
+export class RPCClient {
+  private curRPCUrlIndex = 0;
+  private rpcUrl: string;
 
-  let url = `${rpc}${path}`;
-  params &&
-    Object.keys(params).forEach(
-      (key) => params[key] === undefined && delete params[key]
+  constructor(public rpcUrls: string[], public logger: winston.Logger) {
+    if (this.rpcUrls.length === 0) {
+      throw new Error('RPC URLs list cannot be empty');
+    }
+    this.curRPCUrlIndex = 0;
+    this.rpcUrl = this.rpcUrls[this.curRPCUrlIndex];
+  }
+
+  public rotateRPC() {
+    this.curRPCUrlIndex = (this.curRPCUrlIndex + 1) % this.rpcUrls.length;
+    this.rpcUrl = this.rpcUrls[this.curRPCUrlIndex];
+    this.logger.info(`Rotate RPC to ${this.rpcUrl}`);
+  }
+
+  async getRequest(
+    path: string,
+    params?: Record<string, string>
+  ): Promise<any> {
+    const options: AxiosRequestConfig = {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'initia-rollup'
+      }
+    };
+
+    let url = `${this.rpcUrl}${path}`;
+    params &&
+      Object.keys(params).forEach(
+        (key) => params[key] === undefined && delete params[key]
+      );
+    const qs = new URLSearchParams(params as any).toString();
+    if (qs.length) {
+      url += `?${qs}`;
+    }
+
+    try {
+      const response = await axios.get(url, options);
+      if (response.status !== 200) {
+        throw new Error(`Invalid status code: ${response.status}`);
+      }
+
+      const data = response.data;
+      if (!data || typeof data.jsonrpc !== 'string') {
+        throw new Error('Failed to query RPC');
+      }
+
+      return data.result;
+    } catch (e) {
+      throw new Error(`RPC request to ${url} failed by ${e}`);
+    }
+  }
+
+  async getBlockchain(
+    min_height: number,
+    max_height: number
+  ): Promise<Blockchain | null> {
+    const blockchainResult: Blockchain = await this.getRequest(`/blockchain`, {
+      minHeight: min_height.toString(),
+      maxHeight: max_height.toString()
+    });
+
+    if (!blockchainResult) {
+      this.logger.info('failed get blockchain from rpc');
+      return null;
+    }
+
+    return blockchainResult;
+  }
+
+  async getBlockBulk(start: string, end: string): Promise<BlockBulk | null> {
+    const blockBulksResult: BlockBulk = await this.getRequest(`/block_bulk`, {
+      start,
+      end
+    });
+
+    if (!blockBulksResult) {
+      this.logger.info('failed get block bulks from rpc');
+      return null;
+    }
+
+    return blockBulksResult;
+  }
+
+  async lookupInvalidBlock(): Promise<InvalidBlock | null> {
+    const invalidBlockResult: InvalidBlock = await this.getRequest(
+      `/invalid_block`
     );
-  const qs = new URLSearchParams(params as any).toString();
-  if (qs.length) {
-    url += `?${qs}`;
-  }
 
-  try {
-    const response = await axios.get(url, options);
-
-    if (response.status !== 200) {
-      throw new Error(`Invalid status code: ${response.status}`);
+    if (invalidBlockResult.reason !== '' && invalidBlockResult.height !== '0') {
+      return invalidBlockResult;
     }
 
-    const data = response.data;
-    if (!data || typeof data.jsonrpc !== 'string') {
-      throw new Error('Failed to query RPC');
-    }
-
-    return data.result;
-  } catch (e) {
-    throw new Error(`RPC request to ${url} failed by ${e}`);
-  }
-}
-
-export interface BlockBulk {
-  blocks: string[];
-}
-
-export async function getBlockBulk(
-  start: string,
-  end: string
-): Promise<BlockBulk | null> {
-  const blockBulksResult: BlockBulk = await getRequest(
-    config.L2_RPC_URI,
-    `/block_bulk`,
-    { start, end }
-  );
-
-  if (!blockBulksResult) {
-    this.logger.error('failed get block bulks from rpc');
     return null;
   }
 
-  return blockBulksResult;
+  async getLatestBlockHeight(): Promise<number> {
+    const abciInfo: ABCIInfo = await this.getRequest(`/abci_info`);
+
+    if (abciInfo) {
+      return parseInt(abciInfo.last_block_height);
+    }
+
+    throw new Error(`failed to get latest block height`);
+  }
+}
+
+export interface Blockchain {
+  last_height: string;
+  block_metas: BlockMeta[];
+}
+
+export interface BlockMeta {
+  block_id: any;
+  block_size: string;
+  header: any;
+  num_txs: string;
+}
+export interface BlockBulk {
+  blocks: string[];
 }
 
 interface InvalidBlock {
@@ -208,38 +287,9 @@ interface InvalidBlock {
   height: string;
 }
 
-/**
- * Lookup invalid block on chain and return the response.
- * Return null if there is no invalid block.
- */
-export async function lookupInvalidBlock(
-  rpcUrl: string
-): Promise<InvalidBlock | null> {
-  const invalidBlockResult: InvalidBlock = await getRequest(
-    rpcUrl,
-    `/invalid_block`
-  );
-
-  if (invalidBlockResult.reason !== '' && invalidBlockResult.height !== '0') {
-    return invalidBlockResult;
-  }
-
-  return null;
-}
-
 interface ABCIInfo {
   data: string;
   version: string;
   last_block_height: string;
   last_block_app_hash: string;
-}
-
-export async function getLatestBlockHeight(rpcUrl: string): Promise<number> {
-  const abciInfo: ABCIInfo = await getRequest(rpcUrl, `/abci_info`);
-
-  if (abciInfo) {
-    return parseInt(abciInfo.last_block_height);
-  }
-
-  throw new Error(`failed to get latest block height from ${rpcUrl}`);
 }

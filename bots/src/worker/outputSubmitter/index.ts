@@ -1,17 +1,12 @@
 import { OutputSubmitter } from './outputSubmitter';
 import { outputLogger as logger } from 'lib/logger';
 import { once } from 'lodash';
-import axios from 'axios';
-import { getConfig } from 'config';
-import { checkHealth } from 'test/utils/helper';
+import { initORM } from './db';
 
-const config = getConfig();
 let jobs: OutputSubmitter[];
 
 async function runBot(): Promise<void> {
-  const outputSubmitter = new OutputSubmitter();
-
-  jobs = [outputSubmitter];
+  jobs = [new OutputSubmitter()];
 
   try {
     await Promise.all(
@@ -20,7 +15,7 @@ async function runBot(): Promise<void> {
       })
     );
   } catch (err) {
-    logger.error(err);
+    logger.info(err);
     stopOutput();
   }
 }
@@ -37,8 +32,7 @@ export async function stopOutput(): Promise<void> {
 }
 
 export async function startOutput(): Promise<void> {
-  await checkHealth(config.EXECUTOR_URI + '/health');
-
+  await initORM();
   await runBot();
 
   // attach graceful shutdown

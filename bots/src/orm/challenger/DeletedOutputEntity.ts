@@ -1,15 +1,12 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('challenger_deleted_output')
-export default class DeletedOutputEntity {
+export default class ChallengedOutputEntity {
   @PrimaryColumn('bigint')
   outputIndex: number;
 
-  @Column('text')
-  executor: string;
-
-  @Column('text')
-  l2Id: string;
+  @Column('bigint')
+  bridgeId: string;
 
   @Column('text')
   reason: string;

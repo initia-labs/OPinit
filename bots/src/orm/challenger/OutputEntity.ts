@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('challenger_output')
-export default class ChallengerOutputEntity {
+export default class OutputEntity {
   @PrimaryColumn('int')
   outputIndex: number;
 
@@ -12,11 +12,14 @@ export default class ChallengerOutputEntity {
   stateRoot: string;
 
   @Column('text')
-  storageRoot: string;
+  merkleRoot: string;
 
   @Column('text')
   lastBlockHash: string; // last block hash of the epoch
 
   @Column('int')
-  checkpointBlockHeight: number; // start block height of the epoch
+  startBlockNumber: number; // start block height of the epoch
+
+  @Column('int')
+  endBlockNumber: number; // end block height of the epoch
 }

@@ -4,9 +4,7 @@ import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';
 import { once } from 'lodash';
-import { getConfig } from 'config';
-
-const config = getConfig();
+import { config } from 'config';
 
 let jobs: BatchSubmitter[] = [];
 
@@ -20,7 +18,7 @@ async function runBot(): Promise<void> {
       })
     );
   } catch (err) {
-    logger.error(err);
+    logger.info(err);
     stopBatch();
   }
 }

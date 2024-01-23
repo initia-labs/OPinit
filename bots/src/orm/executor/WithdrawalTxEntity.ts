@@ -2,29 +2,31 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('executor_withdrawal_tx')
 export default class WithdrawalTxEntity {
-  @PrimaryColumn('text')
-  metadata: string;
+  @PrimaryColumn('bigint')
+  bridgeId: string;
 
-  @PrimaryColumn('int')
-  sequence: number;
+  @PrimaryColumn('bigint')
+  sequence: string;
 
   @Column('text')
-  @Index('executor_tx_sender_index')
+  l1Denom: string;
+
+  @Column('text')
+  l2Denom: string;
+
+  @Column('text')
+  @Index('executor_withdrawal_tx_sender_index')
   sender: string;
 
   @Column('text')
-  @Index('executor_tx_receiver_index')
+  @Index('executor_withdrawal_tx_receiver_index')
   receiver: string;
 
   @Column('bigint')
-  amount: number;
-
-  @Column('text')
-  @Index('executor_tx_l2id_index')
-  l2Id: string;
+  amount: string;
 
   @Column('int')
-  @Index('executor_tx_output_index')
+  @Index('executor_withdrawal_tx_output_index')
   outputIndex: number;
 
   @Column('text')

@@ -12,11 +12,14 @@ export default class OutputEntity {
   stateRoot: string;
 
   @Column('text')
-  storageRoot: string;
+  merkleRoot: string;
 
   @Column('text')
   lastBlockHash: string; // last block hash of the epoch
 
   @Column('int')
-  checkpointBlockHeight: number; // start block height of the epoch
+  startBlockNumber: number; // start block height of the epoch
+
+  @Column('int')
+  endBlockNumber: number; // end block height of the epoch
 }

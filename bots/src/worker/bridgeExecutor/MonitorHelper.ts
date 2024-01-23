@@ -1,5 +1,9 @@
-import { BlockInfo } from '@initia/minitia.js';
+import { BlockInfo, Event, LCDClient, TxInfo  } from '@initia/initia.js';
+import { getLatestOutputFromExecutor, getOutputFromExecutor } from 'lib/query';
+import { WithdrawStorage } from 'lib/storage';
+import { WithdrawalTx } from 'lib/types';
 import { sha3_256 } from 'lib/util';
+import OutputEntity from 'orm/executor/OutputEntity';
 import { EntityManager, EntityTarget, ObjectLiteral } from 'typeorm';
 
 class MonitorHelper {
@@ -19,10 +23,10 @@ class MonitorHelper {
   public async getWithdrawalTxs<T extends ObjectLiteral>(
     manager: EntityManager,
     entityClass: EntityTarget<T>,
-    lastIndex: number
+    outputIndex: number
   ): Promise<T[]> {
     return await manager.getRepository(entityClass).find({
-      where: { outputIndex: lastIndex + 1 } as any
+      where: { outputIndex } as any
     });
   }
 
@@ -50,11 +54,12 @@ class MonitorHelper {
   public async getLastOutputFromDB<T extends ObjectLiteral>(
     manager: EntityManager,
     entityClass: EntityTarget<T>
-  ): Promise<T[]> {
-    return await manager.getRepository<T>(entityClass).find({
+  ): Promise<T | null> {
+    const lastOutput = await manager.getRepository<T>(entityClass).find({
       order: { outputIndex: 'DESC' } as any,
       take: 1
     });
+    return lastOutput[0] ?? null;
   }
 
   public async getLastOutputIndex<T extends ObjectLiteral>(
@@ -62,16 +67,18 @@ class MonitorHelper {
     entityClass: EntityTarget<T>
   ): Promise<number> {
     const lastOutput = await this.getLastOutputFromDB(manager, entityClass);
-    const lastIndex = lastOutput.length == 0 ? -1 : lastOutput[0].outputIndex;
+    const lastIndex = lastOutput ? lastOutput.outputIndex : 0;
     return lastIndex;
   }
 
-  public async getCheckpointBlockHeight<T extends ObjectLiteral>(
+  public async getOutputByIndex<T extends ObjectLiteral>(
     manager: EntityManager,
-    entityClass: EntityTarget<T>
-  ): Promise<number> {
-    const lastOutput = await this.getLastOutputFromDB(manager, entityClass);
-    return lastOutput.length == 0 ? 0 : lastOutput[0].checkpointBlockHeight;
+    entityClass: EntityTarget<T>,
+    outputIndex: number
+  ): Promise<T | null> {
+    return await manager.getRepository<T>(entityClass).findOne({
+      where: { outputIndex } as any
+    });
   }
 
   ///
@@ -89,17 +96,23 @@ class MonitorHelper {
   ///  UTIL
   ///
   public async fetchEvents(
-    lcd: any,
+    lcd: LCDClient,
     height: number,
     eventType: string
-  ): Promise<any[]> {
+  ): Promise<[boolean, any[]]> {
     const searchRes = await lcd.tx.search({
-      events: [{ key: 'tx.height', value: (height + 1).toString() }]
+      query: [{ key: 'tx.height', value: height.toString() }]
     });
-    return searchRes.txs
-      .flatMap((tx) => tx.logs ?? [])
-      .flatMap((log) => log.events)
-      .filter((evt) => evt.type === eventType);
+    
+    const extractEvents = (txs: TxInfo[]) =>
+      txs
+        .filter((tx: TxInfo) => tx.events && tx.events.length > 0)
+        .flatMap((tx: TxInfo) =>tx.events ?? [])
+        .filter((event: Event) => event.type === eventType)
+    const isEmpty = searchRes.txs.length === 0;
+    const events = extractEvents(searchRes.txs);
+
+    return [isEmpty, events];
   }
 
   public eventsToAttrMap(event: any): { [key: string]: string } {
@@ -123,33 +136,75 @@ class MonitorHelper {
   /// L2 HELPER
   ///
   public calculateOutputEntity(
-    lastIndex: number,
+    outputIndex: number,
     blockInfo: BlockInfo,
-    storageRoot: string,
-    checkpointBlockHeight: number
-  ) {
-    const version = lastIndex + 1;
+    merkleRoot: string,
+    startBlockNumber: number,
+    endBlockNumber: number
+  ): OutputEntity {
+    const version = outputIndex;
     const stateRoot = blockInfo.block.header.app_hash;
     const lastBlockHash = blockInfo.block_id.hash;
-
     const outputRoot = sha3_256(
       Buffer.concat([
-        Buffer.from(version.toString()),
+        sha3_256(version),
         Buffer.from(stateRoot, 'base64'),
-        Buffer.from(storageRoot, 'hex'),
+        Buffer.from(merkleRoot, 'base64'),
         Buffer.from(lastBlockHash, 'base64')
       ])
-    ).toString('hex');
+    ).toString('base64');
 
     const outputEntity = {
-      outputIndex: lastIndex + 1,
+      outputIndex,
       outputRoot,
       stateRoot,
-      storageRoot,
+      merkleRoot,
       lastBlockHash,
-      checkpointBlockHeight
+      startBlockNumber,
+      endBlockNumber
     };
+
     return outputEntity;
+  }
+
+  async saveMerkleRootAndProof<T extends ObjectLiteral>(
+    manager: EntityManager,
+    entityClass: EntityTarget<T>,
+    entities: any[] // ChallengerWithdrawalTxEntity[] or ExecutorWithdrawalTxEntity[]
+  ): Promise<string> {
+    const txs: WithdrawalTx[] = entities.map((entity) => ({
+      bridge_id: BigInt(entity.bridgeId),
+      sequence: BigInt(entity.sequence),
+      sender: entity.sender,
+      receiver: entity.receiver,
+      l1_denom: entity.l1Denom,
+      amount: BigInt(entity.amount)
+    }));
+
+    const storage = new WithdrawStorage(txs);
+    const merkleRoot = storage.getMerkleRoot();
+    for (let i = 0; i < entities.length; i++) {
+      entities[i].merkleRoot = merkleRoot;
+      entities[i].merkleProof = storage.getMerkleProof(txs[i]);
+      await this.saveEntity(manager, entityClass, entities[i]);
+    }
+    return merkleRoot;
+  }
+
+  public async getLatestOutputFromExecutor() {
+    const outputRes = await getLatestOutputFromExecutor();
+    if (!outputRes.output) {
+      throw new Error('No output from executor');
+    }
+    return outputRes.output;
+  }
+
+  public async getOutputFromExecutor(outputIndex: number) {
+    const outputRes = await getOutputFromExecutor(outputIndex);
+    if (!outputRes.output) {
+      throw new Error('No output from executor');
+    }
+    return outputRes.output;
   }
 }
 
