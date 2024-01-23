@@ -115,15 +115,12 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 		var res *sdk.Result
 		res, err = handler(cacheCtx, msg)
 		if err != nil {
-			break
+			return nil, err
 		}
 
 		events = append(events, res.GetEvents()...)
+	}
 
-	}
-	if err != nil {
-		return nil, err
-	}
 	writeCache()
 
 	// TODO - merge events of MsgExecuteMessages itself
@@ -258,7 +255,6 @@ func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
-
 }
 
 // SpendFeePool implements MsgServer interface.
