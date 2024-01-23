@@ -1,5 +1,6 @@
 import { LCDClient } from '@initia/initia.js';
 import * as dotenv from 'dotenv';
+import { toCurrencyPair } from 'worker/bridgeExecutor/Oracle';
 
 const envFile =
   process.env.NODE_ENV === 'test' || !process.env.WORKER_NAME
@@ -31,7 +32,8 @@ const {
   FINALIZATION_PERIOD,
   IBC_METADATA,
   DELETE_OUTPUT_PROPOSAL,
-  SLACK_NOT_ENOUGH_BALANCE_THRESHOLD
+  SLACK_NOT_ENOUGH_BALANCE_THRESHOLD,
+  ORACLE_PAIRS
 } = process.env;
 
 export const config = {
@@ -86,7 +88,8 @@ export const config = {
     ? DELETE_OUTPUT_PROPOSAL
     : 'false',
   SLACK_NOT_ENOUGH_BALANCE_THRESHOLD: SLACK_NOT_ENOUGH_BALANCE_THRESHOLD ?
-    parseInt(SLACK_NOT_ENOUGH_BALANCE_THRESHOLD) :  10_000_000    
+    parseInt(SLACK_NOT_ENOUGH_BALANCE_THRESHOLD) :  10_000_000,    
+  ORACLE_PAIRS: ORACLE_PAIRS ? toCurrencyPair(ORACLE_PAIRS) : undefined
 };
 
 export const INTERVAL_BATCH = 10_000;

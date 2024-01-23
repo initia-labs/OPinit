@@ -76,26 +76,19 @@ export class L2Monitor extends Monitor {
   }
 
   public async handleEvents(manager: EntityManager): Promise<boolean> {
-    const [isEmpty, withdrawalEvents] = await this.helper.fetchEvents(
+    const [isEmpty, events] = await this.helper.fetchAllEvents(
       config.l2lcd,
       this.currentHeight,
-      'initiate_token_withdrawal'
     );
+
     if (isEmpty) return false;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, depositEvents] = await this.helper.fetchEvents(
-      config.l2lcd,
-      this.currentHeight,
-      'finalize_token_deposit'
-    );
-
-    for (const evt of withdrawalEvents) {
+    for (const evt of events.filter((evt) => evt.type === 'initiate_token_withdrawal')) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleInitiateTokenWithdrawalEvent(manager, attrMap);
     }
 
-    for (const evt of depositEvents) {
+    for (const evt of events.filter((evt) => evt.type === 'finalize_token_deposit')) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleFinalizeTokenDepositEvent(manager, attrMap);
     }

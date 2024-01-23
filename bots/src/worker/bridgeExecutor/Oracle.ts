@@ -2,14 +2,14 @@ import { CurrencyPair, LCDClient, QuotePrice } from "@initia/initia.js";
 
 export async function handleOracle(
     l1lcd: LCDClient,
-    filterPairs?: CurrencyPair[],
+    oraclePairs?: CurrencyPair[],
 ): Promise<QuotePrice[]> {
     const prices: QuotePrice[] = []
     const pairs = await l1lcd.oracle.currencyPairs();
     const filteredPairs = pairs.filter(
         pair => {
-            if (!filterPairs) return true
-            return filterPairs.some(
+            if (!oraclePairs) return true
+            return oraclePairs.some(
                 filterPair => {
                     return (pair.Base == filterPair.Base && pair.Quote == filterPair.Quote)
                 }
@@ -22,6 +22,17 @@ export async function handleOracle(
     }
 
     return prices
+}
+
+export function toCurrencyPair(
+    pairs: string
+): CurrencyPair[] {
+    return pairs.split(',').map(
+        pair => {
+            const [base, quote] = pair.split('/')
+            return new CurrencyPair(base, quote)
+        }
+    )
 }
 
 async function main() {
