@@ -41,7 +41,6 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | EXECUTOR_PORT             | Executor port                                          | 5000                             |
 | EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
-| ORACLE_PAIRS              | Oracle pairs to feed L2 (`BITCOIN/USD,ETHEREUM/USD`)   | All pairs                        |
 
 - `.env.output`
 
@@ -78,7 +77,6 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | CHALLENGER_MNEMONIC       | Mnemonic seed for challenger                           | ''                               |
 | DELETE_OUTPUT_PROPOSAL    | Enable delete output proposal instantly                | ''                               |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
-| ORACLE_PAIRS              | Oracle pairs to feed L2 (`BITCOIN/USD,ETHEREUM/USD`)   | All pairs                        |
 
 
 > In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 

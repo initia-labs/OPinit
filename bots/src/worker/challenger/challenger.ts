@@ -35,7 +35,6 @@ export class Challenger {
   l1LastCheckedSequence: number;
   l1DepositSequenceToCheck: number;
   l2OutputIndexToCheck: number;
-  l1OracleHeight: number;
 
   submissionIntervalMs: number;
   missCount: number; // count of miss interval to finalize deposit tx
