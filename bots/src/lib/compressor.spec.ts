@@ -1,4 +1,4 @@
-import { compressor, decompressor } from '../lib/compressor';
+import { compress, decompress } from './compressor';
 
 describe('Test compress and decompress functions', () => {
   it('should correctly compress and decompress records', () => {
@@ -7,8 +7,8 @@ describe('Test compress and decompress functions', () => {
       Buffer.from('World').toString('base64')
     ];
 
-    const compressed = compressor(records);
-    const decompressed = decompressor(compressed);
+    const compressed = compress(records);
+    const decompressed = decompress(compressed);
     expect(decompressed).toEqual(records);
 
     const decompressedStrs = decompressed.map((buffer) => buffer.toString());
