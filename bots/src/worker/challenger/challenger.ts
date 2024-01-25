@@ -7,7 +7,7 @@ import {
   ChallengerOutputEntity,
   ChallengerWithdrawalTxEntity,
   ChallengedOutputEntity,
-  ChallengeEntity
+  ChallengeEntity,
 } from 'orm';
 import { delay } from 'bluebird';
 import { challengerLogger as logger } from 'lib/logger';
@@ -30,9 +30,13 @@ export class Challenger {
   private db: DataSource;
   bridgeId: number;
   bridgeInfo: BridgeInfo;
+
+  // members for challenge
   l1LastCheckedSequence: number;
   l1DepositSequenceToCheck: number;
   l2OutputIndexToCheck: number;
+  l1OracleHeight: number;
+
   submissionIntervalMs: number;
   missCount: number; // count of miss interval to finalize deposit tx
   threshold: number; // threshold of miss interval to finalize deposit tx
@@ -52,6 +56,11 @@ export class Challenger {
 
   public name(): string {
     return 'challenge';
+  }
+
+  public stop(): void {
+    this.isRunning = false;
+    process.exit();
   }
 
   async init(): Promise<void> {
@@ -97,7 +106,7 @@ export class Challenger {
     }
   }
 
-  public async challengeDepositTx(manager: EntityManager) {
+  async challengeDepositTx(manager: EntityManager) {
     if (this.l1LastCheckedSequence == this.l1DepositSequenceToCheck) {
       // get next sequence from db with smallest sequence but bigger than last challenged sequence
       const nextDepositSequenceToCheck = await manager
@@ -182,11 +191,6 @@ export class Challenger {
         l1LastCheckedSequence: this.l1LastCheckedSequence
       }
     );
-  }
-
-  public stop(): void {
-    this.isRunning = false;
-    process.exit();
   }
 
   async getChallengerOutputRoot(

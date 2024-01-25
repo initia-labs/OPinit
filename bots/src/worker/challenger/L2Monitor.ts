@@ -38,7 +38,9 @@ export class L2Monitor extends Monitor {
       manager,
       ChallengerOutputEntity
     );
+    
     if (!outputInfo) return;
+    
     const pair = await config.l1lcd.ophost.tokenPairByL2Denom(
       this.bridgeId,
       data['denom']

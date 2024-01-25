@@ -5,8 +5,6 @@ import ExecutorWithdrawalTxEntity from './executor/WithdrawalTxEntity';
 import ExecutorDepositTxEntity from './executor/DepositTxEntity';
 import ExecutorOutputEntity from './executor/OutputEntity';
 import ExecutorUnconfirmedTxEntity from './executor/UnconfirmedTxEntity';
-import ExecutorOracleEntity from './executor/OracleEntity';
-
 
 import ChallengerDepositTxEntity from './challenger/DepositTxEntity';
 import ChallengerWithdrawalTxEntity from './challenger/WithdrawalTxEntity';
@@ -15,7 +13,6 @@ import ChallengerFinalizeWithdrawalTxEntity from './challenger/FinalizeWithdrawa
 import ChallengerOutputEntity from './challenger/OutputEntity';
 import ChallengedOutputEntity from './challenger/DeletedOutputEntity';
 import ChallengeEntity from './challenger/ChallengeEntity';
-import ChallengerOracleEntity from './challenger/OracleEntity';
 
 export * from './RecordEntity';
 export * from './StateEntity';
@@ -24,7 +21,6 @@ export * from './executor/OutputEntity';
 export * from './executor/DepositTxEntity';
 export * from './executor/WithdrawalTxEntity';
 export * from './executor/UnconfirmedTxEntity';
-export * from './executor/OracleEntity';
 
 export * from './challenger/DepositTxEntity';
 export * from './challenger/WithdrawalTxEntity';
@@ -33,9 +29,6 @@ export * from './challenger/FinalizeWithdrawalTxEntity';
 export * from './challenger/OutputEntity';
 export * from './challenger/DeletedOutputEntity';
 export * from './challenger/ChallengeEntity';
-export * from './challenger/OracleEntity';
-
-
 
 export {
   RecordEntity,
@@ -44,7 +37,6 @@ export {
   ExecutorDepositTxEntity,
   ExecutorOutputEntity,
   ExecutorUnconfirmedTxEntity,
-  ExecutorOracleEntity,
 
   ChallengerWithdrawalTxEntity,
   ChallengerDepositTxEntity,
@@ -53,5 +45,4 @@ export {
   ChallengerFinalizeWithdrawalTxEntity,
   ChallengedOutputEntity,
   ChallengeEntity,
-  ChallengerOracleEntity
 };

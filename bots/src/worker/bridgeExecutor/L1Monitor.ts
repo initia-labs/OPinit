@@ -4,7 +4,6 @@ import {
   ExecutorDepositTxEntity,
   ExecutorUnconfirmedTxEntity,
   ExecutorOutputEntity,
-  ExecutorOracleEntity
 } from 'orm';
 import { EntityManager } from 'typeorm';
 import { RPCClient, RPCSocket } from 'lib/rpc';
@@ -12,7 +11,6 @@ import { getDB } from './db';
 import winston from 'winston';
 import { config } from 'config';
 import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
-import { handleOracle } from './Oracle';
 
 export class L1Monitor extends Monitor {
   executor: TxWallet;
@@ -30,27 +28,6 @@ export class L1Monitor extends Monitor {
 
   public name(): string {
     return 'executor_l1_monitor';
-  }
-
-  public async handleOracleEvent(
-    manager: EntityManager,
-    data: { [key: string]: string }
-  ): Promise<any> {
-    // do something awesome
-
-    const prices = await handleOracle(config.l1lcd, config.ORACLE_PAIRS)
-    
-    const entity: ExecutorOracleEntity = {
-      blockHeight: this.currentHeight,
-      blockTimestamp: new Date(data['blocktimestamp']), 
-      price: data['price'],
-      pair: data['pair']
-    }
-    
-    return [
-      entity,
-      // somethis awesome msg
-    ]
   }
 
   public async handleInitiateTokenDeposit(
@@ -99,7 +76,6 @@ export class L1Monitor extends Monitor {
 
     const msgs: Msg[] = [];
     const depositEntities: ExecutorDepositTxEntity[] = [];
-    const oracleEntites: ExecutorOracleEntity[] = [];
 
     for (const evt of events.filter((evt) => evt.type === 'initiate_deposit')) {
       const attrMap = this.helper.eventsToAttrMap(evt);
@@ -113,15 +89,7 @@ export class L1Monitor extends Monitor {
       if (msg) msgs.push(msg);
     }
 
-    for (const evt of events.filter((evt) => evt.type === 'oracle_event')) {
-      const attrMap = this.helper.eventsToAttrMap(evt);
-      const [entity, msg] = await this.handleOracleEvent(manager, attrMap);
-
-      oracleEntites.push(entity);
-      if (msg) msgs.push(msg);
-    }
-
-    await this.processMsgs(manager, msgs, depositEntities, oracleEntites);
+    await this.processMsgs(manager, msgs, depositEntities);
     return true;
   }
 
@@ -129,17 +97,12 @@ export class L1Monitor extends Monitor {
     manager: EntityManager,
     msgs: Msg[],
     depositEntities: ExecutorDepositTxEntity[],
-    oracleEntites: ExecutorOracleEntity[]
   ): Promise<void> {
     if (msgs.length == 0) return;
     const stringfyMsgs = msgs.map((msg) => msg.toJSON().toString());
     try {
       for (const entity of depositEntities) {
         await this.helper.saveEntity(manager, ExecutorDepositTxEntity, entity);
-      }
-
-      for (const entity of oracleEntites) {
-        await this.helper.saveEntity(manager, ExecutorOracleEntity, entity);
       }
 
       await this.executor.transaction(msgs);
