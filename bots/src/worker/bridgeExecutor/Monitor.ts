@@ -83,7 +83,7 @@ export abstract class Monitor {
                 `expected block meta is the height ${this.currentHeight}, but got ${metadata.header.height}`
               );
             }
-
+            
             if (parseInt(metadata.num_txs) === 0) {
               await this.handleBlockWithStateUpdate(manager);
               continue;

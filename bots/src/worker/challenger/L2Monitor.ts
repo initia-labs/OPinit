@@ -85,12 +85,15 @@ export class L2Monitor extends Monitor {
 
     if (isEmpty) return false;
 
-    for (const evt of events.filter((evt) => evt.type === 'initiate_token_withdrawal')) {
+    
+    const withdrawalEvents = events.filter((evt) => evt.type === 'initiate_token_withdrawal')
+    for (const evt of withdrawalEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleInitiateTokenWithdrawalEvent(manager, attrMap);
     }
 
-    for (const evt of events.filter((evt) => evt.type === 'finalize_token_deposit')) {
+    const finalizeEvents = events.filter((evt) => evt.type === 'finalize_token_deposit')
+    for (const evt of finalizeEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleFinalizeTokenDepositEvent(manager, attrMap);
     }

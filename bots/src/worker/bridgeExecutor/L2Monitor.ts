@@ -74,13 +74,13 @@ export class L2Monitor extends Monitor {
   }
 
   public async handleEvents(manager: EntityManager): Promise<boolean> {
-    const [isEmpty, withdrawalEvents] = await this.helper.fetchEvents(
+    const [isEmpty, events] = await this.helper.fetchAllEvents(
       config.l2lcd,
-      this.currentHeight,
-      'initiate_token_withdrawal'
+      this.currentHeight
     );
     if (isEmpty) return false;
-
+    
+    const withdrawalEvents = events.filter((evt) => evt.type === 'initiate_token_withdrawal')
     for (const evt of withdrawalEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleInitiateTokenWithdrawalEvent(manager, attrMap);

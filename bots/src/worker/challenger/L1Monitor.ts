@@ -64,16 +64,18 @@ export class L1Monitor extends Monitor {
       config.l1lcd,
       this.currentHeight,
     );
-
+    
     if (isEmpty) return false;
-
-    for (const evt of events.filter((evt) => evt.type === 'initiate_token_deposit')) {
+    
+    const depositEvents = events.filter((evt) => evt.type === 'initiate_token_deposit')
+    for (const evt of depositEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
       await this.handleInitiateTokenDeposit(manager, attrMap);
     }
 
-    for (const evt of events.filter((evt) => evt.type === 'finalize_token_withdrawal')) {
+    const finalizeEvents = events.filter((evt) => evt.type === 'finalize_token_withdrawal')
+    for (const evt of finalizeEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
       await this.handleFinalizeTokenWithdrawalEvent(manager, attrMap);

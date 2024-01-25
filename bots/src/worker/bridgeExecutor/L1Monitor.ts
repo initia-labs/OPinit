@@ -76,8 +76,9 @@ export class L1Monitor extends Monitor {
 
     const msgs: Msg[] = [];
     const depositEntities: ExecutorDepositTxEntity[] = [];
-
-    for (const evt of events.filter((evt) => evt.type === 'initiate_deposit')) {
+    
+    const depositEvents = events.filter((evt) => evt.type === 'initiate_token_deposit')
+    for (const evt of depositEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
       const [entity, msg] = await this.handleInitiateTokenDeposit(
