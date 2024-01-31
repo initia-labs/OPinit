@@ -30,6 +30,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 ## Configuration
 
 - `.env.executor`
+
 | Name                      | Description                                            | Default                          |
 | ------------------------- | ------------------------------------------------------ | -------------------------------- |
 | L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
@@ -42,6 +43,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 - `.env.output`
+
 | Name                      | Description                                            | Default                          |
 | ------------------------- | ------------------------------------------------------ | -------------------------------- |
 | L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
@@ -51,6 +53,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 - `.env.batch`
+
 | Name                      | Description                                            | Default                          |
 | ------------------------- | ------------------------------------------------------ | -------------------------------- |
 | L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
@@ -63,6 +66,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 - `.env.challenger`
+
 | Name                      | Description                                            | Default                          |
 | ------------------------- | ------------------------------------------------------ | -------------------------------- |
 | L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
