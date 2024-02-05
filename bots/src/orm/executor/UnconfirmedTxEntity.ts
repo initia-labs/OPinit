@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-@Entity('executor_failed_tx')
-export default class FailedTxEntity {
+@Entity('executor_unconfirmed_tx')
+export default class UnconfirmedTxEntity {
   @PrimaryColumn('bigint')
   bridgeId: string;
 
@@ -9,15 +9,15 @@ export default class FailedTxEntity {
   sequence: string;
 
   @Column('text')
-  @Index('executor_failed_deposit_tx_sender_index')
+  @Index('executor_unconfirmed_deposit_tx_sender_index')
   sender: string;
 
   @Column('text')
-  @Index('executor_failed_deposit_tx_receiver_index')
+  @Index('executor_unconfirmed_deposit_tx_receiver_index')
   receiver: string;
 
   @Column('int')
-  @Index('executor_failed_deposit_tx_output_index')
+  @Index('executor_unconfirmed_deposit_tx_output_index')
   outputIndex: number;
 
   @Column('bigint')

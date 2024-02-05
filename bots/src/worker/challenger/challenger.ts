@@ -7,7 +7,7 @@ import {
   ChallengerOutputEntity,
   ChallengerWithdrawalTxEntity,
   ChallengedOutputEntity,
-  ChallengeEntity
+  ChallengeEntity,
 } from 'orm';
 import { delay } from 'bluebird';
 import { challengerLogger as logger } from 'lib/logger';
@@ -30,9 +30,12 @@ export class Challenger {
   private db: DataSource;
   bridgeId: number;
   bridgeInfo: BridgeInfo;
+
+  // members for challenge
   l1LastCheckedSequence: number;
   l1DepositSequenceToCheck: number;
   l2OutputIndexToCheck: number;
+
   submissionIntervalMs: number;
   missCount: number; // count of miss interval to finalize deposit tx
   threshold: number; // threshold of miss interval to finalize deposit tx
@@ -52,6 +55,11 @@ export class Challenger {
 
   public name(): string {
     return 'challenge';
+  }
+
+  public stop(): void {
+    this.isRunning = false;
+    process.exit();
   }
 
   async init(): Promise<void> {
@@ -85,8 +93,8 @@ export class Challenger {
     while (this.isRunning) {
       try {
         await this.db.transaction(async (manager: EntityManager) => {
-          await this.l1Challenge(manager);
-          await this.l2Challenge(manager);
+          await this.challengeDepositTx(manager);
+          await this.challengeOutputRoot(manager);
         });
       } catch (err) {
         this.stop();
@@ -97,7 +105,7 @@ export class Challenger {
     }
   }
 
-  public async l1Challenge(manager: EntityManager) {
+  async challengeDepositTx(manager: EntityManager) {
     if (this.l1LastCheckedSequence == this.l1DepositSequenceToCheck) {
       // get next sequence from db with smallest sequence but bigger than last challenged sequence
       const nextDepositSequenceToCheck = await manager
@@ -184,11 +192,6 @@ export class Challenger {
     );
   }
 
-  public stop(): void {
-    this.isRunning = false;
-    process.exit();
-  }
-
   async getChallengerOutputRoot(
     manager: EntityManager,
     outputIndex: number
@@ -242,7 +245,7 @@ export class Challenger {
     }
   }
 
-  public async l2Challenge(manager: EntityManager) {
+  async challengeOutputRoot(manager: EntityManager) {
     // condition 1. ouptut should be submitted
     const outputInfoToChallenge = await getOutputInfoByIndex(
       this.bridgeId,
@@ -283,6 +286,7 @@ export class Challenger {
       }
     );
   }
+
 
   async deleteOutputProposal(outputIndex: number) {
     const msg = new MsgDeleteOutput(

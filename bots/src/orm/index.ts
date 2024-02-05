@@ -4,19 +4,23 @@ import StateEntity from './StateEntity';
 import ExecutorWithdrawalTxEntity from './executor/WithdrawalTxEntity';
 import ExecutorDepositTxEntity from './executor/DepositTxEntity';
 import ExecutorOutputEntity from './executor/OutputEntity';
-import ExecutorFailedTxEntity from './executor/FailedTxEntity';
+import ExecutorUnconfirmedTxEntity from './executor/UnconfirmedTxEntity';
 
 import ChallengerDepositTxEntity from './challenger/DepositTxEntity';
 import ChallengerWithdrawalTxEntity from './challenger/WithdrawalTxEntity';
 import ChallengerFinalizeDepositTxEntity from './challenger/FinalizeDepositTxEntity';
 import ChallengerFinalizeWithdrawalTxEntity from './challenger/FinalizeWithdrawalTxEntity';
-
 import ChallengerOutputEntity from './challenger/OutputEntity';
 import ChallengedOutputEntity from './challenger/DeletedOutputEntity';
 import ChallengeEntity from './challenger/ChallengeEntity';
 
 export * from './RecordEntity';
 export * from './StateEntity';
+
+export * from './executor/OutputEntity';
+export * from './executor/DepositTxEntity';
+export * from './executor/WithdrawalTxEntity';
+export * from './executor/UnconfirmedTxEntity';
 
 export * from './challenger/DepositTxEntity';
 export * from './challenger/WithdrawalTxEntity';
@@ -26,23 +30,19 @@ export * from './challenger/OutputEntity';
 export * from './challenger/DeletedOutputEntity';
 export * from './challenger/ChallengeEntity';
 
-export * from './executor/OutputEntity';
-export * from './executor/DepositTxEntity';
-export * from './executor/WithdrawalTxEntity';
-export * from './executor/FailedTxEntity';
-
 export {
   RecordEntity,
   StateEntity,
   ExecutorWithdrawalTxEntity,
   ExecutorDepositTxEntity,
   ExecutorOutputEntity,
-  ExecutorFailedTxEntity,
+  ExecutorUnconfirmedTxEntity,
+
   ChallengerWithdrawalTxEntity,
   ChallengerDepositTxEntity,
   ChallengerOutputEntity,
   ChallengerFinalizeDepositTxEntity,
   ChallengerFinalizeWithdrawalTxEntity,
   ChallengedOutputEntity,
-  ChallengeEntity
+  ChallengeEntity,
 };

@@ -16,8 +16,8 @@ import {
   ExecutorOutputEntity,
   ExecutorWithdrawalTxEntity,
   ExecutorDepositTxEntity,
-  ExecutorFailedTxEntity,
-  StateEntity
+  ExecutorUnconfirmedTxEntity,
+  StateEntity,
 } from 'orm';
 
 const staticOptions = {
@@ -27,8 +27,8 @@ const staticOptions = {
     ExecutorOutputEntity,
     ExecutorWithdrawalTxEntity,
     ExecutorDepositTxEntity,
-    ExecutorFailedTxEntity,
-    StateEntity
+    ExecutorUnconfirmedTxEntity,
+    StateEntity,
   ]
 };
 

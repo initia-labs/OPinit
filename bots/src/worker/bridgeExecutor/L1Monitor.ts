@@ -1,9 +1,9 @@
 import { Monitor } from './Monitor';
-import { Coin, Msg, MsgFinalizeTokenDeposit, Wallet } from '@initia/initia.js';
+import { Coin, Msg, MsgFinalizeTokenDeposit } from '@initia/initia.js';
 import {
   ExecutorDepositTxEntity,
-  ExecutorFailedTxEntity,
-  ExecutorOutputEntity
+  ExecutorUnconfirmedTxEntity,
+  ExecutorOutputEntity,
 } from 'orm';
 import { EntityManager } from 'typeorm';
 import { RPCClient, RPCSocket } from 'lib/rpc';
@@ -31,7 +31,6 @@ export class L1Monitor extends Monitor {
   }
 
   public async handleInitiateTokenDeposit(
-    wallet: Wallet,
     manager: EntityManager,
     data: { [key: string]: string }
   ): Promise<[ExecutorDepositTxEntity, MsgFinalizeTokenDeposit]> {
@@ -56,7 +55,7 @@ export class L1Monitor extends Monitor {
     return [
       entity,
       new MsgFinalizeTokenDeposit(
-        wallet.key.accAddress,
+        this.executor.key.accAddress,
         data['from'],
         data['to'],
         new Coin(data['l2_denom'], data['amount']),
@@ -68,45 +67,45 @@ export class L1Monitor extends Monitor {
   }
 
   public async handleEvents(manager: EntityManager): Promise<any> {
-    const [isEmpty, depositEvents] = await this.helper.fetchEvents(
+    const [isEmpty, events] = await this.helper.fetchAllEvents(
       config.l1lcd,
       this.currentHeight,
-      'initiate_token_deposit'
     );
 
     if (isEmpty) return false;
 
     const msgs: Msg[] = [];
-    const entities: ExecutorDepositTxEntity[] = [];
-
+    const depositEntities: ExecutorDepositTxEntity[] = [];
+    
+    const depositEvents = events.filter((evt) => evt.type === 'initiate_token_deposit')
     for (const evt of depositEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
       const [entity, msg] = await this.handleInitiateTokenDeposit(
-        this.executor,
         manager,
         attrMap
       );
 
-      entities.push(entity);
+      depositEntities.push(entity);
       if (msg) msgs.push(msg);
     }
 
-    await this.processMsgs(manager, msgs, entities);
+    await this.processMsgs(manager, msgs, depositEntities);
     return true;
   }
 
   async processMsgs(
     manager: EntityManager,
     msgs: Msg[],
-    entities: ExecutorDepositTxEntity[]
+    depositEntities: ExecutorDepositTxEntity[],
   ): Promise<void> {
     if (msgs.length == 0) return;
     const stringfyMsgs = msgs.map((msg) => msg.toJSON().toString());
     try {
-      for (const entity of entities) {
+      for (const entity of depositEntities) {
         await this.helper.saveEntity(manager, ExecutorDepositTxEntity, entity);
       }
+
       await this.executor.transaction(msgs);
       this.logger.info(
         `Succeeded to submit tx in height: ${this.currentHeight} ${stringfyMsgs}`
@@ -119,9 +118,8 @@ export class L1Monitor extends Monitor {
         `Failed to submit tx in height: ${this.currentHeight}\nMsg: ${stringfyMsgs}\nError: ${errMsg}`
       );
 
-      // Save all entities in a single batch operation, if possible
-      for (const entity of entities) {
-        await this.helper.saveEntity(manager, ExecutorFailedTxEntity, {
+      for (const entity of depositEntities) {
+        await this.helper.saveEntity(manager, ExecutorUnconfirmedTxEntity, {
           ...entity,
           error: errMsg,
           processed: false

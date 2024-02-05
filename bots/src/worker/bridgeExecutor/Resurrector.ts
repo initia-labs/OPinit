@@ -1,5 +1,5 @@
 import { getDB } from './db';
-import FailedTxEntity from 'orm/executor/FailedTxEntity';
+import UnconfirmedTxEntity from 'orm/executor/UnconfirmedTxEntity';
 import { Coin, MsgFinalizeTokenDeposit } from '@initia/initia.js';
 import { INTERVAL_MONITOR, config } from 'config';
 import { DataSource } from 'typeorm';
@@ -20,46 +20,46 @@ export class Resurrector {
     this.executor = getWallet(WalletType.Executor);
   }
 
-  async updateProcessed(failedTx: FailedTxEntity): Promise<void> {
-    await this.db.getRepository(FailedTxEntity).update(
+  async updateProcessed(unconfirmedTx: UnconfirmedTxEntity): Promise<void> {
+    await this.db.getRepository(UnconfirmedTxEntity).update(
       {
-        bridgeId: failedTx.bridgeId,
-        sequence: failedTx.sequence,
+        bridgeId: unconfirmedTx.bridgeId,
+        sequence: unconfirmedTx.sequence,
         processed: false
       },
       { processed: true }
     );
 
     this.logger.info(
-      `Resurrected failed tx: ${failedTx.bridgeId} ${failedTx.sequence}`
+      `Resurrected failed tx: ${unconfirmedTx.bridgeId} ${unconfirmedTx.sequence}`
     );
   }
 
-  async resubmitFailedDepositTx(failedTx: FailedTxEntity): Promise<void> {
+  async resubmitFailedDepositTx(unconfirmedTx: UnconfirmedTxEntity): Promise<void> {
     const msg = new MsgFinalizeTokenDeposit(
       this.executor.key.accAddress,
-      failedTx.sender,
-      failedTx.receiver,
-      new Coin(failedTx.l2Denom, failedTx.amount),
-      parseInt(failedTx.sequence),
-      failedTx.l1Height,
-      Buffer.from(failedTx.data, 'hex').toString('base64')
+      unconfirmedTx.sender,
+      unconfirmedTx.receiver,
+      new Coin(unconfirmedTx.l2Denom, unconfirmedTx.amount),
+      parseInt(unconfirmedTx.sequence),
+      unconfirmedTx.l1Height,
+      Buffer.from(unconfirmedTx.data, 'hex').toString('base64')
     );
     try {
       await this.executor.transaction([msg]);
-      await this.updateProcessed(failedTx);
+      await this.updateProcessed(unconfirmedTx);
     } catch (err) {
       if (this.errorCounter++ < 20) {
         await Bluebird.delay(5 * 1000);
         return;
       }
       this.errorCounter = 0;
-      await notifySlack(buildFailedTxNotification(failedTx));
+      await notifySlack(buildFailedTxNotification(unconfirmedTx));
     }
   }
 
-  async getFailedTxs(): Promise<FailedTxEntity[]> {
-    return await this.db.getRepository(FailedTxEntity).find({
+  async getunconfirmedTxs(): Promise<UnconfirmedTxEntity[]> {
+    return await this.db.getRepository(UnconfirmedTxEntity).find({
       where: {
         processed: false
       }
@@ -67,17 +67,17 @@ export class Resurrector {
   }
 
   public async ressurect(): Promise<void> {
-    const failedTxs = await this.getFailedTxs();
+    const unconfirmedTxs = await this.getunconfirmedTxs();
 
-    for (const failedTx of failedTxs) {
-      const error = failedTx.error;
+    for (const unconfirmedTx of unconfirmedTxs) {
+      const error = unconfirmedTx.error;
 
       // Check x/opchild/errors.go
       if (error.includes('deposit already finalized')) {
-        await this.updateProcessed(failedTx);
+        await this.updateProcessed(unconfirmedTx);
         continue;
       }
-      await this.resubmitFailedDepositTx(failedTx);
+      await this.resubmitFailedDepositTx(unconfirmedTx);
     }
   }
 

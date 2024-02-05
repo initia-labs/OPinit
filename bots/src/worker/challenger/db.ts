@@ -18,7 +18,7 @@ import {
   ChallengedOutputEntity,
   ChallengerFinalizeDepositTxEntity,
   ChallengerFinalizeWithdrawalTxEntity,
-  ChallengeEntity
+  ChallengeEntity,
 } from 'orm';
 
 const staticOptions = {
@@ -32,7 +32,7 @@ const staticOptions = {
     ChallengerDepositTxEntity,
     ChallengerOutputEntity,
     ChallengedOutputEntity,
-    ChallengeEntity
+    ChallengeEntity,
   ]
 };
 

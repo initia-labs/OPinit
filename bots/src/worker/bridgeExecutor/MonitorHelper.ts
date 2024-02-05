@@ -115,6 +115,24 @@ class MonitorHelper {
     return [isEmpty, events];
   }
 
+  public async fetchAllEvents(
+    lcd: LCDClient,
+    height: number,
+  ): Promise<[boolean, any[]]> {
+    const searchRes = await lcd.tx.search({
+      query: [{ key: 'tx.height', value: height.toString() }]
+    });
+    
+    const extractAllEvents = (txs: TxInfo[]) =>
+      txs
+        .filter((tx: TxInfo) => tx.events && tx.events.length > 0)
+        .flatMap((tx: TxInfo) =>tx.events ?? [])
+    const isEmpty = searchRes.txs.length === 0;
+    const events = extractAllEvents(searchRes.txs);
+
+    return [isEmpty, events];
+  }
+
   public eventsToAttrMap(event: any): { [key: string]: string } {
     return event.attributes.reduce((obj, attr) => {
       obj[attr.key] = attr.value;
