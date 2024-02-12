@@ -99,7 +99,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				{
 					"challenger": "bech32-address",
 					"proposer": "bech32-addresss",
-					"submissionIntervan": "duration",
+					"submissionInterval": "duration",
 					"finalizationPeriod": "duration",
 					"submissionStartTime" : "rfc3339-datetime",
 					"metadata": "channel-id"
