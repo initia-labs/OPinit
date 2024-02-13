@@ -139,7 +139,6 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			fmt.Println("SIBONG", origConfig)
 			config := types.BridgeConfig{
 				Challenger:          origConfig.Challenger,
 				Proposer:            origConfig.Proposer,
