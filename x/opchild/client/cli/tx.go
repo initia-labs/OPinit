@@ -39,8 +39,8 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 // NewDepositCmd returns a CLI command handler for the transaction sending a deposit to an user account.
 func NewDepositCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit [sequence] [from_l1] [to_l2] [amount]",
-		Args:  cobra.ExactArgs(4),
+		Use:   "deposit [sequence] [from_l1] [to_l2] [amount] [base_denom]",
+		Args:  cobra.ExactArgs(5),
 		Short: "send a deposit to an user account",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -72,12 +72,18 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			baseDenom := args[4]
+
 			hookMsg, err := cmd.Flags().GetString(FlagHookMsg)
 			if err != nil {
 				return err
 			}
 
-			txf, msg, err := newBuildDepositMsg(clientCtx, ac, txf, cmd.Flags(), sequence, from, to, amount, []byte(hookMsg))
+			txf, msg, err := newBuildDepositMsg(
+				clientCtx, ac, txf, cmd.Flags(),
+				sequence, from, to, amount, baseDenom,
+				[]byte(hookMsg),
+			)
 			if err != nil {
 				return err
 			}
@@ -217,8 +223,16 @@ func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Fact
 	return txf, msg, nil
 }
 
-func newBuildDepositMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, fs *flag.FlagSet,
-	sequence uint64, from, to sdk.AccAddress, amount sdk.Coin, hookMsg []byte,
+func newBuildDepositMsg(
+	clientCtx client.Context,
+	ac address.Codec,
+	txf tx.Factory,
+	fs *flag.FlagSet,
+	sequence uint64,
+	from, to sdk.AccAddress,
+	amount sdk.Coin,
+	baseDenom string,
+	hookMsg []byte,
 ) (tx.Factory, *types.MsgFinalizeTokenDeposit, error) {
 	sender := clientCtx.GetFromAddress()
 	senderAddr, err := ac.BytesToString(sender)
@@ -236,7 +250,7 @@ func newBuildDepositMsg(clientCtx client.Context, ac address.Codec, txf tx.Facto
 		return txf, nil, err
 	}
 
-	msg := types.NewMsgFinalizeTokenDeposit(senderAddr, fromAddr, toAddr, amount, sequence, hookMsg)
+	msg := types.NewMsgFinalizeTokenDeposit(senderAddr, fromAddr, toAddr, amount, sequence, baseDenom, hookMsg)
 	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}

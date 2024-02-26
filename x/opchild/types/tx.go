@@ -198,15 +198,17 @@ func NewMsgFinalizeTokenDeposit(
 	sender, from, to string,
 	amount sdk.Coin,
 	sequence uint64,
+	baseDenom string,
 	data []byte,
 ) *MsgFinalizeTokenDeposit {
 	return &MsgFinalizeTokenDeposit{
-		Sender:   sender,
-		From:     from,
-		To:       to,
-		Amount:   amount,
-		Sequence: sequence,
-		Data:     data,
+		Sender:    sender,
+		From:      from,
+		To:        to,
+		Amount:    amount,
+		Sequence:  sequence,
+		BaseDenom: baseDenom,
+		Data:      data,
 	}
 }
 
