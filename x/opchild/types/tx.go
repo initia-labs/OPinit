@@ -228,6 +228,10 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 		return ErrInvalidAmount
 	}
 
+	if err := sdk.ValidateDenom(msg.BaseDenom); err != nil {
+		return err
+	}
+
 	if msg.Sequence == 0 {
 		return ErrInvalidSequence
 	}

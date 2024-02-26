@@ -97,8 +97,11 @@ message MsgFinalizeTokenDeposit {
   // height is the height of l1 which is including the deposit message
   uint64 height = 6;
 
+  // base_denom is the l1 denomination of the sent coin.
+  string base_denom = 7;
+
   /// data is a extra bytes for hooks.
-  bytes data = 7 [(gogoproto.nullable) = true, (amino.dont_omitempty) = true];
+  bytes data = 8 [(gogoproto.nullable) = true, (amino.dont_omitempty) = true];
 }
 
 // MsgFinalizeTokenDepositResponse returns deposit result data

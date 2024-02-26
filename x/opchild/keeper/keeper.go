@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -112,4 +113,23 @@ func (k Keeper) Logger(ctx context.Context) log.Logger {
 // Router returns the gov keeper's router
 func (keeper Keeper) Router() *baseapp.MsgServiceRouter {
 	return keeper.router
+}
+
+// setDenomMetadata sets an OPinit token's denomination metadata
+func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
+	metadata := banktypes.Metadata{
+		Base:        denom,
+		Display:     baseDenom,
+		Symbol:      baseDenom,
+		Name:        fmt.Sprintf("%s OPinit token", baseDenom),
+		Description: fmt.Sprintf("OPinit token of %s", baseDenom),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    baseDenom,
+				Exponent: 0,
+			},
+		},
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }
