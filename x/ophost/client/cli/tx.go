@@ -102,7 +102,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 					"submission_interval": "duration",
 					"finalization_period": "duration",
 					"submission_start_time" : "rfc3339-datetime",
-					"metadata": "channel-id,channel-id"
+					"metadata": "{\"perm_channels\":[{\"port_id\":\"transfer\", \"channel_id\":\"channel-0\"}, {\"port_id\":\"icqhost\", \"channel_id\":\"channel-1\"}]}"
 				}`, version.AppName,
 			),
 		),
