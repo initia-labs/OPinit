@@ -99,10 +99,10 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				{
 					"challenger": "bech32-address",
 					"proposer": "bech32-addresss",
-					"submissionInterval": "duration",
-					"finalizationPeriod": "duration",
-					"submissionStartTime" : "rfc3339-datetime",
-					"metadata": "channel-id"
+					"submission_interval": "duration",
+					"finalization_period": "duration",
+					"submission_start_time" : "rfc3339-datetime",
+					"metadata": "channel-id,channel-id"
 				}`, version.AppName,
 			),
 		),
@@ -139,7 +139,6 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			fmt.Println("SIBONG", origConfig)
 			config := types.BridgeConfig{
 				Challenger:          origConfig.Challenger,
 				Proposer:            origConfig.Proposer,
