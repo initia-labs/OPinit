@@ -22,7 +22,7 @@ type BridgeConfig struct {
 
 // MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list
 //
-// NOTE: it is a modified MsgFinalizeTokenWithdrawal from x/ophost/types/txpb.go to make unmarshal easier
+// NOTE: it is a modified MsgFinalizeTokenWithdrawal from x/ophost/types/tx.pb.go to make unmarshal easier
 type MsgFinalizeTokenWithdrawal struct {
 	BridgeId         uint64   `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
 	OutputIndex      uint64   `protobuf:"varint,3,opt,name=output_index,json=outputIndex,proto3" json:"output_index,omitempty" yaml:"output_index"`
