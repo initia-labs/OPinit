@@ -9,7 +9,13 @@ Initia Optimistic Rollup Bots.
 
 ## How to use
 
-## Create Bridge
+### Prerequisites
+
+- Postgres 14+
+- Node.js 16+
+- Node LCD/RPC (L1 and L2)
+
+### Step1. Create Bridge
 
 Before running rollup bots, you should create bridge between L1 and L2. If you use `initia.js`, you can create bridge using `MsgCreateBridge` message as follows.
 
@@ -27,7 +33,12 @@ const bridgeConfig = new BridgeConfig(
 const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 ```
 
-## Configuration
+### Step2. Configuration 
+
+You should set `.env` file for each bot in `bots/worker`. To transfer assets between L1 and L2, you should run `executor` and `output submitter` at least.
+
+> In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
+For example, if you want to set `.env` for `executor`, you should name it as `.env.executor` and set `WORKER_NAME=executor` in local environment. `.env` files should be located in `OPinit/bots` directory.
 
 - `.env.executor`
 
@@ -50,6 +61,7 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
 | BRIDGE_ID                 | Bridge ID                                              | ''                               |
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter                     | ''                               |
+| EXECUTOR_URI              | Executor URI                                           | <http://localhost:5000>          |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 - `.env.batch`
@@ -79,57 +91,54 @@ const msg = new MsgCreateBridge(executor.key.accAddress, bridgeConfig);
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
 
 
-> In OPinit bots, we use [.dotenv](https://www.npmjs.com/package/dotenv) for managing environment variable for development. If you want to set `.env` by worker, you should name it as `.env.{WORKER_NAME}` and set `WORKER_NAME` in [`executor`, `output`, `batch`, `challenger`]. 
-For example, if you want to set `.env` for `executor`, you should name it as `.env.executor` and set `WORKER_NAME=executor` in local environment.
+### Step3. Run Bots
 
-## Bridge Executor
+- Install dependencies
+    ```bash
+    npm install
+    ```
+
+- Bridge Executor
 
 Bridge executor is a bot that monitor L1, L2 node and execute bridge transaction. It will execute following steps.
 
-1. Set bridge executor mnemonic on `.env`.
-    ```bash
-    export EXECUTOR_MNEMONIC="..."
-    ```
+1. Configure `.env.executor` file
 2. Run executor bot
     ```bash
     npm run executor
     ```
 
-## Batch Submitter
-
-Batch submitter is a background process that submits transaction batches to the BatchInbox module of L1.
-
-1. Set batch submitter mnemonic on `.env`.
-    ```bash
-    export BATCH_SUBMITTER_MNEMONIC="..."
-    ```
-2. Run batch submitter bot
-    ```bash
-    npm run batch
-    ```
-
-## Output Submitter
+- Output Submitter
 
 Output submitter is the component to store the L2 output root for block finalization.
 Output submitter will get the L2 output results from executor and submit it to L1.
 
-1. Set output submitter mnemonic on `.env`.
-    ```bash
-    export OUTPUT_SUBMITTER_MNEMONIC="..."
-    ```
+> Before running output submitter, you should set `executor` first. It will get the L2 output results from `executor` and submit it to L1.
+
+1. Configure `.env.output` file
 2. Run output submitter bot
     ```bash
     npm run output
     ```
 
-## Challenger
+- Batch Submitter
+
+Batch submitter is a background process that submits transaction batches to the BatchInbox module of L1.
+
+1. Configure `.env.batch` file
+2. Run batch submitter bot
+    ```bash
+    npm run batch
+    ```
+
+- Challenger
 
 Challenger is an entity capable of deleting invalid output proposals from the output oracle.
 
-1. Set challenger mnemonic on `.env`.
-    ```bash
-    export CHALLENGER_MNEMONIC="..."
-    ```
+> **NOTE**
+> `challenger` should be independent from `executor` and `output submitter`. It will monitor the output oracle and delete invalid output proposals.
+
+1. Configure `.env.challenger` file
 2. Run challenger bot
     ```bash
     npm run challenger
