@@ -1,4 +1,5 @@
 import { LCDClient } from '@initia/initia.js';
+import { validateCelestiaConfig } from 'celestia/utils';
 import * as dotenv from 'dotenv';
 
 const envFile =
@@ -16,6 +17,12 @@ const {
   L1_RPC_URI,
   L2_LCD_URI,
   L2_RPC_URI,
+  CELESTIA_RPC_URI,
+  CELESTIA_LIGHT_NODE_RPC_URI,
+  CELESTIA_TOKEN_AUTH,
+  CELESTIA_NAMESPACE_ID,
+  CELESTIA_GAS_PRICE,
+  PUBLISH_BATCH_TARGET,
   EXECUTOR_URI,
   BRIDGE_ID,
   OUTPUT_SUBMITTER_MNEMONIC,
@@ -31,8 +38,10 @@ const {
   FINALIZATION_PERIOD,
   IBC_METADATA,
   DELETE_OUTPUT_PROPOSAL,
-  SLACK_NOT_ENOUGH_BALANCE_THRESHOLD,
+  SLACK_NOT_ENOUGH_BALANCE_THRESHOLD
 } = process.env;
+
+const supportedPublishBatchTargets = ['l1', 'celestia'];
 
 export const config = {
   EXECUTOR_PORT: EXECUTOR_PORT ? parseInt(EXECUTOR_PORT) : 5000,
@@ -41,6 +50,23 @@ export const config = {
   L1_RPC_URI: L1_RPC_URI ? L1_RPC_URI.split(',') : ['http://localhost:26657'],
   L2_LCD_URI: L2_LCD_URI ? L2_LCD_URI.split(',') : ['http://localhost:1317'],
   L2_RPC_URI: L2_RPC_URI ? L2_RPC_URI.split(',') : ['http://localhost:26657'],
+  CELESTIA_RPC_URI: CELESTIA_RPC_URI || 'http://localhost:26658',
+  CELESTIA_LIGHT_NODE_RPC_URI:
+    CELESTIA_LIGHT_NODE_RPC_URI || 'http://localhost:26658',
+  CELESTIA_TOKEN_AUTH: CELESTIA_TOKEN_AUTH,
+  CELESTIA_NAMESPACE_ID: CELESTIA_NAMESPACE_ID || '',
+  CELESTIA_GAS_PRICE: Number(CELESTIA_GAS_PRICE) || 0.01,
+  PUBLISH_BATCH_TARGET: (() => {
+    const target = supportedPublishBatchTargets.find(
+      (target) => target === PUBLISH_BATCH_TARGET?.toLocaleLowerCase()
+    );
+    if (target === undefined) {
+      throw Error(
+        `A valid PUBLISH_BATCH_TARGET is required. Please specify one of the following: ${supportedPublishBatchTargets}`
+      );
+    }
+    return target;
+  })(),
   EXECUTOR_URI: EXECUTOR_URI || 'http://localhost:5000',
   BRIDGE_ID: BRIDGE_ID ? parseInt(BRIDGE_ID) : 1,
   OUTPUT_SUBMITTER_MNEMONIC: OUTPUT_SUBMITTER_MNEMONIC
@@ -85,10 +111,14 @@ export const config = {
   DELETE_OUTPUT_PROPOSAL: DELETE_OUTPUT_PROPOSAL
     ? DELETE_OUTPUT_PROPOSAL
     : 'false',
-  SLACK_NOT_ENOUGH_BALANCE_THRESHOLD: SLACK_NOT_ENOUGH_BALANCE_THRESHOLD ?
-    parseInt(SLACK_NOT_ENOUGH_BALANCE_THRESHOLD) :  10_000_000,    
+  SLACK_NOT_ENOUGH_BALANCE_THRESHOLD: SLACK_NOT_ENOUGH_BALANCE_THRESHOLD
+    ? parseInt(SLACK_NOT_ENOUGH_BALANCE_THRESHOLD)
+    : 10_000_000
 };
 
-export const INTERVAL_BATCH = 10_000;
+// check celestia config
+validateCelestiaConfig();
+
+export const INTERVAL_BATCH = 100_000;
 export const INTERVAL_MONITOR = 100;
 export const INTERVAL_OUTPUT = 10_000;

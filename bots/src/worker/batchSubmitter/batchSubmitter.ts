@@ -4,12 +4,19 @@ import { batchLogger, batchLogger as logger } from 'lib/logger';
 import { BlockBulk, RPCClient } from 'lib/rpc';
 import { compress } from 'lib/compressor';
 import { ExecutorOutputEntity, RecordEntity } from 'orm';
-import { Wallet, MnemonicKey, MsgRecordBatch } from '@initia/initia.js';
+import {
+  Wallet,
+  MnemonicKey,
+  MsgRecordBatch,
+  Fee,
+  Coins
+} from '@initia/initia.js';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
 import { config } from 'config';
 import { sendTx } from 'lib/tx';
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
+import { safeSubmitPayForBlob } from 'celestia/utils';
 
 export class BatchSubmitter {
   private batchIndex = 0;
@@ -61,10 +68,18 @@ export class BatchSubmitter {
           output.startBlockNumber,
           output.endBlockNumber
         );
-        await this.publishBatchToL1(batch);
+        let batchInfo: string[];
+
+        if (config.PUBLISH_BATCH_TARGET === 'l1') {
+          batchInfo = await this.publishBatchToL1(batch);
+        } else if (config.PUBLISH_BATCH_TARGET === 'celestia') {
+          batchInfo = await this.publishBatchToCelestia(batch);
+        } else {
+          throw Error('Unknown publish batch target');
+        }
         await this.saveBatchToDB(
           manager,
-          batch,
+          batchInfo,
           this.batchIndex,
           output.startBlockNumber,
           output.endBlockNumber
@@ -103,24 +118,57 @@ export class BatchSubmitter {
   }
 
   // Publish a batch to L1
-  async publishBatchToL1(batch: Buffer) {
+  async publishBatchToL1(batch: Buffer): Promise<string[]> {
     try {
-      const executeMsg = new MsgRecordBatch(
-        this.submitter.key.accAddress,
-        this.bridgeId,
-        batch.toString('base64')
-      );
+      const base = 200000;
+      const perByte = 10;
+      const maxBytes = 500000; // 500kb
 
-      return await sendTx(this.submitter, [executeMsg]);
+      const batchInfos: string[] = [];
+
+      while (batch.length !== 0) {
+        let subData: Buffer;
+        if (batch.length > maxBytes) {
+          subData = batch.slice(0, maxBytes);
+          batch = batch.slice(maxBytes);
+        } else {
+          subData = batch;
+          batch = Buffer.from([]);
+        }
+        const executeMsg = new MsgRecordBatch(
+          this.submitter.key.accAddress,
+          this.bridgeId,
+          subData.toString('base64')
+        );
+
+        const gasLimit = Math.floor((base + perByte * subData.length) * 1.2);
+        const fee = getFee(this.submitter, gasLimit);
+
+        const batchInfo = await sendTx(this.submitter, [executeMsg], fee);
+        batchInfos.push(batchInfo.txhash);
+
+        await delay(1000); // break for each tx ended
+      }
+
+      return batchInfos;
     } catch (err) {
       throw new Error(`Error publishing batch to L1: ${err}`);
+    }
+  }
+
+  // Publish a batch to Celestia
+  async publishBatchToCelestia(batch: Buffer): Promise<string[]> {
+    try {
+      return await safeSubmitPayForBlob(batch);
+    } catch (err) {
+      throw new Error(`Error publishing batch to celestia: ${err}`);
     }
   }
 
   // Save batch record to database
   async saveBatchToDB(
     manager: EntityManager,
-    batch: Buffer,
+    batchInfo: string[],
     batchIndex: number,
     startBlockNumber: number,
     endBlockNumber: number
@@ -129,7 +177,7 @@ export class BatchSubmitter {
 
     record.bridgeId = this.bridgeId;
     record.batchIndex = batchIndex;
-    record.batch = batch;
+    record.batchInfo = batchInfo;
     record.startBlockNumber = startBlockNumber;
     record.endBlockNumber = endBlockNumber;
 
@@ -144,4 +192,16 @@ export class BatchSubmitter {
 
     return record;
   }
+}
+
+function getFee(wallet: Wallet, gasLimit: number): Fee {
+  const gasPrices = new Coins(wallet.lcd.config.gasPrices).toArray();
+  if (gasPrices.length === 0) {
+    throw Error('gasPrices must be set');
+  }
+  const gasPrice = gasPrices[0];
+  const gasAmount = gasPrice.mul(gasLimit).toIntCeilCoin();
+
+  const fee = new Fee(gasLimit, [gasAmount]);
+  return fee;
 }
