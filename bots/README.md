@@ -129,7 +129,9 @@ Output submitter will get the L2 output results from executor and submit it to L
 
 - Batch Submitter
 
-Batch submitter is a background process that submits transaction batches to the BatchInbox module of L1.
+Batch submitter is a background process that submits transaction batches to the BatchInbox module of L1 or Celestia.
+
+> **NOTE** To run celestia batch submitter, you have to set [celestia light node](https://docs.celestia.org/nodes/light-node)
 
 1. Configure `.env.batch` file
 2. Run batch submitter bot
