@@ -77,9 +77,6 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
 
-	// TODO in initia app
-	// permit to create bridge only when the ibc channel has
-	// GetNextL1SequenceSend == 1
 	if err := ms.bridgeHook.BridgeCreated(ctx, bridgeId, req.Config); err != nil {
 		return nil, err
 	}

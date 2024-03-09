@@ -327,6 +327,11 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, err
 	}
 
+	// register denom metadata
+	if ok := ms.bankKeeper.HasDenomMetaData(ctx, coin.Denom); !ok {
+		ms.setDenomMetadata(ctx, req.BaseDenom, coin.Denom)
+	}
+
 	event := sdk.NewEvent(
 		types.EventTypeFinalizeTokenDeposit,
 		sdk.NewAttribute(types.AttributeKeyL1Sequence, strconv.FormatUint(req.Sequence, 10)),
