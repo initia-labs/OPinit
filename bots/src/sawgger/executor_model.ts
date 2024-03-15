@@ -44,7 +44,7 @@ const ClaimStruct = z.object({
     l_2_denom: z.string(),
     version: z.string(),
     state_root: z.string(),
-    storage_root: z.string(),
+    merkle_root: z.string(),
     last_block_hash: z.string(),
 })
 
