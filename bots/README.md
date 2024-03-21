@@ -52,6 +52,11 @@ For example, if you want to set `.env` for `executor`, you should name it as `.e
 | EXECUTOR_PORT             | Executor port                                          | 5000                             |
 | EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
+| EXECUTOR_L1_MONITOR_HEIGHT| L1 monitor start height (optional)                     | 0                                |
+| EXECUTOR_L2_MONITOR_HEIGHT| L2 monitor start height (optional)                     | 0                                |
+
+> Note that if `EXECUTOR_L1_MONITOR_HEIGHT` and `EXECUTOR_L2_MONITOR_HEIGHT` are not set, `executor` will start monitoring from height stored on `state` table. If you want to start monitoring from specific height, you should set them in `.env.executor` file.
+
 
 - `.env.output`
 
