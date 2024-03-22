@@ -46,6 +46,6 @@ export class TxBot {
 
     const { account_number: accountNumber, sequence } =
       await sender.accountNumberAndSequence();
-    return await sendTx(sender, [finalizeMsg], accountNumber, sequence);
+    return await sendTx(sender, [finalizeMsg], undefined, accountNumber, sequence);
   }
 }

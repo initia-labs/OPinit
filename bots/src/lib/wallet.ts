@@ -107,6 +107,7 @@ export class TxWallet extends Wallet {
       const txInfo = await sendTx(
         this,
         msgs,
+        undefined,
         this.managedAccountNumber,
         this.managedSequence
       );
