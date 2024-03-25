@@ -42,16 +42,20 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 
 - `.env.executor`
 
-| Name              | Description                                | Default                  |
-| ----------------- | ------------------------------------------ | ------------------------ |
-| L1_LCD_URI        | L1 node LCD URI                            | <http://127.0.0.1:1317>  |
-| L1_RPC_URI        | L1 node RPC URI                            | <http://127.0.0.1:26657> |
-| L2_LCD_URI        | L2 node LCD URI                            | <http://127.0.0.1:1317>  |
-| L2_RPC_URI        | L2 node RPC URI                            | <http://127.0.0.1:26657> |
-| BRIDGE_ID         | Bridge ID                                  | ''                       |
-| EXECUTOR_PORT     | Executor port                              | 5000                     |
-| EXECUTOR_MNEMONIC | Mnemonic seed for executor                 | ''                       |
-| SLACK_WEB_HOOK    | Slack web hook for notification (optional) | ''                       |
+| Name                      | Description                                            | Default                          |
+| ------------------------- | ------------------------------------------------------ | -------------------------------- |
+| L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| L2_LCD_URI                | L2 node LCD URI                                        | <http://127.0.0.1:1317>          |
+| L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
+| BRIDGE_ID                 | Bridge ID                                              | ''                               |
+| EXECUTOR_PORT             | Executor port                                          | 5000                             |
+| EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
+| SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
+| EXECUTOR_L1_MONITOR_HEIGHT| L1 monitor start height (optional)                     | 0                                |
+| EXECUTOR_L2_MONITOR_HEIGHT| L2 monitor start height (optional)                     | 0                                |
+
+> Note that if `EXECUTOR_L1_MONITOR_HEIGHT` and `EXECUTOR_L2_MONITOR_HEIGHT` are not set, `executor` will start monitoring from height stored on `state` table. If you want to start monitoring from specific height, you should set them in `.env.executor` file.
 
 - `.env.output`
 
@@ -110,6 +114,7 @@ Bridge executor is a bot that monitor L1, L2 node and execute bridge transaction
 
 1. Configure `.env.executor` file
 2. Run executor bot
+
    ```bash
    npm run executor
    ```
@@ -123,6 +128,7 @@ Output submitter will get the L2 output results from executor and submit it to L
 
 1. Configure `.env.output` file
 2. Run output submitter bot
+
    ```bash
    npm run output
    ```
@@ -135,6 +141,7 @@ Batch submitter is a background process that submits transaction batches to the 
 
 1. Configure `.env.batch` file
 2. Run batch submitter bot
+
    ```bash
    npm run batch
    ```
@@ -147,6 +154,7 @@ Challenger is an entity capable of deleting invalid output proposals from the ou
 
 1. Configure `.env.challenger` file
 2. Run challenger bot
+
    ```bash
    npm run challenger
    ```

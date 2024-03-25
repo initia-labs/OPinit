@@ -22,6 +22,16 @@ func (k Keeper) GetOutputProposal(ctx context.Context, bridgeId, outputIndex uin
 }
 
 func (k Keeper) DeleteOutputProposal(ctx context.Context, bridgeId, outputIndex uint64) error {
+	output, err := k.GetOutputProposal(ctx, bridgeId, outputIndex)
+	if err != nil {
+		return err
+	}
+	if isFinalized, err := k.isFinalized(ctx, bridgeId, output); err != nil {
+		return err
+	} else if isFinalized {
+		return types.ErrAlreadyFinalized
+	}
+
 	return k.OutputProposals.Remove(ctx, collections.Join(bridgeId, outputIndex))
 }
 
@@ -35,6 +45,10 @@ func (k Keeper) IsFinalized(ctx context.Context, bridgeId, outputIndex uint64) (
 		return false, err
 	}
 
+	return k.isFinalized(ctx, bridgeId, output)
+}
+
+func (k Keeper) isFinalized(ctx context.Context, bridgeId uint64, output types.Output) (bool, error) {
 	bridgeConfig, err := k.GetBridgeConfig(ctx, bridgeId)
 	if err != nil {
 		return false, err

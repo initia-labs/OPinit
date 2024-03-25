@@ -43,6 +43,7 @@ export class Resurrector {
       new Coin(unconfirmedTx.l2Denom, unconfirmedTx.amount),
       parseInt(unconfirmedTx.sequence),
       unconfirmedTx.l1Height,
+      unconfirmedTx.l1Denom,
       Buffer.from(unconfirmedTx.data, 'hex').toString('base64')
     );
     try {

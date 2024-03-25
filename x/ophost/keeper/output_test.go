@@ -130,3 +130,33 @@ func Test_NextOutputIndex(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(101), index)
 }
+
+func Test_DeleteOutputProposal(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	output := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   ctx.BlockTime(),
+		L2BlockNumber: 100,
+	}
+	err := input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output)
+	require.NoError(t, err)
+
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Challenger:          "",
+		Proposer:            "",
+		SubmissionInterval:  time.Second * 10,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: ctx.BlockTime(),
+		Metadata:            nil,
+	})
+	require.NoError(t, err)
+
+	// delete should fail due to already finalized error
+	err = input.OPHostKeeper.DeleteOutputProposal(ctx.WithBlockTime(ctx.BlockTime().Add(time.Second*11)), 1, 1)
+	require.ErrorIs(t, err, types.ErrAlreadyFinalized)
+
+	// delete should success
+	err = input.OPHostKeeper.DeleteOutputProposal(ctx.WithBlockTime(ctx.BlockTime().Add(time.Second*9)), 1, 1)
+	require.NoError(t, err)
+}
