@@ -59,6 +59,10 @@ export const config = {
   CELESTIA_NAMESPACE_ID: CELESTIA_NAMESPACE_ID || '',
   CELESTIA_GAS_PRICE: Number(CELESTIA_GAS_PRICE) || 0.01,
   PUBLISH_BATCH_TARGET: (() => {
+    if (PUBLISH_BATCH_TARGET === undefined) {
+      return 'l1';
+    }
+
     const target = supportedPublishBatchTargets.find(
       (target) => target === PUBLISH_BATCH_TARGET?.toLocaleLowerCase()
     );
