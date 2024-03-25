@@ -14,8 +14,6 @@ export default class RecordEntity {
   @Column()
   endBlockNumber: number;
 
-  @Column({
-    type: 'bytea'
-  })
-  batch: Buffer;
+  @Column('text', { array: true })
+  batchInfo: string[]; // for l1 => txHash, for celestia => height::commitment
 }

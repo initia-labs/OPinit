@@ -1,10 +1,10 @@
-import * as pako from 'pako';
+import pako from 'pako';
 
 // compress tx data to submit L1
 export function compress(input: string[]): Buffer {
   const recordsWithCommas = input.join(',');
   const recordsBuffer = Buffer.from(recordsWithCommas);
-  return pako.gzip(recordsBuffer);
+  return Buffer.from(pako.gzip(recordsBuffer));
 }
 
 // decompress indexed batch data

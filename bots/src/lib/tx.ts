@@ -1,4 +1,5 @@
 import {
+  Fee,
   LCDClient,
   Msg,
   WaitTxBroadcastResult,
@@ -8,12 +9,14 @@ import {
 export async function sendTx(
   wallet: Wallet,
   msgs: Msg[],
+  fee?: Fee,
   accountNumber?: number,
   sequence?: number,
   timeout = 10_000
 ): Promise<WaitTxBroadcastResult> {
   const signedTx = await wallet.createAndSignTx({
     msgs,
+    fee,
     accountNumber,
     sequence
   });

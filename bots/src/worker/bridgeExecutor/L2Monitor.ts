@@ -79,8 +79,10 @@ export class L2Monitor extends Monitor {
       this.currentHeight
     );
     if (isEmpty) return false;
-    
-    const withdrawalEvents = events.filter((evt) => evt.type === 'initiate_token_withdrawal')
+
+    const withdrawalEvents = events.filter(
+      (evt) => evt.type === 'initiate_token_withdrawal'
+    );
     for (const evt of withdrawalEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleInitiateTokenWithdrawalEvent(manager, attrMap);
