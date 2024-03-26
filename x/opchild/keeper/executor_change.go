@@ -63,7 +63,9 @@ func (k Keeper) ChangeExecutor(ctx context.Context, plan types.ExecutorChangePla
 	// set consensus power to 0. This validator is removed when making validator change set.
 	oldExecutorValAddr := sdk.ValAddress(accAddress)
 	oldExecutorVal := k.mustGetValidator(ctx, oldExecutorValAddr)
-	oldExecutorVal.ConsPower = 0
+	// generally, consensus power cannot be negative
+	// this is trick to let comet know if executor is changed
+	oldExecutorVal.ConsPower = -1
 	if err := k.SetValidator(ctx, oldExecutorVal); err != nil {
 		return err
 	}
