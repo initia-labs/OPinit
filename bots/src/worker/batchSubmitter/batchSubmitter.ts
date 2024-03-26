@@ -1,7 +1,7 @@
 import { getDB } from './db';
 import { DataSource, EntityManager } from 'typeorm';
 import { batchLogger, batchLogger as logger } from 'lib/logger';
-import { BlockBulk, RPCClient } from 'lib/rpc';
+import { BlockBulk, RawCommit, RPCClient } from 'lib/rpc';
 import { compress } from 'lib/compressor';
 import { ExecutorOutputEntity, RecordEntity } from 'orm';
 import {
@@ -93,7 +93,7 @@ export class BatchSubmitter {
     }
   }
 
-  // Get [start, end] batch from L2
+  // Get [start, end] batch from L2 and last commit info 
   async getBatch(start: number, end: number): Promise<Buffer> {
     const bulk: BlockBulk | null = await this.rpcClient.getBlockBulk(
       start.toString(),
@@ -102,8 +102,15 @@ export class BatchSubmitter {
     if (!bulk) {
       throw new Error(`Error getting block bulk from L2`);
     }
+    const commit: RawCommit | null = await this.rpcClient.getRawCommit(
+      end.toString()
+    );
+    if (!commit) {
+      throw new Error(`Error getting commit from L2`);
+    }
 
-    return compress(bulk.blocks);
+    let reqStrings = bulk.blocks.concat(commit.commit);
+    return compress(reqStrings);
   }
 
   async getStoredBatch(manager: EntityManager): Promise<RecordEntity | null> {
