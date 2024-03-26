@@ -8,6 +8,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "opinit/opchild/v1/types.proto";
+import "tendermint/crypto/keys.proto";
 
 option go_package = "github.com/initia-labs/OPinit/x/opchild/types";
 
@@ -32,6 +33,10 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/opchild/v1/params";
+  }
+
+  rpc ExecutorPubKey(QueryExecutorRequest) returns (tendermint.crypto.PublicKey) {
+    option (cosmos.query.v1.module_query_safe) = true;
   }
 }
 
@@ -60,6 +65,10 @@ message QueryValidatorRequest {
 message QueryValidatorResponse {
   // validator defines the validator info.
   Validator validator = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// QueryExecutor is request type for the Query/Executor's public key RPC method
+message QueryExecutorRequest {
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

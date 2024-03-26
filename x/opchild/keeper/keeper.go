@@ -34,6 +34,7 @@ type Keeper struct {
 	// should be the x/opchild module account.
 	authority string
 
+	addressCodec          address.Codec
 	validatorAddressCodec address.Codec
 	consensusAddressCodec address.Codec
 
@@ -45,6 +46,8 @@ type Keeper struct {
 	Validators           collections.Map[[]byte, types.Validator]
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
+
+	ExecutorChangePlans map[int64]types.ExecutorChangePlan
 }
 
 func NewKeeper(
@@ -55,6 +58,7 @@ func NewKeeper(
 	bh types.BridgeHook,
 	router *baseapp.MsgServiceRouter,
 	authority string,
+	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
 	consensusAddressCodec address.Codec,
 ) *Keeper {
@@ -78,6 +82,7 @@ func NewKeeper(
 		bridgeHook:            bh,
 		router:                router,
 		authority:             authority,
+		addressCodec:          addressCodec,
 		validatorAddressCodec: validatorAddressCodec,
 		consensusAddressCodec: consensusAddressCodec,
 		NextL2Sequence:        collections.NewSequence(sb, types.NextL2SequenceKey, "next_l2_sequence"),
@@ -87,6 +92,8 @@ func NewKeeper(
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
+
+		ExecutorChangePlans: make(map[int64]types.ExecutorChangePlan),
 	}
 
 	schema, err := sb.Build()

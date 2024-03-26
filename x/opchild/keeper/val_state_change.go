@@ -87,7 +87,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 
 		updates = append(updates, validator.ABCIValidatorUpdateZero())
 	}
-
 	return updates, nil
 }
 
