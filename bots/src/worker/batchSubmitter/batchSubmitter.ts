@@ -84,7 +84,7 @@ export class BatchSubmitter {
           output.startBlockNumber,
           output.endBlockNumber
         );
-        logger.info(`${this.batchIndex}th batch is successfully saved`);
+        logger.info(`${this.batchIndex}th batch (${output.startBlockNumber}, ${output.endBlockNumber}) is successfully saved`);
       });
     } catch (err) {
       throw new Error(`Error in BatchSubmitter: ${err}`);

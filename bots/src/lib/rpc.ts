@@ -246,7 +246,7 @@ export class RPCClient {
 
   async getRawCommit(end: string): Promise<RawCommit | null> {
     const rawCommitResult: RawCommit = await this.getRequest(`/raw_commit`, {
-      end
+      height: end
     });
 
     if (!rawCommitResult) {
