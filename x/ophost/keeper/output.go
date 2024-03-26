@@ -39,6 +39,10 @@ func (k Keeper) IterateOutputProposals(ctx context.Context, bridgeId uint64, cb 
 	return k.OutputProposals.Walk(ctx, collections.NewPrefixedPairRange[uint64, uint64](bridgeId), cb)
 }
 
+func (k Keeper) ReverseIterateOutputProposals(ctx context.Context, bridgeId uint64, cb func(key collections.Pair[uint64, uint64], output types.Output) (stop bool, err error)) error {
+	return k.OutputProposals.Walk(ctx, collections.NewPrefixedPairRange[uint64, uint64](bridgeId).Descending(), cb)
+}
+
 func (k Keeper) IsFinalized(ctx context.Context, bridgeId, outputIndex uint64) (bool, error) {
 	output, err := k.GetOutputProposal(ctx, bridgeId, outputIndex)
 	if err != nil {
@@ -54,6 +58,10 @@ func (k Keeper) isFinalized(ctx context.Context, bridgeId uint64, output types.O
 		return false, err
 	}
 
+	return k.isFinalizedWithConfig(ctx, bridgeConfig, output)
+}
+
+func (k Keeper) isFinalizedWithConfig(ctx context.Context, bridgeConfig types.BridgeConfig, output types.Output) (bool, error) {
 	return sdk.UnwrapSDKContext(ctx).BlockTime().Unix() >= output.L1BlockTime.Add(bridgeConfig.FinalizationPeriod).Unix(), nil
 }
 

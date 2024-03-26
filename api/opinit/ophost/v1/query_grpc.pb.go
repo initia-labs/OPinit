@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Bridge_FullMethodName             = "/opinit.ophost.v1.Query/Bridge"
-	Query_Bridges_FullMethodName            = "/opinit.ophost.v1.Query/Bridges"
-	Query_TokenPairByL1Denom_FullMethodName = "/opinit.ophost.v1.Query/TokenPairByL1Denom"
-	Query_TokenPairByL2Denom_FullMethodName = "/opinit.ophost.v1.Query/TokenPairByL2Denom"
-	Query_TokenPairs_FullMethodName         = "/opinit.ophost.v1.Query/TokenPairs"
-	Query_OutputProposal_FullMethodName     = "/opinit.ophost.v1.Query/OutputProposal"
-	Query_OutputProposals_FullMethodName    = "/opinit.ophost.v1.Query/OutputProposals"
-	Query_Params_FullMethodName             = "/opinit.ophost.v1.Query/Params"
+	Query_Bridge_FullMethodName              = "/opinit.ophost.v1.Query/Bridge"
+	Query_Bridges_FullMethodName             = "/opinit.ophost.v1.Query/Bridges"
+	Query_TokenPairByL1Denom_FullMethodName  = "/opinit.ophost.v1.Query/TokenPairByL1Denom"
+	Query_TokenPairByL2Denom_FullMethodName  = "/opinit.ophost.v1.Query/TokenPairByL2Denom"
+	Query_TokenPairs_FullMethodName          = "/opinit.ophost.v1.Query/TokenPairs"
+	Query_LastFinalizedOutput_FullMethodName = "/opinit.ophost.v1.Query/LastFinalizedOutput"
+	Query_OutputProposal_FullMethodName      = "/opinit.ophost.v1.Query/OutputProposal"
+	Query_OutputProposals_FullMethodName     = "/opinit.ophost.v1.Query/OutputProposals"
+	Query_Params_FullMethodName              = "/opinit.ophost.v1.Query/Params"
 )
 
 // QueryClient is the client API for Query service.
@@ -43,6 +44,7 @@ type QueryClient interface {
 	TokenPairByL2Denom(ctx context.Context, in *QueryTokenPairByL2DenomRequest, opts ...grpc.CallOption) (*QueryTokenPairByL2DenomResponse, error)
 	// TokenPairs queries all (l1 denom, l2 denom) pair.
 	TokenPairs(ctx context.Context, in *QueryTokenPairsRequest, opts ...grpc.CallOption) (*QueryTokenPairsResponse, error)
+	LastFinalizedOutput(ctx context.Context, in *QueryLastFinalizedOutputRequest, opts ...grpc.CallOption) (*QueryLastFinalizedOutputResponse, error)
 	// OutputProposal queries output proposal by output index.
 	OutputProposal(ctx context.Context, in *QueryOutputProposalRequest, opts ...grpc.CallOption) (*QueryOutputProposalResponse, error)
 	// OutputProposals queries all output proposals.
@@ -104,6 +106,15 @@ func (c *queryClient) TokenPairs(ctx context.Context, in *QueryTokenPairsRequest
 	return out, nil
 }
 
+func (c *queryClient) LastFinalizedOutput(ctx context.Context, in *QueryLastFinalizedOutputRequest, opts ...grpc.CallOption) (*QueryLastFinalizedOutputResponse, error) {
+	out := new(QueryLastFinalizedOutputResponse)
+	err := c.cc.Invoke(ctx, Query_LastFinalizedOutput_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) OutputProposal(ctx context.Context, in *QueryOutputProposalRequest, opts ...grpc.CallOption) (*QueryOutputProposalResponse, error) {
 	out := new(QueryOutputProposalResponse)
 	err := c.cc.Invoke(ctx, Query_OutputProposal_FullMethodName, in, out, opts...)
@@ -145,6 +156,7 @@ type QueryServer interface {
 	TokenPairByL2Denom(context.Context, *QueryTokenPairByL2DenomRequest) (*QueryTokenPairByL2DenomResponse, error)
 	// TokenPairs queries all (l1 denom, l2 denom) pair.
 	TokenPairs(context.Context, *QueryTokenPairsRequest) (*QueryTokenPairsResponse, error)
+	LastFinalizedOutput(context.Context, *QueryLastFinalizedOutputRequest) (*QueryLastFinalizedOutputResponse, error)
 	// OutputProposal queries output proposal by output index.
 	OutputProposal(context.Context, *QueryOutputProposalRequest) (*QueryOutputProposalResponse, error)
 	// OutputProposals queries all output proposals.
@@ -172,6 +184,9 @@ func (UnimplementedQueryServer) TokenPairByL2Denom(context.Context, *QueryTokenP
 }
 func (UnimplementedQueryServer) TokenPairs(context.Context, *QueryTokenPairsRequest) (*QueryTokenPairsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TokenPairs not implemented")
+}
+func (UnimplementedQueryServer) LastFinalizedOutput(context.Context, *QueryLastFinalizedOutputRequest) (*QueryLastFinalizedOutputResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LastFinalizedOutput not implemented")
 }
 func (UnimplementedQueryServer) OutputProposal(context.Context, *QueryOutputProposalRequest) (*QueryOutputProposalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OutputProposal not implemented")
@@ -285,6 +300,24 @@ func _Query_TokenPairs_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_LastFinalizedOutput_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryLastFinalizedOutputRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LastFinalizedOutput(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_LastFinalizedOutput_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LastFinalizedOutput(ctx, req.(*QueryLastFinalizedOutputRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_OutputProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryOutputProposalRequest)
 	if err := dec(in); err != nil {
@@ -365,6 +398,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TokenPairs",
 			Handler:    _Query_TokenPairs_Handler,
+		},
+		{
+			MethodName: "LastFinalizedOutput",
+			Handler:    _Query_LastFinalizedOutput_Handler,
 		},
 		{
 			MethodName: "OutputProposal",

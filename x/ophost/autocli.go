@@ -49,6 +49,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					},
 				},
 				{
+					RpcMethod: "LastFinalizedOutput",
+					Use:       "last_finalized_output [bridge-id]",
+					Short:     "Get last finalized output proposal",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "bridge_id"},
+					},
+				},
+				{
 					RpcMethod: "OutputProposal",
 					Use:       "output_proposal [bridge-id] [output_index]",
 					Short:     "Get output proposal",

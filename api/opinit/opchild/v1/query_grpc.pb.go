@@ -8,7 +8,6 @@ package opchildv1
 
 import (
 	context "context"
-	crypto "cosmossdk.io/api/tendermint/crypto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,10 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Validators_FullMethodName     = "/opinit.opchild.v1.Query/Validators"
-	Query_Validator_FullMethodName      = "/opinit.opchild.v1.Query/Validator"
-	Query_Params_FullMethodName         = "/opinit.opchild.v1.Query/Params"
-	Query_ExecutorPubKey_FullMethodName = "/opinit.opchild.v1.Query/ExecutorPubKey"
+	Query_Validators_FullMethodName = "/opinit.opchild.v1.Query/Validators"
+	Query_Validator_FullMethodName  = "/opinit.opchild.v1.Query/Validator"
+	Query_Params_FullMethodName     = "/opinit.opchild.v1.Query/Params"
 )
 
 // QueryClient is the client API for Query service.
@@ -39,7 +37,6 @@ type QueryClient interface {
 	Validator(ctx context.Context, in *QueryValidatorRequest, opts ...grpc.CallOption) (*QueryValidatorResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	ExecutorPubKey(ctx context.Context, in *QueryExecutorRequest, opts ...grpc.CallOption) (*crypto.PublicKey, error)
 }
 
 type queryClient struct {
@@ -77,15 +74,6 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) ExecutorPubKey(ctx context.Context, in *QueryExecutorRequest, opts ...grpc.CallOption) (*crypto.PublicKey, error) {
-	out := new(crypto.PublicKey)
-	err := c.cc.Invoke(ctx, Query_ExecutorPubKey_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -99,7 +87,6 @@ type QueryServer interface {
 	Validator(context.Context, *QueryValidatorRequest) (*QueryValidatorResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	ExecutorPubKey(context.Context, *QueryExecutorRequest) (*crypto.PublicKey, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -115,9 +102,6 @@ func (UnimplementedQueryServer) Validator(context.Context, *QueryValidatorReques
 }
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
-}
-func (UnimplementedQueryServer) ExecutorPubKey(context.Context, *QueryExecutorRequest) (*crypto.PublicKey, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecutorPubKey not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -186,24 +170,6 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ExecutorPubKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryExecutorRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ExecutorPubKey(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_ExecutorPubKey_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ExecutorPubKey(ctx, req.(*QueryExecutorRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -222,10 +188,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
-		},
-		{
-			MethodName: "ExecutorPubKey",
-			Handler:    _Query_ExecutorPubKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
