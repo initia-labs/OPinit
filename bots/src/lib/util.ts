@@ -63,3 +63,7 @@ function numberToBuffer(i: number): Buffer {
 function numberToHexString(i: number): string {
   return `0x${i.toString(16)}`;
 }
+
+export function getCurrentTimeInSecond(): number {
+  return Math.floor(Date.now() / 1000);
+}

@@ -22,4 +22,7 @@ export default class OutputEntity {
 
   @Column('int')
   endBlockNumber: number; // end block height of the epoch
+
+  @Column({ type: 'bigint' }) // output generated second timestamp
+  timestamp: number
 }

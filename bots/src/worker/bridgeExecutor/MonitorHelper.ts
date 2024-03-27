@@ -2,7 +2,7 @@ import { BlockInfo, Event, LCDClient, TxInfo  } from '@initia/initia.js';
 import { getLatestOutputFromExecutor, getOutputFromExecutor } from 'lib/query';
 import { WithdrawStorage } from 'lib/storage';
 import { WithdrawalTx } from 'lib/types';
-import { sha3_256 } from 'lib/util';
+import { getCurrentTimeInSecond, sha3_256 } from 'lib/util';
 import OutputEntity from 'orm/executor/OutputEntity';
 import { EntityManager, EntityTarget, ObjectLiteral } from 'typeorm';
 
@@ -171,15 +171,16 @@ class MonitorHelper {
         Buffer.from(lastBlockHash, 'base64')
       ])
     ).toString('base64');
-
-    const outputEntity = {
+    
+    const outputEntity: OutputEntity = {
       outputIndex,
       outputRoot,
       stateRoot,
       merkleRoot,
       lastBlockHash,
       startBlockNumber,
-      endBlockNumber
+      endBlockNumber,
+      timestamp: getCurrentTimeInSecond()
     };
 
     return outputEntity;

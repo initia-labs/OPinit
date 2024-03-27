@@ -67,7 +67,7 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 | OUTPUT_SUBMITTER_MNEMONIC | Mnemonic seed for output submitter         | ''                       |
 | EXECUTOR_URI              | Executor URI                               | <http://localhost:5000>  |
 | SLACK_WEB_HOOK            | Slack web hook for notification (optional) | ''                       |
-| OUTPUT_PROPOSE_INTERVAL   | Output propose interval (ms)               | 3600000                  |
+| OUTPUT_PROPOSE_INTERVAL   | Output propose interval (s)                | 3600                     |
 
 - `.env.batch`
 
