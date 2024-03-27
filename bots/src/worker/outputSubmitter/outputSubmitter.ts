@@ -49,7 +49,10 @@ export class OutputSubmitter {
           ExecutorOutputEntity,
           this.syncedOutputIndex
         );
-        if (!output) return;
+        if (!output) {
+          await delay(config.OUTPUT_PROPOSE_INTERVAL)
+          return;
+        }
 
         await this.proposeOutput(output);
         logger.info(
