@@ -17,7 +17,7 @@ export class SparseShareSplitter {
     }
   }
 
-  wirte(blob: Blob) {
+  write(blob: Blob) {
     if (
       supportedShareVersions.find(v => v === blob.shareVersion) === undefined
     ) {

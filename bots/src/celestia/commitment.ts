@@ -45,12 +45,12 @@ export function createCommitment(blob: Blob): Uint8Array {
 }
 
 function splitBlobs(blobs: Blob[]): Share[] {
-  const wirter = new SparseShareSplitter();
+  const writer = new SparseShareSplitter();
   for (const blob of blobs) {
-    wirter.wirte(blob);
+    writer.write(blob);
   }
 
-  return wirter.export();
+  return writer.export();
 }
 
 function subTreeWidth(

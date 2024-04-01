@@ -8,17 +8,26 @@ import {
   Wallet,
   MnemonicKey,
   MsgRecordBatch,
+  MsgPayForBlobs,
   Fee,
-  Coins
+  Coins,
+  BlobTx,
+  TxAPI,
 } from '@initia/initia.js';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
 import { config } from 'config';
-import { sendTx } from 'lib/tx';
+import { sendRawTx } from 'lib/tx';
 import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
-import { safeSubmitPayForBlob } from 'celestia/utils';
+import { createBlob, getCelestiaFeeGasLimit } from 'celestia/utils';
+import { bech32 } from 'bech32';
+
+const base = 200000;
+const perByte = 10;
+const maxBytes = 500000; // 500kb
 
 export class BatchSubmitter {
+  private submitterAddress: string;
   private batchIndex = 0;
   private db: DataSource;
   private submitter: Wallet;
@@ -31,7 +40,7 @@ export class BatchSubmitter {
     [this.db] = getDB();
     this.rpcClient = new RPCClient(config.L2_RPC_URI, batchLogger);
     this.submitter = new Wallet(
-      config.l1lcd,
+      config.batchlcd,
       new MnemonicKey({ mnemonic: config.BATCH_SUBMITTER_MNEMONIC })
     );
 
@@ -68,15 +77,8 @@ export class BatchSubmitter {
           output.startBlockNumber,
           output.endBlockNumber
         );
-        let batchInfo: string[];
+        let batchInfo: string[] = await this.publishBatch(batch);
 
-        if (config.PUBLISH_BATCH_TARGET === 'l1') {
-          batchInfo = await this.publishBatchToL1(batch);
-        } else if (config.PUBLISH_BATCH_TARGET === 'celestia') {
-          batchInfo = await this.publishBatchToCelestia(batch);
-        } else {
-          throw Error('Unknown publish batch target');
-        }
         await this.saveBatchToDB(
           manager,
           batchInfo,
@@ -125,12 +127,8 @@ export class BatchSubmitter {
   }
 
   // Publish a batch to L1
-  async publishBatchToL1(batch: Buffer): Promise<string[]> {
+  async publishBatch(batch: Buffer): Promise<string[]> {
     try {
-      const base = 200000;
-      const perByte = 10;
-      const maxBytes = 500000; // 500kb
-
       const batchInfos: string[] = [];
 
       while (batch.length !== 0) {
@@ -142,16 +140,20 @@ export class BatchSubmitter {
           subData = batch;
           batch = Buffer.from([]);
         }
-        const executeMsg = new MsgRecordBatch(
-          this.submitter.key.accAddress,
-          this.bridgeId,
-          subData.toString('base64')
-        );
 
-        const gasLimit = Math.floor((base + perByte * subData.length) * 1.2);
-        const fee = getFee(this.submitter, gasLimit);
-
-        const batchInfo = await sendTx(this.submitter, [executeMsg], fee);
+        let txBytes: string; 
+        switch(config.PUBLISH_BATCH_TARGET){
+          case "l1": 
+            txBytes = await this.createL1BatchMessage(subData);
+            break;
+          case "celestia":
+            txBytes = await this.createCelestiaBatchMessage(subData);
+            break;
+          default:
+            throw new Error(`unknown batch target ${config.PUBLISH_BATCH_TARGET}`);
+        }
+        
+        const batchInfo = await sendRawTx(this.submitter, txBytes);
         batchInfos.push(batchInfo.txhash);
 
         await delay(1000); // break for each tx ended
@@ -159,17 +161,56 @@ export class BatchSubmitter {
 
       return batchInfos;
     } catch (err) {
-      throw new Error(`Error publishing batch to L1: ${err}`);
+      throw new Error(`Error publishing batch to ${config.PUBLISH_BATCH_TARGET}: ${err}`);
     }
   }
 
-  // Publish a batch to Celestia
-  async publishBatchToCelestia(batch: Buffer): Promise<string[]> {
-    try {
-      return await safeSubmitPayForBlob(batch);
-    } catch (err) {
-      throw new Error(`Error publishing batch to celestia: ${err}`);
+  async createL1BatchMessage(data: Buffer): Promise<string> {
+    const gasLimit = Math.floor((base + perByte * data.length) * 1.2);
+    const fee = getFee(this.submitter, gasLimit);
+
+    if (!this.submitterAddress) {
+      this.submitterAddress = this.submitter.key.accAddress;
     }
+
+    const msg = new MsgRecordBatch(
+      this.submitterAddress,
+      this.bridgeId,
+      data.toString('base64')
+    );
+    
+    const signedTx = await this.submitter.createAndSignTx({msgs:[msg],fee});
+    return TxAPI.encode(signedTx);
+  }
+
+  async createCelestiaBatchMessage(data: Buffer): Promise<string> {
+    const blob = createBlob(data);
+    const gasLimit = getCelestiaFeeGasLimit(data.length);
+    const fee = getFee(this.submitter, gasLimit);
+
+    const rawAddress = this.submitter.key.publicKey?.rawAddress();
+    if(!rawAddress) {
+      throw new Error("batch submitter public key not set")
+    }
+
+    if (!this.submitterAddress) {
+      this.submitterAddress = bech32.encode(
+        'celestia',
+        bech32.toWords(rawAddress)
+      );
+      this.submitter.setAccountAddress(this.submitterAddress);
+    }
+
+    const msg = new MsgPayForBlobs(
+      this.submitterAddress,
+      [blob.namespace],
+      [data.length],
+      [blob.commitment],
+      [blob.blob.share_version],
+    );
+    const signedTx = await this.submitter.createAndSignTx({msgs:[msg],fee});
+    const blobTx = new BlobTx(signedTx, [blob.blob], "BLOB");
+    return Buffer.from(blobTx.toBytes()).toString("base64");
   }
 
   // Save batch record to database
