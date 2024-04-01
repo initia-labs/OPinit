@@ -50,23 +50,12 @@ func (k Keeper) RegisterExecutorChangePlan(proposalID int64, height int64, nextE
 }
 
 func (k Keeper) ChangeExecutor(ctx context.Context, plan types.ExecutorChangePlan) error {
-	params, err := k.GetParams(ctx)
+	err := k.Validators.Walk(ctx, nil, func(key []byte, validator types.Validator) (stop bool, err error) {
+		validator.ConsPower = 0
+		err = k.Validators.Set(ctx, key, validator)
+		return false, err
+	})
 	if err != nil {
-		return err
-	}
-
-	accAddress, err := k.addressCodec.StringToBytes(params.BridgeExecutor)
-	if err != nil {
-		return err
-	}
-
-	// set consensus power to 0. This validator is removed when making validator change set.
-	oldExecutorValAddr := sdk.ValAddress(accAddress)
-	oldExecutorVal := k.mustGetValidator(ctx, oldExecutorValAddr)
-	// generally, consensus power cannot be negative
-	// this is trick to let comet know if executor is changed
-	oldExecutorVal.ConsPower = -1
-	if err := k.SetValidator(ctx, oldExecutorVal); err != nil {
 		return err
 	}
 
@@ -74,11 +63,13 @@ func (k Keeper) ChangeExecutor(ctx context.Context, plan types.ExecutorChangePla
 		return err
 	}
 
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
 	params.BridgeExecutor = plan.NextExecutor
-
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}
-
 	return nil
 }
