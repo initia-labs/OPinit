@@ -77,9 +77,6 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
 
-	// TODO in initia app
-	// permit to create bridge only when the ibc channel has
-	// GetNextL1SequenceSend == 1
 	if err := ms.bridgeHook.BridgeCreated(ctx, bridgeId, req.Config); err != nil {
 		return nil, err
 	}
@@ -442,9 +439,9 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 		return nil, err
 	}
 
-	// gov or current challenger can update challenger.
-	if ms.authority != req.Authority {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	// gov or current proposer can update batch info.
+	if ms.authority != req.Authority && config.Proposer != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
 	}
 
 	config.BatchInfo = req.NewBatchInfo

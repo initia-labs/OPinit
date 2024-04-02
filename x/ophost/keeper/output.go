@@ -13,10 +13,12 @@ import (
 ////////////////////////////////////
 // OutputProposal
 
+// GetLastFinalizedOutput returns the last finalized output proposal.
+// if there is no finalized output, it returns empty output and zero index.
 func (k Keeper) GetLastFinalizedOutput(ctx context.Context, bridgeId uint64) (outputIndex uint64, outputProposal types.Output, err error) {
 	bridgeConfig, err := k.GetBridgeConfig(ctx, bridgeId)
 	if err != nil {
-		return 0, outputProposal, err
+		return outputIndex, outputProposal, err
 	}
 
 	cb := func(key collections.Pair[uint64, uint64], output types.Output) (stop bool, err error) {
@@ -30,7 +32,7 @@ func (k Keeper) GetLastFinalizedOutput(ctx context.Context, bridgeId uint64) (ou
 		return false, nil
 	}
 	if err := k.ReverseIterateOutputProposals(ctx, bridgeId, cb); err != nil {
-		return 0, outputProposal, err
+		return outputIndex, outputProposal, err
 	}
 
 	return outputIndex, outputProposal, nil
@@ -49,9 +51,10 @@ func (k Keeper) DeleteOutputProposal(ctx context.Context, bridgeId, outputIndex 
 	if err != nil {
 		return err
 	}
-	if isFinal, err := k.isFinalized(ctx, bridgeId, output); err != nil {
+
+	if isFinalized, err := k.isFinalized(ctx, bridgeId, output); err != nil {
 		return err
-	} else if isFinal {
+	} else if isFinalized {
 		return types.ErrAlreadyFinalized
 	}
 

@@ -42,15 +42,14 @@ func (k Keeper) TrackHistoricalInfo(ctx context.Context) error {
 	// over the historical entries starting from the most recent version to be pruned
 	// and then return at the first empty entry.
 	for i := sdkCtx.BlockHeight() - int64(entryNum); i >= 0; i-- {
-		_, err := k.GetHistoricalInfo(ctx, i)
-		if err == nil {
-			if err := k.DeleteHistoricalInfo(ctx, i); err != nil {
-				return err
-			}
-		} else if err != nil && !errors.Is(err, collections.ErrNotFound) {
-			return err
-		} else {
+		if _, err := k.GetHistoricalInfo(ctx, i); err != nil && errors.Is(err, collections.ErrNotFound) {
 			break
+		} else if err != nil {
+			return err
+		}
+
+		if err := k.DeleteHistoricalInfo(ctx, i); err != nil {
+			return err
 		}
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -47,7 +48,7 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 
-	ExecutorChangePlans map[int64]types.ExecutorChangePlan
+	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 }
 
 func NewKeeper(
@@ -93,7 +94,7 @@ func NewKeeper(
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 
-		ExecutorChangePlans: make(map[int64]types.ExecutorChangePlan),
+		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 	}
 
 	schema, err := sb.Build()
@@ -119,4 +120,23 @@ func (k Keeper) Logger(ctx context.Context) log.Logger {
 // Router returns the gov keeper's router
 func (keeper Keeper) Router() *baseapp.MsgServiceRouter {
 	return keeper.router
+}
+
+// setDenomMetadata sets an OPinit token's denomination metadata
+func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
+	metadata := banktypes.Metadata{
+		Base:        denom,
+		Display:     baseDenom,
+		Symbol:      baseDenom,
+		Name:        fmt.Sprintf("%s OPinit token", baseDenom),
+		Description: fmt.Sprintf("OPinit token of %s", baseDenom),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    baseDenom,
+				Exponent: 0,
+			},
+		},
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }

@@ -79,15 +79,18 @@ func Test_IterateOutputProposal(t *testing.T) {
 func Test_IsFinalized(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challenger:         "",
-		Proposer:           "",
-		SubmissionInterval: 100,
-		FinalizationPeriod: time.Second * 10,
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Challenger:          addrsStr[1],
+		Proposer:            addrsStr[0],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: time.Now().UTC(),
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	})
+	require.NoError(t, err)
 
 	proposeTime := time.Now().UTC()
-	err := input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
+	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   proposeTime,
 		L2BlockNumber: 100,
@@ -129,4 +132,70 @@ func Test_NextOutputIndex(t *testing.T) {
 	index, err = input.OPHostKeeper.GetNextOutputIndex(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, uint64(101), index)
+}
+
+func Test_GetLastFinalizedOutput(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: time.Now().UTC(),
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+	})
+	require.NoError(t, err)
+
+	proposeTime := time.Now().UTC()
+	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   proposeTime,
+		L2BlockNumber: 100,
+	})
+	require.NoError(t, err)
+
+	index, output, err := input.OPHostKeeper.GetLastFinalizedOutput(ctx.WithBlockTime(proposeTime), 1)
+	require.NoError(t, err)
+	require.Empty(t, output)
+	require.Equal(t, uint64(0), index)
+
+	index, output, err = input.OPHostKeeper.GetLastFinalizedOutput(ctx.WithBlockTime(proposeTime.Add(time.Second*10)), 1)
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), index)
+	require.Equal(t, types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   proposeTime,
+		L2BlockNumber: 100,
+	}, output)
+}
+
+func Test_DeleteOutputProposal(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	output := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   ctx.BlockTime(),
+		L2BlockNumber: 100,
+	}
+	err := input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output)
+	require.NoError(t, err)
+
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: time.Now().UTC(),
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+	})
+	require.NoError(t, err)
+
+	// delete should fail due to already finalized error
+	err = input.OPHostKeeper.DeleteOutputProposal(ctx.WithBlockTime(ctx.BlockTime().Add(time.Second*11)), 1, 1)
+	require.ErrorIs(t, err, types.ErrAlreadyFinalized)
+
+	// delete should success
+	err = input.OPHostKeeper.DeleteOutputProposal(ctx.WithBlockTime(ctx.BlockTime().Add(time.Second*9)), 1, 1)
+	require.NoError(t, err)
 }

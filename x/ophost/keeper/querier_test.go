@@ -19,6 +19,7 @@ func Test_QueryBridge(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, config)
 	require.NoError(t, err)
@@ -45,6 +46,7 @@ func Test_QueryBridges(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	config2 := types.BridgeConfig{
 		Challenger:          addrs[1].String(),
@@ -53,6 +55,7 @@ func Test_QueryBridges(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{3, 4, 5},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
@@ -172,4 +175,45 @@ func Test_QueryOutputProposals(t *testing.T) {
 			OutputProposal: output2,
 		},
 	}, res.OutputProposals)
+}
+
+func Test_QueryLastFinalizedOutput(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: time.Now().UTC(),
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+	})
+	require.NoError(t, err)
+
+	proposeTime := time.Now().UTC()
+	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   proposeTime,
+		L2BlockNumber: 100,
+	})
+	require.NoError(t, err)
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.LastFinalizedOutput(ctx, &types.QueryLastFinalizedOutputRequest{
+		BridgeId: 1,
+	})
+	require.NoError(t, err)
+	require.Empty(t, res.OutputProposal)
+	require.Zero(t, res.OutputIndex)
+
+	res, err = q.LastFinalizedOutput(ctx.WithBlockTime(proposeTime.Add(time.Second*10)), &types.QueryLastFinalizedOutputRequest{
+		BridgeId: 1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), res.OutputIndex)
+	require.Equal(t, types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   proposeTime,
+		L2BlockNumber: 100,
+	}, res.OutputProposal)
 }

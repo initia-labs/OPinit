@@ -2,9 +2,17 @@ package types
 
 type ExecutorChangePlan struct {
 	// L1 governance proposal id
-	ProposalID    int64
-	Height        int64
-	NextExecutor  string
+	ProposalID uint64
+
+	// Upgrade height
+	Height uint64
+
+	// Next executor address
+	NextExecutor string
+
+	// Next validator
 	NextValidator Validator
-	Info          string
+
+	// Additional information
+	Info string
 }

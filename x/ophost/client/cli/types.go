@@ -1,5 +1,7 @@
 package cli
 
+import "github.com/initia-labs/OPinit/x/ophost/types"
+
 // BridgeConfig defines the set of bridge config.
 //
 // NOTE: it is a modified BridgeConfig from x/ophost/types/types.pb.go to make unmarshal easier
@@ -17,7 +19,8 @@ type BridgeConfig struct {
 	// NOTE: this param is currently not used, but will be used for challenge in future.
 	SubmissionStartTime string `protobuf:"bytes,5,opt,name=submission_start_time,json=submissionStartTime,proto3,stdtime" json:"submission_start_time"`
 	// Normally it is IBC channelID for permissioned IBC relayer.
-	Metadata string `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata  string          `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	BatchInfo types.BatchInfo `json:"batch_info"`
 }
 
 // MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list

@@ -18,7 +18,7 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 	}
 
 	if config.BatchInfo.Chain == "" {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "target batch chain must be set")
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain must be set")
 	}
 
 	if config.BatchInfo.Submitter == "" {

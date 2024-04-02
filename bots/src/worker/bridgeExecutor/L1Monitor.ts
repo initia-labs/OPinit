@@ -61,6 +61,7 @@ export class L1Monitor extends Monitor {
         new Coin(data['l2_denom'], data['amount']),
         parseInt(data['l1_sequence']),
         this.currentHeight,
+        data['l1_denom'],
         Buffer.from(data['data'], 'hex').toString('base64')
       )
     ];

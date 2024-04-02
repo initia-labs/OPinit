@@ -77,8 +77,8 @@ export class BatchSubmitter {
           output.startBlockNumber,
           output.endBlockNumber
         );
-        let batchInfo: string[] = await this.publishBatch(batch);
 
+        const batchInfo: string[] = await this.publishBatch(batch);
         await this.saveBatchToDB(
           manager,
           batchInfo,
@@ -104,6 +104,7 @@ export class BatchSubmitter {
     if (!bulk) {
       throw new Error(`Error getting block bulk from L2`);
     }
+
     const commit: RawCommit | null = await this.rpcClient.getRawCommit(
       end.toString()
     );
@@ -111,7 +112,7 @@ export class BatchSubmitter {
       throw new Error(`Error getting commit from L2`);
     }
 
-    let reqStrings = bulk.blocks.concat(commit.commit);
+    const reqStrings = bulk.blocks.concat(commit.commit);
     return compress(reqStrings);
   }
 
