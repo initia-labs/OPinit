@@ -412,14 +412,23 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateChallenger,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyChallenger, req.NewChallenger),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateChallengerResponse{}, nil
+	return &types.MsgUpdateChallengerResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
 }
 
 func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBatchInfo) (*types.MsgUpdateBatchInfoResponse, error) {
