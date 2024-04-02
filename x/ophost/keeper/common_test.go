@@ -316,7 +316,7 @@ func _createTestInput(
 type bridgeHook struct {
 	proposer   string
 	challenger string
-	batchInfo  *ophosttypes.BatchInfo
+	batchInfo  ophosttypes.BatchInfo
 	metadata   []byte
 	err        error
 }

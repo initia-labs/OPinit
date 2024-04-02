@@ -85,6 +85,7 @@ func Test_IsFinalized(t *testing.T) {
 		SubmissionInterval:  100,
 		FinalizationPeriod:  time.Second * 10,
 		SubmissionStartTime: time.Now().UTC(),
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	})
 	require.NoError(t, err)
 
@@ -142,6 +143,7 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 		SubmissionInterval:  100,
 		FinalizationPeriod:  time.Second * 10,
 		SubmissionStartTime: time.Now().UTC(),
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	})
 	require.NoError(t, err)
 

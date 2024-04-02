@@ -19,6 +19,7 @@ func Test_GenesisImportExport(t *testing.T) {
 		FinalizationPeriod:  100,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	config2 := types.BridgeConfig{
 		Challenger:          addrsStr[2],
@@ -27,6 +28,7 @@ func Test_GenesisImportExport(t *testing.T) {
 		FinalizationPeriod:  200,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{3, 4, 5},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))

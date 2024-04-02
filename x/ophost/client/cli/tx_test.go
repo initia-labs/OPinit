@@ -170,7 +170,11 @@ func (s *CLITestSuite) TestNewCreateBridge() {
         "submission_interval": "100s",
         "finalization_period": "1000s",
         "submission_start_time" : "2023-12-01T00:00:00Z",
-        "metadata": "channel-0"
+        "metadata": "channel-0",
+		"batch_info": {
+			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+			"chain": "l1"
+		}
     }`)
 
 	testCases := []struct {

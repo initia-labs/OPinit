@@ -33,6 +33,7 @@ func Test_CreateBridge(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -54,6 +55,7 @@ func Test_ProposeOutput(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -91,6 +93,7 @@ func Test_DeleteOutput(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	createReq := types.NewMsgCreateBridge(addrsStr[0], config)
 	createRes, err := ms.CreateBridge(ctx, createReq)
@@ -128,6 +131,7 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -155,6 +159,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -213,6 +218,7 @@ func Test_UpdateProposal(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
@@ -262,6 +268,7 @@ func Test_UpdateChallenger(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
@@ -311,7 +318,7 @@ func Test_UpdateBatchInfo(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
-		BatchInfo: &types.BatchInfo{
+		BatchInfo: types.BatchInfo{
 			Submitter: addrsStr[1],
 			Chain:     "l1",
 		},
@@ -323,7 +330,7 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	// gov signer
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
-	msg := types.NewMsgUpdateBatchInfo(govAddr, 1, &types.BatchInfo{
+	msg := types.NewMsgUpdateBatchInfo(govAddr, 1, types.BatchInfo{
 		Submitter: addrsStr[2],
 		Chain:     "celestia",
 	})
@@ -333,19 +340,28 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, addrsStr[2], _config.BatchInfo.Submitter)
 	require.Equal(t, "celestia", _config.BatchInfo.Chain)
+	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
 
 	// current proposer signer
-	msg = types.NewMsgUpdateBatchInfo(addrsStr[0], 1, nil)
+	msg = types.NewMsgUpdateBatchInfo(addrsStr[0], 1, types.BatchInfo{
+		Submitter: addrsStr[3],
+		Chain:     "l1",
+	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Empty(t, _config.BatchInfo)
+	require.Equal(t, addrsStr[3], _config.BatchInfo.Submitter)
+	require.Equal(t, "l1", _config.BatchInfo.Chain)
+	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
-	msg = types.NewMsgUpdateBatchInfo(invalidAddr, 1, nil)
+	msg = types.NewMsgUpdateBatchInfo(invalidAddr, 1, types.BatchInfo{
+		Submitter: addrsStr[2],
+		Chain:     "celestia",
+	})
 	require.NoError(t, err)
 
 	_, err = ms.UpdateBatchInfo(
