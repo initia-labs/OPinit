@@ -32,16 +32,18 @@ message BridgeConfig {
   string challenger = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The address of the proposer.
   string proposer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The information about batch submission.
+  BatchInfo batch_info = 3;
   // The time interval at which checkpoints must be submitted.
   // NOTE: this param is currently not used, but will be used for challenge in future.
-  google.protobuf.Duration submission_interval = 3 [
+  google.protobuf.Duration submission_interval = 4 [
     (gogoproto.stdduration) = true,
     (gogoproto.jsontag)     = "submission_interval,omitempty",
     (gogoproto.nullable)    = false,
     (amino.dont_omitempty)  = true
   ];
   // The minium time duration that must elapse before a withdrawal can be finalized.
-  google.protobuf.Duration finalization_period = 4 [
+  google.protobuf.Duration finalization_period = 5 [
     (gogoproto.stdduration) = true,
     (gogoproto.jsontag)     = "finalization_period,omitempty",
     (gogoproto.nullable)    = false,
@@ -49,10 +51,17 @@ message BridgeConfig {
   ];
   // The time of the first l2 block recorded.
   // NOTE: this param is currently not used, but will be used for challenge in future.
-  google.protobuf.Timestamp submission_start_time = 5
+  google.protobuf.Timestamp submission_start_time = 6
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // Normally it is IBC channelID for permissioned IBC relayer.
-  bytes metadata = 6;
+  bytes metadata = 7;
+}
+
+message BatchInfo {
+  // The address of the batch submitter.
+  string submitter = 1;
+  // The target chain 
+  string chain = 2;
 }
 
 // TokenPair defines l1 and l2 token pair

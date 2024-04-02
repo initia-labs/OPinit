@@ -15,6 +15,7 @@ const (
 	TypeMsgFinalizeTokenWithdrawal = "claim"
 	TypeMsgUpdateProposer          = "update_proposer"
 	TypeMsgUpdateChallenger        = "update_challenger"
+	TypeMsgUpdateBatchInfo         = "update_batch_info"
 	TypeMsgUpdateParams            = "update_params"
 )
 
@@ -27,6 +28,7 @@ var (
 	_ sdk.Msg = &MsgInitiateTokenDeposit{}
 	_ sdk.Msg = &MsgUpdateProposer{}
 	_ sdk.Msg = &MsgUpdateChallenger{}
+	_ sdk.Msg = &MsgUpdateBatchInfo{}
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
@@ -335,6 +337,37 @@ func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
 		return err
 	}
 
+	return nil
+}
+
+/* MsgUpdateBatchInfo */
+
+// NewMsgUpdateBatchInfo creates a new MsgUpdateBatchInfo instance.
+func NewMsgUpdateBatchInfo(
+	authority string,
+	bridgeId uint64,
+	newBatchInfo BatchInfo,
+) *MsgUpdateBatchInfo {
+	return &MsgUpdateBatchInfo{
+		Authority:    authority,
+		BridgeId:     bridgeId,
+		NewBatchInfo: &newBatchInfo,
+	}
+}
+
+// Validate performs basic MsgUpdateChallenger message validation.
+func (msg MsgUpdateBatchInfo) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if msg.NewBatchInfo.Chain == "" || msg.NewBatchInfo.Submitter == "" {
+		return ErrEmptyBatchInfo
+	}
 	return nil
 }
 

@@ -412,6 +412,41 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	return &types.MsgUpdateChallengerResponse{}, nil
 }
 
+func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBatchInfo) (*types.MsgUpdateBatchInfoResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	// gov or current challenger can update challenger.
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	config.BatchInfo = req.NewBatchInfo
+	if err := ms.Keeper.bridgeHook.BridgeBatchInfoUpdated(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateBatchInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyBatchChain, req.NewBatchInfo.Chain),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.NewBatchInfo.Submitter),
+	))
+
+	return &types.MsgUpdateBatchInfoResponse{}, nil
+}
+
 // UpdateParams implements updating the parameters
 func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {

@@ -19,6 +19,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgFinalizeTokenWithdrawal{}, "ophost/MsgFinalizeTokenWithdrawal")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateProposer{}, "ophost/MsgUpdateProposer")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateChallenger{}, "ophost/MsgUpdateChallenger")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateBatchInfo{}, "ophost/MsgUpdateBatchInfo")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "ophost/MsgUpdateParams")
 
 	cdc.RegisterConcrete(Params{}, "ophost/Params", nil)
@@ -36,6 +37,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgFinalizeTokenWithdrawal{},
 		&MsgUpdateProposer{},
 		&MsgUpdateChallenger{},
+		&MsgUpdateBatchInfo{},
 		&MsgUpdateParams{},
 	)
 

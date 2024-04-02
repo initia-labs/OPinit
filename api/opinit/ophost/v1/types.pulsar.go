@@ -516,6 +516,7 @@ var (
 	md_BridgeConfig                       protoreflect.MessageDescriptor
 	fd_BridgeConfig_challenger            protoreflect.FieldDescriptor
 	fd_BridgeConfig_proposer              protoreflect.FieldDescriptor
+	fd_BridgeConfig_batch_info            protoreflect.FieldDescriptor
 	fd_BridgeConfig_submission_interval   protoreflect.FieldDescriptor
 	fd_BridgeConfig_finalization_period   protoreflect.FieldDescriptor
 	fd_BridgeConfig_submission_start_time protoreflect.FieldDescriptor
@@ -527,6 +528,7 @@ func init() {
 	md_BridgeConfig = File_opinit_ophost_v1_types_proto.Messages().ByName("BridgeConfig")
 	fd_BridgeConfig_challenger = md_BridgeConfig.Fields().ByName("challenger")
 	fd_BridgeConfig_proposer = md_BridgeConfig.Fields().ByName("proposer")
+	fd_BridgeConfig_batch_info = md_BridgeConfig.Fields().ByName("batch_info")
 	fd_BridgeConfig_submission_interval = md_BridgeConfig.Fields().ByName("submission_interval")
 	fd_BridgeConfig_finalization_period = md_BridgeConfig.Fields().ByName("finalization_period")
 	fd_BridgeConfig_submission_start_time = md_BridgeConfig.Fields().ByName("submission_start_time")
@@ -610,6 +612,12 @@ func (x *fastReflection_BridgeConfig) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
+	if x.BatchInfo != nil {
+		value := protoreflect.ValueOfMessage(x.BatchInfo.ProtoReflect())
+		if !f(fd_BridgeConfig_batch_info, value) {
+			return
+		}
+	}
 	if x.SubmissionInterval != nil {
 		value := protoreflect.ValueOfMessage(x.SubmissionInterval.ProtoReflect())
 		if !f(fd_BridgeConfig_submission_interval, value) {
@@ -653,6 +661,8 @@ func (x *fastReflection_BridgeConfig) Has(fd protoreflect.FieldDescriptor) bool 
 		return x.Challenger != ""
 	case "opinit.ophost.v1.BridgeConfig.proposer":
 		return x.Proposer != ""
+	case "opinit.ophost.v1.BridgeConfig.batch_info":
+		return x.BatchInfo != nil
 	case "opinit.ophost.v1.BridgeConfig.submission_interval":
 		return x.SubmissionInterval != nil
 	case "opinit.ophost.v1.BridgeConfig.finalization_period":
@@ -681,6 +691,8 @@ func (x *fastReflection_BridgeConfig) Clear(fd protoreflect.FieldDescriptor) {
 		x.Challenger = ""
 	case "opinit.ophost.v1.BridgeConfig.proposer":
 		x.Proposer = ""
+	case "opinit.ophost.v1.BridgeConfig.batch_info":
+		x.BatchInfo = nil
 	case "opinit.ophost.v1.BridgeConfig.submission_interval":
 		x.SubmissionInterval = nil
 	case "opinit.ophost.v1.BridgeConfig.finalization_period":
@@ -711,6 +723,9 @@ func (x *fastReflection_BridgeConfig) Get(descriptor protoreflect.FieldDescripto
 	case "opinit.ophost.v1.BridgeConfig.proposer":
 		value := x.Proposer
 		return protoreflect.ValueOfString(value)
+	case "opinit.ophost.v1.BridgeConfig.batch_info":
+		value := x.BatchInfo
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	case "opinit.ophost.v1.BridgeConfig.submission_interval":
 		value := x.SubmissionInterval
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
@@ -747,6 +762,8 @@ func (x *fastReflection_BridgeConfig) Set(fd protoreflect.FieldDescriptor, value
 		x.Challenger = value.Interface().(string)
 	case "opinit.ophost.v1.BridgeConfig.proposer":
 		x.Proposer = value.Interface().(string)
+	case "opinit.ophost.v1.BridgeConfig.batch_info":
+		x.BatchInfo = value.Message().Interface().(*BatchInfo)
 	case "opinit.ophost.v1.BridgeConfig.submission_interval":
 		x.SubmissionInterval = value.Message().Interface().(*durationpb.Duration)
 	case "opinit.ophost.v1.BridgeConfig.finalization_period":
@@ -775,6 +792,11 @@ func (x *fastReflection_BridgeConfig) Set(fd protoreflect.FieldDescriptor, value
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_BridgeConfig) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "opinit.ophost.v1.BridgeConfig.batch_info":
+		if x.BatchInfo == nil {
+			x.BatchInfo = new(BatchInfo)
+		}
+		return protoreflect.ValueOfMessage(x.BatchInfo.ProtoReflect())
 	case "opinit.ophost.v1.BridgeConfig.submission_interval":
 		if x.SubmissionInterval == nil {
 			x.SubmissionInterval = new(durationpb.Duration)
@@ -813,6 +835,9 @@ func (x *fastReflection_BridgeConfig) NewField(fd protoreflect.FieldDescriptor) 
 		return protoreflect.ValueOfString("")
 	case "opinit.ophost.v1.BridgeConfig.proposer":
 		return protoreflect.ValueOfString("")
+	case "opinit.ophost.v1.BridgeConfig.batch_info":
+		m := new(BatchInfo)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "opinit.ophost.v1.BridgeConfig.submission_interval":
 		m := new(durationpb.Duration)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -901,6 +926,10 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		if x.BatchInfo != nil {
+			l = options.Size(x.BatchInfo)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.SubmissionInterval != nil {
 			l = options.Size(x.SubmissionInterval)
 			n += 1 + l + runtime.Sov(uint64(l))
@@ -951,7 +980,7 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], x.Metadata)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Metadata)))
 			i--
-			dAtA[i] = 0x32
+			dAtA[i] = 0x3a
 		}
 		if x.SubmissionStartTime != nil {
 			encoded, err := options.Marshal(x.SubmissionStartTime)
@@ -965,7 +994,7 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x2a
+			dAtA[i] = 0x32
 		}
 		if x.FinalizationPeriod != nil {
 			encoded, err := options.Marshal(x.FinalizationPeriod)
@@ -979,10 +1008,24 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x22
+			dAtA[i] = 0x2a
 		}
 		if x.SubmissionInterval != nil {
 			encoded, err := options.Marshal(x.SubmissionInterval)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if x.BatchInfo != nil {
+			encoded, err := options.Marshal(x.BatchInfo)
 			if err != nil {
 				return protoiface.MarshalOutput{
 					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -1124,6 +1167,42 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 3:
 				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BatchInfo", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.BatchInfo == nil {
+					x.BatchInfo = &BatchInfo{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.BatchInfo); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SubmissionInterval", wireType)
 				}
 				var msglen int
@@ -1158,7 +1237,7 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 4:
+			case 5:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FinalizationPeriod", wireType)
 				}
@@ -1194,7 +1273,7 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 5:
+			case 6:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SubmissionStartTime", wireType)
 				}
@@ -1230,7 +1309,7 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 6:
+			case 7:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
 				}
@@ -1300,6 +1379,490 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 }
 
 var (
+	md_BatchInfo           protoreflect.MessageDescriptor
+	fd_BatchInfo_submitter protoreflect.FieldDescriptor
+	fd_BatchInfo_chain     protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_opinit_ophost_v1_types_proto_init()
+	md_BatchInfo = File_opinit_ophost_v1_types_proto.Messages().ByName("BatchInfo")
+	fd_BatchInfo_submitter = md_BatchInfo.Fields().ByName("submitter")
+	fd_BatchInfo_chain = md_BatchInfo.Fields().ByName("chain")
+}
+
+var _ protoreflect.Message = (*fastReflection_BatchInfo)(nil)
+
+type fastReflection_BatchInfo BatchInfo
+
+func (x *BatchInfo) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_BatchInfo)(x)
+}
+
+func (x *BatchInfo) slowProtoReflect() protoreflect.Message {
+	mi := &file_opinit_ophost_v1_types_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_BatchInfo_messageType fastReflection_BatchInfo_messageType
+var _ protoreflect.MessageType = fastReflection_BatchInfo_messageType{}
+
+type fastReflection_BatchInfo_messageType struct{}
+
+func (x fastReflection_BatchInfo_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_BatchInfo)(nil)
+}
+func (x fastReflection_BatchInfo_messageType) New() protoreflect.Message {
+	return new(fastReflection_BatchInfo)
+}
+func (x fastReflection_BatchInfo_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_BatchInfo
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_BatchInfo) Descriptor() protoreflect.MessageDescriptor {
+	return md_BatchInfo
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_BatchInfo) Type() protoreflect.MessageType {
+	return _fastReflection_BatchInfo_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_BatchInfo) New() protoreflect.Message {
+	return new(fastReflection_BatchInfo)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_BatchInfo) Interface() protoreflect.ProtoMessage {
+	return (*BatchInfo)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_BatchInfo) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Submitter != "" {
+		value := protoreflect.ValueOfString(x.Submitter)
+		if !f(fd_BatchInfo_submitter, value) {
+			return
+		}
+	}
+	if x.Chain != "" {
+		value := protoreflect.ValueOfString(x.Chain)
+		if !f(fd_BatchInfo_chain, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_BatchInfo) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.BatchInfo.submitter":
+		return x.Submitter != ""
+	case "opinit.ophost.v1.BatchInfo.chain":
+		return x.Chain != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BatchInfo"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.BatchInfo does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_BatchInfo) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.BatchInfo.submitter":
+		x.Submitter = ""
+	case "opinit.ophost.v1.BatchInfo.chain":
+		x.Chain = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BatchInfo"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.BatchInfo does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_BatchInfo) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "opinit.ophost.v1.BatchInfo.submitter":
+		value := x.Submitter
+		return protoreflect.ValueOfString(value)
+	case "opinit.ophost.v1.BatchInfo.chain":
+		value := x.Chain
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BatchInfo"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.BatchInfo does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_BatchInfo) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.BatchInfo.submitter":
+		x.Submitter = value.Interface().(string)
+	case "opinit.ophost.v1.BatchInfo.chain":
+		x.Chain = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BatchInfo"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.BatchInfo does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_BatchInfo) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.BatchInfo.submitter":
+		panic(fmt.Errorf("field submitter of message opinit.ophost.v1.BatchInfo is not mutable"))
+	case "opinit.ophost.v1.BatchInfo.chain":
+		panic(fmt.Errorf("field chain of message opinit.ophost.v1.BatchInfo is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BatchInfo"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.BatchInfo does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_BatchInfo) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.BatchInfo.submitter":
+		return protoreflect.ValueOfString("")
+	case "opinit.ophost.v1.BatchInfo.chain":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BatchInfo"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.BatchInfo does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_BatchInfo) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in opinit.ophost.v1.BatchInfo", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_BatchInfo) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_BatchInfo) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_BatchInfo) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_BatchInfo) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*BatchInfo)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Submitter)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Chain)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*BatchInfo)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Chain) > 0 {
+			i -= len(x.Chain)
+			copy(dAtA[i:], x.Chain)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Chain)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Submitter) > 0 {
+			i -= len(x.Submitter)
+			copy(dAtA[i:], x.Submitter)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Submitter)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*BatchInfo)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: BatchInfo: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: BatchInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Submitter", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Submitter = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Chain", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Chain = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
 	md_TokenPair          protoreflect.MessageDescriptor
 	fd_TokenPair_l1_denom protoreflect.FieldDescriptor
 	fd_TokenPair_l2_denom protoreflect.FieldDescriptor
@@ -1321,7 +1884,7 @@ func (x *TokenPair) ProtoReflect() protoreflect.Message {
 }
 
 func (x *TokenPair) slowProtoReflect() protoreflect.Message {
-	mi := &file_opinit_ophost_v1_types_proto_msgTypes[2]
+	mi := &file_opinit_ophost_v1_types_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1807,7 +2370,7 @@ func (x *Output) ProtoReflect() protoreflect.Message {
 }
 
 func (x *Output) slowProtoReflect() protoreflect.Message {
-	mi := &file_opinit_ophost_v1_types_proto_msgTypes[3]
+	mi := &file_opinit_ophost_v1_types_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2392,16 +2955,18 @@ type BridgeConfig struct {
 	Challenger string `protobuf:"bytes,1,opt,name=challenger,proto3" json:"challenger,omitempty"`
 	// The address of the proposer.
 	Proposer string `protobuf:"bytes,2,opt,name=proposer,proto3" json:"proposer,omitempty"`
+	// The information about batch submission.
+	BatchInfo *BatchInfo `protobuf:"bytes,3,opt,name=batch_info,json=batchInfo,proto3" json:"batch_info,omitempty"`
 	// The time interval at which checkpoints must be submitted.
 	// NOTE: this param is currently not used, but will be used for challenge in future.
-	SubmissionInterval *durationpb.Duration `protobuf:"bytes,3,opt,name=submission_interval,json=submissionInterval,proto3" json:"submission_interval,omitempty"`
+	SubmissionInterval *durationpb.Duration `protobuf:"bytes,4,opt,name=submission_interval,json=submissionInterval,proto3" json:"submission_interval,omitempty"`
 	// The minium time duration that must elapse before a withdrawal can be finalized.
-	FinalizationPeriod *durationpb.Duration `protobuf:"bytes,4,opt,name=finalization_period,json=finalizationPeriod,proto3" json:"finalization_period,omitempty"`
+	FinalizationPeriod *durationpb.Duration `protobuf:"bytes,5,opt,name=finalization_period,json=finalizationPeriod,proto3" json:"finalization_period,omitempty"`
 	// The time of the first l2 block recorded.
 	// NOTE: this param is currently not used, but will be used for challenge in future.
-	SubmissionStartTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=submission_start_time,json=submissionStartTime,proto3" json:"submission_start_time,omitempty"`
+	SubmissionStartTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=submission_start_time,json=submissionStartTime,proto3" json:"submission_start_time,omitempty"`
 	// Normally it is IBC channelID for permissioned IBC relayer.
-	Metadata []byte `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata []byte `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
 }
 
 func (x *BridgeConfig) Reset() {
@@ -2438,6 +3003,13 @@ func (x *BridgeConfig) GetProposer() string {
 	return ""
 }
 
+func (x *BridgeConfig) GetBatchInfo() *BatchInfo {
+	if x != nil {
+		return x.BatchInfo
+	}
+	return nil
+}
+
 func (x *BridgeConfig) GetSubmissionInterval() *durationpb.Duration {
 	if x != nil {
 		return x.SubmissionInterval
@@ -2466,6 +3038,51 @@ func (x *BridgeConfig) GetMetadata() []byte {
 	return nil
 }
 
+type BatchInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The address of the batch submitter.
+	Submitter string `protobuf:"bytes,1,opt,name=submitter,proto3" json:"submitter,omitempty"`
+	// The target chain
+	Chain string `protobuf:"bytes,2,opt,name=chain,proto3" json:"chain,omitempty"`
+}
+
+func (x *BatchInfo) Reset() {
+	*x = BatchInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_opinit_ophost_v1_types_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BatchInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchInfo) ProtoMessage() {}
+
+// Deprecated: Use BatchInfo.ProtoReflect.Descriptor instead.
+func (*BatchInfo) Descriptor() ([]byte, []int) {
+	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *BatchInfo) GetSubmitter() string {
+	if x != nil {
+		return x.Submitter
+	}
+	return ""
+}
+
+func (x *BatchInfo) GetChain() string {
+	if x != nil {
+		return x.Chain
+	}
+	return ""
+}
+
 // TokenPair defines l1 and l2 token pair
 type TokenPair struct {
 	state         protoimpl.MessageState
@@ -2479,7 +3096,7 @@ type TokenPair struct {
 func (x *TokenPair) Reset() {
 	*x = TokenPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_opinit_ophost_v1_types_proto_msgTypes[2]
+		mi := &file_opinit_ophost_v1_types_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2493,7 +3110,7 @@ func (*TokenPair) ProtoMessage() {}
 
 // Deprecated: Use TokenPair.ProtoReflect.Descriptor instead.
 func (*TokenPair) Descriptor() ([]byte, []int) {
-	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{2}
+	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TokenPair) GetL1Denom() string {
@@ -2527,7 +3144,7 @@ type Output struct {
 func (x *Output) Reset() {
 	*x = Output{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_opinit_ophost_v1_types_proto_msgTypes[3]
+		mi := &file_opinit_ophost_v1_types_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2541,7 +3158,7 @@ func (*Output) ProtoMessage() {}
 
 // Deprecated: Use Output.ProtoReflect.Descriptor instead.
 func (*Output) Descriptor() ([]byte, []int) {
-	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{3}
+	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Output) GetOutputRoot() []byte {
@@ -2591,7 +3208,7 @@ var file_opinit_ophost_v1_types_proto_rawDesc = []byte{
 	0x73, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x73, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0f, 0x72, 0x65,
 	0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x65, 0x65, 0x3a, 0x1a, 0x98,
 	0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x0d, 0x6f, 0x70, 0x68, 0x6f,
-	0x73, 0x74, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0xf1, 0x03, 0x0a, 0x0c, 0x42, 0x72,
+	0x73, 0x74, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0xad, 0x04, 0x0a, 0x0c, 0x42, 0x72,
 	0x69, 0x64, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x38, 0x0a, 0x0a, 0x63, 0x68,
 	0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18,
 	0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65,
@@ -2599,58 +3216,66 @@ var file_opinit_ophost_v1_types_proto_rawDesc = []byte{
 	0x6e, 0x67, 0x65, 0x72, 0x12, 0x34, 0x0a, 0x08, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x65, 0x72,
 	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d,
 	0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
-	0x52, 0x08, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x65, 0x72, 0x12, 0x7a, 0x0a, 0x13, 0x73, 0x75,
-	0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61,
-	0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x42, 0x2e, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x1d, 0x73, 0x75, 0x62, 0x6d,
-	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x2c,
-	0x6f, 0x6d, 0x69, 0x74, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x98, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0,
-	0x2a, 0x01, 0x52, 0x12, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x6e,
-	0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x7a, 0x0a, 0x13, 0x66, 0x69, 0x6e, 0x61, 0x6c, 0x69,
-	0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x18, 0x04, 0x20,
+	0x52, 0x08, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x65, 0x72, 0x12, 0x3a, 0x0a, 0x0a, 0x62, 0x61,
+	0x74, 0x63, 0x68, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b,
+	0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76,
+	0x31, 0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x09, 0x62, 0x61, 0x74,
+	0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x7a, 0x0a, 0x13, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x04, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x2e,
-	0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x1d, 0x66, 0x69, 0x6e, 0x61, 0x6c, 0x69, 0x7a, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x2c, 0x6f, 0x6d, 0x69, 0x74,
+	0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x1d, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x2c, 0x6f, 0x6d, 0x69, 0x74,
 	0x65, 0x6d, 0x70, 0x74, 0x79, 0x98, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x12,
-	0x66, 0x69, 0x6e, 0x61, 0x6c, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x65, 0x72, 0x69,
-	0x6f, 0x64, 0x12, 0x5d, 0x0a, 0x15, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
-	0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0d, 0xc8,
-	0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x13, 0x73, 0x75,
-	0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d,
-	0x65, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x06, 0x20,
-	0x01, 0x28, 0x0c, 0x52, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x22, 0x41, 0x0a,
-	0x09, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x31,
-	0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x31,
-	0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x32, 0x5f, 0x64, 0x65, 0x6e, 0x6f,
-	0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x32, 0x44, 0x65, 0x6e, 0x6f, 0x6d,
-	0x22, 0xa0, 0x01, 0x0a, 0x06, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x6f,
-	0x75, 0x74, 0x70, 0x75, 0x74, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c,
-	0x52, 0x0a, 0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x52, 0x6f, 0x6f, 0x74, 0x12, 0x4d, 0x0a, 0x0d,
-	0x6c, 0x31, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42,
-	0x0d, 0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0b,
-	0x6c, 0x31, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x26, 0x0a, 0x0f, 0x6c,
-	0x32, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x03,
-	0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x6c, 0x32, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d,
-	0x62, 0x65, 0x72, 0x42, 0xc9, 0x01, 0xc8, 0xe1, 0x1e, 0x00, 0xa8, 0xe2, 0x1e, 0x01, 0x0a, 0x14,
-	0x63, 0x6f, 0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73,
-	0x74, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x54, 0x79, 0x70, 0x65, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f,
-	0x50, 0x01, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69,
-	0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50, 0x69, 0x6e, 0x69,
-	0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x68,
-	0x6f, 0x73, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x76, 0x31, 0xa2,
-	0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x10, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x4f,
-	0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x10, 0x4f, 0x70, 0x69, 0x6e, 0x69,
-	0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1c, 0x4f, 0x70,
-	0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56, 0x31, 0x5c, 0x47,
-	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x12, 0x4f, 0x70, 0x69,
-	0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76,
+	0x61, 0x6c, 0x12, 0x7a, 0x0a, 0x13, 0x66, 0x69, 0x6e, 0x61, 0x6c, 0x69, 0x7a, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x2e, 0xc8, 0xde, 0x1f, 0x00,
+	0xea, 0xde, 0x1f, 0x1d, 0x66, 0x69, 0x6e, 0x61, 0x6c, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x2c, 0x6f, 0x6d, 0x69, 0x74, 0x65, 0x6d, 0x70, 0x74,
+	0x79, 0x98, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x12, 0x66, 0x69, 0x6e, 0x61,
+	0x6c, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x12, 0x5d,
+	0x0a, 0x15, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x74, 0x61,
+	0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0d, 0xc8, 0xde, 0x1f, 0x00, 0x90,
+	0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x13, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x1a, 0x0a,
+	0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x22, 0x3f, 0x0a, 0x09, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x1c, 0x0a, 0x09, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x74,
+	0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x75, 0x62, 0x6d, 0x69,
+	0x74, 0x74, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x22, 0x41, 0x0a, 0x09, 0x54, 0x6f,
+	0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x31, 0x5f, 0x64, 0x65,
+	0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x31, 0x44, 0x65, 0x6e,
+	0x6f, 0x6d, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x32, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x32, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0xa0, 0x01,
+	0x0a, 0x06, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x6f, 0x75, 0x74, 0x70,
+	0x75, 0x74, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0a, 0x6f,
+	0x75, 0x74, 0x70, 0x75, 0x74, 0x52, 0x6f, 0x6f, 0x74, 0x12, 0x4d, 0x0a, 0x0d, 0x6c, 0x31, 0x5f,
+	0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0d, 0xc8, 0xde,
+	0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0b, 0x6c, 0x31, 0x42,
+	0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x26, 0x0a, 0x0f, 0x6c, 0x32, 0x5f, 0x62,
+	0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x04, 0x52, 0x0d, 0x6c, 0x32, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72,
+	0x42, 0xc9, 0x01, 0xc8, 0xe1, 0x1e, 0x00, 0xa8, 0xe2, 0x1e, 0x01, 0x0a, 0x14, 0x63, 0x6f, 0x6d,
+	0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76,
+	0x31, 0x42, 0x0a, 0x54, 0x79, 0x70, 0x65, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
+	0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x69, 0x74,
+	0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74,
+	0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f,
+	0x4f, 0x58, 0xaa, 0x02, 0x10, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x4f, 0x70, 0x68, 0x6f,
+	0x73, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x10, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f,
+	0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1c, 0x4f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
+	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x12, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74,
+	0x3a, 0x3a, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2665,27 +3290,29 @@ func file_opinit_ophost_v1_types_proto_rawDescGZIP() []byte {
 	return file_opinit_ophost_v1_types_proto_rawDescData
 }
 
-var file_opinit_ophost_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_opinit_ophost_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_opinit_ophost_v1_types_proto_goTypes = []interface{}{
 	(*Params)(nil),                // 0: opinit.ophost.v1.Params
 	(*BridgeConfig)(nil),          // 1: opinit.ophost.v1.BridgeConfig
-	(*TokenPair)(nil),             // 2: opinit.ophost.v1.TokenPair
-	(*Output)(nil),                // 3: opinit.ophost.v1.Output
-	(*v1beta1.Coin)(nil),          // 4: cosmos.base.v1beta1.Coin
-	(*durationpb.Duration)(nil),   // 5: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*BatchInfo)(nil),             // 2: opinit.ophost.v1.BatchInfo
+	(*TokenPair)(nil),             // 3: opinit.ophost.v1.TokenPair
+	(*Output)(nil),                // 4: opinit.ophost.v1.Output
+	(*v1beta1.Coin)(nil),          // 5: cosmos.base.v1beta1.Coin
+	(*durationpb.Duration)(nil),   // 6: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_opinit_ophost_v1_types_proto_depIdxs = []int32{
-	4, // 0: opinit.ophost.v1.Params.registration_fee:type_name -> cosmos.base.v1beta1.Coin
-	5, // 1: opinit.ophost.v1.BridgeConfig.submission_interval:type_name -> google.protobuf.Duration
-	5, // 2: opinit.ophost.v1.BridgeConfig.finalization_period:type_name -> google.protobuf.Duration
-	6, // 3: opinit.ophost.v1.BridgeConfig.submission_start_time:type_name -> google.protobuf.Timestamp
-	6, // 4: opinit.ophost.v1.Output.l1_block_time:type_name -> google.protobuf.Timestamp
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	5, // 0: opinit.ophost.v1.Params.registration_fee:type_name -> cosmos.base.v1beta1.Coin
+	2, // 1: opinit.ophost.v1.BridgeConfig.batch_info:type_name -> opinit.ophost.v1.BatchInfo
+	6, // 2: opinit.ophost.v1.BridgeConfig.submission_interval:type_name -> google.protobuf.Duration
+	6, // 3: opinit.ophost.v1.BridgeConfig.finalization_period:type_name -> google.protobuf.Duration
+	7, // 4: opinit.ophost.v1.BridgeConfig.submission_start_time:type_name -> google.protobuf.Timestamp
+	7, // 5: opinit.ophost.v1.Output.l1_block_time:type_name -> google.protobuf.Timestamp
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_opinit_ophost_v1_types_proto_init() }
@@ -2719,7 +3346,7 @@ func file_opinit_ophost_v1_types_proto_init() {
 			}
 		}
 		file_opinit_ophost_v1_types_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TokenPair); i {
+			switch v := v.(*BatchInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2731,6 +3358,18 @@ func file_opinit_ophost_v1_types_proto_init() {
 			}
 		}
 		file_opinit_ophost_v1_types_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TokenPair); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_opinit_ophost_v1_types_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Output); i {
 			case 0:
 				return &v.state
@@ -2749,7 +3388,7 @@ func file_opinit_ophost_v1_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_opinit_ophost_v1_types_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
