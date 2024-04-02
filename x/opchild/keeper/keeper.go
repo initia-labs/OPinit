@@ -47,7 +47,7 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 
-	ExecutorChangePlans map[int64]types.ExecutorChangePlan
+	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 }
 
 func NewKeeper(
@@ -93,7 +93,7 @@ func NewKeeper(
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 
-		ExecutorChangePlans: make(map[int64]types.ExecutorChangePlan),
+		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 	}
 
 	schema, err := sb.Build()

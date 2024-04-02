@@ -2,15 +2,17 @@ package keeper
 
 import (
 	"context"
-	"encoding/base64"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
-func (k Keeper) RegisterExecutorChangePlan(proposalID int64, height int64, nextExecutor string, moniker string, consensusPubKey string, info string) error {
+func (k Keeper) RegisterExecutorChangePlan(
+	proposalID, height uint64,
+	nextValidator, nextExecutor, moniker, consensusPubKey, info string,
+) error {
 	if proposalID <= 0 {
 		return errorsmod.Wrap(types.ErrInvalidExecutorChangePlan, "invalid proposal id")
 	}
@@ -23,18 +25,23 @@ func (k Keeper) RegisterExecutorChangePlan(proposalID int64, height int64, nextE
 		return types.ErrAlreadyRegisteredHeight
 	}
 
-	accAddr, err := k.addressCodec.StringToBytes(nextExecutor)
-	if err != nil {
-		return err
-	}
-	valAddr := sdk.ValAddress(accAddr)
-
-	pkBytes, err := base64.StdEncoding.DecodeString(consensusPubKey)
+	valAddr, err := k.validatorAddressCodec.StringToBytes(nextValidator)
 	if err != nil {
 		return err
 	}
 
-	validator, err := types.NewValidator(valAddr, &ed25519.PubKey{Key: pkBytes}, moniker)
+	_, err = k.addressCodec.StringToBytes(nextExecutor)
+	if err != nil {
+		return err
+	}
+
+	var pubKey cryptotypes.PubKey
+	err = k.cdc.UnmarshalInterfaceJSON([]byte(consensusPubKey), &pubKey)
+	if err != nil {
+		return err
+	}
+
+	validator, err := types.NewValidator(valAddr, pubKey, moniker)
 	if err != nil {
 		return err
 	}
@@ -46,6 +53,7 @@ func (k Keeper) RegisterExecutorChangePlan(proposalID int64, height int64, nextE
 		NextValidator: validator,
 		Info:          info,
 	}
+
 	return nil
 }
 

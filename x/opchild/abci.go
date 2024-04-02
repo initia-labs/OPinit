@@ -28,7 +28,7 @@ func EndBlocker(ctx context.Context, k keeper.Keeper) ([]abci.ValidatorUpdate, e
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	height := sdkCtx.BlockHeight()
 
-	if plan, found := k.ExecutorChangePlans[height]; found {
+	if plan, found := k.ExecutorChangePlans[uint64(height)]; found {
 		err := k.ChangeExecutor(ctx, plan)
 		if err != nil {
 			return nil, err

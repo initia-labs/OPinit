@@ -300,6 +300,61 @@ func Test_UpdateChallenger(t *testing.T) {
 	require.Error(t, err)
 }
 
+func Test_UpdateBatchInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	config := types.BridgeConfig{
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
+		SubmissionInterval:  time.Second * 10,
+		FinalizationPeriod:  time.Second * 60,
+		SubmissionStartTime: time.Now().UTC(),
+		Metadata:            []byte{1, 2, 3},
+		BatchInfo: &types.BatchInfo{
+			Submitter: addrsStr[1],
+			Chain:     "l1",
+		},
+	}
+
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	// gov signer
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgUpdateBatchInfo(govAddr, 1, &types.BatchInfo{
+		Submitter: addrsStr[2],
+		Chain:     "celestia",
+	})
+	_, err = ms.UpdateBatchInfo(ctx, msg)
+	require.NoError(t, err)
+	_config, err := ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, addrsStr[2], _config.BatchInfo.Submitter)
+	require.Equal(t, "celestia", _config.BatchInfo.Chain)
+
+	// current proposer signer
+	msg = types.NewMsgUpdateBatchInfo(addrsStr[0], 1, nil)
+	_, err = ms.UpdateBatchInfo(ctx, msg)
+	require.NoError(t, err)
+	_config, err = ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Empty(t, _config.BatchInfo)
+
+	// invalid signer
+	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+	msg = types.NewMsgUpdateBatchInfo(invalidAddr, 1, nil)
+	require.NoError(t, err)
+
+	_, err = ms.UpdateBatchInfo(
+		ctx,
+		msg,
+	)
+	require.Error(t, err)
+}
+
 func Test_MsgServer_UpdateParams(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)

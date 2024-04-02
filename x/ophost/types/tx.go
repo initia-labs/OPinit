@@ -5,20 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// rollup message types
-const (
-	TypeMsgRecordBatch             = "record_batch"
-	TypeMsgCreateBridge            = "create_bridge"
-	TypeMsgProposeOutput           = "propose_output"
-	TypeMsgDeleteOutput            = "delete_output"
-	TypeMsgInitiateTokenDeposit    = "deposit"
-	TypeMsgFinalizeTokenWithdrawal = "claim"
-	TypeMsgUpdateProposer          = "update_proposer"
-	TypeMsgUpdateChallenger        = "update_challenger"
-	TypeMsgUpdateBatchInfo         = "update_batch_info"
-	TypeMsgUpdateParams            = "update_params"
-)
-
 var (
 	_ sdk.Msg = &MsgRecordBatch{}
 	_ sdk.Msg = &MsgCreateBridge{}
@@ -346,12 +332,12 @@ func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
 func NewMsgUpdateBatchInfo(
 	authority string,
 	bridgeId uint64,
-	newBatchInfo BatchInfo,
+	newBatchInfo *BatchInfo,
 ) *MsgUpdateBatchInfo {
 	return &MsgUpdateBatchInfo{
 		Authority:    authority,
 		BridgeId:     bridgeId,
-		NewBatchInfo: &newBatchInfo,
+		NewBatchInfo: newBatchInfo,
 	}
 }
 
@@ -365,9 +351,10 @@ func (msg MsgUpdateBatchInfo) Validate(accAddressCodec address.Codec) error {
 		return ErrInvalidBridgeId
 	}
 
-	if msg.NewBatchInfo.Chain == "" || msg.NewBatchInfo.Submitter == "" {
+	if msg.NewBatchInfo != nil && (msg.NewBatchInfo.Chain == "" || msg.NewBatchInfo.Submitter == "") {
 		return ErrEmptyBatchInfo
 	}
+
 	return nil
 }
 

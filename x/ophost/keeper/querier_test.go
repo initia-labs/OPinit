@@ -173,3 +173,41 @@ func Test_QueryOutputProposals(t *testing.T) {
 		},
 	}, res.OutputProposals)
 }
+
+func Test_QueryLastFinalizedOutput(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Challenger:         "",
+		Proposer:           "",
+		SubmissionInterval: 100,
+		FinalizationPeriod: time.Second * 10,
+	})
+
+	proposeTime := time.Now().UTC()
+	err := input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   proposeTime,
+		L2BlockNumber: 100,
+	})
+	require.NoError(t, err)
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.LastFinalizedOutput(ctx, &types.QueryLastFinalizedOutputRequest{
+		BridgeId: 1,
+	})
+	require.NoError(t, err)
+	require.Empty(t, res.OutputProposal)
+	require.Zero(t, res.OutputIndex)
+
+	res, err = q.LastFinalizedOutput(ctx.WithBlockTime(proposeTime.Add(time.Second*10)), &types.QueryLastFinalizedOutputRequest{
+		BridgeId: 1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), res.OutputIndex)
+	require.Equal(t, types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   proposeTime,
+		L2BlockNumber: 100,
+	}, res.OutputProposal)
+}
