@@ -1,12 +1,8 @@
-import Axios from 'axios';
 import { sequenceLenBytes, shareInfoBytes, shareSize } from './builder';
 import { createCommitment } from './commitment';
 import { namespaceSize } from './namespace';
 import { config } from 'config';
-import { delay } from 'bluebird';
-import {
-  Blob, Coin
-} from '@initia/initia.js';
+import { Blob } from '@initia/initia.js';
 
 // constants
 const befaultGasPerBlobByte = 8;
@@ -17,18 +13,17 @@ const firstSparseShareContentSize =
   shareSize - namespaceSize - shareInfoBytes - sequenceLenBytes;
 const continuationSparseShareContentSize =
   shareSize - namespaceSize - shareInfoBytes;
-const denom = "utia";
 const namespaceIdLength = 28;
 
-export function getCelestiaFeeGasLimit(length: number): number{
+export function getCelestiaFeeGasLimit(length: number): number {
   // calculate gas
   return Math.floor(defaultEstimateGas([length]) * 1.2);
 }
 
 export function createBlob(data: Buffer): {
-  blob: Blob, 
-  commitment: string, 
-  namespace: string,
+  blob: Blob;
+  commitment: string;
+  namespace: string;
 } {
   const blob = {
     namespaceId: new Uint8Array([
@@ -48,113 +43,17 @@ export function createBlob(data: Buffer): {
     Buffer.from(config.CELESTIA_NAMESPACE_ID, 'hex').toString('base64'),
     Buffer.from(blob.data).toString('base64'),
     0,
-    0,
+    0
   );
   const namespace = Buffer.from([
-                blob.namespaceVersion,
-                ...blob.namespaceId
-              ]).toString('base64');
+    blob.namespaceVersion,
+    ...blob.namespaceId
+  ]).toString('base64');
   return {
     blob: res,
     commitment,
-    namespace,
+    namespace
   };
-}
-
-// async function submitPayForBlob(data: Buffer): Promise<string> {
-//   const lightNodeRpc = Axios.create({
-//     baseURL: config.CELESTIA_LIGHT_NODE_RPC_URI,
-//     headers: {
-//       Authorization: `Bearer ${config.CELESTIA_TOKEN_AUTH}`
-//     }
-//   });
-
-//   const blob = {
-//     namespaceId: new Uint8Array([
-//       ...Buffer.from(config.CELESTIA_NAMESPACE_ID, 'hex')
-//     ]),
-//     data: new Uint8Array([...data]),
-//     shareVersion: 0,
-//     namespaceVersion: 0,
-//     shareCommitment: new Uint8Array()
-//   };
-
-//   // generate commitment
-//   createCommitment(blob);
-
-//   // calculate gas
-//   const gaslimit = Math.floor(defaultEstimateGas([blob.data.length]) * 1.2);
-//   const fee = Math.floor(gaslimit * config.CELESTIA_GAS_PRICE).toString();
-
-//   const request = {
-//     id: 1,
-//     jsonrpc: '2.0',
-//     method: 'state.SubmitPayForBlob',
-//     params: [
-//       fee,
-//       gaslimit,
-//       [
-//         {
-//           namespace: Buffer.from([
-//             blob.namespaceVersion,
-//             ...blob.namespaceId
-//           ]).toString('base64'),
-//           data: Buffer.from(blob.data).toString('base64'),
-//           share_version: blob.shareVersion,
-//           commitment: Buffer.from(blob.shareCommitment).toString('base64')
-//         }
-//       ]
-//     ]
-//   };
-
-//   const response = await lightNodeRpc.post('', request);
-
-//   // error handle
-//   if (response?.data === undefined || response.data?.result === undefined) {
-//     const timeoutError = 'timed out waiting for tx to be included in a block';
-//     const mempoolError = 'tx already in mempool';
-//     // if got timeout error, retry
-//     if (
-//       response?.data?.error &&
-//       (errorInclude(response, timeoutError) ||
-//         errorInclude(response, mempoolError))
-//     ) {
-//       await delay(1000);
-//       return submitPayForBlob(data);
-//     }
-
-//     let reason: any = '';
-
-//     // in case response.data is undefined
-//     if (response?.data === undefined) {
-//       reason = response;
-//     }
-
-//     if (response.data?.result === undefined) {
-//       throw Error(
-//         `Failed to SubmitPayForBlob. Reason: ${
-//           response.data?.error
-//             ? JSON.stringify(response.data.error)
-//             : JSON.stringify(response.data)
-//         }`
-//       );
-//     }
-
-//     throw Error(
-//       `Failed to SubmitPayForBlob. Reason: ${JSON.stringify(reason)}`
-//     );
-//   }
-
-//   const height = response.data.result.height;
-//   const commitment = Buffer.from(blob.shareCommitment).toString('base64');
-//   return `${height}::${commitment}`;
-// }
-
-function errorInclude(response: any, message: string): boolean {
-  return (
-    response?.data?.error &&
-    JSON.stringify(response.data.error).indexOf(message) !== -1
-  );
 }
 
 function defaultEstimateGas(blobSizes: number[]) {
@@ -194,15 +93,6 @@ function sparseSharesNeeded(sequenceLen: number): number {
   if (sequenceLen < firstSparseShareContentSize) {
     return 1;
   }
-
-  // let sharesNeeded = 1;
-  // let bytesAvailable = firstSparseShareContentSize;
-  // while (bytesAvailable < sequenceLen) {
-  //   bytesAvailable += continuationSparseShareContentSize;
-  //   sharesNeeded++;
-  // }
-
-  // return sharesNeeded;
 
   return (
     1 +
