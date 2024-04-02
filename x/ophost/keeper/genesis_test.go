@@ -13,16 +13,16 @@ func Test_GenesisImportExport(t *testing.T) {
 
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challenger:          "challenger",
-		Proposer:            "proposer",
+		Challenger:          addrsStr[1],
+		Proposer:            addrsStr[0],
 		SubmissionInterval:  100,
 		FinalizationPeriod:  100,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
 	}
 	config2 := types.BridgeConfig{
-		Challenger:          "challenger2",
-		Proposer:            "proposer2",
+		Challenger:          addrsStr[2],
+		Proposer:            addrsStr[3],
 		SubmissionInterval:  200,
 		FinalizationPeriod:  200,
 		SubmissionStartTime: time.Now().UTC(),

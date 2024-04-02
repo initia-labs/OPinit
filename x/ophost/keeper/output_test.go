@@ -79,15 +79,17 @@ func Test_IterateOutputProposal(t *testing.T) {
 func Test_IsFinalized(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challenger:         "",
-		Proposer:           "",
-		SubmissionInterval: 100,
-		FinalizationPeriod: time.Second * 10,
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Challenger:          addrsStr[1],
+		Proposer:            addrsStr[0],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: time.Now().UTC(),
 	})
+	require.NoError(t, err)
 
 	proposeTime := time.Now().UTC()
-	err := input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
+	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   proposeTime,
 		L2BlockNumber: 100,
@@ -134,15 +136,17 @@ func Test_NextOutputIndex(t *testing.T) {
 func Test_GetLastFinalizedOutput(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challenger:         "",
-		Proposer:           "",
-		SubmissionInterval: 100,
-		FinalizationPeriod: time.Second * 10,
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
+		Proposer:            addrsStr[0],
+		Challenger:          addrsStr[1],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  time.Second * 10,
+		SubmissionStartTime: time.Now().UTC(),
 	})
+	require.NoError(t, err)
 
 	proposeTime := time.Now().UTC()
-	err := input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
+	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   proposeTime,
 		L2BlockNumber: 100,

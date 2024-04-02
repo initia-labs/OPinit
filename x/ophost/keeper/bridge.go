@@ -17,6 +17,10 @@ func (k Keeper) SetBridgeConfig(
 	bridgeId uint64,
 	bridgeConfig types.BridgeConfig,
 ) error {
+	if err := bridgeConfig.Validate(k.authKeeper.AddressCodec()); err != nil {
+		return err
+	}
+
 	return k.BridgeConfigs.Set(ctx, bridgeId, bridgeConfig)
 }
 
