@@ -51,9 +51,10 @@ func (k Keeper) DeleteOutputProposal(ctx context.Context, bridgeId, outputIndex 
 	if err != nil {
 		return err
 	}
-	if isFinal, err := k.isFinalized(ctx, bridgeId, output); err != nil {
+
+	if isFinalized, err := k.isFinalized(ctx, bridgeId, output); err != nil {
 		return err
-	} else if isFinal {
+	} else if isFinalized {
 		return types.ErrAlreadyFinalized
 	}
 

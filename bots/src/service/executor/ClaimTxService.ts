@@ -17,7 +17,7 @@ interface ClaimTx {
     l2Denom: string
     version: string
     stateRoot: string
-    storageRoot: string
+    merkleRoot: string
     lastBlockHash: string
 }
 
@@ -86,7 +86,7 @@ export async function getClaimTxList(
                 l2Denom: withdrawalTx.l2Denom,
                 version: sha3_256(withdrawalTx.outputIndex).toString('base64'),
                 stateRoot: output.stateRoot,
-                storageRoot: output.merkleRoot,
+                merkleRoot: output.merkleRoot,
                 lastBlockHash: output.lastBlockHash,
             }
             claimTxList.push(claimData)

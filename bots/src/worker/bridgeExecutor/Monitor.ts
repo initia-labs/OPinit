@@ -33,13 +33,20 @@ export abstract class Monitor {
       }
     });
 
+    this.syncedHeight = state?.height || 0
+
     if (!state) {
+      if (this.name() === 'executor_l1_monitor') {
+        this.syncedHeight = config.EXECUTOR_L1_MONITOR_HEIGHT
+      } else if (this.name() === 'executor_l2_monitor') {
+        this.syncedHeight = config.EXECUTOR_L2_MONITOR_HEIGHT
+      }
+
       await this.db
         .getRepository(StateEntity)
-        .save({ name: this.name(), height: 0 });
+        .save({ name: this.name(), height: this.syncedHeight});
     }
-    this.syncedHeight = state?.height || 0;
-
+    
     this.socket.initialize();
     this.isRunning = true;
     await this.monitor();
