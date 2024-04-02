@@ -208,7 +208,12 @@ message MsgUpdateProposer {
 }
 
 // MsgUpdateProposerResponse returns a message handle result.
-message MsgUpdateProposerResponse {}
+message MsgUpdateProposerResponse {
+  // last finalized output index
+  uint64 output_index = 1;
+  // last finalized l2 block number
+  uint64 l2_block_number = 2;
+}
 
 // MsgUpdateChallenger is a message to change a challenger
 message MsgUpdateChallenger {
@@ -224,9 +229,14 @@ message MsgUpdateChallenger {
 }
 
 // MsgUpdateChallengerResponse returns a message handle result.
-message MsgUpdateChallengerResponse {}
+message MsgUpdateChallengerResponse {
+  // last finalized output index
+  uint64 output_index = 1;
+  // last finalized l2 block number
+  uint64 l2_block_number = 2;
+}
 
-// MsgUpdateChallenger is a message to change a challenger
+// MsgUpdateBatchInfo is a message to change a batch info
 message MsgUpdateBatchInfo {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name)           = "ophost/MsgUpdateBatchInfo";
@@ -239,8 +249,13 @@ message MsgUpdateBatchInfo {
       [(gogoproto.moretags) = "yaml:\"new_batch_info\""];
 }
 
-// MsgUpdateChallengerResponse returns a message handle result.
-message MsgUpdateBatchInfoResponse {}
+// MsgUpdateBatchInfoResponse returns a message handle result.
+message MsgUpdateBatchInfoResponse {
+  // last finalized output index
+  uint64 output_index = 1;
+  // last finalized l2 block number
+  uint64 l2_block_number = 2;
+}
 
 // MsgUpdateParams is a message to update parameters
 message MsgUpdateParams {

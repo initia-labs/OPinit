@@ -369,13 +369,23 @@ func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProp
 		return nil, err
 	}
 
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateProposer,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.NewProposer),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateProposerResponse{}, nil
+	return &types.MsgUpdateProposerResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
 }
 
 func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
@@ -437,14 +447,24 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 		return nil, err
 	}
 
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateBatchInfo,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyBatchChain, req.NewBatchInfo.Chain),
 		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.NewBatchInfo.Submitter),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateBatchInfoResponse{}, nil
+	return &types.MsgUpdateBatchInfoResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
 }
 
 // UpdateParams implements updating the parameters

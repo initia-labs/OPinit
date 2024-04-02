@@ -96,25 +96,13 @@ func (q Querier) TokenPairs(ctx context.Context, req *types.QueryTokenPairsReque
 }
 
 func (q Querier) LastFinalizedOutput(ctx context.Context, req *types.QueryLastFinalizedOutputRequest) (*types.QueryLastFinalizedOutputResponse, error) {
-	var lastOutput types.Output
-	bridgeConfig, err := q.GetBridgeConfig(ctx, req.BridgeId)
+	lastOutputIndex, lastOutput, err := q.GetLastFinalizedOutput(ctx, req.BridgeId)
 	if err != nil {
 		return nil, err
 	}
 
-	cb := func(key collections.Pair[uint64, uint64], output types.Output) (stop bool, err error) {
-		if ok, err := q.Keeper.isFinalizedWithConfig(ctx, bridgeConfig, output); err != nil {
-			return true, err
-		} else if ok {
-			lastOutput = output
-			return true, nil
-		}
-		return false, nil
-	}
-	if err := q.ReverseIterateOutputProposals(ctx, req.BridgeId, cb); err != nil {
-		return nil, err
-	}
 	return &types.QueryLastFinalizedOutputResponse{
+		OutputIndex:    lastOutputIndex,
 		OutputProposal: lastOutput,
 	}, nil
 }

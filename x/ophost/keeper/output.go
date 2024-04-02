@@ -13,6 +13,29 @@ import (
 ////////////////////////////////////
 // OutputProposal
 
+func (k Keeper) GetLastFinalizedOutput(ctx context.Context, bridgeId uint64) (outputIndex uint64, outputProposal types.Output, err error) {
+	bridgeConfig, err := k.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return 0, outputProposal, err
+	}
+
+	cb := func(key collections.Pair[uint64, uint64], output types.Output) (stop bool, err error) {
+		if ok, err := k.isFinalizedWithConfig(ctx, bridgeConfig, output); err != nil {
+			return true, err
+		} else if ok {
+			outputIndex = key.K2()
+			outputProposal = output
+			return true, nil
+		}
+		return false, nil
+	}
+	if err := k.ReverseIterateOutputProposals(ctx, bridgeId, cb); err != nil {
+		return 0, outputProposal, err
+	}
+
+	return outputIndex, outputProposal, nil
+}
+
 func (k Keeper) SetOutputProposal(ctx context.Context, bridgeId, outputIndex uint64, outputProposal types.Output) error {
 	return k.OutputProposals.Set(ctx, collections.Join(bridgeId, outputIndex), outputProposal)
 }

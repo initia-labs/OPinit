@@ -142,7 +142,8 @@ message QueryLastFinalizedOutputRequest {
 }
 
 message QueryLastFinalizedOutputResponse {
-  Output output_proposal = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 output_index = 1;
+  Output output_proposal = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // QueryOutputProposalRequest is response type for the Query/OutputProposal RPC method
