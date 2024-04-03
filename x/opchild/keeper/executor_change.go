@@ -38,7 +38,7 @@ func (k Keeper) RegisterExecutorChangePlan(
 	var pubKey cryptotypes.PubKey
 	err = k.cdc.UnmarshalInterfaceJSON([]byte(consensusPubKey), &pubKey)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(types.ErrInvalidExecutorChangePlan, "invalid pub key")
 	}
 
 	validator, err := types.NewValidator(valAddr, pubKey, moniker)
