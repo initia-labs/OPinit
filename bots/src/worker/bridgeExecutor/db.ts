@@ -7,9 +7,6 @@ import {
 } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-import debugModule from 'debug';
-const debug = debugModule('orm');
-
 import CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
 
 import {
@@ -36,7 +33,7 @@ let DB: DataSource[] = [];
 
 function initConnection(options: DataSourceOptions): Promise<DataSource> {
   const pgOpts = options as PostgresConnectionOptions;
-  debug(
+  console.log(
     `creating connection default to ${pgOpts.username}@${pgOpts.host}:${
       pgOpts.port || 5432
     }`
