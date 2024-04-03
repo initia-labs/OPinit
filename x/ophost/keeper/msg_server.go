@@ -74,6 +74,8 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyCreator, req.Creator),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
 		sdk.NewAttribute(types.AttributeKeyChallenger, req.Config.Challenger),
+		sdk.NewAttribute(types.AttributeKeyBatchChain, req.Config.BatchInfo.Chain),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
 
