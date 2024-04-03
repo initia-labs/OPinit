@@ -42,18 +42,18 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 
 - `.env.executor`
 
-| Name                      | Description                                            | Default                          |
-| ------------------------- | ------------------------------------------------------ | -------------------------------- |
-| L1_LCD_URI                | L1 node LCD URI                                        | <http://127.0.0.1:1317>          |
-| L1_RPC_URI                | L1 node RPC URI                                        | <http://127.0.0.1:26657>         |
-| L2_LCD_URI                | L2 node LCD URI                                        | <http://127.0.0.1:1317>          |
-| L2_RPC_URI                | L2 node RPC URI                                        | <http://127.0.0.1:26657>         |
-| BRIDGE_ID                 | Bridge ID                                              | ''                               |
-| EXECUTOR_PORT             | Executor port                                          | 5000                             |
-| EXECUTOR_MNEMONIC         | Mnemonic seed for executor                             | ''                               |
-| SLACK_WEB_HOOK            | Slack web hook for notification (optional)             | ''                               |
-| EXECUTOR_L1_MONITOR_HEIGHT| L1 monitor start height (optional)                     | 0                                |
-| EXECUTOR_L2_MONITOR_HEIGHT| L2 monitor start height (optional)                     | 0                                |
+| Name                       | Description                                | Default                  |
+| -------------------------- | ------------------------------------------ | ------------------------ |
+| L1_LCD_URI                 | L1 node LCD URI                            | <http://127.0.0.1:1317>  |
+| L1_RPC_URI                 | L1 node RPC URI                            | <http://127.0.0.1:26657> |
+| L2_LCD_URI                 | L2 node LCD URI                            | <http://127.0.0.1:1317>  |
+| L2_RPC_URI                 | L2 node RPC URI                            | <http://127.0.0.1:26657> |
+| BRIDGE_ID                  | Bridge ID                                  | ''                       |
+| EXECUTOR_PORT              | Executor port                              | 5000                     |
+| EXECUTOR_MNEMONIC          | Mnemonic seed for executor                 | ''                       |
+| SLACK_WEB_HOOK             | Slack web hook for notification (optional) | ''                       |
+| EXECUTOR_L1_MONITOR_HEIGHT | L1 monitor start height (optional)         | 0                        |
+| EXECUTOR_L2_MONITOR_HEIGHT | L2 monitor start height (optional)         | 0                        |
 
 > Note that if `EXECUTOR_L1_MONITOR_HEIGHT` and `EXECUTOR_L2_MONITOR_HEIGHT` are not set, `executor` will start monitoring from height stored on `state` table. If you want to start monitoring from specific height, you should set them in `.env.executor` file.
 
@@ -85,7 +85,7 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 | CELESTIA_TOKEN_AUTH         | Celestia light node admin token                              | ''                       |
 | CELESTIA_NAMESPACE_ID       | Celestia namespace id                                        | ''                       |
 | CELESTIA_GAS_PRICE          | Celestia utia gas price                                      | 0.01                     |
-| PUBLISH_BATCH_TARGET        | Target chain to publish batch (supports: ['l1', 'celestia']) | ''                       |
+| PUBLISH_BATCH_TARGET        | Target chain to publish batch (supports: ['l1', 'celestia']) | 'l1'                     |
 
 - `.env.challenger`
 

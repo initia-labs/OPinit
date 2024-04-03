@@ -57,6 +57,7 @@ message BridgeConfig {
   bytes metadata = 7;
 }
 
+// BatchInfo defines the set of batch information.
 message BatchInfo {
   // The address of the batch submitter.
   string submitter = 1;

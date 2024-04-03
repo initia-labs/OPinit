@@ -5,7 +5,7 @@ import { config } from 'config';
 import { Blob } from '@initia/initia.js';
 
 // constants
-const befaultGasPerBlobByte = 8;
+const defaultGasPerBlobByte = 8;
 const defaultTxSizeCostPerByte = 10;
 const bytesPerBlobInfo = 70;
 const pfbGasFixedCost = 75000;
@@ -59,7 +59,7 @@ export function createBlob(data: Buffer): {
 function defaultEstimateGas(blobSizes: number[]) {
   return estimateGas(
     blobSizes,
-    befaultGasPerBlobByte,
+    defaultGasPerBlobByte,
     defaultTxSizeCostPerByte
   );
 }

@@ -19,7 +19,8 @@ type BridgeConfig struct {
 	// NOTE: this param is currently not used, but will be used for challenge in future.
 	SubmissionStartTime string `protobuf:"bytes,5,opt,name=submission_start_time,json=submissionStartTime,proto3,stdtime" json:"submission_start_time"`
 	// Normally it is IBC channelID for permissioned IBC relayer.
-	Metadata  string          `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Metadata string `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// BatchInfo is the batch information for the bridge.
 	BatchInfo types.BatchInfo `json:"batch_info"`
 }
 
