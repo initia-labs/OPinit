@@ -74,6 +74,8 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyCreator, req.Creator),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
 		sdk.NewAttribute(types.AttributeKeyChallenger, req.Config.Challenger),
+		sdk.NewAttribute(types.AttributeKeyBatchChain, req.Config.BatchInfo.Chain),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
 
@@ -366,13 +368,23 @@ func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProp
 		return nil, err
 	}
 
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateProposer,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.NewProposer),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateProposerResponse{}, nil
+	return &types.MsgUpdateProposerResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
 }
 
 func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
@@ -399,14 +411,68 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateChallenger,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyChallenger, req.NewChallenger),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateChallengerResponse{}, nil
+	return &types.MsgUpdateChallengerResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
+}
+
+func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBatchInfo) (*types.MsgUpdateBatchInfoResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	// gov or current proposer can update batch info.
+	if ms.authority != req.Authority && config.Proposer != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
+	}
+
+	config.BatchInfo = req.NewBatchInfo
+	if err := ms.Keeper.bridgeHook.BridgeBatchInfoUpdated(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateBatchInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyBatchChain, req.NewBatchInfo.Chain),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.NewBatchInfo.Submitter),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
+	))
+
+	return &types.MsgUpdateBatchInfoResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
 }
 
 // UpdateParams implements updating the parameters

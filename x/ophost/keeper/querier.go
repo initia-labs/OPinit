@@ -95,6 +95,18 @@ func (q Querier) TokenPairs(ctx context.Context, req *types.QueryTokenPairsReque
 	}, nil
 }
 
+func (q Querier) LastFinalizedOutput(ctx context.Context, req *types.QueryLastFinalizedOutputRequest) (*types.QueryLastFinalizedOutputResponse, error) {
+	lastOutputIndex, lastOutput, err := q.GetLastFinalizedOutput(ctx, req.BridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryLastFinalizedOutputResponse{
+		OutputIndex:    lastOutputIndex,
+		OutputProposal: lastOutput,
+	}, nil
+}
+
 func (q Querier) OutputProposal(ctx context.Context, req *types.QueryOutputProposalRequest) (*types.QueryOutputProposalResponse, error) {
 	output, err := q.GetOutputProposal(ctx, req.BridgeId, req.OutputIndex)
 	if err != nil {

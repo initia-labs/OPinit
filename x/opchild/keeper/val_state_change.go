@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 	"sort"
 
 	"cosmossdk.io/core/address"
@@ -50,7 +51,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 		newPower := validator.ConsensusPower()
 
 		// zero power validator removed from validator set
-		if newPower == 0 {
+		if newPower <= 0 {
 			continue
 		}
 
@@ -72,6 +73,10 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 
 	for _, valAddrBytes := range noLongerBonded {
 		validator := k.mustGetValidator(ctx, sdk.ValAddress(valAddrBytes))
+		if validator.ConsPower > 0 {
+			return nil, errors.New("deleting validator cannot have positive power")
+		}
+
 		valAddr, err := k.validatorAddressCodec.StringToBytes(validator.GetOperator())
 		if err != nil {
 			return nil, err
@@ -85,9 +90,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 			return nil, err
 		}
 
-		updates = append(updates, validator.ABCIValidatorUpdateZero())
+		updates = append(updates, validator.ABCIValidatorUpdate())
 	}
-
 	return updates, nil
 }
 

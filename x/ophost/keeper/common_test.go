@@ -316,6 +316,7 @@ func _createTestInput(
 type bridgeHook struct {
 	proposer   string
 	challenger string
+	batchInfo  ophosttypes.BatchInfo
 	metadata   []byte
 	err        error
 }
@@ -361,6 +362,21 @@ func (h *bridgeHook) BridgeProposerUpdated(
 
 	h.metadata = bridgeConfig.Metadata
 	h.proposer = bridgeConfig.Proposer
+
+	return nil
+}
+
+func (h *bridgeHook) BridgeBatchInfoUpdated(
+	ctx context.Context,
+	bridgeId uint64,
+	bridgeConfig ophosttypes.BridgeConfig,
+) error {
+	if h.err != nil {
+		return h.err
+	}
+
+	h.metadata = bridgeConfig.Metadata
+	h.batchInfo = bridgeConfig.BatchInfo
 
 	return nil
 }

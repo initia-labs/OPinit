@@ -17,11 +17,14 @@ const {
   L1_RPC_URI,
   L2_LCD_URI,
   L2_RPC_URI,
-  CELESTIA_RPC_URI,
-  CELESTIA_LIGHT_NODE_RPC_URI,
-  CELESTIA_TOKEN_AUTH,
+  BATCH_LCD_URI,
+  BATCH_CHAIN_RPC_URI,
+  BATCH_GAS_PRICES,
+  BATCH_DENOM,
+  BATCH_CHAIN_ID,
+
   CELESTIA_NAMESPACE_ID,
-  CELESTIA_GAS_PRICE,
+
   PUBLISH_BATCH_TARGET,
   EXECUTOR_URI,
   BRIDGE_ID,
@@ -52,12 +55,17 @@ export const config = {
   L1_RPC_URI: L1_RPC_URI ? L1_RPC_URI.split(',') : ['http://localhost:26657'],
   L2_LCD_URI: L2_LCD_URI ? L2_LCD_URI.split(',') : ['http://localhost:1317'],
   L2_RPC_URI: L2_RPC_URI ? L2_RPC_URI.split(',') : ['http://localhost:26657'],
-  CELESTIA_RPC_URI: CELESTIA_RPC_URI || 'http://localhost:26658',
-  CELESTIA_LIGHT_NODE_RPC_URI:
-    CELESTIA_LIGHT_NODE_RPC_URI || 'http://localhost:26658',
-  CELESTIA_TOKEN_AUTH: CELESTIA_TOKEN_AUTH,
+  BATCH_LCD_URI: BATCH_LCD_URI ? BATCH_LCD_URI.split(',') : ['http://localhost:1317'],
+  BATCH_CHAIN_RPC_URI: (() => {
+    if(PUBLISH_BATCH_TARGET == 'l1') {
+      return L1_RPC_URI;
+    } else if(BATCH_CHAIN_RPC_URI == undefined || BATCH_CHAIN_RPC_URI.length == 0) {      
+      throw Error(
+        'Please check your configuration; BATCH_CHAIN_RPC_URI is needed but not given.'
+      );
+    }
+  })(),
   CELESTIA_NAMESPACE_ID: CELESTIA_NAMESPACE_ID || '',
-  CELESTIA_GAS_PRICE: Number(CELESTIA_GAS_PRICE) || 0.01,
   PUBLISH_BATCH_TARGET: (() => {
     if (PUBLISH_BATCH_TARGET === undefined) {
       return 'l1';
@@ -106,6 +114,16 @@ export const config = {
       chainId: L2_CHAIN_ID
     }
   ),
+  batchlcd: (() => {
+    return new LCDClient(
+      BATCH_LCD_URI ? BATCH_LCD_URI.split(',')[0] : 'http://localhost:1317',
+      {
+        gasPrices: BATCH_GAS_PRICES || `0.2${BATCH_DENOM}`,
+        gasAdjustment: '2',
+        chainId: BATCH_CHAIN_ID
+      }
+    )
+  })(),
   SLACK_WEB_HOOK: SLACK_WEB_HOOK ? SLACK_WEB_HOOK : '',
   SUBMISSION_INTERVAL: SUBMISSION_INTERVAL
     ? parseInt(SUBMISSION_INTERVAL)

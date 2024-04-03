@@ -16,4 +16,5 @@ var (
 	ErrAlreadyFinalized           = errorsmod.Register(ModuleName, 9, "output has already finalized")
 	ErrFailedToVerifyWithdrawal   = errorsmod.Register(ModuleName, 10, "failed to verify withdrawal tx")
 	ErrWithdrawalAlreadyFinalized = errorsmod.Register(ModuleName, 11, "withdrawal already finalized")
+	ErrEmptyBatchInfo             = errorsmod.Register(ModuleName, 12, "empty batch info")
 )

@@ -244,6 +244,19 @@ export class RPCClient {
     return blockBulksResult;
   }
 
+  async getRawCommit(end: string): Promise<RawCommit | null> {
+    const rawCommitResult: RawCommit = await this.getRequest(`/raw_commit`, {
+      height: end
+    });
+
+    if (!rawCommitResult) {
+      this.logger.info('failed get raw commit from rpc');
+      return null;
+    }
+
+    return rawCommitResult;
+  }
+
   async lookupInvalidBlock(): Promise<InvalidBlock | null> {
     const invalidBlockResult: InvalidBlock = await this.getRequest(
       `/invalid_block`
@@ -280,6 +293,9 @@ export interface BlockMeta {
 }
 export interface BlockBulk {
   blocks: string[];
+}
+export interface RawCommit {
+  commit: string;
 }
 
 interface InvalidBlock {

@@ -18,6 +18,11 @@ type BridgeHook interface {
 		bridgeId uint64,
 		bridgeConfig BridgeConfig,
 	) error
+	BridgeBatchInfoUpdated(
+		ctx context.Context,
+		bridgeId uint64,
+		bridgeConfig BridgeConfig,
+	) error
 }
 
 type BridgeHooks []BridgeHook
@@ -63,6 +68,20 @@ func (hooks BridgeHooks) BridgeProposerUpdated(
 ) error {
 	for _, h := range hooks {
 		if err := h.BridgeProposerUpdated(ctx, bridgeId, bridgeConfig); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (hooks BridgeHooks) BridgeBatchInfoUpdated(
+	ctx context.Context,
+	bridgeId uint64,
+	bridgeConfig BridgeConfig,
+) error {
+	for _, h := range hooks {
+		if err := h.BridgeBatchInfoUpdated(ctx, bridgeId, bridgeConfig); err != nil {
 			return err
 		}
 	}

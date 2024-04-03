@@ -32,11 +32,11 @@ export class OutputSubmitter {
     await this.init();
 
     while (this.isRunning) {
-      await this.proccessOutput();
+      await this.processOutput();
     }
   }
 
-  async proccessOutput() {
+  async processOutput() {
     try {
       await this.db.transaction(async (manager: EntityManager) => {
         const lastOutputInfo = await getLastOutputInfo(this.bridgeId);
@@ -53,7 +53,7 @@ export class OutputSubmitter {
 
         await this.proposeOutput(output);
         logger.info(
-          `successfully submitted! output index: ${this.syncedOutputIndex}, output root: ${output.outputRoot}`
+          `successfully submitted! output index: ${this.syncedOutputIndex}, output root: ${output.outputRoot} (${output.startBlockNumber}, ${output.endBlockNumber})`
         );
       });
     } catch (err) {
