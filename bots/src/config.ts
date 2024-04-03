@@ -57,6 +57,9 @@ export const config = {
   L2_RPC_URI: L2_RPC_URI ? L2_RPC_URI.split(',') : ['http://localhost:26657'],
   BATCH_LCD_URI: BATCH_LCD_URI ? BATCH_LCD_URI.split(',') : ['http://localhost:1317'],
   BATCH_CHAIN_RPC_URI: (() => {
+    if (process.env.WORKER_NAME !== 'batch') {
+      return undefined;
+    }
     if(PUBLISH_BATCH_TARGET == 'l1') {
       return L1_RPC_URI;
     } else if(BATCH_CHAIN_RPC_URI == undefined || BATCH_CHAIN_RPC_URI.length == 0) {      
