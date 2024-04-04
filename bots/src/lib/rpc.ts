@@ -45,6 +45,18 @@ export class RPCSocket {
   }
 
   public tick(): void {
+    const now = Date.now();
+    if (
+      this.ws &&
+      this.ws.readyState === this.ws.OPEN &&
+      now - this.sendedPingAt > 10000
+    ) {
+      this.ws.ping();
+      this.sendedPingAt = now;
+    }
+
+    this.checkAlive();
+    
     if (this.updateTimer) clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => this.tick(), this.interval);
   }
