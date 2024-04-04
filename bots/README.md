@@ -70,22 +70,23 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 
 - `.env.batch`
 
-| Name                        | Description                                                  | Default                  |
-| --------------------------- | ------------------------------------------------------------ | ------------------------ |
-| L1_LCD_URI                  | L1 node LCD URI                                              | <http://127.0.0.1:1317>  |
-| L1_RPC_URI                  | L1 node RPC URI                                              | <http://127.0.0.1:26657> |
-| L2_LCD_URI                  | L2 node LCD URI                                              | <http://127.0.0.1:1317>  |
-| L2_RPC_URI                  | L2 node RPC URI                                              | <http://127.0.0.1:26657> |
-| BRIDGE_ID                   | Bridge ID                                                    | ''                       |
-| BATCH_PORT                  | Batch submitter port                                         | 5001                     |
-| BATCH_SUBMITTER_MNEMONIC    | Mnemonic seed for submitter                                  | ''                       |
-| SLACK_WEB_HOOK              | Slack web hook for notification (optional)                   | ''                       |
-| CELESTIA_RPC_URI            | Celestia node RPC URI                                        | <http://127.0.0.1:26657> |
-| CELESTIA_LIGHT_NODE_RPC_URI | Celestia light node RPC URI                                  | <http://127.0.0.1:26658> |
-| CELESTIA_TOKEN_AUTH         | Celestia light node admin token                              | ''                       |
-| CELESTIA_NAMESPACE_ID       | Celestia namespace id                                        | ''                       |
-| CELESTIA_GAS_PRICE          | Celestia utia gas price                                      | 0.01                     |
-| PUBLISH_BATCH_TARGET        | Target chain to publish batch (supports: ['l1', 'celestia']) | 'l1'                     |
+| Name                        | Description                                                  | Default                    |
+| --------------------------- | ------------------------------------------------------------ | -------------------------- |
+| L1_LCD_URI                  | L1 node LCD URI                                              | <http://127.0.0.1:1317>    |
+| L1_RPC_URI                  | L1 node RPC URI                                              | <http://127.0.0.1:26657>   |
+| L2_LCD_URI                  | L2 node LCD URI                                              | <http://127.0.0.1:1317>    |
+| L2_RPC_URI                  | L2 node RPC URI                                              | <http://127.0.0.1:26657>   |
+| BRIDGE_ID                   | Bridge ID                                                    | ''                         |
+| BATCH_PORT                  | Batch submitter port                                         | 5001                       |
+| BATCH_SUBMITTER_MNEMONIC    | Mnemonic seed for submitter                                  | ''                         |
+| SLACK_WEB_HOOK              | Slack web hook for notification (optional)                   | ''                         |
+| BATCH_CHAIN_ID              | DA chain's chain-id                                          |                            |
+| BATCH_CHAIN_RPC_URI         | DA chain node RPC URI                                        | L1_RPC_URI if target is l1 |
+| BATCH_LCD_URI               | DA chain node LCD URI                                        | <http://127.0.0.1:1317>    |
+| BATCH_GAS_PRICES            | Gas prices for DA chain                                      |                            |
+| BATCH_DENOM                 | Fee denom for DA chain                                       |                            |
+| CELESTIA_NAMESPACE_ID       | Celestia namespace id (optional)                             | ''                         |
+| PUBLISH_BATCH_TARGET        | Target chain to publish batch (supports: ['l1', 'celestia']) | 'l1'                       |
 
 - `.env.challenger`
 
