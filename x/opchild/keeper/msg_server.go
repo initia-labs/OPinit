@@ -26,16 +26,15 @@ func NewMsgServerImpl(k Keeper) MsgServer {
 	return MsgServer{k}
 }
 
-// checkValidatorPermission checks if the sender is the one of validator
-func (ms MsgServer) checkValidatorPermission(ctx context.Context, sender string) error {
-	addr, err := ms.authKeeper.AddressCodec().StringToBytes(sender)
+// checkAdminPermission checks if the sender is the admin
+func (ms MsgServer) checkAdminPermission(ctx context.Context, sender string) error {
+	params, err := ms.GetParams(ctx)
 	if err != nil {
 		return err
 	}
 
-	valAddr := sdk.ValAddress(addr)
-	if _, found := ms.GetValidator(ctx, valAddr); !found {
-		return errors.Wrapf(sdkerrors.ErrUnauthorized, "the message is allowed to be executed by validator")
+	if params.Admin != sender {
+		return errors.Wrapf(sdkerrors.ErrUnauthorized, "the message is allowed to be executed by admin %s", params.Admin)
 	}
 
 	return nil
@@ -69,7 +68,7 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 	}
 
 	// permission check
-	if err := ms.checkValidatorPermission(ctx, req.Sender); err != nil {
+	if err := ms.checkAdminPermission(ctx, req.Sender); err != nil {
 		return nil, err
 	}
 

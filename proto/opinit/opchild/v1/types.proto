@@ -34,6 +34,13 @@ message Params {
     (amino.dont_omitempty) = true,
     (gogoproto.moretags)   = "yaml:\"bridge_executor\""
   ];
+  // the account address of admin who can execute permissioned cosmos upgrade
+  // messages.
+  string admin = 5 [
+    (cosmos_proto.scalar)  = "cosmos.AddressString",
+    (amino.dont_omitempty) = true,
+    (gogoproto.moretags)   = "yaml:\"admin\""
+  ];
 }
 
 // Validator defines a validator, together with the total amount of the

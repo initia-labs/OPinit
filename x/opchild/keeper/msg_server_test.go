@@ -25,6 +25,14 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+
+	// admin to 0
+	params.Admin = addrsStr[0]
+	require.NoError(t, ms.SetParams(ctx, params))
+
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
 
 	// register validator
@@ -45,7 +53,15 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	removeMsg, err := types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
 	require.NoError(t, err)
 
-	msg, err := types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
+	// should failed with unauthorized
+	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg, removeMsg})
+	require.NoError(t, err)
+
+	_, err = ms.ExecuteMessages(ctx, msg)
+	require.Error(t, err)
+
+	// success
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
@@ -60,7 +76,6 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	require.Equal(t, vals[0].Moniker, "val2")
 
 	// should failed with err (denom not sorted)
-	params := types.DefaultParams()
 	params.MinGasPrices = sdk.DecCoins{{
 		Denom:  "22222",
 		Amount: math.LegacyNewDec(1),
