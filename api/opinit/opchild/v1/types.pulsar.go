@@ -1868,8 +1868,7 @@ type Params struct {
 	// the account address of bridge executor who can execute permissioned bridge
 	// messages.
 	BridgeExecutor string `protobuf:"bytes,4,opt,name=bridge_executor,json=bridgeExecutor,proto3" json:"bridge_executor,omitempty"`
-	// the account address of admin who can execute permissioned cosmos upgrade
-	// messages.
+	// the account address of admin who can execute permissioned cosmos messages.
 	Admin string `protobuf:"bytes,5,opt,name=admin,proto3" json:"admin,omitempty"`
 }
 

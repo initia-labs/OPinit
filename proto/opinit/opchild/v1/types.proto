@@ -34,8 +34,7 @@ message Params {
     (amino.dont_omitempty) = true,
     (gogoproto.moretags)   = "yaml:\"bridge_executor\""
   ];
-  // the account address of admin who can execute permissioned cosmos upgrade
-  // messages.
+  // the account address of admin who can execute permissioned cosmos messages.
   string admin = 5 [
     (cosmos_proto.scalar)  = "cosmos.AddressString",
     (amino.dont_omitempty) = true,
