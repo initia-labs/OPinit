@@ -97,7 +97,7 @@ export class Challenger {
           await this.challengeOutputRoot(manager);
         });
       } catch (err) {
-        logger.error(err);
+        logger.error(`Challenger halted! ${err}`); 
         this.stop();
       } finally {
         await delay(INTERVAL_MONITOR);
