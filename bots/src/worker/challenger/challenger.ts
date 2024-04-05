@@ -97,8 +97,8 @@ export class Challenger {
           await this.challengeOutputRoot(manager);
         });
       } catch (err) {
+        logger.error(err);
         this.stop();
-        console.log(err);
       } finally {
         await delay(INTERVAL_MONITOR);
       }
