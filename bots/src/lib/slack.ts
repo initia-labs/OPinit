@@ -7,17 +7,24 @@ import * as https from 'https';
 import UnconfirmedTxEntity from 'orm/executor/UnconfirmedTxEntity';
 import { ChallengedOutputEntity } from 'orm/index';
 
+const postedKeys = new Set<string>()
+
 const ax = axios.create({
   httpAgent: new http.Agent({ keepAlive: true }),
   httpsAgent: new https.Agent({ keepAlive: true }),
   timeout: 15000
 });
 
-export async function notifySlack(text: { text: string }) {
-  if (config.SLACK_WEB_HOOK == '') return;
-  await ax.post(config.SLACK_WEB_HOOK, text).catch(() => {
-    console.error('Slack Notification Error');
-  });
+export async function notifySlack(key: string, text: { text: string }) {
+  if (config.SLACK_WEB_HOOK == undefined || config.SLACK_WEB_HOOK == '' || postedKeys.has(key)) return
+  try {
+    await ax.post(config.SLACK_WEB_HOOK, text).catch(() => {
+      console.error('Slack Notification Error')
+    })
+    postedKeys.add(key)
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 export function buildNotEnoughBalanceNotification(

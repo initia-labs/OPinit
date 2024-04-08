@@ -314,7 +314,7 @@ export class Challenger {
       await this.deleteOutputProposal(outputIndex);
     }
 
-    await notifySlack(buildChallengerNotification(challengedOutput));
+    await notifySlack(`${outputIndex}-${this.bridgeId}`, buildChallengerNotification(challengedOutput));
     process.exit();
   }
 }

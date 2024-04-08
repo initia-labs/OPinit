@@ -55,7 +55,7 @@ export class Resurrector {
         return;
       }
       this.errorCounter = 0;
-      await notifySlack(buildFailedTxNotification(unconfirmedTx));
+      await notifySlack(`${unconfirmedTx.sender}-${unconfirmedTx.receiver}-${unconfirmedTx.amount}`, buildFailedTxNotification(unconfirmedTx));
     }
   }
 

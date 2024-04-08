@@ -89,7 +89,7 @@ export class TxWallet extends Wallet {
 
     if (balance.amount && parseInt(balance.amount) < config.SLACK_NOT_ENOUGH_BALANCE_THRESHOLD) {
       await notifySlack(
-        buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
+        `${this.key.accAddress}-${balance.amount}`, buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
       );
     }
   }
