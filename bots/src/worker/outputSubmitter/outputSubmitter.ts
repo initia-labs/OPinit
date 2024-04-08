@@ -63,7 +63,7 @@ export class OutputSubmitter {
         );
         await delay(INTERVAL_OUTPUT);
       } else {
-        console.log(err);
+		logger.error(`Output Submitter halted! ${err}`);
         this.stop();
       }
     }

@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-	"allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "target": "es2021",
-    "module": "node16",
+    "module": "commonjs",
     "allowJs": false,
+    "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node16",
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "sourceMap": true,

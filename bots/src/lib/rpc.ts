@@ -8,7 +8,7 @@ export class RPCSocket {
   public sendedPingAt = 0;
   public isAlive = true;
   public alivedAt: number;
-  public updateTimer: NodeJS.Timer;
+  public updateTimer: NodeJS.Timeout;
   public latestHeight?: number;
   logger: winston.Logger;
   rpcUrl: string;
@@ -56,7 +56,7 @@ export class RPCSocket {
     }
 
     this.checkAlive();
-
+    
     if (this.updateTimer) clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => this.tick(), this.interval);
   }
