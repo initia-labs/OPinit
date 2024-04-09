@@ -20,8 +20,8 @@ message GenesisState {
   // delegations defines the validator set at genesis.
   repeated Validator validators = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
-  bool exported = 5;
-  uint64 next_l2_sequence = 6;
+  bool            exported               = 5;
+  uint64          next_l2_sequence       = 6;
   repeated uint64 finalized_l1_sequences = 7;
 }
 
