@@ -301,6 +301,15 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 		return nil, err
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetBridgeInfo,
+			sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
+			sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
+		),
+	)
+
 	return &types.MsgSetBridgeInfoResponse{}, nil
 }
 
