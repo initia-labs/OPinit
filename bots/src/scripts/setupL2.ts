@@ -88,7 +88,7 @@ class L2Initializer {
       this.MsgSetBridgeInfo(bridgeInfo)
     ];
 
-    await sendTx(executor, l2Msgs);
+    await sendTx(executorL2, l2Msgs);
   }
 }
 
