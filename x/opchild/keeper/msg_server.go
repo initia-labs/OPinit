@@ -297,10 +297,30 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 		return nil, err
 	}
 
+	// check bridge id and addr consistency
+	if ok, err := ms.BridgeInfo.Has(ctx); err != nil {
+		return nil, err
+	} else if ok {
+		info, err := ms.BridgeInfo.Get(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		if info.BridgeId != req.BridgeInfo.BridgeId {
+			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected bridge id %d, got %d", info.BridgeId, req.BridgeInfo.BridgeId)
+		}
+
+		if info.BridgeAddr != req.BridgeInfo.BridgeAddr {
+			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected bridge addr %s, got %s", info.BridgeAddr, req.BridgeInfo.BridgeAddr)
+		}
+	}
+
+	// set bridge info
 	if err := ms.BridgeInfo.Set(ctx, req.BridgeInfo); err != nil {
 		return nil, err
 	}
 
+	// emit event
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(

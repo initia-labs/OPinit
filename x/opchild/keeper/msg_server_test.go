@@ -284,11 +284,29 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.NoError(t, err)
 
+	// reset possible
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
 	// invalid bridge id
 	info.BridgeId = 0
 
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.Error(t, err)
+
+	// cannot change bridge id
+	info.BridgeId = 2
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.ErrorContains(t, err, "expected bridge id")
+
+	// cannot change bridge addr
+	info.BridgeId = 1
+	info.BridgeAddr = addrsStr[0]
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+	require.ErrorContains(t, err, "expected bridge addr")
 }
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
