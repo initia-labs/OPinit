@@ -43,7 +43,7 @@
   },
   "homepage": "https://github.com/initia-labs/batch-submitter#readme",
   "devDependencies": {
-    "@initia/initia.js": "^0.1.41",
+    "@initia/initia.js": "^0.1.43",
     "@koa/cors": "^5.0.0",
     "@sentry/node": "^7.109.0",
     "@testcontainers/postgresql": "^10.8.1",
