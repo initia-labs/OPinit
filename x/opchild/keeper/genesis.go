@@ -81,6 +81,16 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		panic(err)
 	}
 
+	if data.BridgeInfo != nil {
+		if err := data.BridgeInfo.Validate(k.addressCodec); err != nil {
+			panic(err)
+		}
+
+		if err := k.BridgeInfo.Set(ctx, *data.BridgeInfo); err != nil {
+			panic(err)
+		}
+	}
+
 	return res
 }
 
@@ -121,6 +131,18 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	var bridgeInfo *types.BridgeInfo
+	if ok, err := k.BridgeInfo.Has(ctx); err != nil {
+		panic(err)
+	} else if ok {
+		bridgeInfo_, err := k.BridgeInfo.Get(ctx)
+		if err != nil {
+			panic(err)
+		}
+
+		bridgeInfo = &bridgeInfo_
+	}
+
 	return &types.GenesisState{
 		Params:               params,
 		LastValidatorPowers:  lastValidatorPowers,
@@ -128,5 +150,6 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		Exported:             true,
 		FinalizedL1Sequences: finalizedL1Sequences,
 		NextL2Sequence:       nextL2Sequence,
+		BridgeInfo:           bridgeInfo,
 	}
 }
