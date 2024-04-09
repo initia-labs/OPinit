@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 /////////////////////////////////////////
@@ -257,6 +259,37 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 
 /////////////////////////////////////////
 // The messages for Bridge Executor
+
+func Test_MsgServer_SetBridgeInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				Chain:     "l1",
+			},
+			SubmissionInterval:  time.Minute,
+			FinalizationPeriod:  time.Hour,
+			SubmissionStartTime: time.Now().UTC(),
+			Metadata:            []byte("metadata"),
+		},
+	}
+
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	// invalid bridge id
+	info.BridgeId = 0
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+}
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)

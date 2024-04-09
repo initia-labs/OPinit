@@ -241,6 +241,11 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 
 // UpdateParams implements updating the parameters
 func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	// sort the min gas prices
+	if req.Params != nil && req.Params.MinGasPrices != nil {
+		req.Params.MinGasPrices = req.Params.MinGasPrices.Sort()
+	}
+
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
 	}
@@ -281,6 +286,23 @@ func (ms MsgServer) SpendFeePool(ctx context.Context, req *types.MsgSpendFeePool
 
 /////////////////////////////////////////////////////
 // The messages for Bridge Executor
+
+func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeInfo) (*types.MsgSetBridgeInfoResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// permission check
+	if err := ms.checkBridgeExecutorPermission(ctx, req.Sender); err != nil {
+		return nil, err
+	}
+
+	if err := ms.BridgeInfo.Set(ctx, req.BridgeInfo); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSetBridgeInfoResponse{}, nil
+}
 
 // FinalizeTokenDeposit implements send a deposit from the upper layer to the recipient
 func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFinalizeTokenDeposit) (*types.MsgFinalizeTokenDepositResponse, error) {

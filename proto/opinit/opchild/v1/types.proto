@@ -7,6 +7,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "tendermint/abci/types.proto";
+import "opinit/ophost/v1/types.proto";
 
 option go_package                      = "github.com/initia-labs/OPinit/x/opchild/types";
 option (gogoproto.equal_all)           = true;
@@ -73,4 +74,16 @@ message ValidatorUpdates {
   option (gogoproto.equal) = false;
 
   repeated tendermint.abci.ValidatorUpdate updates = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// BridgeInfo defines the information of the bridge.
+message BridgeInfo {
+   // bridge id is the unique identifier of the bridge which is assigned from l1.
+   uint64 bridge_id = 1;
+
+   // bridge_addr is the address of the bridge on l1.
+   string bridge_addr = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+ 
+   // bridge_config is the configuration of the bridge.
+   opinit.ophost.v1.BridgeConfig bridge_config = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }

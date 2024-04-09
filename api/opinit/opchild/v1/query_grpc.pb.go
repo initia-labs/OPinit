@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Query_Validators_FullMethodName = "/opinit.opchild.v1.Query/Validators"
 	Query_Validator_FullMethodName  = "/opinit.opchild.v1.Query/Validator"
+	Query_BridgeInfo_FullMethodName = "/opinit.opchild.v1.Query/BridgeInfo"
 	Query_Params_FullMethodName     = "/opinit.opchild.v1.Query/Params"
 )
 
@@ -35,6 +36,7 @@ type QueryClient interface {
 	Validators(ctx context.Context, in *QueryValidatorsRequest, opts ...grpc.CallOption) (*QueryValidatorsResponse, error)
 	// Validator queries validator info for given validator address.
 	Validator(ctx context.Context, in *QueryValidatorRequest, opts ...grpc.CallOption) (*QueryValidatorResponse, error)
+	BridgeInfo(ctx context.Context, in *QueryBridgeInfoRequest, opts ...grpc.CallOption) (*QueryBridgeInfoResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 }
@@ -65,6 +67,15 @@ func (c *queryClient) Validator(ctx context.Context, in *QueryValidatorRequest, 
 	return out, nil
 }
 
+func (c *queryClient) BridgeInfo(ctx context.Context, in *QueryBridgeInfoRequest, opts ...grpc.CallOption) (*QueryBridgeInfoResponse, error) {
+	out := new(QueryBridgeInfoResponse)
+	err := c.cc.Invoke(ctx, Query_BridgeInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
 	err := c.cc.Invoke(ctx, Query_Params_FullMethodName, in, out, opts...)
@@ -85,6 +96,7 @@ type QueryServer interface {
 	Validators(context.Context, *QueryValidatorsRequest) (*QueryValidatorsResponse, error)
 	// Validator queries validator info for given validator address.
 	Validator(context.Context, *QueryValidatorRequest) (*QueryValidatorResponse, error)
+	BridgeInfo(context.Context, *QueryBridgeInfoRequest) (*QueryBridgeInfoResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	mustEmbedUnimplementedQueryServer()
@@ -99,6 +111,9 @@ func (UnimplementedQueryServer) Validators(context.Context, *QueryValidatorsRequ
 }
 func (UnimplementedQueryServer) Validator(context.Context, *QueryValidatorRequest) (*QueryValidatorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Validator not implemented")
+}
+func (UnimplementedQueryServer) BridgeInfo(context.Context, *QueryBridgeInfoRequest) (*QueryBridgeInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeInfo not implemented")
 }
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
@@ -152,6 +167,24 @@ func _Query_Validator_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_BridgeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBridgeInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BridgeInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BridgeInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BridgeInfo(ctx, req.(*QueryBridgeInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryParamsRequest)
 	if err := dec(in); err != nil {
@@ -184,6 +217,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Validator",
 			Handler:    _Query_Validator_Handler,
+		},
+		{
+			MethodName: "BridgeInfo",
+			Handler:    _Query_BridgeInfo_Handler,
 		},
 		{
 			MethodName: "Params",
