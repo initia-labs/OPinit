@@ -25,6 +25,7 @@ import { MsgCreateBridge, BridgeConfig, Duration } from '@initia/initia.js';
 const bridgeConfig = new BridgeConfig(
   challenger.key.accAddress,
   outputSubmitter.key.accAddress,
+  new BatchInfo(batchSubmitter.accAddress, config.PUBLISH_BATCH_TARGET),
   Duration.fromString(submissionInterval.toString()),
   Duration.fromString(finalizedTime.toString()),
   new Date(),
