@@ -85,6 +85,9 @@ $ %s add-genesis-validator my-key-name --home=/path/to/home/dir --keyring-backen
 
 			opchildState := opchildtypes.GetGenesisStateFromAppState(cdc, appState)
 			opchildState.Validators = append((*opchildState).Validators, validator)
+			if opchildState.Params.Admin == "" {
+				opchildState.Params.Admin = addr.String()
+			}
 			if opchildState.Params.BridgeExecutor == "" {
 				opchildState.Params.BridgeExecutor = addr.String()
 			}
