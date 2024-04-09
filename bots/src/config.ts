@@ -44,7 +44,7 @@ const {
   SLACK_NOT_ENOUGH_BALANCE_THRESHOLD,
   EXECUTOR_L1_MONITOR_HEIGHT,
   EXECUTOR_L2_MONITOR_HEIGHT,
-  WORKER_MODE
+  ENABLE_API_ONLY
 } = process.env;
 
 const supportedPublishBatchTargets = ['l1', 'celestia'];
@@ -153,7 +153,7 @@ export const config = {
   EXECUTOR_L2_MONITOR_HEIGHT: EXECUTOR_L2_MONITOR_HEIGHT
     ? parseInt(EXECUTOR_L2_MONITOR_HEIGHT)
     : 0,
-  WORKER_MODE: WORKER_MODE
+  ENABLE_API_ONLY: ENABLE_API_ONLY ? ENABLE_API_ONLY == 'true' : false
 };
 
 // check celestia config

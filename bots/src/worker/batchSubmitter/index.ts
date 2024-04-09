@@ -43,10 +43,9 @@ export async function stopBatch(): Promise<void> {
 export async function startBatch(): Promise<void> {
   await initORM();
 
-  if (!config.WORKER_MODE || config.WORKER_MODE == 'api') {
-    await initServer(batchController, config.BATCH_PORT);
-  }
-  if (!config.WORKER_MODE || config.WORKER_MODE == 'bot') {
+  await initServer(batchController, config.BATCH_PORT);
+  
+  if (!config.ENABLE_API_ONLY) {
     await runBot();
   }
 
