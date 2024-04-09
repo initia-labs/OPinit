@@ -12,7 +12,7 @@ option go_package                      = "github.com/initia-labs/OPinit/x/opchil
 option (gogoproto.equal_all)           = true;
 option (gogoproto.goproto_getters_all) = false;
 
-// Params defines the set of move parameters.
+// Params defines the set of opchild parameters.
 message Params {
   option (amino.name)                 = "opchild/Params";
   option (gogoproto.equal)            = true;
@@ -34,6 +34,8 @@ message Params {
     (amino.dont_omitempty) = true,
     (gogoproto.moretags)   = "yaml:\"bridge_executor\""
   ];
+
+  string host_chain_id = 5;
 }
 
 // Validator defines a validator, together with the total amount of the

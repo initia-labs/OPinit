@@ -16,6 +16,8 @@ import (
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	slinkypreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
+	slinkyproposals "github.com/skip-mev/slinky/abci/proposals"
 )
 
 var _ types.AnteKeeper = Keeper{}
@@ -49,6 +51,10 @@ type Keeper struct {
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
+
+	slinkyKeeper          types.OracleKeeper
+	slinkyProposalHandler *slinkyproposals.ProposalHandler
+	slinkyPreblockHandler *slinkypreblock.PreBlockHandler
 }
 
 func NewKeeper(
@@ -63,7 +69,6 @@ func NewKeeper(
 	validatorAddressCodec address.Codec,
 	consensusAddressCodec address.Codec,
 ) *Keeper {
-
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
@@ -139,4 +144,14 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+}
+
+func (k *Keeper) SetOracle(
+	slinkyKeeper types.OracleKeeper,
+	slinkyProposalHandler *slinkyproposals.ProposalHandler,
+	slinkyPreblockHandler *slinkypreblock.PreBlockHandler,
+) {
+	k.slinkyKeeper = slinkyKeeper
+	k.slinkyProposalHandler = slinkyProposalHandler
+	k.slinkyPreblockHandler = slinkyPreblockHandler
 }

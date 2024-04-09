@@ -399,3 +399,11 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 
 	return &types.MsgInitiateTokenWithdrawalResponse{}, nil
 }
+
+func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle) (*types.MsgUpdateOracleResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateOracleResponse{}, nil
+}

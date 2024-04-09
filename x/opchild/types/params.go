@@ -10,6 +10,7 @@ import (
 
 var (
 	DefaultMinGasPrices = sdk.NewDecCoins(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, math.LegacyNewDecWithPrec(15, 2))) // 0.15
+	DefaultHostChainId  = "mahalo-2"
 )
 
 // DefaultParams returns default move parameters
@@ -19,16 +20,18 @@ func DefaultParams() Params {
 		DefaultHistoricalEntries,
 		"",
 		DefaultMinGasPrices,
+		DefaultHostChainId,
 	)
 }
 
 // NewParams creates a new Params instance
-func NewParams(maxValidators, historicalEntries uint32, bridgeExecutor string, minGasPrice sdk.DecCoins) Params {
+func NewParams(maxValidators, historicalEntries uint32, bridgeExecutor string, minGasPrice sdk.DecCoins, hostChainId string) Params {
 	return Params{
 		BridgeExecutor:    bridgeExecutor,
 		MaxValidators:     maxValidators,
 		HistoricalEntries: historicalEntries,
 		MinGasPrices:      minGasPrice,
+		HostChainId:       hostChainId,
 	}
 
 }
