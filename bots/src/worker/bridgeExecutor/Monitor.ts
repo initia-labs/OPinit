@@ -33,20 +33,20 @@ export abstract class Monitor {
       }
     });
 
-    this.syncedHeight = state?.height || 0
+    this.syncedHeight = state?.height || 0;
 
     if (!state) {
       if (this.name() === 'executor_l1_monitor') {
-        this.syncedHeight = config.EXECUTOR_L1_MONITOR_HEIGHT
+        this.syncedHeight = config.EXECUTOR_L1_MONITOR_HEIGHT;
       } else if (this.name() === 'executor_l2_monitor') {
-        this.syncedHeight = config.EXECUTOR_L2_MONITOR_HEIGHT
+        this.syncedHeight = config.EXECUTOR_L2_MONITOR_HEIGHT;
       }
 
       await this.db
         .getRepository(StateEntity)
-        .save({ name: this.name(), height: this.syncedHeight});
+        .save({ name: this.name(), height: this.syncedHeight });
     }
-    
+
     this.socket.initialize();
     this.isRunning = true;
     await this.monitor();
@@ -90,7 +90,7 @@ export abstract class Monitor {
                 `expected block meta is the height ${this.currentHeight}, but got ${metadata.header.height}`
               );
             }
-            
+
             if (parseInt(metadata.num_txs) === 0) {
               await this.handleBlockWithStateUpdate(manager);
               continue;

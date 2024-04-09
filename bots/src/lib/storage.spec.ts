@@ -1,6 +1,5 @@
-import { WithdrawStorage } from "./storage";
-import { sha3_256 } from "./util";
-
+import { WithdrawStorage } from './storage';
+import { sha3_256 } from './util';
 
 const v1 = [
   {

@@ -43,7 +43,8 @@ const {
   DELETE_OUTPUT_PROPOSAL,
   SLACK_NOT_ENOUGH_BALANCE_THRESHOLD,
   EXECUTOR_L1_MONITOR_HEIGHT,
-  EXECUTOR_L2_MONITOR_HEIGHT
+  EXECUTOR_L2_MONITOR_HEIGHT,
+  WORKER_MODE
 } = process.env;
 
 const supportedPublishBatchTargets = ['l1', 'celestia'];
@@ -55,14 +56,19 @@ export const config = {
   L1_RPC_URI: L1_RPC_URI ? L1_RPC_URI.split(',') : ['http://localhost:26657'],
   L2_LCD_URI: L2_LCD_URI ? L2_LCD_URI.split(',') : ['http://localhost:1317'],
   L2_RPC_URI: L2_RPC_URI ? L2_RPC_URI.split(',') : ['http://localhost:26657'],
-  BATCH_LCD_URI: BATCH_LCD_URI ? BATCH_LCD_URI.split(',') : ['http://localhost:1317'],
+  BATCH_LCD_URI: BATCH_LCD_URI
+    ? BATCH_LCD_URI.split(',')
+    : ['http://localhost:1317'],
   BATCH_CHAIN_RPC_URI: (() => {
     if (process.env.WORKER_NAME !== 'batch') {
       return undefined;
     }
-    if(PUBLISH_BATCH_TARGET == 'l1') {
+    if (PUBLISH_BATCH_TARGET == 'l1') {
       return L1_RPC_URI;
-    } else if(BATCH_CHAIN_RPC_URI == undefined || BATCH_CHAIN_RPC_URI.length == 0) {      
+    } else if (
+      BATCH_CHAIN_RPC_URI == undefined ||
+      BATCH_CHAIN_RPC_URI.length == 0
+    ) {
       throw Error(
         'Please check your configuration; BATCH_CHAIN_RPC_URI is needed but not given.'
       );
@@ -125,7 +131,7 @@ export const config = {
         gasAdjustment: '2',
         chainId: BATCH_CHAIN_ID
       }
-    )
+    );
   })(),
   SLACK_WEB_HOOK: SLACK_WEB_HOOK ? SLACK_WEB_HOOK : '',
   SUBMISSION_INTERVAL: SUBMISSION_INTERVAL
@@ -146,7 +152,8 @@ export const config = {
     : 0,
   EXECUTOR_L2_MONITOR_HEIGHT: EXECUTOR_L2_MONITOR_HEIGHT
     ? parseInt(EXECUTOR_L2_MONITOR_HEIGHT)
-    : 0
+    : 0,
+  WORKER_MODE: WORKER_MODE
 };
 
 // check celestia config

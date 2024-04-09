@@ -19,7 +19,7 @@ export class SparseShareSplitter {
 
   write(blob: Blob) {
     if (
-      supportedShareVersions.find(v => v === blob.shareVersion) === undefined
+      supportedShareVersions.find((v) => v === blob.shareVersion) === undefined
     ) {
       throw Error('unsupported share version');
     }

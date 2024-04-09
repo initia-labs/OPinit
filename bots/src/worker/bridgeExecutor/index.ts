@@ -58,8 +58,12 @@ export async function stopExecutor(): Promise<void> {
 export async function startExecutor(): Promise<void> {
   try {
     await initORM();
-    await initServer(executorController, config.EXECUTOR_PORT);
-    await runBot();
+    if (!config.WORKER_MODE || config.WORKER_MODE == 'api') {
+      await initServer(executorController, config.EXECUTOR_PORT);
+    }
+    if (!config.WORKER_MODE || config.WORKER_MODE == 'bot') {
+      await runBot();
+    }
   } catch (err) {
     throw new Error(err);
   }

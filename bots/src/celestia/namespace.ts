@@ -9,7 +9,10 @@ const namespaceVersionZeroPrefix = new Uint8Array(
 );
 
 export class Namespace {
-  constructor(private version: number, private id: Uint8Array) {
+  constructor(
+    private version: number,
+    private id: Uint8Array
+  ) {
     // validate version
     if (version !== namespaceVersionZero && version !== namespaceVersionMax) {
       throw Error('unsupported namespace version');

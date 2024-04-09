@@ -12,7 +12,7 @@ import {
   Fee,
   Coins,
   BlobTx,
-  TxAPI,
+  TxAPI
 } from '@initia/initia.js';
 import { delay } from 'bluebird';
 import { INTERVAL_BATCH } from 'config';
@@ -86,7 +86,9 @@ export class BatchSubmitter {
           output.startBlockNumber,
           output.endBlockNumber
         );
-        logger.info(`${this.batchIndex}th batch (${output.startBlockNumber}, ${output.endBlockNumber}) is successfully saved`);
+        logger.info(
+          `${this.batchIndex}th batch (${output.startBlockNumber}, ${output.endBlockNumber}) is successfully saved`
+        );
       });
     } catch (err) {
       throw new Error(`Error in BatchSubmitter: ${err}`);
@@ -95,7 +97,7 @@ export class BatchSubmitter {
     }
   }
 
-  // Get [start, end] batch from L2 and last commit info 
+  // Get [start, end] batch from L2 and last commit info
   async getBatch(start: number, end: number): Promise<Buffer> {
     const bulk: BlockBulk | null = await this.rpcClient.getBlockBulk(
       start.toString(),
@@ -142,18 +144,20 @@ export class BatchSubmitter {
           batch = Buffer.from([]);
         }
 
-        let txBytes: string; 
-        switch(config.PUBLISH_BATCH_TARGET){
-          case "l1": 
+        let txBytes: string;
+        switch (config.PUBLISH_BATCH_TARGET) {
+          case 'l1':
             txBytes = await this.createL1BatchMessage(subData);
             break;
-          case "celestia":
+          case 'celestia':
             txBytes = await this.createCelestiaBatchMessage(subData);
             break;
           default:
-            throw new Error(`unknown batch target ${config.PUBLISH_BATCH_TARGET}`);
+            throw new Error(
+              `unknown batch target ${config.PUBLISH_BATCH_TARGET}`
+            );
         }
-        
+
         const batchInfo = await sendRawTx(this.submitter, txBytes);
         batchInfos.push(batchInfo.txhash);
 
@@ -162,7 +166,9 @@ export class BatchSubmitter {
 
       return batchInfos;
     } catch (err) {
-      throw new Error(`Error publishing batch to ${config.PUBLISH_BATCH_TARGET}: ${err}`);
+      throw new Error(
+        `Error publishing batch to ${config.PUBLISH_BATCH_TARGET}: ${err}`
+      );
     }
   }
 
@@ -179,8 +185,8 @@ export class BatchSubmitter {
       this.bridgeId,
       data.toString('base64')
     );
-    
-    const signedTx = await this.submitter.createAndSignTx({msgs:[msg],fee});
+
+    const signedTx = await this.submitter.createAndSignTx({ msgs: [msg], fee });
     return TxAPI.encode(signedTx);
   }
 
@@ -190,8 +196,8 @@ export class BatchSubmitter {
     const fee = getFee(this.submitter, gasLimit);
 
     const rawAddress = this.submitter.key.publicKey?.rawAddress();
-    if(!rawAddress) {
-      throw new Error("batch submitter public key not set")
+    if (!rawAddress) {
+      throw new Error('batch submitter public key not set');
     }
 
     if (!this.submitterAddress) {
@@ -207,11 +213,11 @@ export class BatchSubmitter {
       [blob.namespace],
       [data.length],
       [blob.commitment],
-      [blob.blob.share_version],
+      [blob.blob.share_version]
     );
-    const signedTx = await this.submitter.createAndSignTx({msgs:[msg],fee});
-    const blobTx = new BlobTx(signedTx, [blob.blob], "BLOB");
-    return Buffer.from(blobTx.toBytes()).toString("base64");
+    const signedTx = await this.submitter.createAndSignTx({ msgs: [msg], fee });
+    const blobTx = new BlobTx(signedTx, [blob.blob], 'BLOB');
+    return Buffer.from(blobTx.toBytes()).toString('base64');
   }
 
   // Save batch record to database

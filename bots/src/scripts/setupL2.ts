@@ -1,4 +1,10 @@
-import { MsgCreateBridge, BridgeConfig, Duration, Wallet, MnemonicKey } from '@initia/initia.js';
+import {
+  MsgCreateBridge,
+  BridgeConfig,
+  Duration,
+  Wallet,
+  MnemonicKey
+} from '@initia/initia.js';
 import { sendTx } from 'lib/tx';
 import { config } from 'config';
 

@@ -93,11 +93,11 @@ export class MntHasher extends Hasher {
 
     const [leftMinNs, leftMaxNs] = [
       minNamespace(left, this.namespaceLen),
-      maxNamespace(left, this.namespaceLen),
+      maxNamespace(left, this.namespaceLen)
     ];
     const [rightMinNs, rightMaxNs] = [
       minNamespace(right, this.namespaceLen),
-      maxNamespace(right, this.namespaceLen),
+      maxNamespace(right, this.namespaceLen)
     ];
 
     const [minNs, MaxNs] = this.computeNsRange(

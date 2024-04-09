@@ -3,7 +3,7 @@ import { Coin, Msg, MsgFinalizeTokenDeposit } from '@initia/initia.js';
 import {
   ExecutorDepositTxEntity,
   ExecutorUnconfirmedTxEntity,
-  ExecutorOutputEntity,
+  ExecutorOutputEntity
 } from 'orm';
 import { EntityManager } from 'typeorm';
 import { RPCClient, RPCSocket } from 'lib/rpc';
@@ -70,15 +70,17 @@ export class L1Monitor extends Monitor {
   public async handleEvents(manager: EntityManager): Promise<any> {
     const [isEmpty, events] = await this.helper.fetchAllEvents(
       config.l1lcd,
-      this.currentHeight,
+      this.currentHeight
     );
 
     if (isEmpty) return false;
 
     const msgs: Msg[] = [];
     const depositEntities: ExecutorDepositTxEntity[] = [];
-    
-    const depositEvents = events.filter((evt) => evt.type === 'initiate_token_deposit')
+
+    const depositEvents = events.filter(
+      (evt) => evt.type === 'initiate_token_deposit'
+    );
     for (const evt of depositEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
@@ -98,7 +100,7 @@ export class L1Monitor extends Monitor {
   async processMsgs(
     manager: EntityManager,
     msgs: Msg[],
-    depositEntities: ExecutorDepositTxEntity[],
+    depositEntities: ExecutorDepositTxEntity[]
   ): Promise<void> {
     if (msgs.length == 0) return;
     const stringfyMsgs = msgs.map((msg) => msg.toJSON().toString());

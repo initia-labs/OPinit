@@ -62,25 +62,29 @@ export class L1Monitor extends Monitor {
   public async handleEvents(manager: EntityManager): Promise<boolean> {
     const [isEmpty, events] = await this.helper.fetchAllEvents(
       config.l1lcd,
-      this.currentHeight,
+      this.currentHeight
     );
-    
+
     if (isEmpty) return false;
-    
-    const depositEvents = events.filter((evt) => evt.type === 'initiate_token_deposit')
+
+    const depositEvents = events.filter(
+      (evt) => evt.type === 'initiate_token_deposit'
+    );
     for (const evt of depositEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
       await this.handleInitiateTokenDeposit(manager, attrMap);
     }
 
-    const finalizeEvents = events.filter((evt) => evt.type === 'finalize_token_withdrawal')
+    const finalizeEvents = events.filter(
+      (evt) => evt.type === 'finalize_token_withdrawal'
+    );
     for (const evt of finalizeEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       if (attrMap['bridge_id'] !== this.bridgeId.toString()) continue;
       await this.handleFinalizeTokenWithdrawalEvent(manager, attrMap);
     }
-    
+
     return true;
   }
 }

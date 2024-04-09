@@ -37,12 +37,11 @@ export {
   ExecutorDepositTxEntity,
   ExecutorOutputEntity,
   ExecutorUnconfirmedTxEntity,
-
   ChallengerWithdrawalTxEntity,
   ChallengerDepositTxEntity,
   ChallengerOutputEntity,
   ChallengerFinalizeDepositTxEntity,
   ChallengerFinalizeWithdrawalTxEntity,
   ChallengedOutputEntity,
-  ChallengeEntity,
+  ChallengeEntity
 };

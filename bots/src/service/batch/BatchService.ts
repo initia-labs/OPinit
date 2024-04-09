@@ -35,7 +35,7 @@ export async function getBatch(batchIndex: number): Promise<GetBatchResponse> {
   try {
     const qb = queryRunner.manager
       .createQueryBuilder(RecordEntity, 'record')
-      .where('record.batchIndex = :batchIndex', { batchIndex });
+      .where('record.batch_index = :batchIndex', { batchIndex });
 
     const batch = await qb.getOne();
 

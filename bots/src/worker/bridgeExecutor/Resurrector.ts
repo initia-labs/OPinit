@@ -35,7 +35,9 @@ export class Resurrector {
     );
   }
 
-  async resubmitFailedDepositTx(unconfirmedTx: UnconfirmedTxEntity): Promise<void> {
+  async resubmitFailedDepositTx(
+    unconfirmedTx: UnconfirmedTxEntity
+  ): Promise<void> {
     const msg = new MsgFinalizeTokenDeposit(
       this.executor.key.accAddress,
       unconfirmedTx.sender,

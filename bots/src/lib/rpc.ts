@@ -56,7 +56,7 @@ export class RPCSocket {
     }
 
     this.checkAlive();
-    
+
     if (this.updateTimer) clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => this.tick(), this.interval);
   }
@@ -161,7 +161,10 @@ export class RPCClient {
   private curRPCUrlIndex = 0;
   private rpcUrl: string;
 
-  constructor(public rpcUrls: string[], public logger: winston.Logger) {
+  constructor(
+    public rpcUrls: string[],
+    public logger: winston.Logger
+  ) {
     if (this.rpcUrls.length === 0) {
       throw new Error('RPC URLs list cannot be empty');
     }
@@ -258,9 +261,8 @@ export class RPCClient {
   }
 
   async lookupInvalidBlock(): Promise<InvalidBlock | null> {
-    const invalidBlockResult: InvalidBlock = await this.getRequest(
-      `/invalid_block`
-    );
+    const invalidBlockResult: InvalidBlock =
+      await this.getRequest(`/invalid_block`);
 
     if (invalidBlockResult.reason !== '' && invalidBlockResult.height !== '0') {
       return invalidBlockResult;

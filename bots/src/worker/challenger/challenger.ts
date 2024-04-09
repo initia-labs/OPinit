@@ -7,7 +7,7 @@ import {
   ChallengerOutputEntity,
   ChallengerWithdrawalTxEntity,
   ChallengedOutputEntity,
-  ChallengeEntity,
+  ChallengeEntity
 } from 'orm';
 import { delay } from 'bluebird';
 import { challengerLogger as logger } from 'lib/logger';
@@ -97,7 +97,7 @@ export class Challenger {
           await this.challengeOutputRoot(manager);
         });
       } catch (err) {
-        logger.error(`Challenger halted! ${err}`); 
+        logger.error(`Challenger halted! ${err}`);
         this.stop();
       } finally {
         await delay(INTERVAL_MONITOR);
@@ -286,7 +286,6 @@ export class Challenger {
       }
     );
   }
-
 
   async deleteOutputProposal(outputIndex: number) {
     const msg = new MsgDeleteOutput(

@@ -1,5 +1,5 @@
 import { initORM, finalizeORM } from './db';
-import { executorLogger as logger } from 'lib/logger';
+import { batchLogger as logger } from 'lib/logger';
 import { BatchSubmitter } from './batchSubmitter';
 import { initServer, finalizeServer } from 'loader';
 import { batchController } from 'controller';
@@ -42,8 +42,13 @@ export async function stopBatch(): Promise<void> {
 
 export async function startBatch(): Promise<void> {
   await initORM();
-  await initServer(batchController, config.BATCH_PORT);
-  await runBot();
+
+  if (!config.WORKER_MODE || config.WORKER_MODE == 'api') {
+    await initServer(batchController, config.BATCH_PORT);
+  }
+  if (!config.WORKER_MODE || config.WORKER_MODE == 'bot') {
+    await runBot();
+  }
 
   // attach graceful shutdown
   const signals = ['SIGHUP', 'SIGINT', 'SIGTERM'] as const;

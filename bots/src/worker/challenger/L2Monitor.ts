@@ -38,9 +38,9 @@ export class L2Monitor extends Monitor {
       manager,
       ChallengerOutputEntity
     );
-    
+
     if (!outputInfo) return;
-    
+
     const pair = await config.l1lcd.ophost.tokenPairByL2Denom(
       this.bridgeId,
       data['denom']
@@ -80,19 +80,22 @@ export class L2Monitor extends Monitor {
   public async handleEvents(manager: EntityManager): Promise<boolean> {
     const [isEmpty, events] = await this.helper.fetchAllEvents(
       config.l2lcd,
-      this.currentHeight,
+      this.currentHeight
     );
 
     if (isEmpty) return false;
 
-    
-    const withdrawalEvents = events.filter((evt) => evt.type === 'initiate_token_withdrawal')
+    const withdrawalEvents = events.filter(
+      (evt) => evt.type === 'initiate_token_withdrawal'
+    );
     for (const evt of withdrawalEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleInitiateTokenWithdrawalEvent(manager, attrMap);
     }
 
-    const finalizeEvents = events.filter((evt) => evt.type === 'finalize_token_deposit')
+    const finalizeEvents = events.filter(
+      (evt) => evt.type === 'finalize_token_deposit'
+    );
     for (const evt of finalizeEvents) {
       const attrMap = this.helper.eventsToAttrMap(evt);
       await this.handleFinalizeTokenDepositEvent(manager, attrMap);
