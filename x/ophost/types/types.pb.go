@@ -124,6 +124,7 @@ func (m *BridgeConfig) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BridgeConfig proto.InternalMessageInfo
 
+// BatchInfo defines the set of batch information.
 type BatchInfo struct {
 	// The address of the batch submitter.
 	Submitter string `protobuf:"bytes,1,opt,name=submitter,proto3" json:"submitter,omitempty"`

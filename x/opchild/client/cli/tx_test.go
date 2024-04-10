@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"testing"
 
 	"cosmossdk.io/core/address"
@@ -377,6 +378,88 @@ func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 			[]string{
 				validMessagesFile.Name(),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false, 0, &sdk.TxResponse{},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
+			if tc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err, "test: %s\noutput: %s", tc.name, out.String())
+				err = s.clientCtx.Codec.UnmarshalJSON(out.Bytes(), tc.respType)
+				require.NoError(err, out.String(), "test: %s, output\n:", tc.name, out.String())
+
+				txResp := tc.respType.(*sdk.TxResponse)
+				require.Equal(tc.expectedCode, txResp.Code,
+					"test: %s, output\n:", tc.name, out.String())
+			}
+		})
+	}
+}
+
+func (s *CLITestSuite) TestNewSetBridgeInfo() {
+	require := s.Require()
+	cmd := cli.NewSetBridgeInfoCmd(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	s.NoError(err)
+
+	invalidConfig, err := os.CreateTemp("/tmp", "bridge_config")
+	require.NoError(err)
+	defer os.Remove(invalidConfig.Name())
+	validConfig, err := os.CreateTemp("/tmp", "bridge_config")
+	require.NoError(err)
+	defer os.Remove(validConfig.Name())
+
+	invalidConfig.WriteString(`{}`)
+	validConfig.WriteString(`{
+        "challenger": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+        "proposer": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
+        "submission_interval": "100s",
+        "finalization_period": "1000s",
+        "submission_start_time" : "2023-12-01T00:00:00Z",
+        "metadata": "channel-0",
+		"batch_info": {
+			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+			"chain": "l1"
+		}
+    }`)
+
+	testCases := []struct {
+		name         string
+		args         []string
+		expectErr    bool
+		expectedCode uint32
+		respType     proto.Message
+	}{
+		{
+			"invalid transaction (invalid bridge config)",
+			[]string{
+				"1",
+				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+				invalidConfig.Name(),
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true, 0, &sdk.TxResponse{},
+		},
+		{
+			"valid transaction",
+			[]string{
+				"1",
+				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+				validConfig.Name(),
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),

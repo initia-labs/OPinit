@@ -2,13 +2,16 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_QueryValidator(t *testing.T) {
@@ -42,6 +45,34 @@ func Test_QueryValidators(t *testing.T) {
 	res, err := q.Validators(ctx, &types.QueryValidatorsRequest{})
 	require.NoError(t, err)
 	require.Len(t, res.Validators, 2)
+}
+
+func Test_QuerySetBridgeInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				Chain:     "l1",
+			},
+			SubmissionInterval:  time.Minute,
+			FinalizationPeriod:  time.Hour,
+			SubmissionStartTime: time.Now().UTC(),
+			Metadata:            []byte("metadata"),
+		},
+	}
+	err := input.OPChildKeeper.BridgeInfo.Set(ctx, info)
+	require.NoError(t, err)
+
+	q := keeper.NewQuerier(input.OPChildKeeper)
+	res, err := q.BridgeInfo(ctx, &types.QueryBridgeInfoRequest{})
+	require.NoError(t, err)
+	require.Equal(t, info, res.BridgeInfo)
 }
 
 func Test_QueryParams(t *testing.T) {

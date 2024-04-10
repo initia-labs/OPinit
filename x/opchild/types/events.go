@@ -9,8 +9,11 @@ const (
 	EventTypeExecuteMessages         = "execute_messages"
 	EventTypeWhitelist               = "whitelist"
 	EventTypeParams                  = "params"
+	EventTypeSetBridgeInfo           = "set_bridge_info"
 
 	AttributeKeySender         = "sender"
+	AttributeKeyBridgeId       = "bridge_id"
+	AttributeKeyBridgeAddr     = "bridge_addr"
 	AttributeKeyRecipient      = "recipient"
 	AttributeKeyAmount         = "amount"
 	AttributeKeyDenom          = "denom"

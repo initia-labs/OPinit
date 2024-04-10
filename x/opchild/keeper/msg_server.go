@@ -26,16 +26,15 @@ func NewMsgServerImpl(k Keeper) MsgServer {
 	return MsgServer{k}
 }
 
-// checkValidatorPermission checks if the sender is the one of validator
-func (ms MsgServer) checkValidatorPermission(ctx context.Context, sender string) error {
-	addr, err := ms.authKeeper.AddressCodec().StringToBytes(sender)
+// checkAdminPermission checks if the sender is the admin
+func (ms MsgServer) checkAdminPermission(ctx context.Context, sender string) error {
+	params, err := ms.GetParams(ctx)
 	if err != nil {
 		return err
 	}
 
-	valAddr := sdk.ValAddress(addr)
-	if _, found := ms.GetValidator(ctx, valAddr); !found {
-		return errors.Wrapf(sdkerrors.ErrUnauthorized, "the message is allowed to be executed by validator")
+	if params.Admin != sender {
+		return errors.Wrapf(sdkerrors.ErrUnauthorized, "the message is allowed to be executed by admin %s", params.Admin)
 	}
 
 	return nil
@@ -69,7 +68,7 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 	}
 
 	// permission check
-	if err := ms.checkValidatorPermission(ctx, req.Sender); err != nil {
+	if err := ms.checkAdminPermission(ctx, req.Sender); err != nil {
 		return nil, err
 	}
 
@@ -242,6 +241,11 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 
 // UpdateParams implements updating the parameters
 func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	// sort the min gas prices
+	if req.Params != nil && req.Params.MinGasPrices != nil {
+		req.Params.MinGasPrices = req.Params.MinGasPrices.Sort()
+	}
+
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
 	}
@@ -282,6 +286,52 @@ func (ms MsgServer) SpendFeePool(ctx context.Context, req *types.MsgSpendFeePool
 
 /////////////////////////////////////////////////////
 // The messages for Bridge Executor
+
+func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeInfo) (*types.MsgSetBridgeInfoResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// permission check
+	if err := ms.checkBridgeExecutorPermission(ctx, req.Sender); err != nil {
+		return nil, err
+	}
+
+	// check bridge id and addr consistency
+	if ok, err := ms.BridgeInfo.Has(ctx); err != nil {
+		return nil, err
+	} else if ok {
+		info, err := ms.BridgeInfo.Get(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		if info.BridgeId != req.BridgeInfo.BridgeId {
+			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected bridge id %d, got %d", info.BridgeId, req.BridgeInfo.BridgeId)
+		}
+
+		if info.BridgeAddr != req.BridgeInfo.BridgeAddr {
+			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected bridge addr %s, got %s", info.BridgeAddr, req.BridgeInfo.BridgeAddr)
+		}
+	}
+
+	// set bridge info
+	if err := ms.BridgeInfo.Set(ctx, req.BridgeInfo); err != nil {
+		return nil, err
+	}
+
+	// emit event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetBridgeInfo,
+			sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
+			sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
+		),
+	)
+
+	return &types.MsgSetBridgeInfoResponse{}, nil
+}
 
 // FinalizeTokenDeposit implements send a deposit from the upper layer to the recipient
 func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFinalizeTokenDeposit) (*types.MsgFinalizeTokenDepositResponse, error) {

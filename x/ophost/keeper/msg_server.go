@@ -54,6 +54,20 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		return nil, err
 	}
 
+	// registration fee check
+	registrationFee := ms.RegistrationFee(ctx)
+	if registrationFee.IsValid() {
+		creator, err := ms.authKeeper.AddressCodec().StringToBytes(req.Creator)
+		if err != nil {
+			return nil, err
+		}
+
+		err = ms.communityPoolKeeper.FundCommunityPool(ctx, registrationFee, creator)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	bridgeId, err := ms.IncreaseNextBridgeId(ctx)
 	if err != nil {
 		return nil, err
