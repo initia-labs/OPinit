@@ -55,6 +55,8 @@ type Keeper struct {
 	slinkyKeeper          types.OracleKeeper
 	slinkyProposalHandler *slinkyproposals.ProposalHandler
 	slinkyPreblockHandler *slinkypreblock.PreBlockHandler
+
+	HostValidatorStore *HostValidatorStore
 }
 
 func NewKeeper(
@@ -80,6 +82,12 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(storeService)
 
+	hostValidatorStore := NewHostValidatorStore(
+		collections.NewItem(sb, types.HostHeightKey, "hostheight", collections.Int64Value),
+		collections.NewMap(sb, types.HostValidatorsPrefix, "hostvalidators", collections.BytesKey, codec.CollValue[cosmostypes.Validator](cdc)),
+		consensusAddressCodec,
+	)
+
 	k := &Keeper{
 		cdc:                   cdc,
 		storeService:          storeService,
@@ -100,6 +108,7 @@ func NewKeeper(
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
+		HostValidatorStore:  hostValidatorStore,
 	}
 
 	schema, err := sb.Build()
@@ -144,14 +153,4 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
-}
-
-func (k *Keeper) SetOracle(
-	slinkyKeeper types.OracleKeeper,
-	slinkyProposalHandler *slinkyproposals.ProposalHandler,
-	slinkyPreblockHandler *slinkypreblock.PreBlockHandler,
-) {
-	k.slinkyKeeper = slinkyKeeper
-	k.slinkyProposalHandler = slinkyProposalHandler
-	k.slinkyPreblockHandler = slinkyPreblockHandler
 }

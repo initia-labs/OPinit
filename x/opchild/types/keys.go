@@ -22,4 +22,6 @@ var (
 	ValidatorsByConsAddrPrefix = []byte{0x41} // prefix for each key to a validator index, by pubkey
 	FinalizedL1SequencePrefix  = []byte{0x51} // prefix for finalized deposit sequences
 	HistoricalInfoPrefix       = []byte{0x61} // prefix for the historical info
+	HostHeightKey              = []byte{0x71}
+	HostValidatorsPrefix       = []byte{0x81}
 )

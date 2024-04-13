@@ -2,14 +2,27 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	slinkypreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
+	slinkyproposals "github.com/skip-mev/slinky/abci/proposals"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
+
+func (k *Keeper) SetOracle(
+	slinkyKeeper types.OracleKeeper,
+	slinkyProposalHandler *slinkyproposals.ProposalHandler,
+	slinkyPreblockHandler *slinkypreblock.PreBlockHandler,
+) {
+	k.slinkyKeeper = slinkyKeeper
+	k.slinkyProposalHandler = slinkyProposalHandler
+	k.slinkyPreblockHandler = slinkyPreblockHandler
+}
 
 func (k Keeper) UpdateOracle(ctx context.Context, extCommitBz []byte) error {
 	if k.slinkyKeeper == nil || k.slinkyPreblockHandler == nil || k.slinkyProposalHandler == nil {
@@ -41,7 +54,17 @@ func (k Keeper) UpdateOracle(ctx context.Context, extCommitBz []byte) error {
 	return nil
 }
 
-func (k Keeper) UpdateHostValidatorSet(ctx context.Context, validatorSet *cmtproto.ValidatorSet) error {
+func (k Keeper) UpdateHostValidatorSet(ctx context.Context, chainId string, height int64, validatorSet *cmtproto.ValidatorSet) error {
+	if k.HostValidatorStore == nil {
+		return errors.New("not set host validator set")
+	}
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
+	if chainId == "" || params.HostChainId != chainId {
+		return errors.New("only save host chain validators")
+	}
 
-	return nil
+	return k.HostValidatorStore.UpdateValidators(ctx, height, validatorSet)
 }
