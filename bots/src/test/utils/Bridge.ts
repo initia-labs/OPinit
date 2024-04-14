@@ -1,4 +1,4 @@
-import { MsgCreateBridge, BridgeConfig, Duration } from '@initia/initia.js';
+import { MsgCreateBridge, BridgeConfig, Duration, BatchInfo } from '@initia/initia.js';
 import {
   getDB as getExecutorDB,
   initORM as initExecutorORM
@@ -83,6 +83,7 @@ class Bridge {
     const bridgeConfig = new BridgeConfig(
       challenger.key.accAddress,
       outputSubmitter.key.accAddress,
+      new BatchInfo("submitter", "chain"),
       Duration.fromString(submissionInterval.toString()),
       Duration.fromString(finalizedTime.toString()),
       new Date(),
