@@ -8,8 +8,8 @@ import {
   BridgeInfo,
   MsgSetBridgeInfo
 } from '@initia/initia.js';
-import { sendTx } from 'lib/tx';
-import { config } from 'config';
+import { sendTx } from '../lib/tx';
+import { config } from '../config';
 
 export const executor = new Wallet(
   config.l1lcd,

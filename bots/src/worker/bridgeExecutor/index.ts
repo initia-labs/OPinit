@@ -1,13 +1,13 @@
-import { RPCClient, RPCSocket } from 'lib/rpc';
-import { L1Monitor } from './L1Monitor';
-import { L2Monitor } from './L2Monitor';
-import { executorController } from 'controller';
+import { RPCClient, RPCSocket } from '../../lib/rpc';
+import { L1Monitor } from '../../lib/monitor/L1Monitor';
+import { L2Monitor } from '../../lib/monitor/L2Monitor';
+import { executorController } from '../../controller';
 
-import { executorLogger as logger } from 'lib/logger';
+import { executorLogger as logger } from '../../lib/logger';
 import { initORM, finalizeORM } from './db';
-import { initServer, finalizeServer } from 'loader';
+import { initServer, finalizeServer } from '../../loader';
 import { once } from 'lodash';
-import { config } from 'config';
+import { config } from '../../config';
 import { Resurrector } from './Resurrector';
 
 let monitors;

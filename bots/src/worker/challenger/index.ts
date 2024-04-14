@@ -1,12 +1,12 @@
-import { RPCClient, RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from '../../lib/rpc';
 import { L1Monitor } from './L1Monitor';
-import { Monitor } from 'worker/bridgeExecutor/Monitor';
+import { Monitor } from 'lib/monitor/Monitor';
 import { Challenger } from './challenger';
 import { initORM, finalizeORM } from './db';
-import { challengerLogger as logger } from 'lib/logger';
+import { challengerLogger as logger } from '../../lib/logger';
 import { once } from 'lodash';
 import { L2Monitor } from './L2Monitor';
-import { config } from 'config';
+import { config } from '../../config';
 
 let monitors: (Monitor | Challenger)[];
 

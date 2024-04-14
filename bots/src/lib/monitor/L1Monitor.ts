@@ -4,13 +4,13 @@ import {
   ExecutorDepositTxEntity,
   ExecutorUnconfirmedTxEntity,
   ExecutorOutputEntity,
-} from 'orm';
+} from '../../orm';
 import { EntityManager } from 'typeorm';
-import { RPCClient, RPCSocket } from 'lib/rpc';
-import { getDB } from './db';
+import { RPCClient, RPCSocket } from '../rpc';
+import { getDB } from '../../worker/bridgeExecutor/db';
 import winston from 'winston';
-import { config } from 'config';
-import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
+import { config } from '../../config';
+import { TxWallet, WalletType, getWallet, initWallet } from '../wallet';
 
 export class L1Monitor extends Monitor {
   executor: TxWallet;

@@ -1,13 +1,13 @@
-import { Monitor } from 'worker/bridgeExecutor/Monitor';
+import { Monitor } from 'lib/monitor/Monitor';
 import {
   ChallengerDepositTxEntity,
   ChallengerFinalizeWithdrawalTxEntity
-} from 'orm';
+} from '../../orm';
 import { EntityManager } from 'typeorm';
-import { RPCClient, RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from '../../lib/rpc';
 import { getDB } from './db';
 import winston from 'winston';
-import { config } from 'config';
+import { config } from '../../config';
 
 export class L1Monitor extends Monitor {
   constructor(

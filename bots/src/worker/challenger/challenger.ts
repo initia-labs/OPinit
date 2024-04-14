@@ -8,20 +8,20 @@ import {
   ChallengerWithdrawalTxEntity,
   ChallengedOutputEntity,
   ChallengeEntity,
-} from 'orm';
+} from '../../orm';
 import { delay } from 'bluebird';
-import { challengerLogger as logger } from 'lib/logger';
-import { INTERVAL_MONITOR, config } from 'config';
+import { challengerLogger as logger } from '../../lib/logger';
+import { INTERVAL_MONITOR, config } from '../../config';
 import { EntityManager } from 'typeorm';
 import {
   getLastOutputInfo,
   getOutputInfoByIndex,
   getBridgeInfo
-} from 'lib/query';
-import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
+} from '../../lib/query';
+import MonitorHelper from 'lib/MonitorHelper';
 import winston from 'winston';
-import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
-import { buildChallengerNotification, notifySlack } from 'lib/slack';
+import { TxWallet, WalletType, getWallet, initWallet } from '../../lib/wallet';
+import { buildChallengerNotification, notifySlack } from '../../lib/slack';
 
 const THRESHOLD_MISS_INTERVAL = 5;
 

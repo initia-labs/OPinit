@@ -1,10 +1,10 @@
-import { initORM, finalizeORM } from './db';
-import { executorLogger as logger } from 'lib/logger';
+import { initORM, finalizeORM } from '../../lib/db';
+import { executorLogger as logger } from '../../lib/logger';
 import { BatchSubmitter } from './batchSubmitter';
-import { initServer, finalizeServer } from 'loader';
-import { batchController } from 'controller';
+import { initServer, finalizeServer } from '../../loader';
+import { batchController } from '../../controller';
 import { once } from 'lodash';
-import { config } from 'config';
+import { config } from '../../config';
 
 let jobs: BatchSubmitter[] = [];
 

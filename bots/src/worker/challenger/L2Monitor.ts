@@ -2,14 +2,14 @@ import {
   ChallengerFinalizeDepositTxEntity,
   ChallengerOutputEntity,
   ChallengerWithdrawalTxEntity
-} from 'orm';
+} from '../../orm';
 import { OutputInfo } from '@initia/initia.js';
-import { Monitor } from 'worker/bridgeExecutor/Monitor';
+import { Monitor } from 'lib/monitor/Monitor';
 import { EntityManager } from 'typeorm';
-import { RPCClient, RPCSocket } from 'lib/rpc';
+import { RPCClient, RPCSocket } from '../../lib/rpc';
 import winston from 'winston';
 import { getDB } from './db';
-import { config } from 'config';
+import { config } from '../../config';
 
 export class L2Monitor extends Monitor {
   outputIndex: number;

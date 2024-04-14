@@ -4,11 +4,11 @@ import {
   Get,
   Controller,
 } from 'koa-joi-controllers';
-import { ErrorTypes } from 'lib/error';
-import { error, success } from 'lib/response';
-import { getWithdrawalTxList } from 'service';
+import { ErrorTypes } from '../../lib/error';
+import { error, success } from '../../lib/response';
+import { getWithdrawalTxList } from '../../service';
 import { responses, routeConfig, z } from 'koa-swagger-decorator'
-import { GetWithdrawalResponse } from 'sawgger/executor_model';
+import { GetWithdrawalResponse } from '../../swagger/executor_model';
 
 @Controller('')
 export class WithdrawalTxController extends KoaController {

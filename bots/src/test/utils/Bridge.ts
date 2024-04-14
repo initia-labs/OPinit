@@ -2,15 +2,15 @@ import { MsgCreateBridge, BridgeConfig, Duration, BatchInfo } from '@initia/init
 import {
   getDB as getExecutorDB,
   initORM as initExecutorORM
-} from 'worker/bridgeExecutor/db';
+} from '../../worker/bridgeExecutor/db';
 import {
   getDB as getChallengerDB,
   initORM as initChallengerORM
-} from 'worker/challenger/db';
+} from '../../worker/challenger/db';
 import {
   getDB as getBatchDB,
   initORM as initBatchORM
-} from 'worker/batchSubmitter/db';
+} from '../../lib/db';
 import { DataSource, EntityManager } from 'typeorm';
 import {
   ExecutorOutputEntity,
@@ -26,9 +26,9 @@ import {
   ChallengedOutputEntity,
   RecordEntity,
   ChallengeEntity
-} from 'orm';
+} from '../../orm';
 import { executor, challenger, outputSubmitter } from './helper';
-import { sendTx } from 'lib/tx';
+import { sendTx } from '../../lib/tx';
 
 class Bridge {
   executorDB: DataSource;
