@@ -1,5 +1,5 @@
 import { ExecutorOutputEntity, ExecutorWithdrawalTxEntity } from '../../orm';
-import { Monitor } from './Monitor';
+import { Monitor } from './monitor';
 import { WithdrawStorage } from '../storage';
 import { WithdrawalTx } from '../types';
 import { EntityManager } from 'typeorm';

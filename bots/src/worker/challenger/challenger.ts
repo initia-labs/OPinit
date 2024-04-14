@@ -18,7 +18,7 @@ import {
   getOutputInfoByIndex,
   getBridgeInfo
 } from '../../lib/query';
-import MonitorHelper from 'lib/MonitorHelper';
+import MonitorHelper from 'lib/monitor/helper';
 import winston from 'winston';
 import { TxWallet, WalletType, getWallet, initWallet } from '../../lib/wallet';
 import { buildChallengerNotification, notifySlack } from '../../lib/slack';

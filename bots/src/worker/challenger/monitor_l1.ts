@@ -1,4 +1,4 @@
-import { Monitor } from 'lib/monitor/Monitor';
+import { Monitor } from '../../lib/monitor';
 import {
   ChallengerDepositTxEntity,
   ChallengerFinalizeWithdrawalTxEntity

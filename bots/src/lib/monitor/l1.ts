@@ -1,4 +1,4 @@
-import { Monitor } from './Monitor';
+import { Monitor } from './monitor';
 import { Coin, Msg, MsgFinalizeTokenDeposit } from '@initia/initia.js';
 import {
   ExecutorDepositTxEntity,

@@ -4,7 +4,7 @@ import {
   ChallengerWithdrawalTxEntity
 } from '../../orm';
 import { OutputInfo } from '@initia/initia.js';
-import { Monitor } from 'lib/monitor/Monitor';
+import { Monitor } from '../../lib/monitor';
 import { EntityManager } from 'typeorm';
 import { RPCClient, RPCSocket } from '../../lib/rpc';
 import winston from 'winston';

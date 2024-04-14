@@ -1,6 +1,6 @@
 import { RPCClient, RPCSocket } from '../../lib/rpc';
-import { L1Monitor } from '../../lib/monitor/L1Monitor';
-import { L2Monitor } from '../../lib/monitor/L2Monitor';
+import { L1Monitor } from '../../lib/monitor/l1';
+import { L2Monitor } from '../../lib/monitor/l2';
 import { executorController } from '../../controller';
 
 import { executorLogger as logger } from '../../lib/logger';

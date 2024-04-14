@@ -2,7 +2,7 @@ import Bluebird from 'bluebird';
 import { RPCClient, RPCSocket } from '../rpc';
 import { StateEntity } from '../../orm';
 import { DataSource, EntityManager } from 'typeorm';
-import MonitorHelper from '../MonitorHelper';
+import MonitorHelper from './helper';
 import winston from 'winston';
 import { INTERVAL_MONITOR, config } from '../../config';
 
