@@ -212,4 +212,6 @@ replace (
 
 	// Downgraded to avoid bugs in following commits which caused simulations to fail.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
+	github.com/skip-mev/slinky => github.com/initia-labs/slinky v0.0.0-20240415121001-14c96990234d
 )
