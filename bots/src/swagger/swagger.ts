@@ -8,18 +8,18 @@ const router = new SwaggerRouter({
   spec: {
     info: {
       title: 'Initia VIP API',
-      version: 'v1.0',
-    },
+      version: 'v1.0'
+    }
   },
   swaggerHtmlEndpoint: '/swagger',
-  swaggerJsonEndpoint: '/swagger.json',
+  swaggerJsonEndpoint: '/swagger.json'
 })
 
 router.swagger()
 router
-    .applyRoute(DepositTxController)
-    .applyRoute(OutputController)
-    .applyRoute(WithdrawalTxController)
-    .applyRoute(ClaimTxController)
+  .applyRoute(DepositTxController)
+  .applyRoute(OutputController)
+  .applyRoute(WithdrawalTxController)
+  .applyRoute(ClaimTxController)
 
 export { router }

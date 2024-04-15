@@ -1,31 +1,31 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm'
 
 @Entity('challenger_finalize_withdrawal_tx')
 export default class FinalizeWithdrawalTxEntity {
   @PrimaryColumn('bigint')
-  bridgeId: string;
+  bridgeId: string
 
   @PrimaryColumn('bigint')
-  sequence: string;
+  sequence: string
 
   @Column('text')
-  l1Denom: string;
+  l1Denom: string
 
   @Column('text')
-  l2Denom: string;
+  l2Denom: string
 
   @Column('text')
   @Index('challenger_finalize_tx_sender_index')
-  sender: string;
+  sender: string
 
   @Column('text')
   @Index('challenger_finalize_tx_receiver_index')
-  receiver: string;
+  receiver: string
 
   @Column('bigint')
-  amount: string;
+  amount: string
 
   @Column('int')
   @Index('challenger_finalize_tx_output_index')
-  outputIndex: number;
+  outputIndex: number
 }

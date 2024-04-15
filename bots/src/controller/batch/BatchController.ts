@@ -4,13 +4,13 @@ import {
   Get,
   Validate,
   Validator
-} from 'koa-joi-controllers';
-import { responses, routeConfig, z } from 'koa-swagger-decorator';
-import { success } from 'lib/response';
-import { GetBatchResponse } from 'sawgger/batch_model';
-import { getBatch } from 'service/batch/BatchService';
+} from 'koa-joi-controllers'
+import { responses, routeConfig, z } from 'koa-swagger-decorator'
+import { success } from 'lib/response'
+import { GetBatchResponse } from 'sawgger/batch_model'
+import { getBatch } from 'service/batch/BatchService'
 
-const Joi = Validator.Joi;
+const Joi = Validator.Joi
 
 @Controller('')
 export class BatchController extends KoaController {
@@ -35,6 +35,6 @@ export class BatchController extends KoaController {
     }
   })
   async getBatch(ctx): Promise<void> {
-    success(ctx, await getBatch(ctx.params.batch_index));
+    success(ctx, await getBatch(ctx.params.batch_index))
   }
 }

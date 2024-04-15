@@ -1,14 +1,10 @@
-import { Context } from 'koa';
-import {
-  KoaController,
-  Get,
-  Controller,
-} from 'koa-joi-controllers';
-import { ErrorTypes } from '../../lib/error';
-import { error, success } from '../../lib/response';
-import { getClaimTxList } from '../../service';
+import { Context } from 'koa'
+import { KoaController, Get, Controller } from 'koa-joi-controllers'
+import { ErrorTypes } from '../../lib/error'
+import { error, success } from '../../lib/response'
+import { getClaimTxList } from '../../service'
 import { responses, routeConfig, z } from 'koa-swagger-decorator'
-import { GetClaimResponse } from '../../swagger/executor_model';
+import { GetClaimResponse } from '../../swagger/executor_model'
 
 @Controller('')
 export class ClaimTxController extends KoaController {
@@ -38,8 +34,8 @@ export class ClaimTxController extends KoaController {
   @responses(GetClaimResponse)
   @Get('/tx/claim')
   async getClaimTxList(ctx: Context): Promise<void> {
-    const claimTxList = await getClaimTxList(ctx.query as any);
-    if (claimTxList) success(ctx, claimTxList);
-    else error(ctx, ErrorTypes.API_ERROR);
+    const claimTxList = await getClaimTxList(ctx.query as any)
+    if (claimTxList) success(ctx, claimTxList)
+    else error(ctx, ErrorTypes.API_ERROR)
   }
 }

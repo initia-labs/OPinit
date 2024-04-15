@@ -1,58 +1,58 @@
-import 'reflect-metadata';
-import Bluebird from 'bluebird';
+import 'reflect-metadata'
+import Bluebird from 'bluebird'
 import {
   ConnectionOptionsReader,
   DataSource,
   DataSourceOptions
-} from 'typeorm';
-import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import CamelToSnakeNamingStrategy from '../../orm/CamelToSnakeNamingStrategy';
+} from 'typeorm'
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
+import CamelToSnakeNamingStrategy from '../../orm/CamelToSnakeNamingStrategy'
 
-const debug = require('debug')('orm');
+const debug = require('debug')('orm')
 
-import { ExecutorOutputEntity } from '../../orm';
+import { ExecutorOutputEntity } from '../../orm'
 
 const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
   entities: [ExecutorOutputEntity]
-};
+}
 
-let DB: DataSource[] = [];
+let DB: DataSource[] = []
 
 function initConnection(options: DataSourceOptions): Promise<DataSource> {
-  const pgOpts = options as PostgresConnectionOptions;
+  const pgOpts = options as PostgresConnectionOptions
   debug(
     `creating connection default to ${pgOpts.username}@${pgOpts.host}:${
       pgOpts.port || 5432
     }`
-  );
+  )
 
   return new DataSource({
     ...options,
     ...staticOptions,
     namingStrategy: new CamelToSnakeNamingStrategy()
-  }).initialize();
+  }).initialize()
 }
 
 export async function initORM(): Promise<void> {
-  const reader = new ConnectionOptionsReader();
-  const options = (await reader.all()) as PostgresConnectionOptions[];
+  const reader = new ConnectionOptionsReader()
+  const options = (await reader.all()) as PostgresConnectionOptions[]
 
   if (options.length && !options.filter((o) => o.name === 'default').length) {
-    options[0]['name' as any] = 'default';
+    options[0]['name' as any] = 'default'
   }
 
-  DB = await Bluebird.map(options, (opt) => initConnection(opt));
+  DB = await Bluebird.map(options, (opt) => initConnection(opt))
 }
 
 export function getDB(): DataSource[] {
   if (!DB) {
-    throw new Error('DB not initialized');
+    throw new Error('DB not initialized')
   }
-  return DB;
+  return DB
 }
 
 export async function finalizeORM(): Promise<void> {
-  await Promise.all(DB.map((c) => c.destroy()));
+  await Promise.all(DB.map((c) => c.destroy()))
 }

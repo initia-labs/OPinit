@@ -1,4 +1,4 @@
-import { z } from 'koa-swagger-decorator';
+import { z } from 'koa-swagger-decorator'
 
 const DepositStruct = z.object({
   bridge_id: z.number(),
@@ -11,11 +11,11 @@ const DepositStruct = z.object({
   outputIndex: z.number(),
   data: z.string(),
   l1Height: z.number()
-});
+})
 
 const GetDepositResponse = z.object({
   depositTxList: DepositStruct.array()
-});
+})
 
 const WithdrawalStruct = z.object({
   bridge_id: z.number(),
@@ -28,11 +28,11 @@ const WithdrawalStruct = z.object({
   outputIndex: z.number(),
   data: z.string(),
   l1Height: z.number()
-});
+})
 
 const GetWithdrawalResponse = z.object({
   withdrawalTxList: WithdrawalStruct.array()
-});
+})
 
 const ClaimStruct = z.object({
   bridge_id: z.number(),
@@ -46,11 +46,11 @@ const ClaimStruct = z.object({
   state_root: z.string(),
   merkle_root: z.string(),
   last_block_hash: z.string()
-});
+})
 
 const GetClaimResponse = z.object({
   claimTxList: ClaimStruct.array()
-});
+})
 
 const OutputStruct = z.object({
   output_index: z.number(),
@@ -60,15 +60,15 @@ const OutputStruct = z.object({
   last_block_hash: z.string(),
   start_block_number: z.number(),
   end_block_number: z.number()
-});
+})
 
 const GetOutputResponse = z.object({
   outputList: OutputStruct.array()
-});
+})
 
 export {
   GetDepositResponse,
   GetWithdrawalResponse,
   GetClaimResponse,
   GetOutputResponse
-};
+}

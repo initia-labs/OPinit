@@ -1,14 +1,10 @@
-import { Context } from 'koa';
-import {
-  KoaController,
-  Get,
-  Controller,
-} from 'koa-joi-controllers';
-import { ErrorTypes } from '../../lib/error';
-import { error, success } from '../../lib/response';
-import { getWithdrawalTxList } from '../../service';
+import { Context } from 'koa'
+import { KoaController, Get, Controller } from 'koa-joi-controllers'
+import { ErrorTypes } from '../../lib/error'
+import { error, success } from '../../lib/response'
+import { getWithdrawalTxList } from '../../service'
 import { responses, routeConfig, z } from 'koa-swagger-decorator'
-import { GetWithdrawalResponse } from '../../swagger/executor_model';
+import { GetWithdrawalResponse } from '../../swagger/executor_model'
 
 @Controller('')
 export class WithdrawalTxController extends KoaController {
@@ -38,8 +34,8 @@ export class WithdrawalTxController extends KoaController {
   @responses(GetWithdrawalResponse)
   @Get('/tx/withdrawal')
   async getWithdrawalTxList(ctx: Context): Promise<void> {
-    const withdrawalTxList = await getWithdrawalTxList(ctx.query as any);
-    if (withdrawalTxList) success(ctx, withdrawalTxList);
-    else error(ctx, ErrorTypes.API_ERROR);
+    const withdrawalTxList = await getWithdrawalTxList(ctx.query as any)
+    if (withdrawalTxList) success(ctx, withdrawalTxList)
+    else error(ctx, ErrorTypes.API_ERROR)
   }
 }

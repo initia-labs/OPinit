@@ -1,10 +1,10 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity('state')
 export default class StateEntity {
   @PrimaryColumn('text')
-  name: string;
+  name: string
 
   @Column('int')
-  height: number;
+  height: number
 }

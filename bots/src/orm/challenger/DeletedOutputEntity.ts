@@ -1,13 +1,13 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity('challenger_deleted_output')
 export default class ChallengedOutputEntity {
   @PrimaryColumn('bigint')
-  outputIndex: number;
+  outputIndex: number
 
   @Column('bigint')
-  bridgeId: string;
+  bridgeId: string
 
   @Column('text')
-  reason: string;
+  reason: string
 }

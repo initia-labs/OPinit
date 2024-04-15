@@ -1,14 +1,10 @@
-import { Context } from 'koa';
-import {
-  KoaController,
-  Get,
-  Controller,
-} from 'koa-joi-controllers';
-import { ErrorTypes } from '../../lib/error';
-import { error, success } from '../../lib/response';
+import { Context } from 'koa'
+import { KoaController, Get, Controller } from 'koa-joi-controllers'
+import { ErrorTypes } from '../../lib/error'
+import { error, success } from '../../lib/response'
 import { responses, routeConfig, z } from 'koa-swagger-decorator'
-import { getOutputList } from '../../service';
-import { GetOutputResponse } from '../../swagger/executor_model';
+import { getOutputList } from '../../service'
+import { GetOutputResponse } from '../../swagger/executor_model'
 
 @Controller('')
 export class OutputController extends KoaController {
@@ -37,8 +33,8 @@ export class OutputController extends KoaController {
   @responses(GetOutputResponse)
   @Get('/output')
   async getgetOutputList(ctx: Context): Promise<void> {
-    const outputList = await getOutputList(ctx.query as any);
-    if (outputList) success(ctx, outputList);
-    else error(ctx, ErrorTypes.API_ERROR);
+    const outputList = await getOutputList(ctx.query as any)
+    if (outputList) success(ctx, outputList)
+    else error(ctx, ErrorTypes.API_ERROR)
   }
 }

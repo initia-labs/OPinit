@@ -1,11 +1,7 @@
-import { 
-    ExecutorWithdrawalTxEntity,
-    ExecutorOutputEntity,
-} from '../../orm';
-import { getDB } from '../../lib/db';
-import { APIError, ErrorTypes } from '../../lib/error';
-import { sha3_256 } from '../../lib/util';
-
+import { ExecutorWithdrawalTxEntity, ExecutorOutputEntity } from '../../orm'
+import { getDB } from '../../lib/db'
+import { APIError, ErrorTypes } from '../../lib/error'
+import { sha3_256 } from '../../lib/util'
 
 interface ClaimTx {
   bridgeId: number;
@@ -40,46 +36,46 @@ export interface GetClaimTxListResponse {
 export async function getClaimTxList(
   param: GetClaimTxListParam
 ): Promise<GetClaimTxListResponse> {
-  const [db] = getDB();
-  const queryRunner = db.createQueryRunner('slave');
+  const [db] = getDB()
+  const queryRunner = db.createQueryRunner('slave')
 
   try {
-    const offset = param.offset ?? 0;
-    const order = param.descending == 'true' ? 'DESC' : 'ASC';
-    const claimTxList: ClaimTx[] = [];
+    const offset = param.offset ?? 0
+    const order = param.descending == 'true' ? 'DESC' : 'ASC'
+    const claimTxList: ClaimTx[] = []
 
     const withdrawalQb = queryRunner.manager.createQueryBuilder(
       ExecutorWithdrawalTxEntity,
       'tx'
-    );
+    )
 
     if (param.address) {
-      withdrawalQb.andWhere('tx.sender = :sender', { sender: param.address });
+      withdrawalQb.andWhere('tx.sender = :sender', { sender: param.address })
     }
 
     if (param.sequence) {
       withdrawalQb.andWhere('tx.sequence = :sequence', {
         sequence: param.sequence
-      });
+      })
     }
 
     const withdrawalTxs = await withdrawalQb
       .orderBy('tx.sequence', order)
       .skip(offset * param.limit)
       .take(param.limit)
-      .getMany();
+      .getMany()
 
     withdrawalTxs.map(async (withdrawalTx) => {
       const outputQb = queryRunner.manager
         .createQueryBuilder(ExecutorOutputEntity, 'output')
         .where('output.output_index = :outputIndex', {
           outputIndex: withdrawalTx.outputIndex
-        });
+        })
 
-      const output = await outputQb.getOne();
+      const output = await outputQb.getOne()
 
       if (!output) {
-        throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
+        throw new APIError(ErrorTypes.NOT_FOUND_ERROR)
       }
 
       const claimData: ClaimTx = {
@@ -94,15 +90,15 @@ export async function getClaimTxList(
         stateRoot: output.stateRoot,
         merkleRoot: output.merkleRoot,
         lastBlockHash: output.lastBlockHash
-      };
-      claimTxList.push(claimData);
-    });
+      }
+      claimTxList.push(claimData)
+    })
 
-    const count = await withdrawalQb.getCount();
-    let next: number | undefined;
+    const count = await withdrawalQb.getCount()
+    let next: number | undefined
 
     if (count > (offset + 1) * param.limit) {
-      next = offset + 1;
+      next = offset + 1
     }
 
     return {
@@ -110,8 +106,8 @@ export async function getClaimTxList(
       next,
       limit: param.limit,
       claimTxList
-    };
+    }
   } finally {
-    await queryRunner.release();
+    await queryRunner.release()
   }
 }

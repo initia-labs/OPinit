@@ -1,14 +1,14 @@
-import { LCDClient } from '@initia/initia.js';
-import { validateCelestiaConfig } from './celestia/utils';
-import * as dotenv from 'dotenv';
+import { LCDClient } from '@initia/initia.js'
+import { validateCelestiaConfig } from './celestia/utils'
+import * as dotenv from 'dotenv'
 
 const envFile =
   process.env.NODE_ENV === 'test' || !process.env.WORKER_NAME
     ? `.env`
-    : `.env.${process.env.WORKER_NAME}`;
+    : `.env.${process.env.WORKER_NAME}`
 
-console.log('activate ', envFile);
-dotenv.config({ path: envFile });
+console.log('activate ', envFile)
+dotenv.config({ path: envFile })
 
 const {
   EXECUTOR_PORT,
@@ -45,9 +45,9 @@ const {
   EXECUTOR_L1_MONITOR_HEIGHT,
   EXECUTOR_L2_MONITOR_HEIGHT,
   ENABLE_API_ONLY
-} = process.env;
+} = process.env
 
-const supportedPublishBatchTargets = ['l1', 'celestia'];
+const supportedPublishBatchTargets = ['l1', 'celestia']
 
 export const config = {
   EXECUTOR_PORT: EXECUTOR_PORT ? parseInt(EXECUTOR_PORT) : 5000,
@@ -61,34 +61,34 @@ export const config = {
     : ['http://localhost:1317'],
   BATCH_CHAIN_RPC_URI: (() => {
     if (process.env.WORKER_NAME !== 'batch') {
-      return undefined;
+      return undefined
     }
     if (PUBLISH_BATCH_TARGET == 'l1') {
-      return L1_RPC_URI;
+      return L1_RPC_URI
     } else if (
       BATCH_CHAIN_RPC_URI == undefined ||
       BATCH_CHAIN_RPC_URI.length == 0
     ) {
       throw Error(
         'Please check your configuration; BATCH_CHAIN_RPC_URI is needed but not given.'
-      );
+      )
     }
   })(),
   CELESTIA_NAMESPACE_ID: CELESTIA_NAMESPACE_ID || '',
   PUBLISH_BATCH_TARGET: (() => {
     if (PUBLISH_BATCH_TARGET === undefined) {
-      return 'l1';
+      return 'l1'
     }
 
     const target = supportedPublishBatchTargets.find(
       (target) => target === PUBLISH_BATCH_TARGET?.toLocaleLowerCase()
-    );
+    )
     if (target === undefined) {
       throw Error(
         `A valid PUBLISH_BATCH_TARGET is required. Please specify one of the following: ${supportedPublishBatchTargets}`
-      );
+      )
     }
-    return target;
+    return target
   })(),
   EXECUTOR_URI: EXECUTOR_URI || 'http://localhost:5000',
   BRIDGE_ID: BRIDGE_ID ? parseInt(BRIDGE_ID) : 1,
@@ -131,7 +131,7 @@ export const config = {
         gasAdjustment: '2',
         chainId: BATCH_CHAIN_ID
       }
-    );
+    )
   })(),
   SLACK_WEB_HOOK: SLACK_WEB_HOOK ? SLACK_WEB_HOOK : '',
   SUBMISSION_INTERVAL: SUBMISSION_INTERVAL
@@ -154,11 +154,11 @@ export const config = {
     ? parseInt(EXECUTOR_L2_MONITOR_HEIGHT)
     : 0,
   ENABLE_API_ONLY: ENABLE_API_ONLY ? ENABLE_API_ONLY == 'true' : false
-};
+}
 
 // check celestia config
-validateCelestiaConfig();
+validateCelestiaConfig()
 
-export const INTERVAL_BATCH = 100_000;
-export const INTERVAL_MONITOR = 100;
-export const INTERVAL_OUTPUT = 10_000;
+export const INTERVAL_BATCH = 100_000
+export const INTERVAL_MONITOR = 100
+export const INTERVAL_OUTPUT = 10_000
