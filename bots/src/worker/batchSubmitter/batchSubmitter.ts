@@ -1,9 +1,9 @@
-import { getDB } from './db';
+import { getDB } from '../../lib/db';
 import { DataSource, EntityManager } from 'typeorm';
-import { batchLogger, batchLogger as logger } from 'lib/logger';
-import { BlockBulk, RawCommit, RPCClient } from 'lib/rpc';
-import { compress } from 'lib/compressor';
-import { ExecutorOutputEntity, RecordEntity } from 'orm';
+import { batchLogger, batchLogger as logger } from '../../lib/logger';
+import { BlockBulk, RawCommit, RPCClient } from '../../lib/rpc';
+import { compress } from '../../lib/compressor';
+import { ExecutorOutputEntity, RecordEntity } from '../../orm';
 import {
   Wallet,
   MnemonicKey,
@@ -15,11 +15,11 @@ import {
   TxAPI
 } from '@initia/initia.js';
 import { delay } from 'bluebird';
-import { INTERVAL_BATCH } from 'config';
-import { config } from 'config';
-import { sendRawTx } from 'lib/tx';
-import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
-import { createBlob, getCelestiaFeeGasLimit } from 'celestia/utils';
+import { INTERVAL_BATCH } from '../../config';
+import { config } from '../../config';
+import { sendRawTx } from '../../lib/tx';
+import MonitorHelper from '../../lib/monitor/helper';
+import { createBlob, getCelestiaFeeGasLimit } from '../../celestia/utils';
 import { bech32 } from 'bech32';
 
 const base = 200000;

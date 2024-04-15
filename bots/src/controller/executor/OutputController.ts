@@ -1,10 +1,14 @@
 import { Context } from 'koa';
-import { KoaController, Get, Controller } from 'koa-joi-controllers';
-import { ErrorTypes } from 'lib/error';
-import { error, success } from 'lib/response';
-import { responses, routeConfig, z } from 'koa-swagger-decorator';
-import { getOutputList } from 'service';
-import { GetOutputResponse } from 'sawgger/executor_model';
+import {
+  KoaController,
+  Get,
+  Controller,
+} from 'koa-joi-controllers';
+import { ErrorTypes } from '../../lib/error';
+import { error, success } from '../../lib/response';
+import { responses, routeConfig, z } from 'koa-swagger-decorator'
+import { getOutputList } from '../../service';
+import { GetOutputResponse } from '../../swagger/executor_model';
 
 @Controller('')
 export class OutputController extends KoaController {

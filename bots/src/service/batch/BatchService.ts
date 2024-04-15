@@ -1,7 +1,7 @@
-import { RecordEntity } from 'orm';
-import { APIError, ErrorTypes } from 'lib/error';
-import { getDB } from 'worker/batchSubmitter/db';
-import { config } from 'config';
+import { RecordEntity } from '../../orm';
+import { APIError, ErrorTypes } from '../../lib/error';
+import { getDB } from '../../lib/db';
+import { config } from '../../config';
 
 interface L1BatchInfo {
   type: 'l1';

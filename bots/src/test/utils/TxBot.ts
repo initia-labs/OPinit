@@ -5,8 +5,8 @@ import {
   MsgInitiateTokenWithdrawal
 } from '@initia/initia.js';
 import { makeFinalizeMsg } from './helper';
-import { sendTx } from 'lib/tx';
-import { getOutputFromExecutor, getWithdrawalTxFromExecutor } from 'lib/query';
+import { sendTx } from '../../lib/tx';
+import { getOutputFromExecutor, getWithdrawalTxFromExecutor } from '../../lib/query';
 import { L1_SENDER, L2_RECEIVER } from './consts';
 
 export class TxBot {

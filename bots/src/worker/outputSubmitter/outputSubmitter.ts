@@ -1,15 +1,15 @@
 import { MsgProposeOutput } from '@initia/initia.js';
-import { INTERVAL_OUTPUT } from 'config';
-import { ExecutorOutputEntity } from 'orm';
+import { INTERVAL_OUTPUT } from '../../config';
+import { ExecutorOutputEntity } from '../../orm';
 import { delay } from 'bluebird';
-import { outputLogger as logger } from 'lib/logger';
-import { ErrorTypes } from 'lib/error';
-import { config } from 'config';
-import { getLastOutputInfo } from 'lib/query';
-import MonitorHelper from 'worker/bridgeExecutor/MonitorHelper';
+import { outputLogger as logger } from '../../lib/logger';
+import { ErrorTypes } from '../../lib/error';
+import { config } from '../../config';
+import { getLastOutputInfo } from '../../lib/query';
+import MonitorHelper from '../../lib/monitor/helper';
 import { DataSource, EntityManager } from 'typeorm';
 import { getDB } from './db';
-import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
+import { TxWallet, WalletType, getWallet, initWallet } from '../../lib/wallet';
 
 export class OutputSubmitter {
   private db: DataSource;

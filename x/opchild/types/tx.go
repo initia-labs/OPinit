@@ -11,26 +11,13 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-// rollup message types
-const (
-	TypeMsgExecuteMessages = "execute_messages"
-
-	TypeMsgAddValidator    = "add_validator"
-	TypeMsgRemoveValidator = "remove_validator"
-	TypeMsgUpdateParams    = "update_params"
-	TypeMsgWhitelist       = "whitelist"
-	TypeMsgSpendFeePool    = "spend_fee_pool"
-
-	TypeMsgInitiateTokenWithdrawal = "withdraw‰"
-	TypeMsgFinalizeTokenDeposit    = "deposit"
-)
-
 var (
 	_ sdk.Msg = &MsgExecuteMessages{}
 	_ sdk.Msg = &MsgAddValidator{}
 	_ sdk.Msg = &MsgRemoveValidator{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgSpendFeePool{}
+	_ sdk.Msg = &MsgSetBridgeInfo{}
 	_ sdk.Msg = &MsgFinalizeTokenDeposit{}
 	_ sdk.Msg = &MsgInitiateTokenWithdrawal{}
 
@@ -186,6 +173,45 @@ func (msg MsgInitiateTokenWithdrawal) Validate(ac address.Codec) error {
 
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return ErrInvalidAmount
+	}
+
+	return nil
+}
+
+/* MsgSetBridgeInfo */
+func NewMsgSetBridgeInfo(
+	sender string,
+	bridgeInfo BridgeInfo,
+) *MsgSetBridgeInfo {
+	return &MsgSetBridgeInfo{
+		Sender:     sender,
+		BridgeInfo: bridgeInfo,
+	}
+}
+
+func (msg MsgSetBridgeInfo) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
+	}
+
+	if err := msg.BridgeInfo.Validate(ac); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (info BridgeInfo) Validate(ac address.Codec) error {
+	if info.BridgeId == 0 {
+		return ErrInvalidBridgeInfo.Wrap("bridge id cannot be zero")
+	}
+
+	if len(info.BridgeAddr) == 0 {
+		return ErrInvalidBridgeInfo.Wrap("bridge address cannot be empty")
+	}
+
+	if err := info.BridgeConfig.ValidateWithNoAddrValidation(); err != nil {
+		return ErrInvalidBridgeInfo.Wrap(err.Error())
 	}
 
 	return nil

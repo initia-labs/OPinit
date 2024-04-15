@@ -1,9 +1,9 @@
-import { BlockInfo, Event, LCDClient, TxInfo } from '@initia/initia.js';
-import { getLatestOutputFromExecutor, getOutputFromExecutor } from 'lib/query';
-import { WithdrawStorage } from 'lib/storage';
-import { WithdrawalTx } from 'lib/types';
-import { sha3_256 } from 'lib/util';
-import OutputEntity from 'orm/executor/OutputEntity';
+import { BlockInfo, Event, LCDClient, TxInfo  } from '@initia/initia.js';
+import { getLatestOutputFromExecutor, getOutputFromExecutor } from '../query';
+import { WithdrawStorage } from '../storage';
+import { WithdrawalTx } from '../types';
+import { sha3_256 } from '../util';
+import OutputEntity from '../../orm/executor/OutputEntity';
 import { EntityManager, EntityTarget, ObjectLiteral } from 'typeorm';
 
 class MonitorHelper {
@@ -103,12 +103,12 @@ class MonitorHelper {
     const searchRes = await lcd.tx.search({
       query: [{ key: 'tx.height', value: height.toString() }]
     });
-
+    
     const extractEvents = (txs: TxInfo[]) =>
       txs
         .filter((tx: TxInfo) => tx.events && tx.events.length > 0)
-        .flatMap((tx: TxInfo) => tx.events ?? [])
-        .filter((event: Event) => event.type === eventType);
+        .flatMap((tx: TxInfo) =>tx.events ?? [])
+        .filter((event: Event) => event.type === eventType)
     const isEmpty = searchRes.txs.length === 0;
     const events = extractEvents(searchRes.txs);
 
@@ -117,16 +117,16 @@ class MonitorHelper {
 
   public async fetchAllEvents(
     lcd: LCDClient,
-    height: number
+    height: number,
   ): Promise<[boolean, any[]]> {
     const searchRes = await lcd.tx.search({
       query: [{ key: 'tx.height', value: height.toString() }]
     });
-
+    
     const extractAllEvents = (txs: TxInfo[]) =>
       txs
         .filter((tx: TxInfo) => tx.events && tx.events.length > 0)
-        .flatMap((tx: TxInfo) => tx.events ?? []);
+        .flatMap((tx: TxInfo) =>tx.events ?? [])
     const isEmpty = searchRes.txs.length === 0;
     const events = extractAllEvents(searchRes.txs);
 

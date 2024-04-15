@@ -1,7 +1,11 @@
-import { ExecutorWithdrawalTxEntity, ExecutorOutputEntity } from 'orm';
-import { getDB } from 'worker/bridgeExecutor/db';
-import { APIError, ErrorTypes } from 'lib/error';
-import { sha3_256 } from 'lib/util';
+import { 
+    ExecutorWithdrawalTxEntity,
+    ExecutorOutputEntity,
+} from '../../orm';
+import { getDB } from '../../lib/db';
+import { APIError, ErrorTypes } from '../../lib/error';
+import { sha3_256 } from '../../lib/util';
+
 
 interface ClaimTx {
   bridgeId: number;

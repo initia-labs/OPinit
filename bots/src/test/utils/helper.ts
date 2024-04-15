@@ -7,10 +7,10 @@ import {
   Coin
 } from '@initia/initia.js';
 
-import { config } from 'config';
-import { sha3_256 } from 'lib/util';
-import { ExecutorOutputEntity } from 'orm/index';
-import WithdrawalTxEntity from 'orm/executor/WithdrawalTxEntity';
+import { config } from '../../config';
+import { sha3_256 } from '../../lib/util';
+import { ExecutorOutputEntity } from '../../orm/index';
+import WithdrawalTxEntity from '../../orm/executor/WithdrawalTxEntity';
 
 export const bcs = BCS.getInstance();
 export const executor = new Wallet(

@@ -8,15 +8,15 @@ import {
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { executorLogger as logger } from '../../lib/logger';
 
-import CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
+import CamelToSnakeNamingStrategy from '../../orm/CamelToSnakeNamingStrategy';
 
 import {
   ExecutorOutputEntity,
   ExecutorWithdrawalTxEntity,
   ExecutorDepositTxEntity,
   ExecutorUnconfirmedTxEntity,
-  StateEntity
-} from 'orm';
+  StateEntity,
+} from '../../orm';
 
 const staticOptions = {
   supportBigNumbers: true,

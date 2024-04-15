@@ -16,6 +16,7 @@ var (
 	// Keys for store prefixes
 	ParamsKey         = []byte{0x11} // prefix for parameters for module x/opchild
 	NextL2SequenceKey = []byte{0x12} // key for the outbound sequence number
+	BridgeInfoKey     = []byte{0x13} // prefix for bridge_info
 
 	LastValidatorPowerPrefix   = []byte{0x21} // prefix for each key to a validator index, for bonded validators
 	ValidatorsPrefix           = []byte{0x31} // prefix for each key to a validator

@@ -1,5 +1,5 @@
-import { ExecutorOutputEntity } from 'orm';
-import { getDB } from 'worker/bridgeExecutor/db';
+import { ExecutorOutputEntity } from '../../orm';
+import { getDB } from '../../lib/db';
 
 export interface GetOutputListParam {
   output_index?: number;

@@ -1,5 +1,5 @@
-import { ExecutorWithdrawalTxEntity } from 'orm';
-import { getDB } from 'worker/bridgeExecutor/db';
+import { ExecutorWithdrawalTxEntity } from '../../orm';
+import { getDB } from '../../lib/db';
 
 export interface GetWithdrawalTxListParam {
   sequence?: number;

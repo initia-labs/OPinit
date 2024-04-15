@@ -1,16 +1,16 @@
 {
   "name": "@initia/rollup",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Optimistic rollup for initia",
   "main": "index.js",
   "engines": {
     "node": ">=16"
   },
   "scripts": {
-    "executor": "export WORKER_NAME=executor && node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/worker/bridgeExecutor/index.ts",
-    "batch": "export WORKER_NAME=batch && node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/worker/batchSubmitter/index.ts",
-    "challenge": "export WORKER_NAME=challenge && node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/worker/challengeSubmitter/index.ts",
-    "output": "export WORKER_NAME=output && node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/worker/outputSubmitter/index.ts",
+    "executor": "WORKER_NAME=executor node dist/worker/bridgeExecutor/index.js",
+    "batch": "WORKER_NAME=batch node dist/worker/batchSubmitter/index.js",
+    "challenge": "WORKER_NAME=challenge node dist/worker/challengeSubmitter/index.js",
+    "output": "WORKER_NAME=output node dist/worker/outputSubmitter/index.js",
     "test": "jest",
     "test:integration": "export NODE_ENV=test && node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/test/integration.ts",
     "prettier": "prettier --write ./src/**/**/**/**/*.ts",
@@ -18,6 +18,8 @@
     "do": "npm run build && node -r tsconfig-paths/register ./dist/loader/generateApiDoc.js",
     "apidoc": "npm run do",
     "prepublishOnly": "npm run build",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
     "l2setup": "export NODE_ENV=test && npm run build && node ./dist/scripts/setupL2.js"
   },
   "repository": {
@@ -43,7 +45,7 @@
   },
   "homepage": "https://github.com/initia-labs/batch-submitter#readme",
   "devDependencies": {
-    "@initia/initia.js": "^0.1.41",
+    "@initia/initia.js": "^0.1.43",
     "@koa/cors": "^5.0.0",
     "@sentry/node": "^7.109.0",
     "@testcontainers/postgresql": "^10.8.1",

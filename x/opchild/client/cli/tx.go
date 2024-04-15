@@ -1,20 +1,25 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"cosmossdk.io/core/address"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophostcli "github.com/initia-labs/OPinit/x/ophost/client/cli"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 // GetTxCmd returns a root CLI command handler for all x/opchild transaction commands.
@@ -31,6 +36,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewExecuteMessagesCmd(ac),
 		NewDepositCmd(ac),
 		NewWithdrawCmd(ac),
+		NewSetBridgeInfoCmd(ac),
 	)
 
 	return opchildTxCmd
@@ -80,8 +86,8 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 			}
 
 			txf, msg, err := newBuildDepositMsg(
-				clientCtx, ac, txf, cmd.Flags(),
-				sequence, from, to, amount, baseDenom,
+				clientCtx, ac, txf, sequence,
+				from, to, amount, baseDenom,
 				[]byte(hookMsg),
 			)
 			if err != nil {
@@ -124,7 +130,7 @@ func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, cmd.Flags(), to, amount)
+			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, to, amount)
 			if err != nil {
 				return err
 			}
@@ -203,7 +209,106 @@ Where proposal.json contains:
 	return cmd
 }
 
-func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
+// NewSetBridgeInfoCmd returns a CLI command handler for transaction to setting a bridge info.
+func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-bridge-info [bridge-id] [bridge-addr] [path/to/bridge-config.json]",
+		Short: "send a bridge creating tx",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`send a tx to set a bridge info with a config file as a json.
+				Example:
+				$ %s tx ophost set-bridge-info 1 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 path/to/bridge-config.json
+				
+				Where bridge-config.json contains:
+				{
+					"challenger": "bech32-address",
+					"proposer": "bech32-addresss",
+					"submission_interval": "duration",
+					"finalization_period": "duration",
+					"submission_start_time" : "rfc3339-datetime",
+					"batch_info": {"submitter": "bech32-address","chain": "l1|celestia"},
+					"metadata": "{\"perm_channels\":[{\"port_id\":\"transfer\", \"channel_id\":\"channel-0\"}, {\"port_id\":\"icqhost\", \"channel_id\":\"channel-1\"}]}"
+				}`, version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			bridgeAddr := args[1]
+
+			configBytes, err := os.ReadFile(args[2])
+			if err != nil {
+				return err
+			}
+
+			origConfig := ophostcli.BridgeConfig{}
+			err = json.Unmarshal(configBytes, &origConfig)
+			if err != nil {
+				return err
+			}
+
+			submissionInterval, err := time.ParseDuration(origConfig.SubmissionInterval)
+			if err != nil {
+				return err
+			}
+
+			finalizationPeriod, err := time.ParseDuration(origConfig.FinalizationPeriod)
+			if err != nil {
+				return err
+			}
+
+			submissionStartTime, err := time.Parse(time.RFC3339, origConfig.SubmissionStartTime)
+			if err != nil {
+				return err
+			}
+
+			bridgeConfig := ophosttypes.BridgeConfig{
+				Challenger:          origConfig.Challenger,
+				Proposer:            origConfig.Proposer,
+				SubmissionInterval:  submissionInterval,
+				FinalizationPeriod:  finalizationPeriod,
+				SubmissionStartTime: submissionStartTime,
+				BatchInfo:           origConfig.BatchInfo,
+				Metadata:            []byte(origConfig.Metadata),
+			}
+			if err = bridgeConfig.ValidateWithNoAddrValidation(); err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgSetBridgeInfo(fromAddr, types.BridgeInfo{
+				BridgeId:     bridgeId,
+				BridgeAddr:   bridgeAddr,
+				BridgeConfig: bridgeConfig,
+			})
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
 	sender := clientCtx.GetFromAddress()
 	senderAddr, err := ac.BytesToString(sender)
 	if err != nil {
@@ -227,7 +332,6 @@ func newBuildDepositMsg(
 	clientCtx client.Context,
 	ac address.Codec,
 	txf tx.Factory,
-	fs *flag.FlagSet,
 	sequence uint64,
 	from, to sdk.AccAddress,
 	amount sdk.Coin,

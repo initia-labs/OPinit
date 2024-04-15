@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -59,8 +58,16 @@ func (q Querier) Validators(ctx context.Context, req *types.QueryValidatorsReque
 	return &types.QueryValidatorsResponse{Validators: validators, Pagination: pageRes}, nil
 }
 
-func (q Querier) Params(context context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(context)
+func (q Querier) BridgeInfo(ctx context.Context, req *types.QueryBridgeInfoRequest) (*types.QueryBridgeInfoResponse, error) {
+	bridgeInfo, err := q.Keeper.BridgeInfo.Get(ctx)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "bridge info not found")
+	}
+
+	return &types.QueryBridgeInfoResponse{BridgeInfo: bridgeInfo}, nil
+}
+
+func (q Querier) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	params, err := q.GetParams(ctx)
 	if err != nil {
 		return nil, err

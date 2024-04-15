@@ -1,10 +1,14 @@
 import { Context } from 'koa';
-import { KoaController, Get, Controller } from 'koa-joi-controllers';
-import { ErrorTypes } from 'lib/error';
-import { error, success } from 'lib/response';
-import { getClaimTxList } from 'service';
-import { responses, routeConfig, z } from 'koa-swagger-decorator';
-import { GetClaimResponse } from 'sawgger/executor_model';
+import {
+  KoaController,
+  Get,
+  Controller,
+} from 'koa-joi-controllers';
+import { ErrorTypes } from '../../lib/error';
+import { error, success } from '../../lib/response';
+import { getClaimTxList } from '../../service';
+import { responses, routeConfig, z } from 'koa-swagger-decorator'
+import { GetClaimResponse } from '../../swagger/executor_model';
 
 @Controller('')
 export class ClaimTxController extends KoaController {
