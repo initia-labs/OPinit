@@ -1,12 +1,12 @@
 import Bridge from './utils/Bridge';
-import { config } from 'config';
+import { config } from '../config';
 import { TxBot } from './utils/TxBot';
 import { Coin } from '@initia/initia.js';
-import { startBatch } from 'worker/batchSubmitter';
-import { startExecutor } from 'worker/bridgeExecutor';
-import { startOutput } from 'worker/outputSubmitter';
+import { startBatch } from '../worker/batchSubmitter';
+import { startExecutor } from '../worker/bridgeExecutor';
+import { startOutput } from '../worker/outputSubmitter';
 import { delay } from 'bluebird';
-import { getTokenPairByL1Denom } from 'lib/query';
+import { getTokenPairByL1Denom } from '../lib/query';
 
 const SUBMISSION_INTERVAL = 5;
 const FINALIZATION_PERIOD = 5;

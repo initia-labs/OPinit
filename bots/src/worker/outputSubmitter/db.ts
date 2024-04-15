@@ -6,11 +6,11 @@ import {
   DataSourceOptions
 } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import CamelToSnakeNamingStrategy from 'orm/CamelToSnakeNamingStrategy';
+import CamelToSnakeNamingStrategy from '../../orm/CamelToSnakeNamingStrategy';
 
 const debug = require('debug')('orm');
 
-import { ExecutorOutputEntity } from 'orm';
+import { ExecutorOutputEntity } from '../../orm';
 
 const staticOptions = {
   supportBigNumbers: true,

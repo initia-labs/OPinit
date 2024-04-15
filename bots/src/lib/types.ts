@@ -1,6 +1,6 @@
-import DepositTxEntity from 'orm/executor/DepositTxEntity';
-import WithdrawalTxEntity from 'orm/executor/WithdrawalTxEntity';
-import { ExecutorOutputEntity } from 'orm/index';
+import DepositTxEntity from '../orm/executor/DepositTxEntity';
+import WithdrawalTxEntity from '../orm/executor/WithdrawalTxEntity';
+import { ExecutorOutputEntity } from '../orm/index';
 
 export interface WithdrawalTx {
   bridge_id: bigint;

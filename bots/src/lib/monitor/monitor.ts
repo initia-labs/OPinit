@@ -1,10 +1,10 @@
 import Bluebird from 'bluebird';
-import { RPCClient, RPCSocket } from 'lib/rpc';
-import { StateEntity } from 'orm';
+import { RPCClient, RPCSocket } from '../rpc';
+import { StateEntity } from '../../orm';
 import { DataSource, EntityManager } from 'typeorm';
-import MonitorHelper from './MonitorHelper';
+import MonitorHelper from './helper';
 import winston from 'winston';
-import { INTERVAL_MONITOR, config } from 'config';
+import { INTERVAL_MONITOR, config } from '../../config';
 
 const MAX_BLOCKS = 20; // DO NOT CHANGE THIS, hard limit is 20 in cometbft.
 const MAX_RETRY_INTERVAL = 30_000;

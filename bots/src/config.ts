@@ -1,5 +1,5 @@
 import { LCDClient } from '@initia/initia.js';
-import { validateCelestiaConfig } from 'celestia/utils';
+import { validateCelestiaConfig } from './celestia/utils';
 import * as dotenv from 'dotenv';
 
 const envFile =

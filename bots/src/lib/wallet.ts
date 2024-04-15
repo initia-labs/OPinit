@@ -8,7 +8,7 @@ import {
   Coins
 } from '@initia/initia.js';
 import { sendTx } from './tx';
-import { config } from 'config';
+import { config } from '../config';
 import { buildNotEnoughBalanceNotification, notifySlack } from './slack';
 
 export enum WalletType {

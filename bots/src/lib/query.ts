@@ -1,5 +1,5 @@
 import { BridgeInfo, OutputInfo, TokenPair } from '@initia/initia.js';
-import { config } from 'config';
+import { config } from '../config';
 import {
   DepositTxResponse,
   OutputResponse,

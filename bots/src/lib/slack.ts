@@ -1,11 +1,11 @@
 import { Wallet } from '@initia/initia.js';
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
-import { config } from 'config';
+import { config } from '../config';
 import * as http from 'http';
 import * as https from 'https';
-import UnconfirmedTxEntity from 'orm/executor/UnconfirmedTxEntity';
-import { ChallengedOutputEntity } from 'orm/index';
+import UnconfirmedTxEntity from '../orm/executor/UnconfirmedTxEntity';
+import { ChallengedOutputEntity } from '../orm/index';
 
 const ax = axios.create({
   httpAgent: new http.Agent({ keepAlive: true }),

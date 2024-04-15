@@ -1,5 +1,5 @@
-import { ExecutorDepositTxEntity } from 'orm';
-import { getDB } from 'worker/bridgeExecutor/db';
+import { ExecutorDepositTxEntity } from '../../orm';
+import { getDB } from '../../lib/db';
 
 export interface GetDepositTxListParam {
   sequence?: number

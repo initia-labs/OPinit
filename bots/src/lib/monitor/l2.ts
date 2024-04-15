@@ -1,14 +1,14 @@
-import { ExecutorOutputEntity, ExecutorWithdrawalTxEntity } from 'orm';
-import { Monitor } from './Monitor';
-import { WithdrawStorage } from 'lib/storage';
-import { WithdrawalTx } from 'lib/types';
+import { ExecutorOutputEntity, ExecutorWithdrawalTxEntity } from '../../orm';
+import { Monitor } from './monitor';
+import { WithdrawStorage } from '../storage';
+import { WithdrawalTx } from '../types';
 import { EntityManager } from 'typeorm';
 import { BlockInfo } from '@initia/initia.js';
-import { getDB } from './db';
-import { RPCClient, RPCSocket } from 'lib/rpc';
+import { getDB } from '../../worker/bridgeExecutor/db';
+import { RPCClient, RPCSocket } from '../rpc';
 import winston from 'winston';
-import { config } from 'config';
-import { getBridgeInfo } from 'lib/query';
+import { config } from '../../config';
+import { getBridgeInfo } from '../query';
 
 export class L2Monitor extends Monitor {
   submissionInterval: number;

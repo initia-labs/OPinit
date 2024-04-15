@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { config } from 'config';
+import { config } from '../config';
 
 function createLogger(name: string) {
   const formats = [winston.format.errors({ stack: true })];

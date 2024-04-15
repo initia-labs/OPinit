@@ -1,8 +1,8 @@
 import { SwaggerRouter } from 'koa-swagger-decorator'
-import { DepositTxController } from 'controller/executor/DepositTxController'
-import { OutputController } from 'controller/executor/OutputController'
-import { WithdrawalTxController } from 'controller/executor/WithdrawalTxController'
-import { ClaimTxController } from 'controller/executor/ClaimTxController'
+import { DepositTxController } from '../controller/executor/DepositTxController'
+import { OutputController } from '../controller/executor/OutputController'
+import { WithdrawalTxController } from '../controller/executor/WithdrawalTxController'
+import { ClaimTxController } from '../controller/executor/ClaimTxController'
 
 const router = new SwaggerRouter({
   spec: {
