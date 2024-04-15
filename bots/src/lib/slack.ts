@@ -7,7 +7,7 @@ import * as https from 'https';
 import UnconfirmedTxEntity from 'orm/executor/UnconfirmedTxEntity';
 import { ChallengedOutputEntity } from 'orm/index';
 
-const postedKeys = new Set<string>()
+const postedKeys = new Set<string>();
 
 const ax = axios.create({
   httpAgent: new http.Agent({ keepAlive: true }),
@@ -15,17 +15,43 @@ const ax = axios.create({
   timeout: 15000
 });
 
-export async function notifySlack(key: string, text: { text: string }) {
-  if (config.SLACK_WEB_HOOK == undefined || config.SLACK_WEB_HOOK == '' || postedKeys.has(key)) return
-  try {
-    await ax.post(config.SLACK_WEB_HOOK, text).catch(() => {
-      console.error('Slack Notification Error')
-    })
-    postedKeys.add(key)
-  } catch (err) {
-    console.error(err)
+export async function notifySlack(key: string, text: { text: string }, isError: boolean = true) {
+  if (config.SLACK_WEB_HOOK === undefined || config.SLACK_WEB_HOOK === '') return;
+
+  const keyExists = postedKeys.has(key);
+
+  if (isError) {
+      if (!keyExists) {
+          try {
+              await ax.post(config.SLACK_WEB_HOOK, text);
+              postedKeys.add(key); 
+          } catch (err) {
+              console.error('Slack Notification Error:', err);
+          }
+      }
+  } else {
+      if (keyExists) { 
+          try {
+              await ax.post(config.SLACK_WEB_HOOK, text);
+              postedKeys.delete(key); 
+          } catch (err) {
+              console.error('Slack Notification Error on Resolving:', err);
+          }
+      }
   }
 }
+
+export function buildResolveErrorNotification(description: string): { text: string } {
+  let notification = '```';
+  notification += `[INFO] Error Resolved Notification\n`;
+  notification += `\n`;
+  notification += `${description}\n`;
+  notification += '```';
+  return {
+    text: notification
+  };
+}
+
 
 export function buildNotEnoughBalanceNotification(
   wallet: Wallet,

@@ -9,7 +9,7 @@ import {
 } from '@initia/initia.js';
 import { sendTx } from './tx';
 import { config } from 'config';
-import { buildNotEnoughBalanceNotification, notifySlack } from './slack';
+import { buildNotEnoughBalanceNotification, buildResolveErrorNotification, notifySlack } from './slack';
 
 export enum WalletType {
   Challenger = 'challenger',
@@ -87,9 +87,14 @@ export class TxWallet extends Wallet {
       denom
     );
 
+    const key = `${this.key.accAddress}-${balance.amount}`;
     if (balance.amount && parseInt(balance.amount) < config.SLACK_NOT_ENOUGH_BALANCE_THRESHOLD) {
       await notifySlack(
-        `${this.key.accAddress}-${balance.amount}`, buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
+        key, buildNotEnoughBalanceNotification(this, parseInt(balance.amount), denom)
+      );
+    } else {
+      await notifySlack(
+        key, buildResolveErrorNotification(`Balance for ${this.key.accAddress} is restored.`), false
       );
     }
   }
