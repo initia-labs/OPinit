@@ -6,27 +6,38 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slinkypreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
-	slinkyproposals "github.com/skip-mev/slinky/abci/proposals"
+
+	"github.com/skip-mev/slinky/abci/ve"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/skip-mev/slinky/abci/strategies/codec"
 )
 
 func (k *Keeper) SetOracle(
 	slinkyKeeper types.OracleKeeper,
-	slinkyProposalHandler *slinkyproposals.ProposalHandler,
+	extendedCommitCodec codec.ExtendedCommitCodec,
 	slinkyPreblockHandler *slinkypreblock.PreBlockHandler,
 ) {
 	k.slinkyKeeper = slinkyKeeper
-	k.slinkyProposalHandler = slinkyProposalHandler
+	k.extendedCommitCodec = extendedCommitCodec
 	k.slinkyPreblockHandler = slinkyPreblockHandler
 }
 
-func (k Keeper) UpdateOracle(ctx context.Context, extCommitBz []byte) error {
-	if k.slinkyKeeper == nil || k.slinkyPreblockHandler == nil || k.slinkyProposalHandler == nil {
+func (k Keeper) UpdateOracle(ctx context.Context, height uint64, extCommitBz []byte) error {
+	if k.slinkyKeeper == nil || k.slinkyPreblockHandler == nil || k.extendedCommitCodec == nil {
 		return types.ErrInactiveOracle
+	}
+
+	hostStoreLastHeight, err := k.HostValidatorStore.GetLastHeight(ctx)
+	if err != nil {
+		return err
+	}
+
+	if hostStoreLastHeight > int64(height) {
+		return errors.New("invalid height")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -34,11 +45,13 @@ func (k Keeper) UpdateOracle(ctx context.Context, extCommitBz []byte) error {
 	consensusParams.Abci = &cmtproto.ABCIParams{VoteExtensionsEnableHeight: 1}
 	veEnabledCtx := sdkCtx.WithConsensusParams(consensusParams)
 
-	proposalReq := &cometabci.RequestProcessProposal{
-		Txs: [][]byte{extCommitBz},
+	hostChainID, err := k.HostChainId(ctx)
+	if err != nil {
+		return err
 	}
 
-	_, err := k.slinkyProposalHandler.ProcessProposalHandler()(veEnabledCtx, proposalReq)
+	extendedCommitInfo, err := k.extendedCommitCodec.Decode(extCommitBz)
+	err = ve.ValidateVoteExtensionsFromL1(veEnabledCtx, k.HostValidatorStore, int64(height), hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
 	}

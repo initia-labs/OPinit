@@ -17,7 +17,7 @@ import (
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	slinkypreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
-	slinkyproposals "github.com/skip-mev/slinky/abci/proposals"
+	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
 )
 
 var _ types.AnteKeeper = Keeper{}
@@ -53,7 +53,7 @@ type Keeper struct {
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
 	slinkyKeeper          types.OracleKeeper
-	slinkyProposalHandler *slinkyproposals.ProposalHandler
+	extendedCommitCodec   slinkycodec.ExtendedCommitCodec
 	slinkyPreblockHandler *slinkypreblock.PreBlockHandler
 
 	HostValidatorStore *HostValidatorStore
@@ -83,8 +83,8 @@ func NewKeeper(
 	sb := collections.NewSchemaBuilder(storeService)
 
 	hostValidatorStore := NewHostValidatorStore(
-		collections.NewItem(sb, types.HostHeightKey, "hostheight", collections.Int64Value),
-		collections.NewMap(sb, types.HostValidatorsPrefix, "hostvalidators", collections.BytesKey, codec.CollValue[cosmostypes.Validator](cdc)),
+		collections.NewItem(sb, types.HostHeightKey, "host_height", collections.Int64Value),
+		collections.NewMap(sb, types.HostValidatorsPrefix, "host_validators", collections.BytesKey, codec.CollValue[cosmostypes.Validator](cdc)),
 		consensusAddressCodec,
 	)
 

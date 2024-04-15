@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"strconv"
 
 	"cosmossdk.io/errors"
@@ -404,6 +405,21 @@ func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
 	}
+
+	err := ms.Keeper.UpdateOracle(ctx, req.Height, req.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	encodedData := base64.StdEncoding.EncodeToString(req.Data)
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateOracle,
+		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
+		sdk.NewAttribute(types.AttributeKeyHeight, strconv.FormatUint(req.Height, 10)),
+		sdk.NewAttribute(types.AttributeKeyOracleData, encodedData),
+	))
 
 	return &types.MsgUpdateOracleResponse{}, nil
 }

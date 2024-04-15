@@ -55,7 +55,7 @@ func (hv HostValidatorStore) TotalBondedTokens(ctx context.Context) (math.Int, e
 	if err != nil {
 		return math.Int{}, nil
 	}
-	totalBondedTokens := math.Int{}
+	totalBondedTokens := math.ZeroInt()
 	for _, val := range validators {
 		totalBondedTokens = totalBondedTokens.Add(val.BondedTokens())
 	}
@@ -63,8 +63,20 @@ func (hv HostValidatorStore) TotalBondedTokens(ctx context.Context) (math.Int, e
 }
 
 func (hv *HostValidatorStore) UpdateValidators(ctx context.Context, height int64, validatorSet *cmtproto.ValidatorSet) error {
-	lastHeight, err := hv.lastHeight.Get(ctx)
-	if err != nil || lastHeight >= height {
+	found, err := hv.lastHeight.Has(ctx)
+	if err != nil {
+		return err
+	}
+
+	lastHeight := int64(0)
+	if found {
+		lastHeight, err = hv.lastHeight.Get(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	if lastHeight >= height {
 		return errors.New("invalid height")
 	}
 
@@ -84,12 +96,15 @@ func (hv *HostValidatorStore) UpdateValidators(ctx context.Context, height int64
 			return err
 		}
 
+		validator.Status = stakingtypes.Bonded
+		validator.Tokens = math.NewInt(val.VotingPower)
+
 		err = hv.SetValidator(ctx, validator)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+	return hv.lastHeight.Set(ctx, height)
 }
 
 func (hv HostValidatorStore) SetValidator(ctx context.Context, validator stakingtypes.Validator) error {
@@ -126,4 +141,8 @@ func (hv HostValidatorStore) DeleteAllValidators(ctx context.Context) error {
 		}
 		return false, nil
 	})
+}
+
+func (hv HostValidatorStore) GetLastHeight(ctx context.Context) (int64, error) {
+	return hv.lastHeight.Get(ctx)
 }
