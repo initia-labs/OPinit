@@ -1,37 +1,37 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm'
 
 @Entity('challenger_withdrawal_tx')
 export default class WithdrawalTxEntity {
   @PrimaryColumn('bigint')
-  bridgeId: string;
+  bridgeId: string
 
   @PrimaryColumn('bigint')
-  sequence: string;
+  sequence: string
 
   @Column('text')
-  l1Denom: string;
+  l1Denom: string
 
   @Column('text')
-  l2Denom: string;
+  l2Denom: string
 
   @Column('text')
   @Index('challenger_tx_sender_index')
-  sender: string;
+  sender: string
 
   @Column('text')
   @Index('challenger_tx_receiver_index')
-  receiver: string;
+  receiver: string
 
   @Column('bigint')
-  amount: string;
+  amount: string
 
   @Column('int')
   @Index('challenger_tx_output_index')
-  outputIndex: number;
+  outputIndex: number
 
   @Column('text')
-  merkleRoot: string;
+  merkleRoot: string
 
   @Column('text', { array: true })
-  merkleProof: string[];
+  merkleProof: string[]
 }

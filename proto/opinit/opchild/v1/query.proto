@@ -28,6 +28,11 @@ service Query {
     option (google.api.http).get               = "/opinit/opchild/v1/validator/{validator_addr}";
   }
 
+  rpc BridgeInfo(QueryBridgeInfoRequest) returns (QueryBridgeInfoResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/opchild/v1/bridge_info";
+  }
+
   // Parameters queries the rollup parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
@@ -60,6 +65,15 @@ message QueryValidatorRequest {
 message QueryValidatorResponse {
   // validator defines the validator info.
   Validator validator = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// QueryBridgeInfoRequest is request type for the Query/BridgeInfo RPC method.
+message QueryBridgeInfoRequest {}
+
+// QueryBridgeInfoResponse is response type for the Query/BridgeInfo RPC method.
+message QueryBridgeInfoResponse {
+  // bridge_info holds all the information about the bridge.
+  BridgeInfo bridge_info = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

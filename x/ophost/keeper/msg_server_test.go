@@ -25,6 +25,12 @@ func Test_RecordBatch(t *testing.T) {
 func Test_CreateBridge(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
+	params := input.OPHostKeeper.GetParams(ctx)
+	params.RegistrationFee = sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(100)))
+	require.NoError(t, input.OPHostKeeper.SetParams(ctx, params))
+
+	input.Faucet.Fund(ctx, addrs[0], sdk.NewCoin("foo", math.NewInt(1000)))
+
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
 		Challenger:          addrsStr[0],
@@ -42,6 +48,9 @@ func Test_CreateBridge(t *testing.T) {
 	_config, err := input.OPHostKeeper.GetBridgeConfig(ctx, res.BridgeId)
 	require.NoError(t, err)
 	require.Equal(t, config, _config)
+
+	// check community pool
+	require.Equal(t, sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(100))), input.CommunityPoolKeeper.CommunityPool)
 }
 
 func Test_ProposeOutput(t *testing.T) {

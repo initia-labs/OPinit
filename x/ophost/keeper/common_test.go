@@ -184,13 +184,14 @@ func (f *TestFaucet) NewFundedAccount(ctx sdk.Context, amounts ...sdk.Coin) sdk.
 }
 
 type TestKeepers struct {
-	AccountKeeper  authkeeper.AccountKeeper
-	BankKeeper     bankkeeper.Keeper
-	OPHostKeeper   ophostkeeper.Keeper
-	BridgeHook     *bridgeHook
-	EncodingConfig EncodingConfig
-	Faucet         *TestFaucet
-	MultiStore     storetypes.CommitMultiStore
+	AccountKeeper       authkeeper.AccountKeeper
+	BankKeeper          bankkeeper.Keeper
+	OPHostKeeper        ophostkeeper.Keeper
+	CommunityPoolKeeper *MockCommunityPoolKeeper
+	BridgeHook          *bridgeHook
+	EncodingConfig      EncodingConfig
+	Faucet              *TestFaucet
+	MultiStore          storetypes.CommitMultiStore
 }
 
 // createDefaultTestInput common settings for createTestInput
@@ -284,11 +285,13 @@ func _createTestInput(
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
 	bridgeHook := &bridgeHook{}
+	communityPoolKeeper := &MockCommunityPoolKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
 		accountKeeper,
 		bankKeeper,
+		communityPoolKeeper,
 		bridgeHook,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -302,13 +305,14 @@ func _createTestInput(
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
 	keepers := TestKeepers{
-		AccountKeeper:  accountKeeper,
-		BankKeeper:     bankKeeper,
-		OPHostKeeper:   *ophostKeeper,
-		BridgeHook:     bridgeHook,
-		EncodingConfig: encodingConfig,
-		Faucet:         faucet,
-		MultiStore:     ms,
+		AccountKeeper:       accountKeeper,
+		BankKeeper:          bankKeeper,
+		OPHostKeeper:        *ophostKeeper,
+		CommunityPoolKeeper: communityPoolKeeper,
+		BridgeHook:          bridgeHook,
+		EncodingConfig:      encodingConfig,
+		Faucet:              faucet,
+		MultiStore:          ms,
 	}
 	return ctx, keepers
 }
@@ -377,6 +381,18 @@ func (h *bridgeHook) BridgeBatchInfoUpdated(
 
 	h.metadata = bridgeConfig.Metadata
 	h.batchInfo = bridgeConfig.BatchInfo
+
+	return nil
+}
+
+var _ ophosttypes.CommunityPoolKeeper = &MockCommunityPoolKeeper{}
+
+type MockCommunityPoolKeeper struct {
+	CommunityPool sdk.Coins
+}
+
+func (k *MockCommunityPoolKeeper) FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error {
+	k.CommunityPool = k.CommunityPool.Add(amount...)
 
 	return nil
 }

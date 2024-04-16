@@ -6,35 +6,23 @@ import {
   DataSourceOptions
 } from 'typeorm'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
-import { executorLogger as logger } from '../../lib/logger'
+import CamelToSnakeNamingStrategy from '../orm/CamelToSnakeNamingStrategy'
 
-import CamelToSnakeNamingStrategy from '../../orm/CamelToSnakeNamingStrategy'
+const debug = require('debug')('orm')
 
-import {
-  ExecutorOutputEntity,
-  ExecutorWithdrawalTxEntity,
-  ExecutorDepositTxEntity,
-  ExecutorUnconfirmedTxEntity,
-  StateEntity
-} from '../../orm'
+import { RecordEntity, ExecutorOutputEntity } from '../orm'
 
 const staticOptions = {
   supportBigNumbers: true,
   bigNumberStrings: true,
-  entities: [
-    ExecutorOutputEntity,
-    ExecutorWithdrawalTxEntity,
-    ExecutorDepositTxEntity,
-    ExecutorUnconfirmedTxEntity,
-    StateEntity
-  ]
+  entities: [RecordEntity, ExecutorOutputEntity]
 }
 
 let DB: DataSource[] = []
 
 function initConnection(options: DataSourceOptions): Promise<DataSource> {
   const pgOpts = options as PostgresConnectionOptions
-  logger.info(
+  debug(
     `creating connection default to ${pgOpts.username}@${pgOpts.host}:${
       pgOpts.port || 5432
     }`
@@ -47,20 +35,15 @@ function initConnection(options: DataSourceOptions): Promise<DataSource> {
   }).initialize()
 }
 
-export async function initORM(host?: string, port?: number): Promise<void> {
+export async function initORM(): Promise<void> {
   const reader = new ConnectionOptionsReader()
   const options = (await reader.all()) as PostgresConnectionOptions[]
 
-  DB = await Bluebird.map(options, (opt) => {
-    const newOptions = { ...opt }
-    if (host) {
-      newOptions.host = host
-    }
-    if (port) {
-      newOptions.port = port
-    }
-    return initConnection(newOptions)
-  })
+  if (options.length && !options.filter((o) => o.name === 'default').length) {
+    options[0]['name' as any] = 'default'
+  }
+
+  DB = await Bluebird.map(options, (opt) => initConnection(opt))
 }
 
 export function getDB(): DataSource[] {

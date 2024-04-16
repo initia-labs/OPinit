@@ -7,10 +7,10 @@ import morgan from 'koa-morgan'
 // import  helmet from 'koa-helmet'
 import serve from 'koa-static'
 import mount from 'koa-mount'
-import { APIError, ErrorTypes, errorHandler } from 'lib/error'
-import { error } from 'lib/response'
+import { APIError, ErrorTypes, errorHandler } from '../lib/error'
+import { error } from '../lib/response'
 import { KoaController, configureRoutes } from 'koa-joi-controllers'
-import { router as swaggerRouter } from 'sawgger/swagger'
+import { router as swaggerRouter } from '../swagger/swagger'
 
 const notFoundMiddleware: Koa.Middleware = (ctx) => {
   ctx.status = 404
@@ -39,7 +39,7 @@ function createApiDocApp(): Koa {
   app
     .use(
       serve(path.resolve(__dirname, '..', 'static'), {
-        maxage: 86400 * 1000,
+        maxage: 86400 * 1000
       })
     )
     .use(notFoundMiddleware)
@@ -72,7 +72,7 @@ async function createAPIApp(controllers: KoaController[]): Promise<Koa> {
             error.message,
             error
           )
-        },
+        }
       })
     )
 

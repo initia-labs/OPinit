@@ -1,16 +1,16 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity('challenge')
 export default class ChallengeEntity {
   @PrimaryColumn('text')
-  name: string;
+  name: string
 
   @Column('int')
-  l1DepositSequenceToCheck: number;
+  l1DepositSequenceToCheck: number
 
   @Column('int')
-  l1LastCheckedSequence: number;
+  l1LastCheckedSequence: number
 
   @Column('int')
-  l2OutputIndexToCheck: number;
+  l2OutputIndexToCheck: number
 }

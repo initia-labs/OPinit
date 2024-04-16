@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Msg_ExecuteMessages_FullMethodName         = "/opinit.opchild.v1.Msg/ExecuteMessages"
+	Msg_SetBridgeInfo_FullMethodName           = "/opinit.opchild.v1.Msg/SetBridgeInfo"
 	Msg_FinalizeTokenDeposit_FullMethodName    = "/opinit.opchild.v1.Msg/FinalizeTokenDeposit"
 	Msg_InitiateTokenWithdrawal_FullMethodName = "/opinit.opchild.v1.Msg/InitiateTokenWithdrawal"
 	Msg_AddValidator_FullMethodName            = "/opinit.opchild.v1.Msg/AddValidator"
@@ -34,6 +35,8 @@ const (
 type MsgClient interface {
 	// ExecuteMessages defines a rpc handler method for MsgExecuteMessages.
 	ExecuteMessages(ctx context.Context, in *MsgExecuteMessages, opts ...grpc.CallOption) (*MsgExecuteMessagesResponse, error)
+	// SetBridgeInfo defines a rpc handler method for MsgSetBridgeInfo.
+	SetBridgeInfo(ctx context.Context, in *MsgSetBridgeInfo, opts ...grpc.CallOption) (*MsgSetBridgeInfoResponse, error)
 	// FinalizeTokenDeposit defines a rpc handler method for MsgFinalizeTokenDeposit.
 	FinalizeTokenDeposit(ctx context.Context, in *MsgFinalizeTokenDeposit, opts ...grpc.CallOption) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
@@ -60,6 +63,15 @@ func NewMsgClient(cc grpc.ClientConnInterface) MsgClient {
 func (c *msgClient) ExecuteMessages(ctx context.Context, in *MsgExecuteMessages, opts ...grpc.CallOption) (*MsgExecuteMessagesResponse, error) {
 	out := new(MsgExecuteMessagesResponse)
 	err := c.cc.Invoke(ctx, Msg_ExecuteMessages_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) SetBridgeInfo(ctx context.Context, in *MsgSetBridgeInfo, opts ...grpc.CallOption) (*MsgSetBridgeInfoResponse, error) {
+	out := new(MsgSetBridgeInfoResponse)
+	err := c.cc.Invoke(ctx, Msg_SetBridgeInfo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +138,8 @@ func (c *msgClient) SpendFeePool(ctx context.Context, in *MsgSpendFeePool, opts 
 type MsgServer interface {
 	// ExecuteMessages defines a rpc handler method for MsgExecuteMessages.
 	ExecuteMessages(context.Context, *MsgExecuteMessages) (*MsgExecuteMessagesResponse, error)
+	// SetBridgeInfo defines a rpc handler method for MsgSetBridgeInfo.
+	SetBridgeInfo(context.Context, *MsgSetBridgeInfo) (*MsgSetBridgeInfoResponse, error)
 	// FinalizeTokenDeposit defines a rpc handler method for MsgFinalizeTokenDeposit.
 	FinalizeTokenDeposit(context.Context, *MsgFinalizeTokenDeposit) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
@@ -148,6 +162,9 @@ type UnimplementedMsgServer struct {
 
 func (UnimplementedMsgServer) ExecuteMessages(context.Context, *MsgExecuteMessages) (*MsgExecuteMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExecuteMessages not implemented")
+}
+func (UnimplementedMsgServer) SetBridgeInfo(context.Context, *MsgSetBridgeInfo) (*MsgSetBridgeInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetBridgeInfo not implemented")
 }
 func (UnimplementedMsgServer) FinalizeTokenDeposit(context.Context, *MsgFinalizeTokenDeposit) (*MsgFinalizeTokenDepositResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizeTokenDeposit not implemented")
@@ -194,6 +211,24 @@ func _Msg_ExecuteMessages_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).ExecuteMessages(ctx, req.(*MsgExecuteMessages))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_SetBridgeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSetBridgeInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SetBridgeInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_SetBridgeInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SetBridgeInfo(ctx, req.(*MsgSetBridgeInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -316,6 +351,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExecuteMessages",
 			Handler:    _Msg_ExecuteMessages_Handler,
+		},
+		{
+			MethodName: "SetBridgeInfo",
+			Handler:    _Msg_SetBridgeInfo_Handler,
 		},
 		{
 			MethodName: "FinalizeTokenDeposit",

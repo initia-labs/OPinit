@@ -1,5 +1,5 @@
-import { Context } from 'koa';
-import { ErrorTypes } from './error';
+import { Context } from 'koa'
+import { ErrorTypes } from './error'
 
 const TYPES_TO_HTTP_STATUS_CODES = {
   [ErrorTypes.INVALID_REQUEST_ERROR]: 400, // Bad Request
@@ -13,15 +13,15 @@ const TYPES_TO_HTTP_STATUS_CODES = {
   [ErrorTypes.API_ERROR]: 500,
   [ErrorTypes.SERVICE_UNAVAILABLE]: 503,
   [ErrorTypes.LCD_ERROR]: 500
-};
+}
 
 export function success(ctx: Context, body: any = null, statusCode = 200) {
-  ctx.status = statusCode;
+  ctx.status = statusCode
 
   if (body === null) {
-    ctx.body = JSON.stringify(body);
+    ctx.body = JSON.stringify(body)
   } else {
-    ctx.body = body;
+    ctx.body = body
   }
 }
 
@@ -31,7 +31,7 @@ export function error(
   code = '',
   message = ''
 ): void {
-  ctx.status = TYPES_TO_HTTP_STATUS_CODES[type] || 500;
+  ctx.status = TYPES_TO_HTTP_STATUS_CODES[type] || 500
 
   const body: {
     type: string;
@@ -41,15 +41,15 @@ export function error(
     type,
     message: undefined,
     code: undefined
-  };
+  }
 
   if (message) {
-    body.message = message;
+    body.message = message
   }
 
   if (code) {
-    body.code = code;
+    body.code = code
   }
 
-  ctx.body = body;
+  ctx.body = body
 }

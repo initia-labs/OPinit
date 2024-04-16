@@ -142,7 +142,7 @@ message QueryLastFinalizedOutputRequest {
 }
 
 message QueryLastFinalizedOutputResponse {
-  uint64 output_index = 1;
+  uint64 output_index    = 1;
   Output output_proposal = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 

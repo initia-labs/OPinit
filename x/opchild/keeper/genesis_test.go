@@ -3,10 +3,13 @@ package keeper_test
 // TODO - implement test
 
 import (
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_GenesisImportExport(t *testing.T) {
@@ -24,8 +27,27 @@ func Test_GenesisImportExport(t *testing.T) {
 	input.OPChildKeeper.RecordFinalizedL1Sequence(ctx, 2)
 
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
+	require.Nil(t, genState.BridgeInfo)
+
+	// set bridge info
+	genState.BridgeInfo = &types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				Chain:     "l1",
+			},
+			SubmissionInterval:  time.Minute,
+			FinalizationPeriod:  time.Hour,
+			SubmissionStartTime: time.Now().UTC(),
+			Metadata:            []byte("metadata"),
+		},
+	}
+
 	input.OPChildKeeper.InitGenesis(ctx, genState)
-	_genState := input.OPChildKeeper.ExportGenesis(ctx)
-	require.Equal(t, genState, _genState)
-	fmt.Printf("genState: %v\n", genState)
+	genState_ := input.OPChildKeeper.ExportGenesis(ctx)
+	require.Equal(t, genState, genState_)
 }

@@ -12,12 +12,13 @@ import (
 const DefaultL2SequenceStart = 1
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, validators []Validator) *GenesisState {
+func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo) *GenesisState {
 	return &GenesisState{
 		Params:              params,
 		LastValidatorPowers: []LastValidatorPower{},
 		Validators:          validators,
 		Exported:            false,
+		BridgeInfo:          bridgeInfo,
 	}
 }
 
@@ -30,6 +31,7 @@ func DefaultGenesisState() *GenesisState {
 		Exported:             false,
 		NextL2Sequence:       DefaultL2SequenceStart,
 		FinalizedL1Sequences: []uint64{},
+		BridgeInfo:           nil,
 	}
 }
 
@@ -42,6 +44,12 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 
 	if data.NextL2Sequence < DefaultL2SequenceStart {
 		return ErrInvalidSequence
+	}
+
+	if data.BridgeInfo != nil {
+		if err := data.BridgeInfo.Validate(ac); err != nil {
+			return err
+		}
 	}
 
 	return data.Params.Validate(ac)

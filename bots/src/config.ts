@@ -1,14 +1,14 @@
-import { LCDClient } from '@initia/initia.js';
-import { validateCelestiaConfig } from 'celestia/utils';
-import * as dotenv from 'dotenv';
+import { LCDClient } from '@initia/initia.js'
+import { validateCelestiaConfig } from './celestia/utils'
+import * as dotenv from 'dotenv'
 
 const envFile =
   process.env.NODE_ENV === 'test' || !process.env.WORKER_NAME
     ? `.env`
-    : `.env.${process.env.WORKER_NAME}`;
+    : `.env.${process.env.WORKER_NAME}`
 
-console.log('activate ', envFile);
-dotenv.config({ path: envFile });
+console.log('activate ', envFile)
+dotenv.config({ path: envFile })
 
 const {
   EXECUTOR_PORT,
@@ -43,10 +43,11 @@ const {
   DELETE_OUTPUT_PROPOSAL,
   SLACK_NOT_ENOUGH_BALANCE_THRESHOLD,
   EXECUTOR_L1_MONITOR_HEIGHT,
-  EXECUTOR_L2_MONITOR_HEIGHT
-} = process.env;
+  EXECUTOR_L2_MONITOR_HEIGHT,
+  ENABLE_API_ONLY
+} = process.env
 
-const supportedPublishBatchTargets = ['l1', 'celestia'];
+const supportedPublishBatchTargets = ['l1', 'celestia']
 
 export const config = {
   EXECUTOR_PORT: EXECUTOR_PORT ? parseInt(EXECUTOR_PORT) : 5000,
@@ -55,34 +56,39 @@ export const config = {
   L1_RPC_URI: L1_RPC_URI ? L1_RPC_URI.split(',') : ['http://localhost:26657'],
   L2_LCD_URI: L2_LCD_URI ? L2_LCD_URI.split(',') : ['http://localhost:1317'],
   L2_RPC_URI: L2_RPC_URI ? L2_RPC_URI.split(',') : ['http://localhost:26657'],
-  BATCH_LCD_URI: BATCH_LCD_URI ? BATCH_LCD_URI.split(',') : ['http://localhost:1317'],
+  BATCH_LCD_URI: BATCH_LCD_URI
+    ? BATCH_LCD_URI.split(',')
+    : ['http://localhost:1317'],
   BATCH_CHAIN_RPC_URI: (() => {
     if (process.env.WORKER_NAME !== 'batch') {
-      return undefined;
+      return undefined
     }
-    if(PUBLISH_BATCH_TARGET == 'l1') {
-      return L1_RPC_URI;
-    } else if(BATCH_CHAIN_RPC_URI == undefined || BATCH_CHAIN_RPC_URI.length == 0) {      
+    if (PUBLISH_BATCH_TARGET == 'l1') {
+      return L1_RPC_URI
+    } else if (
+      BATCH_CHAIN_RPC_URI == undefined ||
+      BATCH_CHAIN_RPC_URI.length == 0
+    ) {
       throw Error(
         'Please check your configuration; BATCH_CHAIN_RPC_URI is needed but not given.'
-      );
+      )
     }
   })(),
   CELESTIA_NAMESPACE_ID: CELESTIA_NAMESPACE_ID || '',
   PUBLISH_BATCH_TARGET: (() => {
     if (PUBLISH_BATCH_TARGET === undefined) {
-      return 'l1';
+      return 'l1'
     }
 
     const target = supportedPublishBatchTargets.find(
       (target) => target === PUBLISH_BATCH_TARGET?.toLocaleLowerCase()
-    );
+    )
     if (target === undefined) {
       throw Error(
         `A valid PUBLISH_BATCH_TARGET is required. Please specify one of the following: ${supportedPublishBatchTargets}`
-      );
+      )
     }
-    return target;
+    return target
   })(),
   EXECUTOR_URI: EXECUTOR_URI || 'http://localhost:5000',
   BRIDGE_ID: BRIDGE_ID ? parseInt(BRIDGE_ID) : 1,
@@ -146,12 +152,13 @@ export const config = {
     : 0,
   EXECUTOR_L2_MONITOR_HEIGHT: EXECUTOR_L2_MONITOR_HEIGHT
     ? parseInt(EXECUTOR_L2_MONITOR_HEIGHT)
-    : 0
-};
+    : 0,
+  ENABLE_API_ONLY: ENABLE_API_ONLY ? ENABLE_API_ONLY == 'true' : false
+}
 
 // check celestia config
-validateCelestiaConfig();
+validateCelestiaConfig()
 
-export const INTERVAL_BATCH = 100_000;
-export const INTERVAL_MONITOR = 100;
-export const INTERVAL_OUTPUT = 10_000;
+export const INTERVAL_BATCH = 100_000
+export const INTERVAL_MONITOR = 100
+export const INTERVAL_OUTPUT = 10_000

@@ -1,7 +1,7 @@
-import { RecordEntity } from 'orm';
-import { APIError, ErrorTypes } from 'lib/error';
-import { getDB } from 'worker/batchSubmitter/db';
-import { config } from 'config';
+import { RecordEntity } from '../../orm'
+import { APIError, ErrorTypes } from '../../lib/error'
+import { getDB } from '../../lib/db'
+import { config } from '../../config'
 
 interface L1BatchInfo {
   type: 'l1';
@@ -20,7 +20,7 @@ interface CelestiaBatchInfo {
   }[];
 }
 
-type BatchInfo = L1BatchInfo | CelestiaBatchInfo;
+type BatchInfo = L1BatchInfo | CelestiaBatchInfo
 
 interface GetBatchResponse {
   bridgeId: number;
@@ -29,44 +29,44 @@ interface GetBatchResponse {
 }
 
 export async function getBatch(batchIndex: number): Promise<GetBatchResponse> {
-  const [db] = getDB();
-  const queryRunner = db.createQueryRunner('slave');
+  const [db] = getDB()
+  const queryRunner = db.createQueryRunner('slave')
 
   try {
     const qb = queryRunner.manager
       .createQueryBuilder(RecordEntity, 'record')
-      .where('record.batchIndex = :batchIndex', { batchIndex });
+      .where('record.batch_index = :batchIndex', { batchIndex })
 
-    const batch = await qb.getOne();
+    const batch = await qb.getOne()
 
     if (!batch) {
-      throw new APIError(ErrorTypes.NOT_FOUND_ERROR);
+      throw new APIError(ErrorTypes.NOT_FOUND_ERROR)
     }
 
-    let batchInfo: BatchInfo;
+    let batchInfo: BatchInfo
     if (config.PUBLISH_BATCH_TARGET === 'l1') {
       batchInfo = {
         type: 'l1',
         dataPaths: batch.batchInfo.map((txHash, index) => ({ index, txHash }))
-      };
+      }
     } else if (config.PUBLISH_BATCH_TARGET === 'celestia') {
       batchInfo = {
         type: 'celestia',
         dataPaths: batch.batchInfo.map((path, index) => {
-          const [height, commitment] = path.split('::');
-          return { index, height: Number(height), commitment };
+          const [height, commitment] = path.split('::')
+          return { index, height: Number(height), commitment }
         })
-      };
+      }
     } else {
-      throw new APIError(ErrorTypes.API_ERROR);
+      throw new APIError(ErrorTypes.API_ERROR)
     }
 
     return {
       bridgeId: batch.bridgeId,
       batchIndex: batch.batchIndex,
       batchInfo
-    };
+    }
   } finally {
-    queryRunner.release();
+    queryRunner.release()
   }
 }

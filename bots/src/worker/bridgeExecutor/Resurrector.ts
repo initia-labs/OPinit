@@ -1,23 +1,23 @@
-import { getDB } from './db';
-import UnconfirmedTxEntity from 'orm/executor/UnconfirmedTxEntity';
-import { Coin, MsgFinalizeTokenDeposit } from '@initia/initia.js';
-import { INTERVAL_MONITOR, config } from 'config';
-import { DataSource } from 'typeorm';
-import Bluebird from 'bluebird';
-import winston from 'winston';
-import { TxWallet, WalletType, getWallet, initWallet } from 'lib/wallet';
-import { buildFailedTxNotification, buildResolveErrorNotification, notifySlack } from 'lib/slack';
+import { getDB } from './db'
+import UnconfirmedTxEntity from '../../orm/executor/UnconfirmedTxEntity'
+import { Coin, MsgFinalizeTokenDeposit } from '@initia/initia.js'
+import { INTERVAL_MONITOR, config } from '../../config'
+import { DataSource } from 'typeorm'
+import Bluebird from 'bluebird'
+import winston from 'winston'
+import { TxWallet, WalletType, getWallet, initWallet } from '../../lib/wallet'
+import { buildFailedTxNotification, buildResolveErrorNotification, notifySlack } from '../../lib/slack'
 
 export class Resurrector {
-  private db: DataSource;
-  isRunning = true;
-  executor: TxWallet;
-  errorCounter = 0;
+  private db: DataSource
+  isRunning = true
+  executor: TxWallet
+  errorCounter = 0
 
   constructor(public logger: winston.Logger) {
-    [this.db] = getDB();
-    initWallet(WalletType.Executor, config.l2lcd);
-    this.executor = getWallet(WalletType.Executor);
+    [this.db] = getDB()
+    initWallet(WalletType.Executor, config.l2lcd)
+    this.executor = getWallet(WalletType.Executor)
   }
 
   async updateProcessed(unconfirmedTx: UnconfirmedTxEntity): Promise<void> {
@@ -28,15 +28,15 @@ export class Resurrector {
         processed: false
       },
       { processed: true }
-    );
+    )
 
     this.logger.info(
       `Resurrected failed tx: ${unconfirmedTx.bridgeId} ${unconfirmedTx.sequence}`
-    );
+    )
   }
 
   async resubmitFailedDepositTx(unconfirmedTx: UnconfirmedTxEntity): Promise<void> {
-    const txKey = `${unconfirmedTx.sender}-${unconfirmedTx.receiver}-${unconfirmedTx.amount}`;
+    const txKey = `${unconfirmedTx.sender}-${unconfirmedTx.receiver}-${unconfirmedTx.amount}`
     const msg = new MsgFinalizeTokenDeposit(
       this.executor.key.accAddress,
       unconfirmedTx.sender,
@@ -46,18 +46,18 @@ export class Resurrector {
       unconfirmedTx.l1Height,
       unconfirmedTx.l1Denom,
       Buffer.from(unconfirmedTx.data, 'hex').toString('base64')
-    );
+    )
     try {
-      await this.executor.transaction([msg]);
-      await this.updateProcessed(unconfirmedTx);
-      await notifySlack(txKey, buildResolveErrorNotification(`[INFO] Transaction successfully resubmitted and processed for ${unconfirmedTx.sender} to ${unconfirmedTx.receiver} of amount ${unconfirmedTx.amount}.`), false);
+      await this.executor.transaction([msg])
+      await this.updateProcessed(unconfirmedTx)
+      await notifySlack(txKey, buildResolveErrorNotification(`[INFO] Transaction successfully resubmitted and processed for ${unconfirmedTx.sender} to ${unconfirmedTx.receiver} of amount ${unconfirmedTx.amount}.`), false)
     } catch (err) {
       if (this.errorCounter++ < 20) {
-        await Bluebird.delay(5 * 1000);
-        return;
+        await Bluebird.delay(5 * 1000)
+        return
       }
-      this.errorCounter = 0;
-      await notifySlack(txKey, buildFailedTxNotification(unconfirmedTx));
+      this.errorCounter = 0
+      await notifySlack(txKey, buildFailedTxNotification(unconfirmedTx))
     }
   }
 
@@ -66,37 +66,37 @@ export class Resurrector {
       where: {
         processed: false
       }
-    });
+    })
   }
 
   public async ressurect(): Promise<void> {
-    const unconfirmedTxs = await this.getunconfirmedTxs();
+    const unconfirmedTxs = await this.getunconfirmedTxs()
 
     for (const unconfirmedTx of unconfirmedTxs) {
-      const error = unconfirmedTx.error;
+      const error = unconfirmedTx.error
 
       // Check x/opchild/errors.go
       if (error.includes('deposit already finalized')) {
-        await this.updateProcessed(unconfirmedTx);
-        continue;
+        await this.updateProcessed(unconfirmedTx)
+        continue
       }
-      await this.resubmitFailedDepositTx(unconfirmedTx);
+      await this.resubmitFailedDepositTx(unconfirmedTx)
     }
   }
 
   stop(): void {
-    this.isRunning = false;
+    this.isRunning = false
   }
 
   public async run() {
     while (this.isRunning) {
       try {
-        await this.ressurect();
+        await this.ressurect()
       } catch (err) {
-        this.stop();
-        throw new Error(err);
+        this.stop()
+        throw new Error(err)
       } finally {
-        await Bluebird.delay(INTERVAL_MONITOR);
+        await Bluebird.delay(INTERVAL_MONITOR)
       }
     }
   }
