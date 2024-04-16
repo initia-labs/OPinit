@@ -41,6 +41,12 @@ message Params {
     (amino.dont_omitempty) = true,
     (gogoproto.moretags)   = "yaml:\"admin\""
   ];
+  // the list of addresses that are allowed to pay zero fee.
+  repeated string fee_whitelist = 6 [
+    (cosmos_proto.scalar)  = "cosmos.AddressString",
+    (amino.dont_omitempty) = true,
+    (gogoproto.moretags)   = "yaml:\"fee_whitelist\""
+  ];
 }
 
 // Validator defines a validator, together with the total amount of the
