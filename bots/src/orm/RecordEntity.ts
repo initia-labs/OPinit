@@ -1,19 +1,19 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity('record')
 export default class RecordEntity {
   @PrimaryColumn()
-  bridgeId: number;
+  bridgeId: number
 
   @PrimaryColumn()
-  batchIndex: number;
+  batchIndex: number
 
   @Column()
-  startBlockNumber: number;
+  startBlockNumber: number
 
   @Column()
-  endBlockNumber: number;
+  endBlockNumber: number
 
   @Column('text', { array: true })
-  batchInfo: string[]; // for l1 => txHash, for celestia => height::commitment
+  batchInfo: string[] // for l1 => txHash, for celestia => height::commitment
 }

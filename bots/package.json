@@ -13,8 +13,8 @@
     "output": "WORKER_NAME=output node dist/worker/outputSubmitter/index.js",
     "test": "jest",
     "test:integration": "export NODE_ENV=test && node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/test/integration.ts",
-    "prettier": "prettier --write ./src/**/**/**/**/*.ts",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "prettier": "prettier --write './src/**/*.ts'",
+    "lint": "eslint --fix src",
     "do": "npm run build && node -r tsconfig-paths/register ./dist/loader/generateApiDoc.js",
     "apidoc": "npm run do",
     "prepublishOnly": "npm run build",
@@ -29,7 +29,7 @@
   "lint-staged": {
     "./src/**/*.ts": [
       "prettier --write",
-      "eslint"
+      "eslint --fix"
     ]
   },
   "prettier": {

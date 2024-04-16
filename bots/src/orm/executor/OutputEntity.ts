@@ -1,25 +1,25 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity('executor_output')
 export default class OutputEntity {
   @PrimaryColumn('int')
-  outputIndex: number;
+  outputIndex: number
 
   @Column('text')
-  outputRoot: string;
+  outputRoot: string
 
   @Column('text')
-  stateRoot: string;
+  stateRoot: string
 
   @Column('text')
-  merkleRoot: string;
+  merkleRoot: string
 
   @Column('text')
-  lastBlockHash: string; // last block hash of the epoch
+  lastBlockHash: string // last block hash of the epoch
 
   @Column('int')
-  startBlockNumber: number; // start block height of the epoch
+  startBlockNumber: number // start block height of the epoch
 
   @Column('int')
-  endBlockNumber: number; // end block height of the epoch
+  endBlockNumber: number // end block height of the epoch
 }

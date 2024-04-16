@@ -39,7 +39,7 @@ function createApiDocApp(): Koa {
   app
     .use(
       serve(path.resolve(__dirname, '..', 'static'), {
-        maxage: 86400 * 1000,
+        maxage: 86400 * 1000
       })
     )
     .use(notFoundMiddleware)
@@ -72,7 +72,7 @@ async function createAPIApp(controllers: KoaController[]): Promise<Koa> {
             error.message,
             error
           )
-        },
+        }
       })
     )
 

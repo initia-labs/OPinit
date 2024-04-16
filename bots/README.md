@@ -55,6 +55,7 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 | SLACK_WEB_HOOK             | Slack web hook for notification (optional) | ''                       |
 | EXECUTOR_L1_MONITOR_HEIGHT | L1 monitor start height (optional)         | 0                        |
 | EXECUTOR_L2_MONITOR_HEIGHT | L2 monitor start height (optional)         | 0                        |
+| ENABLE_API_ONLY            | Enable API only mode (optional)            | false                    |
 
 > Note that if `EXECUTOR_L1_MONITOR_HEIGHT` and `EXECUTOR_L2_MONITOR_HEIGHT` are not set, `executor` will start monitoring from height stored on `state` table. If you want to start monitoring from specific height, you should set them in `.env.executor` file.
 
@@ -88,6 +89,7 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 | BATCH_DENOM                 | Fee denom for DA chain                                       |                            |
 | CELESTIA_NAMESPACE_ID       | Celestia namespace id (optional)                             | ''                         |
 | PUBLISH_BATCH_TARGET        | Target chain to publish batch (supports: ['l1', 'celestia']) | 'l1'                       |
+| ENABLE_API_ONLY             | Enable API only mode (optional)                              | false                      |
 
 - `.env.challenger`
 
