@@ -21,7 +21,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit/api v0.0.0-20240416032839-e5035d799632
+	github.com/initia-labs/OPinit/api v0.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk v0.0.0-20231213233341-deceeb0e993b
 	github.com/spf13/cobra v1.8.0
@@ -195,6 +195,10 @@ require (
 	gotest.tools/v3 v3.5.1 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
+)
+
+replace (
+	github.com/initia-labs/OPinit/api => ./api
 )
 
 replace (

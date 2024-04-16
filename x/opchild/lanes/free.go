@@ -14,8 +14,7 @@ type FeeWhitelistKeeper interface {
 }
 
 // FreeLaneMatchHandler returns the default match handler for the free lane. The
-// default implementation matches transactions that are ibc related. In particular,
-// any transaction that is a MsgUpdateClient, MsgTimeout, MsgAcknowledgement.
+// default implementation matches fee payers that are in the fee whitelist.
 type FreeLaneMatchHandler struct {
 	ac  address.Codec
 	fwk FeeWhitelistKeeper
