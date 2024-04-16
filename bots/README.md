@@ -49,6 +49,7 @@ You should set `.env` file for each bot in `bots/worker`. To transfer assets bet
 | L1_RPC_URI                 | L1 node RPC URI                            | <http://127.0.0.1:26657> |
 | L2_LCD_URI                 | L2 node LCD URI                            | <http://127.0.0.1:1317>  |
 | L2_RPC_URI                 | L2 node RPC URI                            | <http://127.0.0.1:26657> |
+| L2_GAS_PRICES              | Gas prices for L2 chain                    | '0.15umin'               |
 | BRIDGE_ID                  | Bridge ID                                  | ''                       |
 | EXECUTOR_PORT              | Executor port                              | 5000                     |
 | EXECUTOR_MNEMONIC          | Mnemonic seed for executor                 | ''                       |

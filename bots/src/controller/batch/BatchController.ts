@@ -6,7 +6,7 @@ import {
   Validator
 } from 'koa-joi-controllers'
 import { responses, routeConfig, z } from 'koa-swagger-decorator'
-import { success } from 'lib/response'
+import { success } from '../../lib/response'
 import { GetBatchResponse } from 'sawgger/batch_model'
 import { getBatch } from 'service/batch/BatchService'
 

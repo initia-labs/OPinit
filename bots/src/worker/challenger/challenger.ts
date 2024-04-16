@@ -18,7 +18,7 @@ import {
   getOutputInfoByIndex,
   getBridgeInfo
 } from '../../lib/query'
-import MonitorHelper from 'lib/monitor/helper'
+import MonitorHelper from '../../lib/monitor/helper'
 import winston from 'winston'
 import { TxWallet, WalletType, getWallet, initWallet } from '../../lib/wallet'
 import { buildChallengerNotification, notifySlack } from '../../lib/slack'
@@ -313,7 +313,7 @@ export class Challenger {
       await this.deleteOutputProposal(outputIndex)
     }
 
-    await notifySlack(buildChallengerNotification(challengedOutput))
-    process.exit()
+    await notifySlack(`${outputIndex}-${this.bridgeId}`, buildChallengerNotification(challengedOutput));
+    process.exit();
   }
 }
