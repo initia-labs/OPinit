@@ -197,9 +197,7 @@ require (
 	pgregory.net/rapid v1.1.0 // indirect
 )
 
-replace (
-	github.com/initia-labs/OPinit/api => ./api
-)
+replace github.com/initia-labs/OPinit/api => ./api
 
 replace (
 	// use cosmos fork of keyring
