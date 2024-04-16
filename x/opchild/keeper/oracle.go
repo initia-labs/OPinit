@@ -51,6 +51,9 @@ func (k Keeper) UpdateOracle(ctx context.Context, height uint64, extCommitBz []b
 	}
 
 	extendedCommitInfo, err := k.extendedCommitCodec.Decode(extCommitBz)
+	if err != nil {
+		return err
+	}
 	err = ve.ValidateVoteExtensionsFromL1(veEnabledCtx, k.HostValidatorStore, int64(height), hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
@@ -67,15 +70,15 @@ func (k Keeper) UpdateOracle(ctx context.Context, height uint64, extCommitBz []b
 	return nil
 }
 
-func (k Keeper) UpdateHostValidatorSet(ctx context.Context, chainId string, height int64, validatorSet *cmtproto.ValidatorSet) error {
-	if k.HostValidatorStore == nil {
-		return errors.New("not set host validator set")
-	}
-	params, err := k.GetParams(ctx)
+func (k Keeper) UpdateHostValidatorSet(ctx context.Context, chainID string, height int64, validatorSet *cmtproto.ValidatorSet) error {
+	hostChainID, err := k.HostChainId(ctx)
 	if err != nil {
 		return err
 	}
-	if chainId == "" || params.HostChainId != chainId {
+	if chainID == "" {
+		return errors.New("empty chain id")
+	}
+	if hostChainID != chainID {
 		return errors.New("only save host chain validators")
 	}
 

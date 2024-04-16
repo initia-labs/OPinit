@@ -63,17 +63,9 @@ func (hv HostValidatorStore) TotalBondedTokens(ctx context.Context) (math.Int, e
 }
 
 func (hv *HostValidatorStore) UpdateValidators(ctx context.Context, height int64, validatorSet *cmtproto.ValidatorSet) error {
-	found, err := hv.lastHeight.Has(ctx)
-	if err != nil {
+	lastHeight, err := hv.lastHeight.Get(ctx)
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
 		return err
-	}
-
-	lastHeight := int64(0)
-	if found {
-		lastHeight, err = hv.lastHeight.Get(ctx)
-		if err != nil {
-			return err
-		}
 	}
 
 	if lastHeight >= height {
@@ -97,14 +89,14 @@ func (hv *HostValidatorStore) UpdateValidators(ctx context.Context, height int64
 		}
 
 		validator.Status = stakingtypes.Bonded
-		validator.Tokens = math.NewInt(val.VotingPower)
+		validator.Tokens = sdk.TokensFromConsensusPower(val.VotingPower, sdk.DefaultPowerReduction)
 
 		err = hv.SetValidator(ctx, validator)
 		if err != nil {
 			return err
 		}
 	}
-	return hv.lastHeight.Set(ctx, height)
+	return hv.SetLastHeight(ctx, height)
 }
 
 func (hv HostValidatorStore) SetValidator(ctx context.Context, validator stakingtypes.Validator) error {
@@ -113,16 +105,6 @@ func (hv HostValidatorStore) SetValidator(ctx context.Context, validator staking
 		return err
 	}
 	return hv.validators.Set(ctx, consAddr, validator)
-}
-
-// get a single validator by consensus address
-func (hv HostValidatorStore) GetValidator(ctx context.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool) {
-	validator, err := hv.validators.Get(ctx, consAddr)
-	if errors.Is(err, collections.ErrNotFound) {
-		return validator, false
-	}
-
-	return validator, true
 }
 
 func (hv HostValidatorStore) GetAllValidators(ctx context.Context) (validators []stakingtypes.Validator, err error) {
@@ -136,7 +118,7 @@ func (hv HostValidatorStore) GetAllValidators(ctx context.Context) (validators [
 
 func (hv HostValidatorStore) DeleteAllValidators(ctx context.Context) error {
 	return hv.validators.Walk(ctx, nil, func(key []byte, _ stakingtypes.Validator) (stop bool, err error) {
-		if err = hv.validators.Remove(ctx, key); err != nil {
+		if err := hv.validators.Remove(ctx, key); err != nil {
 			return true, err
 		}
 		return false, nil
@@ -145,4 +127,8 @@ func (hv HostValidatorStore) DeleteAllValidators(ctx context.Context) error {
 
 func (hv HostValidatorStore) GetLastHeight(ctx context.Context) (int64, error) {
 	return hv.lastHeight.Get(ctx)
+}
+
+func (hv HostValidatorStore) SetLastHeight(ctx context.Context, height int64) error {
+	return hv.lastHeight.Set(ctx, height)
 }
