@@ -20,17 +20,19 @@ func DefaultParams() Params {
 		DefaultMaxValidators,
 		DefaultHistoricalEntries,
 		DefaultMinGasPrices,
+		[]string{},
 	)
 }
 
 // NewParams creates a new Params instance
-func NewParams(admin, bridgeExecutor string, maxValidators, historicalEntries uint32, minGasPrice sdk.DecCoins) Params {
+func NewParams(admin, bridgeExecutor string, maxValidators, historicalEntries uint32, minGasPrice sdk.DecCoins, feeWhitelist []string) Params {
 	return Params{
 		Admin:             admin,
 		BridgeExecutor:    bridgeExecutor,
 		MaxValidators:     maxValidators,
 		HistoricalEntries: historicalEntries,
 		MinGasPrices:      minGasPrice,
+		FeeWhitelist:      feeWhitelist,
 	}
 
 }
@@ -57,6 +59,13 @@ func (p Params) Validate(ac address.Codec) error {
 
 	if p.MaxValidators == 0 {
 		return ErrZeroMaxValidators
+	}
+
+	// Validate fee whitelist addresses
+	for _, addr := range p.FeeWhitelist {
+		if _, err := ac.StringToBytes(addr); err != nil {
+			return err
+		}
 	}
 
 	return nil

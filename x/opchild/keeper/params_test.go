@@ -13,6 +13,7 @@ func Test_Params(t *testing.T) {
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.MinGasPrices = sdk.NewDecCoins()
+	params.FeeWhitelist = []string{addrsStr[0], addrsStr[1]}
 
 	input.OPChildKeeper.SetParams(ctx, params)
 
@@ -22,4 +23,8 @@ func Test_Params(t *testing.T) {
 	bridgeExecutor, err := input.OPChildKeeper.BridgeExecutor(ctx)
 	require.NoError(t, err)
 	require.Equal(t, addrs[0], bridgeExecutor)
+
+	feeWhitelist, err := input.OPChildKeeper.FeeWhitelist(ctx)
+	require.NoError(t, err)
+	require.Equal(t, params.FeeWhitelist, feeWhitelist)
 }
