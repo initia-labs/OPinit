@@ -186,11 +186,11 @@ func Test_UpdateOracle(t *testing.T) {
 			name:          "good currency pairs, updates",
 			currencyPairs: []string{"BTC/USD", "ETH/USD", "ATOM/USD"},
 			prices: []map[string]string{
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
 			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
 			numVals:     5,
@@ -200,11 +200,11 @@ func Test_UpdateOracle(t *testing.T) {
 			name:          "only BTC, ETH",
 			currencyPairs: []string{"BTC/USD", "ETH/USD"},
 			prices: []map[string]string{
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
-				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
-				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
 			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "210000"},
 			numVals:     5,
@@ -214,11 +214,11 @@ func Test_UpdateOracle(t *testing.T) {
 			name:          "reverse order ATOM, ETH, BTC",
 			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD"},
 			prices: []map[string]string{
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
-				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
-				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
 			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
 			numVals:     5,
@@ -228,10 +228,10 @@ func Test_UpdateOracle(t *testing.T) {
 			name:          "2 votes",
 			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD"},
 			prices: []map[string]string{
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{},
 				{},
-				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "51000"},
+				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "51000", "TIMESTAMP/NANOSECOND": "10000"},
 				{},
 			},
 			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
@@ -242,11 +242,11 @@ func Test_UpdateOracle(t *testing.T) {
 			name:          "4 votes",
 			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD"},
 			prices: []map[string]string{
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{},
-				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
-				{"BTC/USD": "11000000", "ETH/USD": "220000", "ATOM/USD": "5100"},
-				{"BTC/USD": "10000000", "ETH/USD": "220000", "ATOM/USD": "5000"},
+				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "11000000", "ETH/USD": "220000", "ATOM/USD": "5100", "TIMESTAMP/NANOSECOND": "10000"},
+				{"BTC/USD": "10000000", "ETH/USD": "220000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
 			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
 			numVals:     5,
@@ -277,7 +277,6 @@ func Test_UpdateOracle(t *testing.T) {
 
 			oracleKeeper.InitGenesis(sdk.UnwrapSDKContext(ctx), oracletypes.GenesisState{
 				CurrencyPairGenesis: make([]oracletypes.CurrencyPairGenesis, 0),
-				NextId:              0,
 			})
 			for _, currencyPair := range tc.currencyPairs {
 				cp, err := slinkytypes.CurrencyPairFromString(currencyPair)
@@ -298,7 +297,7 @@ func Test_UpdateOracle(t *testing.T) {
 			}
 
 			for i, privKey := range valPrivKeys {
-				convertedPrices := make(map[string][]byte)
+				convertedPrices := make(map[uint64][]byte)
 				for currencyPairID, priceString := range tc.prices[i] {
 					cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
 					require.NoError(t, err)
@@ -306,7 +305,8 @@ func Test_UpdateOracle(t *testing.T) {
 					require.True(t, converted)
 
 					encodedPrice, err := cpStrategy.GetEncodedPrice(sdk.UnwrapSDKContext(ctx), cp, rawPrice)
-					convertedPrices[currencyPairID] = encodedPrice
+					id := oracletypes.CurrencyPairToID(currencyPairID)
+					convertedPrices[id] = encodedPrice
 				}
 				ove := types.OracleVoteExtension{
 					Prices: convertedPrices,
@@ -343,18 +343,17 @@ func Test_UpdateOracle(t *testing.T) {
 			require.NoError(t, err)
 
 			err = opchildKeeper.UpdateOracle(ctx, 10, extCommitBz)
-			require.NoError(t, err)
+			if tc.expectError {
+				require.Error(t, err)
+				return
+			} else {
+				require.NoError(t, err)
+			}
 
 			for currencyPairID, priceString := range tc.result {
 				cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
 				require.NoError(t, err)
 				price, err := oracleKeeper.GetPriceForCurrencyPair(sdk.UnwrapSDKContext(ctx), cp)
-				if tc.expectError {
-					require.Error(t, err)
-					return
-				} else {
-					require.NoError(t, err)
-				}
 				require.Equal(t, price.Price.String(), priceString)
 			}
 		})
