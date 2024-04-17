@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slinkypreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
 
@@ -33,7 +32,7 @@ func (k Keeper) UpdateOracle(ctx context.Context, height uint64, extCommitBz []b
 	}
 
 	hostStoreLastHeight, err := k.HostValidatorStore.GetLastHeight(ctx)
-	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+	if err != nil {
 		return err
 	}
 
