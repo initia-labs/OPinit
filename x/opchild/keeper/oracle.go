@@ -54,7 +54,7 @@ func (k Keeper) UpdateOracle(ctx context.Context, height uint64, extCommitBz []b
 	if err != nil {
 		return err
 	}
-	err = ve.ValidateVoteExtensionsFromL1(veEnabledCtx, k.HostValidatorStore, int64(height), hostChainID, extendedCommitInfo)
+	err = ve.ValidateVoteExtensionsFromL1(veEnabledCtx, k.HostValidatorStore, int64(height-1), hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
 	}
