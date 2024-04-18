@@ -39,7 +39,8 @@ type Params struct {
 	// the account address of bridge executor who can execute permissioned bridge
 	// messages.
 	BridgeExecutor string `protobuf:"bytes,4,opt,name=bridge_executor,json=bridgeExecutor,proto3" json:"bridge_executor,omitempty" yaml:"bridge_executor"`
-	HostChainId    string `protobuf:"bytes,5,opt,name=host_chain_id,json=hostChainId,proto3" json:"host_chain_id,omitempty"`
+	//the host(l1) chain id.
+	HostChainId string `protobuf:"bytes,5,opt,name=host_chain_id,json=hostChainId,proto3" json:"host_chain_id,omitempty"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }

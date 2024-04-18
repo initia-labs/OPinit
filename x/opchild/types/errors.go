@@ -21,6 +21,6 @@ var (
 	ErrUnroutableExecuteMsg            = errorsmod.Register(ModuleName, 14, "unroutable execute message")
 	ErrInvalidExecutorChangePlan       = errorsmod.Register(ModuleName, 15, "invalid executor chane plan")
 	ErrAlreadyRegisteredHeight         = errorsmod.Register(ModuleName, 16, "executor change plan already exists at the height")
-	ErrInactiveOracle                  = errorsmod.Register(ModuleName, 17, "oracle is not activated")
 	ErrInvalidHeight                   = errorsmod.Register(ModuleName, 18, "invalid oracle height")
+	ErrInvalidPrices                   = errorsmod.Register(ModuleName, 19, "invalid oracle prices")
 )

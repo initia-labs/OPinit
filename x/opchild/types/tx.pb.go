@@ -608,8 +608,9 @@ var xxx_messageInfo_MsgSpendFeePoolResponse proto.InternalMessageInfo
 type MsgUpdateOracle struct {
 	// the sender address
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
+	// height is the height of l1 which is including the oracle message
 	Height uint64 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-	/// data is a extra bytes for updating oracle.
+	/// data is oracle votes bytes.
 	Data []byte `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
@@ -646,6 +647,7 @@ func (m *MsgUpdateOracle) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateOracle proto.InternalMessageInfo
 
+// MsgUpdateOracleResponse returns oracle update result data
 type MsgUpdateOracleResponse struct {
 }
 

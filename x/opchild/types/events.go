@@ -24,6 +24,5 @@ const (
 	AttributeKeyFrom           = "from"
 	AttributeKeyTo             = "to"
 	AttributeKeyL2Sequence     = "l2_sequence"
-	AttributeKeyOracleData     = "oracle_data"
 	AttributeKeyHeight         = "height"
 )

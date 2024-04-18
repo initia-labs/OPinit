@@ -46,6 +46,15 @@ func (hv HostValidatorStore) GetPubKeyByConsAddr(ctx context.Context, consAddr s
 	return validator.CmtConsPublicKey()
 }
 
+func (hv HostValidatorStore) GetPowerByConsAddr(ctx context.Context, consAddr sdk.ConsAddress) (math.Int, error) {
+	val, err := hv.ValidatorByConsAddr(ctx, consAddr)
+	if err != nil {
+		return math.ZeroInt(), err
+	}
+
+	return val.GetBondedTokens(), nil
+}
+
 func (hv HostValidatorStore) ValidatorByConsAddr(ctx context.Context, addr sdk.ConsAddress) (stakingtypes.ValidatorI, error) {
 	return hv.validators.Get(ctx, addr)
 }
@@ -68,8 +77,9 @@ func (hv *HostValidatorStore) UpdateValidators(ctx context.Context, height int64
 		return err
 	}
 
+	// ignore if the height is not increasing
 	if lastHeight >= height {
-		return errors.New("invalid height")
+		return nil
 	}
 
 	err = hv.DeleteAllValidators(ctx)
@@ -96,6 +106,7 @@ func (hv *HostValidatorStore) UpdateValidators(ctx context.Context, height int64
 			return err
 		}
 	}
+
 	return hv.SetLastHeight(ctx, height)
 }
 

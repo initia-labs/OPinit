@@ -300,6 +300,13 @@ func _createTestInput(
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
+	oracleKeeper := oraclekeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
+		appCodec,
+		nil,
+		authtypes.NewModuleAddress(opchildtypes.ModuleName),
+	)
+
 	bridgeHook := &bridgeHook{}
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
@@ -307,11 +314,13 @@ func _createTestInput(
 		accountKeeper,
 		bankKeeper,
 		bridgeHook.Hook,
+		&oracleKeeper,
 		msgRouter,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		ctx.Logger(),
 	)
 
 	opchildParams := opchildtypes.DefaultParams()
@@ -320,13 +329,6 @@ func _createTestInput(
 
 	// register handlers to msg router
 	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(*opchildKeeper))
-
-	oracleKeeper := oraclekeeper.NewKeeper(
-		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
-		appCodec,
-		nil,
-		authtypes.NewModuleAddress(opchildtypes.ModuleName),
-	)
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 

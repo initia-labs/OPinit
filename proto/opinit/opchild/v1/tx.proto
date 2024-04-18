@@ -219,10 +219,12 @@ message MsgUpdateOracle {
   // the sender address
   string sender = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 
+  // height is the height of l1 which is including the oracle message
   uint64 height = 2 [(amino.dont_omitempty) = true];
 
-  /// data is a extra bytes for updating oracle.
+  /// data is oracle votes bytes.
   bytes data = 3 [(gogoproto.nullable) = true, (amino.dont_omitempty) = true];
 }
 
+// MsgUpdateOracleResponse returns oracle update result data
 message MsgUpdateOracleResponse {}

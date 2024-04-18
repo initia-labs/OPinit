@@ -5,32 +5,24 @@ import (
 	"math/big"
 	"testing"
 
-	"cosmossdk.io/log"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/stretchr/testify/require"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-
-	oraclepreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
-	compression "github.com/skip-mev/slinky/abci/strategies/codec"
-	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	"github.com/skip-mev/slinky/pkg/math/voteweighted"
-	servicemetrics "github.com/skip-mev/slinky/service/metrics"
-	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
-	"github.com/skip-mev/slinky/abci/ve/types"
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	protoio "github.com/cosmos/gogoproto/io"
 	"github.com/cosmos/gogoproto/proto"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+
+	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
+	"github.com/skip-mev/slinky/abci/ve/types"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
+	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []cryptotypes.PubKey, *cmtproto.ValidatorSet) {
@@ -57,40 +49,18 @@ func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []
 	return privKeys, pubKeys, cmtValSet
 }
 
-func enableOracle(opchildKeeper *opchildkeeper.Keeper, oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, compression.ExtendedCommitCodec, compression.VoteExtensionCodec) {
+func getSlinky(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, slinkycodec.ExtendedCommitCodec, slinkycodec.VoteExtensionCodec) {
 	cpStrategy := currencypair.NewDefaultCurrencyPairStrategy(oracleKeeper)
-	voteExtensionCodec := compression.NewCompressionVoteExtensionCodec(
-		compression.NewDefaultVoteExtensionCodec(),
-		compression.NewZLibCompressor(),
+	voteExtensionCodec := slinkycodec.NewCompressionVoteExtensionCodec(
+		slinkycodec.NewDefaultVoteExtensionCodec(),
+		slinkycodec.NewZLibCompressor(),
 	)
 
-	extendedCommitCodec := compression.NewCompressionExtendedCommitCodec(
-		compression.NewDefaultExtendedCommitCodec(),
-		compression.NewZStdCompressor(),
+	extendedCommitCodec := slinkycodec.NewCompressionExtendedCommitCodec(
+		slinkycodec.NewDefaultExtendedCommitCodec(),
+		slinkycodec.NewZStdCompressor(),
 	)
 
-	serviceMetrics := servicemetrics.NewNopMetrics()
-	oraclePreBlockHandler := oraclepreblock.NewOraclePreBlockHandler(
-		log.NewNopLogger(),
-		// log.NewNopLogger(),
-		voteweighted.MedianFromContext(
-			log.NewNopLogger(),
-			// log.NewNopLogger(),
-			opchildKeeper.HostValidatorStore,
-			voteweighted.DefaultPowerThreshold,
-		),
-		oracleKeeper,
-		serviceMetrics,
-		cpStrategy,
-		voteExtensionCodec,
-		extendedCommitCodec,
-	)
-
-	opchildKeeper.SetOracle(
-		oracleKeeper,
-		extendedCommitCodec,
-		oraclePreBlockHandler,
-	)
 	return cpStrategy, extendedCommitCodec, voteExtensionCodec
 }
 
@@ -104,13 +74,6 @@ func Test_UpdateHostValidatorSet(t *testing.T) {
 		numVals     int
 		expectError bool
 	}{
-		{
-			name:        "good host chain id, height, validators",
-			hostChainId: defaultHostChainId,
-			hostHeight:  100,
-			numVals:     10,
-			expectError: false,
-		},
 		{
 			name:        "empty chain id",
 			hostChainId: "",
@@ -132,13 +95,19 @@ func Test_UpdateHostValidatorSet(t *testing.T) {
 			numVals:     10,
 			expectError: true,
 		},
+		{
+			name:        "good host chain id, height, validators",
+			hostChainId: defaultHostChainId,
+			hostHeight:  100,
+			numVals:     10,
+			expectError: false,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx, input := createDefaultTestInput(t)
 			opchildKeeper := input.OPChildKeeper
-			oracleKeeper := input.OracleKeeper
 			hostValidatorStore := opchildKeeper.HostValidatorStore
 
 			params, err := opchildKeeper.GetParams(ctx)
@@ -147,12 +116,15 @@ func Test_UpdateHostValidatorSet(t *testing.T) {
 			err = opchildKeeper.SetParams(ctx, params)
 			require.NoError(t, err)
 
-			enableOracle(&opchildKeeper, oracleKeeper)
-
 			_, valPubKeys, validatorSet := createCmtValidatorSet(t, tc.numVals)
 			err = opchildKeeper.UpdateHostValidatorSet(ctx, tc.hostChainId, tc.hostHeight, validatorSet)
 			if tc.expectError {
-				require.Error(t, err)
+				// no error but no validator update
+				require.NoError(t, err)
+
+				vals, err := hostValidatorStore.GetAllValidators(ctx)
+				require.NoError(t, err)
+				require.Empty(t, vals)
 				return
 			} else {
 				require.NoError(t, err)
@@ -184,7 +156,7 @@ func Test_UpdateOracle(t *testing.T) {
 	}{
 		{
 			name:          "good currency pairs, updates",
-			currencyPairs: []string{"BTC/USD", "ETH/USD", "ATOM/USD"},
+			currencyPairs: []string{"BTC/USD", "ETH/USD", "ATOM/USD", "TIMESTAMP/NANOSECOND"},
 			prices: []map[string]string{
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
@@ -192,13 +164,13 @@ func Test_UpdateOracle(t *testing.T) {
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
-			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
+			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			numVals:     5,
 			expectError: false,
 		},
 		{
 			name:          "only BTC, ETH",
-			currencyPairs: []string{"BTC/USD", "ETH/USD"},
+			currencyPairs: []string{"BTC/USD", "ETH/USD", "TIMESTAMP/NANOSECOND"},
 			prices: []map[string]string{
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
@@ -206,13 +178,13 @@ func Test_UpdateOracle(t *testing.T) {
 				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
-			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "210000"},
+			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "210000", "TIMESTAMP/NANOSECOND": "10000"},
 			numVals:     5,
 			expectError: false,
 		},
 		{
 			name:          "reverse order ATOM, ETH, BTC",
-			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD"},
+			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD", "TIMESTAMP/NANOSECOND"},
 			prices: []map[string]string{
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
@@ -220,13 +192,13 @@ func Test_UpdateOracle(t *testing.T) {
 				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
-			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000"},
+			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			numVals:     5,
 			expectError: false,
 		},
 		{
 			name:          "2 votes",
-			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD"},
+			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD", "TIMESTAMP/NANOSECOND"},
 			prices: []map[string]string{
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{},
@@ -234,13 +206,13 @@ func Test_UpdateOracle(t *testing.T) {
 				{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "51000", "TIMESTAMP/NANOSECOND": "10000"},
 				{},
 			},
-			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
+			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			numVals:     5,
 			expectError: true,
 		},
 		{
 			name:          "4 votes",
-			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD"},
+			currencyPairs: []string{"ATOM/USD", "ETH/USD", "BTC/USD", "TIMESTAMP/NANOSECOND"},
 			prices: []map[string]string{
 				{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 				{},
@@ -248,7 +220,7 @@ func Test_UpdateOracle(t *testing.T) {
 				{"BTC/USD": "11000000", "ETH/USD": "220000", "ATOM/USD": "5100", "TIMESTAMP/NANOSECOND": "10000"},
 				{"BTC/USD": "10000000", "ETH/USD": "220000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			},
-			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000"},
+			result:      map[string]string{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
 			numVals:     5,
 			expectError: false,
 		},
@@ -285,8 +257,7 @@ func Test_UpdateOracle(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			cpStrategy, extendedCommitCodec, voteExtensionCodec := enableOracle(&opchildKeeper, oracleKeeper)
-
+			cpStrategy, extendedCommitCodec, voteExtensionCodec := getSlinky(oracleKeeper)
 			valPrivKeys, _, validatorSet := createCmtValidatorSet(t, tc.numVals)
 			err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultHostChainId, 1, validatorSet)
 			require.NoError(t, err)
@@ -305,6 +276,8 @@ func Test_UpdateOracle(t *testing.T) {
 					require.True(t, converted)
 
 					encodedPrice, err := cpStrategy.GetEncodedPrice(sdk.UnwrapSDKContext(ctx), cp, rawPrice)
+					require.NoError(t, err)
+
 					id := oracletypes.CurrencyPairToID(currencyPairID)
 					convertedPrices[id] = encodedPrice
 				}
@@ -342,7 +315,7 @@ func Test_UpdateOracle(t *testing.T) {
 			extCommitBz, err := extendedCommitCodec.Encode(eci)
 			require.NoError(t, err)
 
-			err = opchildKeeper.UpdateOracle(ctx, 10, extCommitBz)
+			err = opchildKeeper.ApplyOracleUpdate(ctx, 11, extCommitBz)
 			if tc.expectError {
 				require.Error(t, err)
 				return
@@ -353,7 +326,9 @@ func Test_UpdateOracle(t *testing.T) {
 			for currencyPairID, priceString := range tc.result {
 				cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
 				require.NoError(t, err)
+
 				price, err := oracleKeeper.GetPriceForCurrencyPair(sdk.UnwrapSDKContext(ctx), cp)
+				require.NoError(t, err)
 				require.Equal(t, price.Price.String(), priceString)
 			}
 		})

@@ -34,7 +34,7 @@ message Params {
     (amino.dont_omitempty) = true,
     (gogoproto.moretags)   = "yaml:\"bridge_executor\""
   ];
-
+  //the host(l1) chain id.
   string host_chain_id = 5;
 }
 

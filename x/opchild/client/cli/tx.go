@@ -8,7 +8,6 @@ import (
 
 	"cosmossdk.io/core/address"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -82,8 +81,8 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 			}
 
 			txf, msg, err := newBuildDepositMsg(
-				clientCtx, ac, txf, cmd.Flags(),
-				sequence, from, to, amount, baseDenom,
+				clientCtx, ac, txf, sequence,
+				from, to, amount, baseDenom,
 				[]byte(hookMsg),
 			)
 			if err != nil {
@@ -126,7 +125,7 @@ func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, cmd.Flags(), to, amount)
+			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, to, amount)
 			if err != nil {
 				return err
 			}
@@ -140,7 +139,7 @@ func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 	return cmd
 }
 
-// NewExecuteMessagesCmd returns a CLI command handler for transaction to administrating the system.
+// NewUpdateOracleCmd returns a CLI command handler for the transaction updating oracle data.
 func NewUpdateOracleCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-oracle [height] [data]",
@@ -241,7 +240,7 @@ Where proposal.json contains:
 	return cmd
 }
 
-func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, fs *flag.FlagSet, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
+func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
 	sender := clientCtx.GetFromAddress()
 	senderAddr, err := ac.BytesToString(sender)
 	if err != nil {
@@ -265,7 +264,6 @@ func newBuildDepositMsg(
 	clientCtx client.Context,
 	ac address.Codec,
 	txf tx.Factory,
-	fs *flag.FlagSet,
 	sequence uint64,
 	from, to sdk.AccAddress,
 	amount sdk.Coin,
