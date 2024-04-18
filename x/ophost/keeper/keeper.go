@@ -17,9 +17,10 @@ type Keeper struct {
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
 
-	authKeeper types.AccountKeeper
-	bankKeeper types.BankKeeper
-	bridgeHook types.BridgeHook
+	authKeeper          types.AccountKeeper
+	bankKeeper          types.BankKeeper
+	bridgeHook          types.BridgeHook
+	communityPoolKeeper types.CommunityPoolKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -41,6 +42,7 @@ func NewKeeper(
 	storeService corestoretypes.KVStoreService,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
+	ck types.CommunityPoolKeeper,
 	bridgeHook types.BridgeHook,
 	authority string,
 ) *Keeper {
@@ -52,12 +54,16 @@ func NewKeeper(
 	sb := collections.NewSchemaBuilder(storeService)
 
 	k := &Keeper{
-		cdc:               cdc,
-		storeService:      storeService,
-		authKeeper:        ak,
-		bankKeeper:        bk,
-		bridgeHook:        bridgeHook,
-		authority:         authority,
+		cdc:          cdc,
+		storeService: storeService,
+
+		authKeeper:          ak,
+		bankKeeper:          bk,
+		communityPoolKeeper: ck,
+
+		bridgeHook: bridgeHook,
+		authority:  authority,
+
 		NextBridgeId:      collections.NewSequence(sb, types.NextBridgeIdKey, "next_bridge_id"),
 		Params:            collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		BridgeConfigs:     collections.NewMap(sb, types.BridgeConfigPrefix, "bridge_configs", collections.Uint64Key, codec.CollValue[types.BridgeConfig](cdc)),

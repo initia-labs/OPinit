@@ -10,8 +10,11 @@ const (
 	EventTypeWhitelist               = "whitelist"
 	EventTypeParams                  = "params"
 	EventTypeUpdateOracle            = "update_oracle"
+	EventTypeSetBridgeInfo           = "set_bridge_info"
 
 	AttributeKeySender         = "sender"
+	AttributeKeyBridgeId       = "bridge_id"
+	AttributeKeyBridgeAddr     = "bridge_addr"
 	AttributeKeyRecipient      = "recipient"
 	AttributeKeyAmount         = "amount"
 	AttributeKeyDenom          = "denom"

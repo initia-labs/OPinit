@@ -324,8 +324,9 @@ func _createTestInput(
 	)
 
 	opchildParams := opchildtypes.DefaultParams()
+	opchildParams.Admin = addrs[0].String()
 	opchildParams.BridgeExecutor = addrs[0].String()
-	opchildKeeper.SetParams(ctx, opchildParams)
+	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
 	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(*opchildKeeper))

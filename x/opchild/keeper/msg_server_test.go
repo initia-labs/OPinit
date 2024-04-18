@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 /////////////////////////////////////////
@@ -25,6 +27,14 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+
+	// admin to 0
+	params.Admin = addrsStr[0]
+	require.NoError(t, ms.SetParams(ctx, params))
+
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
 
 	// register validator
@@ -45,7 +55,15 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	removeMsg, err := types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
 	require.NoError(t, err)
 
-	msg, err := types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
+	// should failed with unauthorized
+	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg, removeMsg})
+	require.NoError(t, err)
+
+	_, err = ms.ExecuteMessages(ctx, msg)
+	require.Error(t, err)
+
+	// success
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
@@ -60,7 +78,6 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	require.Equal(t, vals[0].Moniker, "val2")
 
 	// should failed with err (denom not sorted)
-	params := types.DefaultParams()
 	params.MinGasPrices = sdk.DecCoins{{
 		Denom:  "22222",
 		Amount: math.LegacyNewDec(1),
@@ -242,6 +259,55 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 
 /////////////////////////////////////////
 // The messages for Bridge Executor
+
+func Test_MsgServer_SetBridgeInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				Chain:     "l1",
+			},
+			SubmissionInterval:  time.Minute,
+			FinalizationPeriod:  time.Hour,
+			SubmissionStartTime: time.Now().UTC(),
+			Metadata:            []byte("metadata"),
+		},
+	}
+
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	// reset possible
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	// invalid bridge id
+	info.BridgeId = 0
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+
+	// cannot change bridge id
+	info.BridgeId = 2
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.ErrorContains(t, err, "expected bridge id")
+
+	// cannot change bridge addr
+	info.BridgeId = 1
+	info.BridgeAddr = addrsStr[0]
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+	require.ErrorContains(t, err, "expected bridge addr")
+}
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)

@@ -25,6 +25,9 @@ service Msg {
   ////////////////////////////
   // Bridge Executor Messages
 
+  // SetBridgeInfo defines a rpc handler method for MsgSetBridgeInfo.
+  rpc SetBridgeInfo(MsgSetBridgeInfo) returns (MsgSetBridgeInfoResponse);
+
   // FinalizeTokenDeposit defines a rpc handler method for MsgFinalizeTokenDeposit.
   rpc FinalizeTokenDeposit(MsgFinalizeTokenDeposit) returns (MsgFinalizeTokenDepositResponse);
 
@@ -75,6 +78,21 @@ message MsgExecuteMessagesResponse {}
 
 /////////////////////////////
 // Bridge Executor messages
+
+// MsgSetBridgeInfo is a message to set the registered bridge information.
+message MsgSetBridgeInfo {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name)           = "opchild/MsgSetBridgeInfo";
+
+  // the sender address
+  string sender = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // bridge_info is the bridge information to be set.
+  BridgeInfo bridge_info = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// MsgSetBridgeInfoResponse returns set bridge info result data
+message MsgSetBridgeInfoResponse {}
 
 // MsgFinalizeTokenDeposit is a message to submit deposit funds from upper layer
 message MsgFinalizeTokenDeposit {

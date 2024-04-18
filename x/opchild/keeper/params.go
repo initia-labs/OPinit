@@ -17,8 +17,22 @@ func (k Keeper) BridgeExecutor(ctx context.Context) (sdk.AccAddress, error) {
 	return k.authKeeper.AddressCodec().StringToBytes(params.BridgeExecutor)
 }
 
+// FeeWhitelist returns params.FeeWhitelist
+func (k Keeper) FeeWhitelist(ctx context.Context) ([]string, error) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return params.FeeWhitelist, nil
+}
+
 // SetParams sets the x/opchild module parameters.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
+	if err := params.Validate(k.authKeeper.AddressCodec()); err != nil {
+		return err
+	}
+
 	return k.Params.Set(ctx, params)
 }
 

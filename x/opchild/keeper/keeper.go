@@ -44,6 +44,7 @@ type Keeper struct {
 	Schema               collections.Schema
 	NextL2Sequence       collections.Sequence
 	Params               collections.Item[types.Params]
+	BridgeInfo           collections.Item[types.BridgeInfo]
 	FinalizedL1Sequence  collections.Map[uint64, bool]
 	LastValidatorPowers  collections.Map[[]byte, int64]
 	Validators           collections.Map[[]byte, types.Validator]
@@ -100,6 +101,7 @@ func NewKeeper(
 		consensusAddressCodec: consensusAddressCodec,
 		NextL2Sequence:        collections.NewSequence(sb, types.NextL2SequenceKey, "next_l2_sequence"),
 		Params:                collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
+		BridgeInfo:            collections.NewItem(sb, types.BridgeInfoKey, "bridge_info", codec.CollValue[types.BridgeInfo](cdc)),
 		FinalizedL1Sequence:   collections.NewMap(sb, types.FinalizedL1SequencePrefix, "finalized_l1_sequence", collections.Uint64Key, collections.BoolValue),
 		LastValidatorPowers:   collections.NewMap(sb, types.LastValidatorPowerPrefix, "last_validator_powers", collections.BytesKey, collections.Int64Value),
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),

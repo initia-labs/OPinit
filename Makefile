@@ -21,7 +21,7 @@ proto-pulsar-gen:
 	@$(protoImage) sh ./scripts/protocgen-pulsar.sh
 
 proto-format:
-	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+	@$(protoImage) find ./proto -name "*.proto" -exec clang-format -i {} \;
 
 proto-lint:
 	@$(protoImage) buf lint --error-format=json

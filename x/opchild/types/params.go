@@ -16,22 +16,26 @@ var (
 // DefaultParams returns default move parameters
 func DefaultParams() Params {
 	return NewParams(
+		"",
+		"",
 		DefaultMaxValidators,
 		DefaultHistoricalEntries,
-		"",
 		DefaultMinGasPrices,
 		DefaultHostChainId,
+		[]string{},
 	)
 }
 
 // NewParams creates a new Params instance
-func NewParams(maxValidators, historicalEntries uint32, bridgeExecutor string, minGasPrice sdk.DecCoins, hostChainId string) Params {
+func NewParams(admin, bridgeExecutor string, maxValidators, historicalEntries uint32, minGasPrice sdk.DecCoins, hostChainId string, feeWhitelist []string) Params {
 	return Params{
+		Admin:             admin,
 		BridgeExecutor:    bridgeExecutor,
 		MaxValidators:     maxValidators,
 		HistoricalEntries: historicalEntries,
 		MinGasPrices:      minGasPrice,
 		HostChainId:       hostChainId,
+		FeeWhitelist:      feeWhitelist,
 	}
 
 }
@@ -46,6 +50,9 @@ func (p Params) String() string {
 
 // Validate performs basic validation on move parameters
 func (p Params) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(p.Admin); err != nil {
+		return err
+	}
 	if _, err := ac.StringToBytes(p.BridgeExecutor); err != nil {
 		return err
 	}
@@ -55,6 +62,13 @@ func (p Params) Validate(ac address.Codec) error {
 
 	if p.MaxValidators == 0 {
 		return ErrZeroMaxValidators
+	}
+
+	// Validate fee whitelist addresses
+	for _, addr := range p.FeeWhitelist {
+		if _, err := ac.StringToBytes(addr); err != nil {
+			return err
+		}
 	}
 
 	return nil

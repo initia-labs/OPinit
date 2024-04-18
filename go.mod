@@ -2,6 +2,8 @@ module github.com/initia-labs/OPinit
 
 go 1.22
 
+toolchain go1.22.2
+
 require (
 	cosmossdk.io/api v0.7.3
 	cosmossdk.io/collections v0.4.0
@@ -21,6 +23,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/initia-labs/OPinit/api v0.2.4
 	github.com/pkg/errors v0.9.1
+	github.com/skip-mev/block-sdk v0.0.0-20231213233341-deceeb0e993b
 	github.com/skip-mev/slinky v0.3.2
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
@@ -200,6 +203,8 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
 )
+
+replace github.com/initia-labs/OPinit/api => ./api
 
 replace (
 	// use cosmos fork of keyring
