@@ -317,3 +317,22 @@ func (msg MsgSpendFeePool) Validate(ac address.Codec) error {
 
 	return nil
 }
+
+func NewMsgUpdateOracle(sender sdk.AccAddress, height uint64, data []byte) *MsgUpdateOracle {
+	return &MsgUpdateOracle{
+		Sender: sender.String(),
+		Height: height,
+		Data:   data,
+	}
+}
+
+func (msg MsgUpdateOracle) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
+	}
+
+	if msg.Height == 0 {
+		return ErrInvalidHeight
+	}
+	return nil
+}

@@ -9,11 +9,13 @@ import (
 	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -50,6 +52,9 @@ type Keeper struct {
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
+
+	l2OracleHandler    *L2OracleHandler
+	HostValidatorStore *HostValidatorStore
 }
 
 func NewKeeper(
@@ -58,13 +63,14 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	bh types.BridgeHook,
+	ok *oraclekeeper.Keeper,
 	router *baseapp.MsgServiceRouter,
 	authority string,
 	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
 	consensusAddressCodec address.Codec,
+	logger log.Logger,
 ) *Keeper {
-
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
@@ -75,6 +81,12 @@ func NewKeeper(
 	}
 
 	sb := collections.NewSchemaBuilder(storeService)
+
+	hostValidatorStore := NewHostValidatorStore(
+		collections.NewItem(sb, types.HostHeightKey, "host_height", collections.Int64Value),
+		collections.NewMap(sb, types.HostValidatorsPrefix, "host_validators", collections.BytesKey, codec.CollValue[cosmostypes.Validator](cdc)),
+		consensusAddressCodec,
+	)
 
 	k := &Keeper{
 		cdc:                   cdc,
@@ -97,6 +109,7 @@ func NewKeeper(
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
+		HostValidatorStore:  hostValidatorStore,
 	}
 
 	schema, err := sb.Build()
@@ -104,6 +117,7 @@ func NewKeeper(
 		panic(err)
 	}
 	k.Schema = schema
+	k.l2OracleHandler = NewL2OracleHandler(k, ok, logger)
 
 	return k
 }
@@ -141,4 +155,25 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+}
+
+// UpdateHostValidatorSet updates the host validator set.
+func (k Keeper) UpdateHostValidatorSet(ctx context.Context, chainID string, height int64, validatorSet *cmtproto.ValidatorSet) error {
+	if chainID == "" {
+		return nil
+	}
+
+	// ignore if the chain ID is not the host chain ID
+	if hostChainID, err := k.HostChainId(ctx); err != nil {
+		return err
+	} else if hostChainID != chainID {
+		return nil
+	}
+
+	return k.HostValidatorStore.UpdateValidators(ctx, height, validatorSet)
+}
+
+// ApplyOracleUpdate applies an oracle update to the L2 oracle handler.
+func (k Keeper) ApplyOracleUpdate(ctx context.Context, height uint64, extCommitBz []byte) error {
+	return k.l2OracleHandler.UpdateOracle(ctx, height, extCommitBz)
 }

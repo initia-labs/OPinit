@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -136,6 +137,42 @@ func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 			}
 
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewUpdateOracleCmd returns a CLI command handler for the transaction updating oracle data.
+func NewUpdateOracleCmd(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-oracle [height] [data]",
+		Short: "update oracle data",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			height, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			data, err := base64.StdEncoding.DecodeString(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateOracle(clientCtx.GetFromAddress(), height, data)
+			if err := msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 

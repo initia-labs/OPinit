@@ -27,6 +27,7 @@ const (
 	Msg_RemoveValidator_FullMethodName         = "/opinit.opchild.v1.Msg/RemoveValidator"
 	Msg_UpdateParams_FullMethodName            = "/opinit.opchild.v1.Msg/UpdateParams"
 	Msg_SpendFeePool_FullMethodName            = "/opinit.opchild.v1.Msg/SpendFeePool"
+	Msg_UpdateOracle_FullMethodName            = "/opinit.opchild.v1.Msg/UpdateOracle"
 )
 
 // MsgClient is the client API for Msg service.
@@ -50,6 +51,8 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// SpendFeePool defines an operation that spend fee pool to a recipient.
 	SpendFeePool(ctx context.Context, in *MsgSpendFeePool, opts ...grpc.CallOption) (*MsgSpendFeePoolResponse, error)
+	// UpdateOracle defines an operation that update oracle prices.
+	UpdateOracle(ctx context.Context, in *MsgUpdateOracle, opts ...grpc.CallOption) (*MsgUpdateOracleResponse, error)
 }
 
 type msgClient struct {
@@ -132,6 +135,15 @@ func (c *msgClient) SpendFeePool(ctx context.Context, in *MsgSpendFeePool, opts 
 	return out, nil
 }
 
+func (c *msgClient) UpdateOracle(ctx context.Context, in *MsgUpdateOracle, opts ...grpc.CallOption) (*MsgUpdateOracleResponse, error) {
+	out := new(MsgUpdateOracleResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateOracle_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -153,6 +165,8 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// SpendFeePool defines an operation that spend fee pool to a recipient.
 	SpendFeePool(context.Context, *MsgSpendFeePool) (*MsgSpendFeePoolResponse, error)
+	// UpdateOracle defines an operation that update oracle prices.
+	UpdateOracle(context.Context, *MsgUpdateOracle) (*MsgUpdateOracleResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -183,6 +197,9 @@ func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*
 }
 func (UnimplementedMsgServer) SpendFeePool(context.Context, *MsgSpendFeePool) (*MsgSpendFeePoolResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpendFeePool not implemented")
+}
+func (UnimplementedMsgServer) UpdateOracle(context.Context, *MsgUpdateOracle) (*MsgUpdateOracleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOracle not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -341,6 +358,24 @@ func _Msg_SpendFeePool_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateOracle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateOracle)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateOracle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateOracle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateOracle(ctx, req.(*MsgUpdateOracle))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -379,6 +414,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SpendFeePool",
 			Handler:    _Msg_SpendFeePool_Handler,
+		},
+		{
+			MethodName: "UpdateOracle",
+			Handler:    _Msg_UpdateOracle_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

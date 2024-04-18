@@ -449,3 +449,23 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 
 	return &types.MsgInitiateTokenWithdrawalResponse{}, nil
 }
+
+func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle) (*types.MsgUpdateOracleResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	err := ms.Keeper.ApplyOracleUpdate(ctx, req.Height, req.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateOracle,
+		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
+		sdk.NewAttribute(types.AttributeKeyHeight, strconv.FormatUint(req.Height, 10)),
+	))
+
+	return &types.MsgUpdateOracleResponse{}, nil
+}

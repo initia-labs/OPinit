@@ -6,6 +6,9 @@ import (
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -45,6 +48,11 @@ type BankKeeper interface {
 
 	HasDenomMetaData(ctx context.Context, denom string) bool
 	SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata)
+}
+
+type OracleKeeper interface {
+	GetAllCurrencyPairs(ctx sdk.Context) []slinkytypes.CurrencyPair
+	SetPriceForCurrencyPair(ctx sdk.Context, cp slinkytypes.CurrencyPair, qp oracletypes.QuotePrice) error
 }
 
 // ValidatorSet expected properties for the set of all validators (noalias)

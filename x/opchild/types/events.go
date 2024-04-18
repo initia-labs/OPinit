@@ -9,6 +9,7 @@ const (
 	EventTypeExecuteMessages         = "execute_messages"
 	EventTypeWhitelist               = "whitelist"
 	EventTypeParams                  = "params"
+	EventTypeUpdateOracle            = "update_oracle"
 	EventTypeSetBridgeInfo           = "set_bridge_info"
 
 	AttributeKeySender         = "sender"
@@ -26,4 +27,5 @@ const (
 	AttributeKeyFrom           = "from"
 	AttributeKeyTo             = "to"
 	AttributeKeyL2Sequence     = "l2_sequence"
+	AttributeKeyHeight         = "height"
 )

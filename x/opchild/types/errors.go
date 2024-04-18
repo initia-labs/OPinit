@@ -22,4 +22,6 @@ var (
 	ErrInvalidExecutorChangePlan       = errorsmod.Register(ModuleName, 15, "invalid executor chane plan")
 	ErrAlreadyRegisteredHeight         = errorsmod.Register(ModuleName, 16, "executor change plan already exists at the height")
 	ErrInvalidBridgeInfo               = errorsmod.Register(ModuleName, 17, "invalid bridge info")
+	ErrInvalidHeight                   = errorsmod.Register(ModuleName, 18, "invalid oracle height")
+	ErrInvalidPrices                   = errorsmod.Register(ModuleName, 19, "invalid oracle prices")
 )

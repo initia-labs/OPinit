@@ -45,6 +45,8 @@ import (
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 var ModuleBasics = module.NewBasicManager(
@@ -202,6 +204,7 @@ type TestKeepers struct {
 	AccountKeeper  authkeeper.AccountKeeper
 	BankKeeper     bankkeeper.Keeper
 	OPChildKeeper  opchildkeeper.Keeper
+	OracleKeeper   *oraclekeeper.Keeper
 	BridgeHook     *bridgeHook
 	EncodingConfig EncodingConfig
 	Faucet         *TestFaucet
@@ -239,7 +242,7 @@ func _createTestInput(
 	db dbm.DB,
 ) (context.Context, TestKeepers) {
 	keys := storetypes.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, opchildtypes.StoreKey,
+		authtypes.StoreKey, banktypes.StoreKey, opchildtypes.StoreKey, oracletypes.StoreKey,
 	)
 	ms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	for _, v := range keys {
@@ -297,6 +300,13 @@ func _createTestInput(
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
+	oracleKeeper := oraclekeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
+		appCodec,
+		nil,
+		authtypes.NewModuleAddress(opchildtypes.ModuleName),
+	)
+
 	bridgeHook := &bridgeHook{}
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
@@ -304,11 +314,13 @@ func _createTestInput(
 		accountKeeper,
 		bankKeeper,
 		bridgeHook.Hook,
+		&oracleKeeper,
 		msgRouter,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		ctx.Logger(),
 	)
 
 	opchildParams := opchildtypes.DefaultParams()
@@ -325,6 +337,7 @@ func _createTestInput(
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     bankKeeper,
 		OPChildKeeper:  *opchildKeeper,
+		OracleKeeper:   &oracleKeeper,
 		BridgeHook:     bridgeHook,
 		EncodingConfig: encodingConfig,
 		Faucet:         faucet,
