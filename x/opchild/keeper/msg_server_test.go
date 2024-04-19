@@ -1,19 +1,30 @@
 package keeper_test
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math/big"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/sha3"
-
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	protoio "github.com/cosmos/gogoproto/io"
+	"github.com/cosmos/gogoproto/proto"
+
+	cometabci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	vetypes "github.com/skip-mev/slinky/abci/ve/types"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+
+	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/sha3"
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -390,4 +401,113 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 		}
 	}
 
+}
+
+func Test_MsgServer_UpdateOracle(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	opchildKeeper := input.OPChildKeeper
+	oracleKeeper := input.OracleKeeper
+
+	params, err := opchildKeeper.GetParams(ctx)
+	require.NoError(t, err)
+
+	defaultHostChainId := "test-host-1"
+	params.HostChainId = defaultHostChainId
+	err = opchildKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	oracleKeeper.InitGenesis(sdk.UnwrapSDKContext(ctx), oracletypes.GenesisState{
+		CurrencyPairGenesis: make([]oracletypes.CurrencyPairGenesis, 0),
+	})
+
+	prices := []map[string]string{
+		{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+		{"BTC/USD": "10000000", "ETH/USD": "200000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+		{"BTC/USD": "10000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+		{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+		{"BTC/USD": "11000000", "ETH/USD": "210000", "ATOM/USD": "5000", "TIMESTAMP/NANOSECOND": "10000"},
+	}
+	currencyPairs := []string{"ATOM/USD", "ETH/USD", "BTC/USD", "TIMESTAMP/NANOSECOND"}
+	numVals := 5
+
+	for _, currencyPair := range currencyPairs {
+		cp, err := slinkytypes.CurrencyPairFromString(currencyPair)
+		require.NoError(t, err)
+		err = oracleKeeper.CreateCurrencyPair(sdk.UnwrapSDKContext(ctx), cp)
+		require.NoError(t, err)
+	}
+
+	cpStrategy, extendedCommitCodec, voteExtensionCodec := getSlinky(oracleKeeper)
+	valPrivKeys, _, validatorSet := createCmtValidatorSet(t, numVals)
+	err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultHostChainId, 1, validatorSet)
+	require.NoError(t, err)
+
+	eci := cometabci.ExtendedCommitInfo{
+		Round: 2,
+		Votes: make([]cometabci.ExtendedVoteInfo, numVals),
+	}
+
+	marshalDelimitedFn := func(msg proto.Message) ([]byte, error) {
+		var buf bytes.Buffer
+		if err := protoio.NewDelimitedWriter(&buf).WriteMsg(msg); err != nil {
+			return nil, err
+		}
+
+		return buf.Bytes(), nil
+	}
+
+	for i, privKey := range valPrivKeys {
+		convertedPrices := make(map[uint64][]byte)
+		for currencyPairID, priceString := range prices[i] {
+			cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
+			require.NoError(t, err)
+			rawPrice, converted := new(big.Int).SetString(priceString, 10)
+			require.True(t, converted)
+
+			encodedPrice, err := cpStrategy.GetEncodedPrice(sdk.UnwrapSDKContext(ctx), cp, rawPrice)
+			require.NoError(t, err)
+
+			id := oracletypes.CurrencyPairToID(currencyPairID)
+			convertedPrices[id] = encodedPrice
+		}
+		ove := vetypes.OracleVoteExtension{
+			Prices: convertedPrices,
+		}
+
+		exCommitBz, err := voteExtensionCodec.Encode(ove)
+		require.NoError(t, err)
+
+		cve := cmtproto.CanonicalVoteExtension{
+			Extension: exCommitBz,
+			Height:    10,
+			Round:     2,
+			ChainId:   defaultHostChainId,
+		}
+
+		extSignBytes, err := marshalDelimitedFn(&cve)
+		require.NoError(t, err)
+
+		signedBytes, err := privKey.Sign(extSignBytes)
+		require.NoError(t, err)
+
+		eci.Votes[i] = cometabci.ExtendedVoteInfo{
+			Validator: cometabci.Validator{
+				Address: validatorSet.Validators[i].Address,
+				Power:   1,
+			},
+			VoteExtension:      exCommitBz,
+			ExtensionSignature: signedBytes,
+			BlockIdFlag:        cmtproto.BlockIDFlagCommit,
+		}
+	}
+
+	extCommitBz, err := extendedCommitCodec.Encode(eci)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(opchildKeeper)
+	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[0], 11, extCommitBz))
+	require.NoError(t, err)
+
+	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[1], 11, extCommitBz))
+	require.Error(t, err)
 }
