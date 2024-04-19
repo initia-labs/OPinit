@@ -38,6 +38,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewDepositCmd(ac),
 		NewWithdrawCmd(ac),
 		NewSetBridgeInfoCmd(ac),
+		NewUpdateOracleCmd(ac),
 	)
 
 	return opchildTxCmd
