@@ -274,7 +274,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				}`, version.AppName,
 			),
 		),
-		Args: cobra.ExactArgs(3),
+		Args: cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
