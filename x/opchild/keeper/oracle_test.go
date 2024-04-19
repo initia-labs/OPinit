@@ -19,7 +19,7 @@ import (
 
 	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
 	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	"github.com/skip-mev/slinky/abci/ve/types"
+	vmtypes "github.com/skip-mev/slinky/abci/ve/types"
 	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
@@ -281,7 +281,7 @@ func Test_UpdateOracle(t *testing.T) {
 					id := oracletypes.CurrencyPairToID(currencyPairID)
 					convertedPrices[id] = encodedPrice
 				}
-				ove := types.OracleVoteExtension{
+				ove := vmtypes.OracleVoteExtension{
 					Prices: convertedPrices,
 				}
 

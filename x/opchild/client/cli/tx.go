@@ -167,7 +167,12 @@ func NewUpdateOracleCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateOracle(clientCtx.GetFromAddress(), height, data)
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateOracle(fromAddr, height, data)
 			if err := msg.Validate(ac); err != nil {
 				return err
 			}

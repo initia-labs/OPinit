@@ -318,9 +318,9 @@ func (msg MsgSpendFeePool) Validate(ac address.Codec) error {
 	return nil
 }
 
-func NewMsgUpdateOracle(sender sdk.AccAddress, height uint64, data []byte) *MsgUpdateOracle {
+func NewMsgUpdateOracle(sender string, height uint64, data []byte) *MsgUpdateOracle {
 	return &MsgUpdateOracle{
-		Sender: sender.String(),
+		Sender: sender,
 		Height: height,
 		Data:   data,
 	}
