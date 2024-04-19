@@ -69,7 +69,8 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	hostChainID, err := k.HostChainId(ctx)
+
+	hostChainID, err := k.L1ChainId(ctx)
 	if err != nil {
 		return err
 	}

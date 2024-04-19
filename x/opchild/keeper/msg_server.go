@@ -313,6 +313,14 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 		if info.BridgeAddr != req.BridgeInfo.BridgeAddr {
 			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected bridge addr %s, got %s", info.BridgeAddr, req.BridgeInfo.BridgeAddr)
 		}
+
+		if info.L1ChainId != req.BridgeInfo.L1ChainId {
+			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected l1 chain id %s, got %s", info.L1ChainId, req.BridgeInfo.L1ChainId)
+		}
+
+		if info.L1ClientId != req.BridgeInfo.L1ClientId {
+			return nil, types.ErrInvalidBridgeInfo.Wrapf("expected l1 client id %s, got %s", info.L1ClientId, req.BridgeInfo.L1ClientId)
+		}
 	}
 
 	// set bridge info
@@ -327,6 +335,8 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 			types.EventTypeSetBridgeInfo,
 			sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
 			sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
+			sdk.NewAttribute(types.AttributeKeyL1ChainId, req.BridgeInfo.L1ChainId),
+			sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
 		),
 	)
 

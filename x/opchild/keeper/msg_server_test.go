@@ -278,6 +278,8 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	info := types.BridgeInfo{
 		BridgeId:   1,
 		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
 			Challenger: addrsStr[2],
 			Proposer:   addrsStr[3],
@@ -298,6 +300,19 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	// reset possible
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.NoError(t, err)
+
+	// cannot change chain id
+	info.L1ChainId = "test-chain-id-2"
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+
+	// cannot change client id
+	info.L1ChainId = "test-chain-id"
+	info.L1ClientId = "test-client-id-2"
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+
+	info.L1ClientId = "test-client-id"
 
 	// invalid bridge id
 	info.BridgeId = 0
@@ -408,12 +423,13 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 	opchildKeeper := input.OPChildKeeper
 	oracleKeeper := input.OracleKeeper
 
-	params, err := opchildKeeper.GetParams(ctx)
-	require.NoError(t, err)
-
 	defaultHostChainId := "test-host-1"
-	params.HostChainId = defaultHostChainId
-	err = opchildKeeper.SetParams(ctx, params)
+	defaultClientId := "test-client-id"
+	bridgeInfo := types.BridgeInfo{
+		L1ChainId:  defaultHostChainId,
+		L1ClientId: defaultClientId,
+	}
+	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 	require.NoError(t, err)
 
 	oracleKeeper.InitGenesis(sdk.UnwrapSDKContext(ctx), oracletypes.GenesisState{
@@ -439,7 +455,7 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 
 	cpStrategy, extendedCommitCodec, voteExtensionCodec := getSlinky(oracleKeeper)
 	valPrivKeys, _, validatorSet := createCmtValidatorSet(t, numVals)
-	err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultHostChainId, 1, validatorSet)
+	err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultClientId, 1, validatorSet)
 	require.NoError(t, err)
 
 	eci := cometabci.ExtendedCommitInfo{

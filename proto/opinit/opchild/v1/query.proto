@@ -28,6 +28,7 @@ service Query {
     option (google.api.http).get               = "/opinit/opchild/v1/validator/{validator_addr}";
   }
 
+  // BridgeInfo queries the bridge information.
   rpc BridgeInfo(QueryBridgeInfoRequest) returns (QueryBridgeInfoResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/opchild/v1/bridge_info";
