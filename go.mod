@@ -21,7 +21,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.12
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit/api v0.2.4
+	github.com/initia-labs/OPinit/api v0.2.5
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk/v2 v2.1.1
 	github.com/skip-mev/slinky v0.3.2
