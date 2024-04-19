@@ -254,13 +254,13 @@ Where proposal.json contains:
 // NewSetBridgeInfoCmd returns a CLI command handler for transaction to setting a bridge info.
 func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set-bridge-info [bridge-id] [bridge-addr] [path/to/bridge-config.json]",
+		Use:   "set-bridge-info [bridge-id] [bridge-addr] [l1-chain-id] [l1-client-id] [path/to/bridge-config.json]",
 		Short: "send a bridge creating tx",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
 				`send a tx to set a bridge info with a config file as a json.
 				Example:
-				$ %s tx ophost set-bridge-info 1 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 path/to/bridge-config.json
+				$ %s tx ophost set-bridge-info 1 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 mahalo-2 07-tendermint-0 path/to/bridge-config.json
 				
 				Where bridge-config.json contains:
 				{
@@ -287,8 +287,10 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			}
 
 			bridgeAddr := args[1]
+			l1ChainId := args[2]
+			l1ClientId := args[3]
 
-			configBytes, err := os.ReadFile(args[2])
+			configBytes, err := os.ReadFile(args[4])
 			if err != nil {
 				return err
 			}
@@ -335,6 +337,8 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			msg := types.NewMsgSetBridgeInfo(fromAddr, types.BridgeInfo{
 				BridgeId:     bridgeId,
 				BridgeAddr:   bridgeAddr,
+				L1ChainId:    l1ChainId,
+				L1ClientId:   l1ClientId,
 				BridgeConfig: bridgeConfig,
 			})
 			if err = msg.Validate(ac); err != nil {
