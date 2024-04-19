@@ -2855,7 +2855,10 @@ type BridgeInfo struct {
 	BridgeId uint64 `protobuf:"varint,1,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty"`
 	// bridge_addr is the address of the bridge on l1.
 	BridgeAddr string `protobuf:"bytes,2,opt,name=bridge_addr,json=bridgeAddr,proto3" json:"bridge_addr,omitempty"`
-	L1ChainId  string `protobuf:"bytes,3,opt,name=l1_chain_id,json=l1ChainId,proto3" json:"l1_chain_id,omitempty"`
+	// l1_chain_id is the chain id of the l1 chain.
+	L1ChainId string `protobuf:"bytes,3,opt,name=l1_chain_id,json=l1ChainId,proto3" json:"l1_chain_id,omitempty"`
+	// l1_client_id is the IBC client ID, which is allocated for l1 chain, in l2 chain state.
+	// This is used to verify the validator set in oracle update messages.
 	L1ClientId string `protobuf:"bytes,4,opt,name=l1_client_id,json=l1ClientId,proto3" json:"l1_client_id,omitempty"`
 	// bridge_config is the configuration of the bridge.
 	BridgeConfig *v1.BridgeConfig `protobuf:"bytes,5,opt,name=bridge_config,json=bridgeConfig,proto3" json:"bridge_config,omitempty"`

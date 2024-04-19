@@ -467,6 +467,7 @@ type QueryClient interface {
 	Validators(ctx context.Context, in *QueryValidatorsRequest, opts ...grpc.CallOption) (*QueryValidatorsResponse, error)
 	// Validator queries validator info for given validator address.
 	Validator(ctx context.Context, in *QueryValidatorRequest, opts ...grpc.CallOption) (*QueryValidatorResponse, error)
+	// BridgeInfo queries the bridge information.
 	BridgeInfo(ctx context.Context, in *QueryBridgeInfoRequest, opts ...grpc.CallOption) (*QueryBridgeInfoResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
@@ -525,6 +526,7 @@ type QueryServer interface {
 	Validators(context.Context, *QueryValidatorsRequest) (*QueryValidatorsResponse, error)
 	// Validator queries validator info for given validator address.
 	Validator(context.Context, *QueryValidatorRequest) (*QueryValidatorResponse, error)
+	// BridgeInfo queries the bridge information.
 	BridgeInfo(context.Context, *QueryBridgeInfoRequest) (*QueryBridgeInfoResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)

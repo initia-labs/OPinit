@@ -445,6 +445,8 @@ func (s *CLITestSuite) TestNewSetBridgeInfo() {
 			[]string{
 				"1",
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+				"l1-chain-id",
+				"l1-client-id",
 				invalidConfig.Name(),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
@@ -458,6 +460,8 @@ func (s *CLITestSuite) TestNewSetBridgeInfo() {
 			[]string{
 				"1",
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+				"l1-chain-id",
+				"l1-client-id",
 				validConfig.Name(),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),

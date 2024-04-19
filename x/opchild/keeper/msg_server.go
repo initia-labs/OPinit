@@ -335,8 +335,8 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 			types.EventTypeSetBridgeInfo,
 			sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
 			sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
-			sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
 			sdk.NewAttribute(types.AttributeKeyL1ChainId, req.BridgeInfo.L1ChainId),
+			sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
 		),
 	)
 
