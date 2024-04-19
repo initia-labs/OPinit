@@ -455,6 +455,11 @@ func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle
 		return nil, err
 	}
 
+	// permission check
+	if err := ms.checkBridgeExecutorPermission(ctx, req.Sender); err != nil {
+		return nil, err
+	}
+
 	err := ms.Keeper.ApplyOracleUpdate(ctx, req.Height, req.Data)
 	if err != nil {
 		return nil, err
