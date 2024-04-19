@@ -58,6 +58,7 @@ var _ sdk.Tx = MockTx{}
 var _ sdk.FeeTx = &MockTx{}
 
 type MockTx struct {
+	msgs     []sdk.Msg
 	feePayer []byte
 }
 
@@ -66,7 +67,7 @@ func (tx MockTx) GetMsgsV2() ([]protov2.Message, error) {
 }
 
 func (tx MockTx) GetMsgs() []sdk.Msg {
-	return nil
+	return tx.msgs
 }
 
 func (tx MockTx) GetGas() uint64 {
