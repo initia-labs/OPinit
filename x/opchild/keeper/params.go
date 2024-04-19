@@ -49,11 +49,3 @@ func (k Keeper) MinGasPrices(ctx context.Context) (sdk.DecCoins, error) {
 
 	return params.MinGasPrices, nil
 }
-
-func (k Keeper) HostChainId(ctx context.Context) (string, error) {
-	params, err := k.GetParams(ctx)
-	if err != nil {
-		return "", err
-	}
-	return params.HostChainId, nil
-}

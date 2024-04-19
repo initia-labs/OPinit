@@ -158,15 +158,15 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 }
 
 // UpdateHostValidatorSet updates the host validator set.
-func (k Keeper) UpdateHostValidatorSet(ctx context.Context, chainID string, height int64, validatorSet *cmtproto.ValidatorSet) error {
-	if chainID == "" {
+func (k Keeper) UpdateHostValidatorSet(ctx context.Context, clientID string, height int64, validatorSet *cmtproto.ValidatorSet) error {
+	if clientID == "" {
 		return nil
 	}
 
 	// ignore if the chain ID is not the host chain ID
-	if hostChainID, err := k.HostChainId(ctx); err != nil {
+	if l1ClientId, err := k.L1ClientId(ctx); err != nil {
 		return err
-	} else if hostChainID != chainID {
+	} else if l1ClientId != clientID {
 		return nil
 	}
 
@@ -176,4 +176,22 @@ func (k Keeper) UpdateHostValidatorSet(ctx context.Context, chainID string, heig
 // ApplyOracleUpdate applies an oracle update to the L2 oracle handler.
 func (k Keeper) ApplyOracleUpdate(ctx context.Context, height uint64, extCommitBz []byte) error {
 	return k.l2OracleHandler.UpdateOracle(ctx, height, extCommitBz)
+}
+
+func (k Keeper) L1ClientId(ctx context.Context) (string, error) {
+	info, err := k.BridgeInfo.Get(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return info.L1ClientId, nil
+}
+
+func (k Keeper) L1ChainId(ctx context.Context) (string, error) {
+	info, err := k.BridgeInfo.Get(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return info.L1ChainId, nil
 }

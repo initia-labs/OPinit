@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -65,42 +66,42 @@ func getSlinky(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStra
 }
 
 func Test_UpdateHostValidatorSet(t *testing.T) {
-	defaultHostChainId := "test-host-1"
+	defaultClientId := "test-client-id"
 
 	testCases := []struct {
-		name        string
-		hostChainId string
-		hostHeight  int64
-		numVals     int
-		expectError bool
+		name         string
+		hostClientId string
+		hostHeight   int64
+		numVals      int
+		expectError  bool
 	}{
 		{
-			name:        "empty chain id",
-			hostChainId: "",
-			hostHeight:  100,
-			numVals:     10,
-			expectError: true,
+			name:         "empty chain id",
+			hostClientId: "",
+			hostHeight:   100,
+			numVals:      10,
+			expectError:  true,
 		},
 		{
-			name:        "different chain id",
-			hostChainId: "test-host-12",
-			hostHeight:  100,
-			numVals:     10,
-			expectError: true,
+			name:         "different chain id",
+			hostClientId: "test-host-12",
+			hostHeight:   100,
+			numVals:      10,
+			expectError:  true,
 		},
 		{
-			name:        "zero height",
-			hostChainId: defaultHostChainId,
-			hostHeight:  0,
-			numVals:     10,
-			expectError: true,
+			name:         "zero height",
+			hostClientId: defaultClientId,
+			hostHeight:   0,
+			numVals:      10,
+			expectError:  true,
 		},
 		{
-			name:        "good host chain id, height, validators",
-			hostChainId: defaultHostChainId,
-			hostHeight:  100,
-			numVals:     10,
-			expectError: false,
+			name:         "good host chain id, height, validators",
+			hostClientId: defaultClientId,
+			hostHeight:   100,
+			numVals:      10,
+			expectError:  false,
 		},
 	}
 
@@ -110,14 +111,14 @@ func Test_UpdateHostValidatorSet(t *testing.T) {
 			opchildKeeper := input.OPChildKeeper
 			hostValidatorStore := opchildKeeper.HostValidatorStore
 
-			params, err := opchildKeeper.GetParams(ctx)
-			require.NoError(t, err)
-			params.HostChainId = defaultHostChainId
-			err = opchildKeeper.SetParams(ctx, params)
+			bridgeInfo := types.BridgeInfo{
+				L1ClientId: defaultClientId,
+			}
+			err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 			require.NoError(t, err)
 
 			_, valPubKeys, validatorSet := createCmtValidatorSet(t, tc.numVals)
-			err = opchildKeeper.UpdateHostValidatorSet(ctx, tc.hostChainId, tc.hostHeight, validatorSet)
+			err = opchildKeeper.UpdateHostValidatorSet(ctx, tc.hostClientId, tc.hostHeight, validatorSet)
 			if tc.expectError {
 				// no error but no validator update
 				require.NoError(t, err)
@@ -144,6 +145,7 @@ func Test_UpdateHostValidatorSet(t *testing.T) {
 }
 
 func Test_UpdateOracle(t *testing.T) {
+	defaultClientId := "test-client-id"
 	defaultHostChainId := "test-host-1"
 
 	testCases := []struct {
@@ -241,10 +243,11 @@ func Test_UpdateOracle(t *testing.T) {
 			opchildKeeper := input.OPChildKeeper
 			oracleKeeper := input.OracleKeeper
 
-			params, err := opchildKeeper.GetParams(ctx)
-			require.NoError(t, err)
-			params.HostChainId = defaultHostChainId
-			err = opchildKeeper.SetParams(ctx, params)
+			bridgeInfo := types.BridgeInfo{
+				L1ChainId:  defaultHostChainId,
+				L1ClientId: defaultClientId,
+			}
+			err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 			require.NoError(t, err)
 
 			oracleKeeper.InitGenesis(sdk.UnwrapSDKContext(ctx), oracletypes.GenesisState{
@@ -259,7 +262,7 @@ func Test_UpdateOracle(t *testing.T) {
 
 			cpStrategy, extendedCommitCodec, voteExtensionCodec := getSlinky(oracleKeeper)
 			valPrivKeys, _, validatorSet := createCmtValidatorSet(t, tc.numVals)
-			err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultHostChainId, 1, validatorSet)
+			err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultClientId, 1, validatorSet)
 			require.NoError(t, err)
 
 			eci := cometabci.ExtendedCommitInfo{

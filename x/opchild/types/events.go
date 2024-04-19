@@ -15,6 +15,8 @@ const (
 	AttributeKeySender         = "sender"
 	AttributeKeyBridgeId       = "bridge_id"
 	AttributeKeyBridgeAddr     = "bridge_addr"
+	AttributeKeyL1ChainId      = "l1_chain_id"
+	AttributeKeyL1ClientId     = "l1_client_id"
 	AttributeKeyRecipient      = "recipient"
 	AttributeKeyAmount         = "amount"
 	AttributeKeyDenom          = "denom"
