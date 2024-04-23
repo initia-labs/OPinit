@@ -196,7 +196,9 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 	}
 
 	// rollback next output index to the deleted output index
-	ms.NextOutputIndexes.Set(ctx, bridgeId, outputIndex)
+	if err := ms.NextOutputIndexes.Set(ctx, bridgeId, outputIndex); err != nil {
+		return nil, err
+	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeDeleteOutput,
