@@ -28,6 +28,7 @@ const (
 	Msg_UpdateProposer_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateProposer"
 	Msg_UpdateChallenger_FullMethodName        = "/opinit.ophost.v1.Msg/UpdateChallenger"
 	Msg_UpdateBatchInfo_FullMethodName         = "/opinit.ophost.v1.Msg/UpdateBatchInfo"
+	Msg_UpdateMetadata_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateMetadata"
 	Msg_UpdateParams_FullMethodName            = "/opinit.ophost.v1.Msg/UpdateParams"
 )
 
@@ -53,6 +54,8 @@ type MsgClient interface {
 	UpdateChallenger(ctx context.Context, in *MsgUpdateChallenger, opts ...grpc.CallOption) (*MsgUpdateChallengerResponse, error)
 	// UpdateBatchInfo defines a rpc handler method for MsgUpdateBatchInfo.
 	UpdateBatchInfo(ctx context.Context, in *MsgUpdateBatchInfo, opts ...grpc.CallOption) (*MsgUpdateBatchInfoResponse, error)
+	// UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
+	UpdateMetadata(ctx context.Context, in *MsgUpdateMetadata, opts ...grpc.CallOption) (*MsgUpdateMetadataResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -147,6 +150,15 @@ func (c *msgClient) UpdateBatchInfo(ctx context.Context, in *MsgUpdateBatchInfo,
 	return out, nil
 }
 
+func (c *msgClient) UpdateMetadata(ctx context.Context, in *MsgUpdateMetadata, opts ...grpc.CallOption) (*MsgUpdateMetadataResponse, error) {
+	out := new(MsgUpdateMetadataResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateMetadata_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, opts...)
@@ -178,6 +190,8 @@ type MsgServer interface {
 	UpdateChallenger(context.Context, *MsgUpdateChallenger) (*MsgUpdateChallengerResponse, error)
 	// UpdateBatchInfo defines a rpc handler method for MsgUpdateBatchInfo.
 	UpdateBatchInfo(context.Context, *MsgUpdateBatchInfo) (*MsgUpdateBatchInfoResponse, error)
+	// UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
+	UpdateMetadata(context.Context, *MsgUpdateMetadata) (*MsgUpdateMetadataResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -214,6 +228,9 @@ func (UnimplementedMsgServer) UpdateChallenger(context.Context, *MsgUpdateChalle
 }
 func (UnimplementedMsgServer) UpdateBatchInfo(context.Context, *MsgUpdateBatchInfo) (*MsgUpdateBatchInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBatchInfo not implemented")
+}
+func (UnimplementedMsgServer) UpdateMetadata(context.Context, *MsgUpdateMetadata) (*MsgUpdateMetadataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetadata not implemented")
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -393,6 +410,24 @@ func _Msg_UpdateBatchInfo_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMetadata)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateMetadata(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateMetadata_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateMetadata(ctx, req.(*MsgUpdateMetadata))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -453,6 +488,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBatchInfo",
 			Handler:    _Msg_UpdateBatchInfo_Handler,
+		},
+		{
+			MethodName: "UpdateMetadata",
+			Handler:    _Msg_UpdateMetadata_Handler,
 		},
 		{
 			MethodName: "UpdateParams",

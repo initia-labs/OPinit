@@ -385,6 +385,20 @@ func (h *bridgeHook) BridgeBatchInfoUpdated(
 	return nil
 }
 
+func (h *bridgeHook) BridgeMetadataUpdated(
+	ctx context.Context,
+	bridgeId uint64,
+	bridgeConfig ophosttypes.BridgeConfig,
+) error {
+	if h.err != nil {
+		return h.err
+	}
+
+	h.metadata = bridgeConfig.Metadata
+
+	return nil
+}
+
 var _ ophosttypes.CommunityPoolKeeper = &MockCommunityPoolKeeper{}
 
 type MockCommunityPoolKeeper struct {
