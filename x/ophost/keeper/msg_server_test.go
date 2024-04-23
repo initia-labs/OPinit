@@ -116,6 +116,10 @@ func Test_DeleteOutput(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
+	proposeRes, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 200, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), proposeRes.OutputIndex)
+
 	// unauthorized
 	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[0], 1, 1))
 	require.Error(t, err)
@@ -125,6 +129,9 @@ func Test_DeleteOutput(t *testing.T) {
 	require.NoError(t, err)
 
 	// should return error; deleted
+	_, err = input.OPHostKeeper.GetOutputProposal(ctx, 1, 2)
+	require.Error(t, err)
+
 	_, err = input.OPHostKeeper.GetOutputProposal(ctx, 1, 1)
 	require.Error(t, err)
 

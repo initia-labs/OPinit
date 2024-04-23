@@ -267,7 +267,8 @@ func (m *MsgProposeOutputResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgProposeOutputResponse proto.InternalMessageInfo
 
-// MsgDeleteOutput is a message to delete unfinalized l2 output proposal.
+// MsgDeleteOutput is a message to delete unfinalized l2 output proposals
+// in [outputIndex, nextOutputIndex) range.
 type MsgDeleteOutput struct {
 	Challenger  string `protobuf:"bytes,1,opt,name=challenger,proto3" json:"challenger,omitempty" yaml:"challenger"`
 	BridgeId    uint64 `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`

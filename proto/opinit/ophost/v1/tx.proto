@@ -126,7 +126,8 @@ message MsgProposeOutputResponse {
 ////////////////////////////
 // Challenger Messages
 
-// MsgDeleteOutput is a message to delete unfinalized l2 output proposal.
+// MsgDeleteOutput is a message to delete unfinalized l2 output proposals
+// in [outputIndex, nextOutputIndex) range.
 message MsgDeleteOutput {
   option (cosmos.msg.v1.signer) = "challenger";
   option (amino.name)           = "ophost/MsgDeleteOutput";
