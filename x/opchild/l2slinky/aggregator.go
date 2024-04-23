@@ -1,6 +1,7 @@
 package l2slinky
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -46,6 +47,11 @@ func WritePrices(ctx sdk.Context, ok types.OracleKeeper, updatedTime time.Time, 
 		price, found := prices[cp]
 		if !found || price == nil {
 			continue
+		}
+
+		qp, err := ok.GetPriceForCurrencyPair(ctx, cp)
+		if err == nil && !qp.BlockTimestamp.After(updatedTime) {
+			return errors.New("try to update the past price")
 		}
 
 		// Convert the price to a quote price and write it to state.

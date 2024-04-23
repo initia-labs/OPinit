@@ -52,6 +52,7 @@ type BankKeeper interface {
 
 type OracleKeeper interface {
 	GetAllCurrencyPairs(ctx sdk.Context) []slinkytypes.CurrencyPair
+	GetPriceForCurrencyPair(ctx sdk.Context, cp slinkytypes.CurrencyPair) (oracletypes.QuotePrice, error)
 	SetPriceForCurrencyPair(ctx sdk.Context, cp slinkytypes.CurrencyPair, qp oracletypes.QuotePrice) error
 }
 
