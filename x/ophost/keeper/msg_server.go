@@ -492,6 +492,49 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 	}, nil
 }
 
+func (ms MsgServer) UpdateMetadata(ctx context.Context, req *types.MsgUpdateMetadata) (*types.MsgUpdateMetadataResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	// gov or current proposer can update metadata.
+	if ms.authority != req.Authority && config.Proposer != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
+	}
+
+	config.Metadata = req.Metadata
+	if err := ms.Keeper.bridgeHook.BridgeMetadataUpdated(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateBatchInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
+	))
+
+	return &types.MsgUpdateMetadataResponse{
+		OutputIndex:   finalizedOutputIndex,
+		L2BlockNumber: finalizedOutput.L2BlockNumber,
+	}, nil
+}
+
 // UpdateParams implements updating the parameters
 func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {

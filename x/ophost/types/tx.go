@@ -15,7 +15,12 @@ var (
 	_ sdk.Msg = &MsgUpdateProposer{}
 	_ sdk.Msg = &MsgUpdateChallenger{}
 	_ sdk.Msg = &MsgUpdateBatchInfo{}
+	_ sdk.Msg = &MsgUpdateMetadata{}
 	_ sdk.Msg = &MsgUpdateParams{}
+)
+
+const (
+	MaxMetadataLength = 1024 * 5
 )
 
 /* MsgRecordBatch */
@@ -67,6 +72,10 @@ func (msg MsgCreateBridge) Validate(ac address.Codec) error {
 
 	if err := msg.Config.Validate(ac); err != nil {
 		return err
+	}
+
+	if len(msg.Config.Metadata) > MaxMetadataLength {
+		return ErrInvalidBridgeMetadata.Wrapf("metadata length exceeds %d", MaxMetadataLength)
 	}
 
 	return nil
@@ -353,6 +362,38 @@ func (msg MsgUpdateBatchInfo) Validate(accAddressCodec address.Codec) error {
 
 	if msg.NewBatchInfo.Chain == "" || msg.NewBatchInfo.Submitter == "" {
 		return ErrEmptyBatchInfo
+	}
+
+	return nil
+}
+
+/* MsgUpdateMetadata */
+
+// NewMsgUpdateMetadata creates a new MsgUpdateMetadata instance.
+func NewMsgUpdateMetadata(
+	authority string,
+	bridgeId uint64,
+	metadata []byte,
+) *MsgUpdateMetadata {
+	return &MsgUpdateMetadata{
+		Authority: authority,
+		BridgeId:  bridgeId,
+		Metadata:  metadata,
+	}
+}
+
+// Validate performs basic MsgUpdateMetadata message validation.
+func (msg MsgUpdateMetadata) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if len(msg.Metadata) > MaxMetadataLength {
+		return ErrInvalidBridgeMetadata.Wrapf("metadata length exceeds %d", MaxMetadataLength)
 	}
 
 	return nil

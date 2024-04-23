@@ -349,7 +349,6 @@ func (h *bridgeHook) BridgeChallengerUpdated(
 		return h.err
 	}
 
-	h.metadata = bridgeConfig.Metadata
 	h.challenger = bridgeConfig.Challenger
 
 	return nil
@@ -364,7 +363,6 @@ func (h *bridgeHook) BridgeProposerUpdated(
 		return h.err
 	}
 
-	h.metadata = bridgeConfig.Metadata
 	h.proposer = bridgeConfig.Proposer
 
 	return nil
@@ -379,8 +377,21 @@ func (h *bridgeHook) BridgeBatchInfoUpdated(
 		return h.err
 	}
 
-	h.metadata = bridgeConfig.Metadata
 	h.batchInfo = bridgeConfig.BatchInfo
+
+	return nil
+}
+
+func (h *bridgeHook) BridgeMetadataUpdated(
+	ctx context.Context,
+	bridgeId uint64,
+	bridgeConfig ophosttypes.BridgeConfig,
+) error {
+	if h.err != nil {
+		return h.err
+	}
+
+	h.metadata = bridgeConfig.Metadata
 
 	return nil
 }
