@@ -183,13 +183,22 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 		return nil, errors.ErrUnauthorized.Wrap("invalid challenger")
 	}
 
-	// delete output proposal
-	if err := ms.DeleteOutputProposal(ctx, bridgeId, outputIndex); err != nil {
+	nextOutputIndex, err := ms.GetNextOutputIndex(ctx, bridgeId)
+	if err != nil {
 		return nil, err
 	}
 
+	// delete output proposals in [outputIndex, nextOutputIndex) range
+	for i := outputIndex; i < nextOutputIndex; i++ {
+		if err := ms.DeleteOutputProposal(ctx, bridgeId, i); err != nil {
+			return nil, err
+		}
+	}
+
 	// rollback next output index to the deleted output index
-	ms.NextOutputIndexes.Set(ctx, bridgeId, outputIndex)
+	if err := ms.NextOutputIndexes.Set(ctx, bridgeId, outputIndex); err != nil {
+		return nil, err
+	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeDeleteOutput,

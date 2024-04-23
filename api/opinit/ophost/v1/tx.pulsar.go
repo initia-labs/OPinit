@@ -11278,7 +11278,8 @@ func (x *MsgProposeOutputResponse) GetOutputIndex() uint64 {
 	return 0
 }
 
-// MsgDeleteOutput is a message to delete unfinalized l2 output proposal.
+// MsgDeleteOutput is a message to delete unfinalized l2 output proposals
+// in [outputIndex, nextOutputIndex) range.
 type MsgDeleteOutput struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
