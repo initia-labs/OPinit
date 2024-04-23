@@ -188,6 +188,9 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 		return nil, err
 	}
 
+	// rollback next output index to the deleted output index
+	ms.NextOutputIndexes.Set(ctx, bridgeId, outputIndex)
+
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeDeleteOutput,
 		sdk.NewAttribute(types.AttributeKeyChallenger, challenger),
