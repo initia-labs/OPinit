@@ -500,7 +500,7 @@ func (ms MsgServer) UpdateMetadata(ctx context.Context, req *types.MsgUpdateMeta
 		return nil, err
 	}
 
-	// gov or current proposer can update batch info.
+	// gov or current proposer can update metadata.
 	if ms.authority != req.Authority && config.Proposer != req.Authority {
 		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
 	}
