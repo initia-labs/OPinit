@@ -127,6 +127,11 @@ func Test_DeleteOutput(t *testing.T) {
 	// should return error; deleted
 	_, err = input.OPHostKeeper.GetOutputProposal(ctx, 1, 1)
 	require.Error(t, err)
+
+	// should able to resubmit the same output
+	proposeRes, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 }
 
 func Test_InitiateTokenDeposit(t *testing.T) {
