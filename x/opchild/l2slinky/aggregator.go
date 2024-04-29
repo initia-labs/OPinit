@@ -50,7 +50,7 @@ func WritePrices(ctx sdk.Context, ok types.OracleKeeper, updatedTime time.Time, 
 		}
 
 		qp, err := ok.GetPriceForCurrencyPair(ctx, cp)
-		if err == nil && !qp.BlockTimestamp.After(updatedTime) {
+		if err == nil && !updatedTime.After(qp.BlockTimestamp) {
 			return errors.New("try to update the past price")
 		}
 
