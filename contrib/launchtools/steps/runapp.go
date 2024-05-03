@@ -2,13 +2,13 @@ package steps
 
 import (
 	"context"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
-	"time"
 )
 
 // RunApp runs the in-process application. This routine temporarily allows creation of empty blocks,
@@ -31,25 +31,26 @@ func RunApp(_ launchtools.Input) launchtools.LauncherStepFunc {
 
 			// set up a post setup function to set the app in the context
 			server.StartCmdOptions{
-				PostSetup: func(svrCtx *server.Context, clientCtx client.Context, _ context.Context, _ *errgroup.Group, app servertypes.Application) (err error) {
-					// Register the app in the context
-					if err := ctx.SetApp(app); err != nil {
-						return errors.Wrap(err, "failed to set app in launch context")
-					}
+				PostSetup: func(svrCtx *server.Context, clientCtx client.Context, _ context.Context, g *errgroup.Group) (err error) {
+					// set the error group to gracefully shutdown the launch cmd
+					ctx.SetErrorGroup(g)
 
-					// wait until latest versioin goes to 2
-					go func() {
+					// wait until latest version goes to 2
+					g.Go(func() error {
 						for {
 							ctx.Logger().Info("waiting for app to be created")
 
-							if app.CommitMultiStore().LatestVersion() > 1 {
+							if ctx.App().CommitMultiStore().LatestVersion() > 1 {
 								// Signal that the app is created
 								syncDone <- struct{}{}
+								break
 							}
 
 							time.Sleep(1 * time.Second)
 						}
-					}()
+
+						return nil
+					})
 
 					return nil
 				},

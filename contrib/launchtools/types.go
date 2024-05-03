@@ -2,8 +2,12 @@ package launchtools
 
 import (
 	"context"
-	"cosmossdk.io/log"
 	"encoding/json"
+	"os"
+	"path"
+	"sync"
+
+	"cosmossdk.io/log"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -16,9 +20,7 @@ import (
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"os"
-	"path"
-	"sync"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -33,9 +35,6 @@ type LauncherStepFuncFactory[Manifest any] func(Manifest) LauncherStepFunc
 // LauncherStepFunc is a function that takes a launcher and returns an error.
 type LauncherStepFunc func(ctx Launcher) error
 
-// LauncherCleanupFunc is a function that cleans up the launcher.
-type LauncherCleanupFunc func() error
-
 // ExpectedApp is an extended interface that allows to get the ibc keeper from the app.
 type ExpectedApp interface {
 	servertypes.Application
@@ -44,14 +43,16 @@ type ExpectedApp interface {
 	GetIBCKeeper() *ibckeeper.Keeper
 }
 
+type AppCreator interface {
+	AppCreator() servertypes.AppCreator
+	App() servertypes.Application
+}
+
 // Launcher is an interface that provides the necessary methods to interact with the launcher.
 // It is used to abstract away the underlying contexts, and provide a non-intrusive way to interact with the launcher.
 type Launcher interface {
 	// IsAppInitialized returns true if the app is initialized.
 	IsAppInitialized() bool
-
-	// SetApp sets the app to the launcher.
-	SetApp(app servertypes.Application) error
 
 	// App returns the app. Must only be called after SetApp is called.
 	App() ExpectedApp
@@ -85,6 +86,10 @@ type Launcher interface {
 	GetRPCHelperL1() *utils.RPCHelper
 	GetRPCHelperL2() *utils.RPCHelper
 
+	// SetErrorGroup sets the error group.
+	SetErrorGroup(g *errgroup.Group)
+	GetErrorGroup() *errgroup.Group
+
 	// WriteToFile writes data to a file under $HOME/out.
 	WriteToFile(filename string, data string) error
 }
@@ -95,11 +100,9 @@ type LauncherContext struct {
 	mtx *sync.Mutex
 
 	log            log.Logger
-	app            ExpectedApp
-	cleanupFns     []LauncherCleanupFunc
 	defaultGenesis map[string]json.RawMessage
 
-	appCreator servertypes.AppCreator
+	appCreator AppCreator
 	clientCtx  *client.Context
 	serverCtx  *server.Context
 
@@ -107,13 +110,16 @@ type LauncherContext struct {
 
 	rpcHelperL1 *utils.RPCHelper
 	rpcHelperL2 *utils.RPCHelper
+
+	// errorgroup is used to manage the lifecycle of the app.
+	errorgroup *errgroup.Group
 }
 
 func NewLauncher(
 	cmd *cobra.Command,
 	clientCtx *client.Context,
 	serverCtx *server.Context,
-	appCreator servertypes.AppCreator,
+	appCreator AppCreator,
 	defaultGenesis map[string]json.RawMessage,
 ) *LauncherContext {
 	kr, err := keyring.New("minitia", keyring.BackendTest, clientCtx.HomeDir, nil, clientCtx.Codec)
@@ -148,25 +154,15 @@ func NewLauncher(
 }
 
 func (l *LauncherContext) IsAppInitialized() bool {
-	return l.app != nil
-}
-
-func (l *LauncherContext) SetApp(app servertypes.Application) error {
-	nextApp, ok := app.(ExpectedApp)
-	if !ok {
-		return errors.New("supplied app does not implement expected methods")
-	}
-
-	l.app = nextApp
-	return nil
+	return l.appCreator.App() != nil
 }
 
 func (l *LauncherContext) App() ExpectedApp {
-	return l.app
+	return l.appCreator.App().(ExpectedApp)
 }
 
 func (l *LauncherContext) AppCreator() servertypes.AppCreator {
-	return l.appCreator
+	return l.appCreator.AppCreator()
 }
 
 func (l *LauncherContext) Logger() log.Logger {
@@ -223,4 +219,12 @@ func (l *LauncherContext) WriteToFile(filename string, data string) error {
 	}
 
 	return nil
+}
+
+func (l *LauncherContext) SetErrorGroup(g *errgroup.Group) {
+	l.errorgroup = g
+}
+
+func (l *LauncherContext) GetErrorGroup() *errgroup.Group {
+	return l.errorgroup
 }
