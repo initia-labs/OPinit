@@ -312,9 +312,15 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 			seed := []byte{}
 			seed = binary.BigEndian.AppendUint64(seed, bridgeId)
 			seed = binary.BigEndian.AppendUint64(seed, req.Sequence)
+			// variable length
 			seed = append(seed, sender...)
+			seed = append(seed, types.Splitter)
+			// variable length
 			seed = append(seed, receiver...)
+			seed = append(seed, types.Splitter)
+			// variable length
 			seed = append(seed, []byte(denom)...)
+			seed = append(seed, types.Splitter)
 			seed = binary.BigEndian.AppendUint64(seed, amount.Uint64())
 
 			withdrawalHash = sha3.Sum256(seed)
