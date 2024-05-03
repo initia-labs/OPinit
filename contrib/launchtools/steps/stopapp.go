@@ -23,4 +23,6 @@ func StopApp(_ launchertypes.Input) launchertypes.LauncherStepFunc {
 		ctx.GetErrorGroup().Wait()
 		log.Info("cleanup finished")
 
+		return nil
+	}
 }
