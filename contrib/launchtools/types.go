@@ -132,6 +132,10 @@ func NewLauncher(
 	ophosttypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
 	opchildtypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
 
+	if err := os.MkdirAll(path.Join(nextClientCtx.HomeDir, OutDir), os.ModePerm); err != nil {
+		panic("failed to create out directory")
+	}
+
 	return &LauncherContext{
 		log:            log.NewLogger(os.Stderr),
 		mtx:            new(sync.Mutex),
