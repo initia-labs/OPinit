@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

@@ -17,13 +17,10 @@ func StopApp(_ launchertypes.Input) launchertypes.LauncherStepFunc {
 		log.Info("cleanup")
 		log.Info("waiting for app to stop")
 
-		// signal the app to stop
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 
 		// wait for the app to stop
 		ctx.GetErrorGroup().Wait()
 		log.Info("cleanup finished")
 
-		return nil
-	}
 }
