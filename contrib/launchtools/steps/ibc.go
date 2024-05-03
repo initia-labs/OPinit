@@ -2,17 +2,18 @@ package steps
 
 import (
 	"context"
-	"cosmossdk.io/log"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
+	"reflect"
+
+	"cosmossdk.io/log"
 	relayercmd "github.com/cosmos/relayer/v2/cmd"
 	relayertypes "github.com/cosmos/relayer/v2/relayer"
 	relayerconfig "github.com/cosmos/relayer/v2/relayer/chains/cosmos"
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/pkg/errors"
-	"os"
-	"path"
-	"reflect"
 )
 
 // EstablishIBCChannelsWithNFTTransfer creates a new IBC channel for fungible transfer, and one with NFT transfer
@@ -42,7 +43,7 @@ func establishIBCChannels(
 		initializeConfig,
 		initializeChains(input, relayerPath),
 		initializePaths(input, relayerPath),
-		initializeRelayerKeyring(input, relayerPath),
+		initializeRelayerKeyring(input),
 
 		// create default transfer ports
 		link,
@@ -191,7 +192,7 @@ func initializePaths(input launchtools.Input, basePath string) func(*Relayer) er
 
 // initializeRelayerKeyring initializes the keyring for the relayer
 // cosmos/relayer uses its own keyring to manage keys. for this, we need to restore the relayer key
-func initializeRelayerKeyring(input launchtools.Input, basePath string) func(*Relayer) error {
+func initializeRelayerKeyring(input launchtools.Input) func(*Relayer) error {
 	relayerKeyFromInput := reflect.ValueOf(input.SystemKeys).FieldByName(RelayerKeyName)
 	if !relayerKeyFromInput.IsValid() {
 		panic(errors.New("relayer key not found in input"))

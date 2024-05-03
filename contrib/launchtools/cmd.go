@@ -2,15 +2,15 @@ package launchtools
 
 import (
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 func LaunchCmd(
-	appCreator servertypes.AppCreator,
+	appCreator AppCreator,
 	defaultGenesisGetter func(denom string) map[string]json.RawMessage,
 	steps []LauncherStepFuncFactory[Input],
 ) *cobra.Command {

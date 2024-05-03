@@ -232,8 +232,6 @@ require (
 
 replace github.com/initia-labs/OPinit/api => ./api
 
-replace github.com/cosmos/cosmos-sdk => github.com/initia-labs/cosmos-sdk v0.0.0-20240425031032-6bc18cf6e67d
-
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0

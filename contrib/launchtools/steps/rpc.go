@@ -26,7 +26,6 @@ func InitializeRPCHelpers(input launchtools.Input) launchtools.LauncherStepFunc 
 			ctx.ClientContext().InterfaceRegistry,
 			ctx.ClientContext().TxConfig,
 		)
-
 		if err != nil {
 			return errors.Wrapf(err, "failed to create RPC client for L1")
 		}
@@ -44,6 +43,9 @@ func InitializeRPCHelpers(input launchtools.Input) launchtools.LauncherStepFunc 
 			ctx.ClientContext().InterfaceRegistry,
 			ctx.ClientContext().TxConfig,
 		)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create RPC client for L2")
+		}
 
 		ctx.SetRPCHelpers(l1, l2)
 

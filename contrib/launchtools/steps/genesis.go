@@ -1,9 +1,11 @@
 package steps
 
 import (
-	"cosmossdk.io/log"
 	"encoding/json"
 	"fmt"
+	"strings"
+
+	"cosmossdk.io/log"
 	"github.com/cometbft/cometbft/config"
 	cometos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,7 +20,6 @@ import (
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 type (
@@ -219,6 +220,9 @@ func initializeGenesis(
 	appGenesis.AppVersion = version.Version
 	appGenesis.ChainID = manifest.L2Config.ChainID
 	appGenesis.AppState, err = json.MarshalIndent(genesisAppState, "", " ")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal app state")
+	}
 
 	// validate genesis
 	if err := appGenesis.ValidateAndComplete(); err != nil {
@@ -298,11 +302,6 @@ func addGenesisValidator(
 	opChildState := opchildtypes.GetGenesisStateFromAppState(cdc, genesisAppState)
 	opChildState.Validators = append((*opChildState).Validators, validator)
 
-	// initialize admin and bridge executor if not set
-	// default: validator
-	if opChildState.Params.Admin == "" {
-		opChildState.Params.Admin = sdk.AccAddress(valPubKey.Address()).String()
-	}
 	return opChildState, nil
 }
 
@@ -311,9 +310,7 @@ func addFeeWhitelists(cdc codec.Codec, genesisAppState map[string]json.RawMessag
 	error,
 ) {
 	opchildState := opchildtypes.GetGenesisStateFromAppState(cdc, genesisAppState)
-	for _, w := range whitelistAddrs {
-		opchildState.Params.FeeWhitelist = append(opchildState.Params.FeeWhitelist, w)
-	}
+	opchildState.Params.FeeWhitelist = append(opchildState.Params.FeeWhitelist, whitelistAddrs...)
 
 	return opchildState, nil
 }
