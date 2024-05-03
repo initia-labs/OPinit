@@ -51,6 +51,10 @@ func (b AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, serv
 	if err != nil {
 		panic(err)
 	}
+
+	if err := stakingtypes.RegisterQueryHandlerClient(context.Background(), serveMux, stakingtypes.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // Name returns the move module's name.
