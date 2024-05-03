@@ -23,4 +23,6 @@ var (
 	OutputProposalPrefix   = []byte{0x51}
 	NextOutputIndexPrefix  = []byte{0x61}
 	ProvenWithdrawalPrefix = []byte{0x71}
+
+	Splitter = byte('|')
 )
