@@ -7,8 +7,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	OracleArtifactName = "L1_CLIENT_ID"
+)
+
 // EnableOracle enables the OP oracle (?)
 func EnableOracle(input launchtools.Input) launchtools.LauncherStepFunc {
+	if !input.OpBridge.EnableOracle {
+		return func(ctx launchtools.Launcher) error {
+			ctx.Logger().Info("oracle not enabled, skipping")
+			return nil
+		}
+	}
+
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("enabling oracle")
 
@@ -48,6 +59,6 @@ func EnableOracle(input launchtools.Input) launchtools.LauncherStepFunc {
 		}
 
 		// otherwise write to a file and return
-		return ctx.WriteToFile("oracle-client-id", l1ClientID)
+		return ctx.WriteOutput(OracleArtifactName, l1ClientID)
 	}
 }

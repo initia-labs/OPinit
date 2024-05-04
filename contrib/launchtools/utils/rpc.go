@@ -48,6 +48,11 @@ func NewRPCHelper(
 	}, nil
 }
 
+// GetStatus returns the status of the chain
+func (r *RPCHelper) GetStatus() (*coretypes.ResultStatus, error) {
+	return r.cliCtx.Client.Status(context.Background())
+}
+
 // GetNonce returns the account information for the given address
 func (r *RPCHelper) GetNonce(address string) (client.Account, error) {
 	addr, _ := sdk.AccAddressFromBech32(address)

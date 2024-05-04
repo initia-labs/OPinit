@@ -43,6 +43,7 @@ type OpBridge struct {
 	SubmitTarget        string    `json:"submit_target"`
 	SubmissionInterval  string    `json:"submission_interval"`
 	FinalizationPeriod  string    `json:"finalization_period"`
+	EnableOracle        bool      `json:"enable_oracle"`
 }
 
 type L1Config struct {
