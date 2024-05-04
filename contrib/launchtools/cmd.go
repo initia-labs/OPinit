@@ -61,7 +61,7 @@ func LaunchCmd(
 			}
 
 			// print out the artifacts to stdout
-			artifacts, err := launcher.GetOutput()
+			artifacts, err := launcher.FinalizeOutput()
 			if err != nil {
 				return errors.Wrap(err, "failed to get output")
 			}

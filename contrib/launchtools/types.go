@@ -94,7 +94,7 @@ type Launcher interface {
 	WriteOutput(name string, data string) error
 
 	// GetOutput returns the output data.
-	GetOutput() (string, error)
+	FinalizeOutput() (string, error)
 }
 
 var _ Launcher = &LauncherContext{}
@@ -237,10 +237,15 @@ func (l *LauncherContext) WriteOutput(filename string, data string) error {
 	return nil
 }
 
-func (l *LauncherContext) GetOutput() (string, error) {
+func (l *LauncherContext) FinalizeOutput() (string, error) {
 	bz, err := json.Marshal(l.artifacts)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to marshal artifacts")
+	}
+
+	// write the artifacts to a file
+	if err := os.WriteFile(path.Join(l.artifactsDir, "artifacts.json"), bz, os.ModePerm); err != nil {
+		return "", errors.Wrap(err, "failed to write artifacts to file")
 	}
 
 	return string(bz), nil
