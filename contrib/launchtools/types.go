@@ -90,10 +90,10 @@ type Launcher interface {
 	SetErrorGroup(g *errgroup.Group)
 	GetErrorGroup() *errgroup.Group
 
-	// WriteOutput writes data to a file under $HOME/out.
+	// WriteOutput writes data to internal artifacts buffer.
 	WriteOutput(name string, data string) error
 
-	// GetOutput returns the output data.
+	// FinalizeOutput returns the output data in JSON.
 	FinalizeOutput() (string, error)
 }
 
@@ -220,16 +220,6 @@ func (l *LauncherContext) GetRPCHelperL2() *utils.RPCHelper {
 }
 
 func (l *LauncherContext) WriteOutput(filename string, data string) error {
-	file, err := os.Create(path.Join(l.artifactsDir, filename))
-	if err != nil {
-		return errors.Wrap(err, "failed to create file")
-	}
-	defer file.Close()
-
-	if _, err := file.Write([]byte(data)); err != nil {
-		return errors.Wrap(err, "failed to write data to file")
-	}
-
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
 	l.artifacts[filename] = data
