@@ -90,8 +90,11 @@ type Launcher interface {
 	SetErrorGroup(g *errgroup.Group)
 	GetErrorGroup() *errgroup.Group
 
-	// WriteToFile writes data to a file under $HOME/out.
-	WriteToFile(filename string, data string) error
+	// WriteOutput writes data to internal artifacts buffer.
+	WriteOutput(name string, data string) error
+
+	// FinalizeOutput returns the output data in JSON.
+	FinalizeOutput() (string, error)
 }
 
 var _ Launcher = &LauncherContext{}
@@ -113,6 +116,10 @@ type LauncherContext struct {
 
 	// errorgroup is used to manage the lifecycle of the app.
 	errorgroup *errgroup.Group
+
+	// artifacts is a map of artifacts that are created during the launch process.
+	artifactsDir string
+	artifacts    map[string]string
 }
 
 func NewLauncher(
@@ -121,6 +128,7 @@ func NewLauncher(
 	serverCtx *server.Context,
 	appCreator AppCreator,
 	defaultGenesis map[string]json.RawMessage,
+	artifactsDir string,
 ) *LauncherContext {
 	kr, err := keyring.New("minitia", keyring.BackendTest, clientCtx.HomeDir, nil, clientCtx.Codec)
 	if err != nil {
@@ -138,8 +146,10 @@ func NewLauncher(
 	ophosttypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
 	opchildtypes.RegisterInterfaces(clientCtx.InterfaceRegistry)
 
-	if err := os.MkdirAll(path.Join(nextClientCtx.HomeDir, OutDir), os.ModePerm); err != nil {
-		panic("failed to create out directory")
+	// prepare artifacts output
+	artifactsDirFQ := path.Join(nextClientCtx.HomeDir, artifactsDir)
+	if err := os.MkdirAll(artifactsDirFQ, os.ModePerm); err != nil {
+		panic("failed to create artifacts directory")
 	}
 
 	return &LauncherContext{
@@ -150,6 +160,8 @@ func NewLauncher(
 		appCreator:     appCreator,
 		cmd:            cmd,
 		defaultGenesis: defaultGenesis,
+		artifactsDir:   artifactsDirFQ,
+		artifacts:      map[string]string{},
 	}
 }
 
@@ -207,18 +219,26 @@ func (l *LauncherContext) GetRPCHelperL2() *utils.RPCHelper {
 	return l.rpcHelperL2
 }
 
-func (l *LauncherContext) WriteToFile(filename string, data string) error {
-	file, err := os.Create(path.Join(l.clientCtx.HomeDir, OutDir, filename))
-	if err != nil {
-		return errors.Wrap(err, "failed to create file")
-	}
-	defer file.Close()
-
-	if _, err := file.Write([]byte(data)); err != nil {
-		return errors.Wrap(err, "failed to write data to file")
-	}
+func (l *LauncherContext) WriteOutput(filename string, data string) error {
+	l.mtx.Lock()
+	defer l.mtx.Unlock()
+	l.artifacts[filename] = data
 
 	return nil
+}
+
+func (l *LauncherContext) FinalizeOutput() (string, error) {
+	bz, err := json.Marshal(l.artifacts)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to marshal artifacts")
+	}
+
+	// write the artifacts to a file
+	if err := os.WriteFile(path.Join(l.artifactsDir, "artifacts.json"), bz, os.ModePerm); err != nil {
+		return "", errors.Wrap(err, "failed to write artifacts to file")
+	}
+
+	return string(bz), nil
 }
 
 func (l *LauncherContext) SetErrorGroup(g *errgroup.Group) {

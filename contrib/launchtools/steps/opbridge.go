@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+const (
+	BridgeArtifactName = "BRIDGE_ID"
+)
+
 // InitializeOpBridge creates OP bridge between OPChild and OPHost
 func InitializeOpBridge(
 	input launchtools.Input,
@@ -82,7 +86,7 @@ func InitializeOpBridge(
 		ctx.Logger().Info("opbridge created", "op-bridge-id", opBridgeId)
 
 		// otherwise write OpBridgeID to file and return
-		return ctx.WriteToFile("bridge-id", opBridgeId)
+		return ctx.WriteOutput(BridgeArtifactName, opBridgeId)
 	}
 }
 

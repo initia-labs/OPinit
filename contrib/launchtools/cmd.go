@@ -2,12 +2,17 @@ package launchtools
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+)
+
+const (
+	FlagArtifacts = "FlagArtifacts"
 )
 
 func LaunchCmd(
@@ -29,12 +34,18 @@ func LaunchCmd(
 				return err
 			}
 
+			artifactsDir, err := cmd.Flags().GetString(FlagArtifacts)
+			if err != nil {
+				return errors.Wrap(err, "failed to get artifacts flag")
+			}
+
 			launcher := NewLauncher(
 				cmd,
 				&clientCtx,
 				serverCtx,
 				appCreator,
 				defaultGenesisGetter(manifest.L2Config.Denom),
+				artifactsDir,
 			)
 
 			stepFns := make([]LauncherStepFunc, len(steps))
@@ -49,9 +60,21 @@ func LaunchCmd(
 				}
 			}
 
+			// print out the artifacts to stdout
+			artifacts, err := launcher.FinalizeOutput()
+			if err != nil {
+				return errors.Wrap(err, "failed to get output")
+			}
+
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "%s", artifacts); err != nil {
+				return errors.Wrap(err, "failed to write artifacts to stdout")
+			}
+
 			return nil
 		},
 	}
+
+	cmd.Flags().String(FlagArtifacts, "artifacts", "Path to the directory where artifacts will be stored")
 
 	return cmd
 }
