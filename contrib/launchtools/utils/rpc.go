@@ -2,17 +2,22 @@ package utils
 
 import (
 	"context"
-	"cosmossdk.io/log"
 	"encoding/hex"
+	"time"
+
+	"github.com/pkg/errors"
+
 	"github.com/cometbft/cometbft/rpc/client/http"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+
+	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/pkg/errors"
-	"time"
+
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type RPCHelper struct {
@@ -61,6 +66,35 @@ func (r *RPCHelper) GetNonce(address string) (client.Account, error) {
 		r.cliCtx,
 		addr,
 	)
+}
+
+func (r *RPCHelper) GetBridgeInfo(bridgeId uint64) (*ophosttypes.QueryBridgeResponse, error) {
+	bz, err := r.cliCtx.Codec.Marshal(&ophosttypes.QueryBridgeRequest{
+		BridgeId: bridgeId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := r.cliCtx.Client.ABCIQuery(
+		context.Background(),
+		"/opinit.ophost.v1.Query/Bridge",
+		bz,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if res.Response.Code != 0 {
+		return nil, errors.Errorf("failed to query bridge info: %s", res.Response.Log)
+	}
+
+	var bridgeInfoRes ophosttypes.QueryBridgeResponse
+	err = r.cliCtx.Codec.Unmarshal(res.Response.Value, &bridgeInfoRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bridgeInfoRes, nil
 }
 
 // BroadcastTxAndWait broadcasts a transaction and waits until it is included in a block.

@@ -48,6 +48,10 @@ type AppCreator interface {
 	App() servertypes.Application
 }
 
+type Relayer interface {
+	UpdateClients() error
+}
+
 // Launcher is an interface that provides the necessary methods to interact with the launcher.
 // It is used to abstract away the underlying contexts, and provide a non-intrusive way to interact with the launcher.
 type Launcher interface {
@@ -90,6 +94,14 @@ type Launcher interface {
 	SetErrorGroup(g *errgroup.Group)
 	GetErrorGroup() *errgroup.Group
 
+	// SetBridgeId sets the bridge id.
+	SetBridgeId(id uint64)
+	GetBridgeId() *uint64
+
+	// SetRelayer sets the relayer.
+	SetRelayer(relayer Relayer)
+	GetRelayer() Relayer
+
 	// WriteOutput writes data to internal artifacts buffer.
 	WriteOutput(name string, data string) error
 
@@ -120,6 +132,9 @@ type LauncherContext struct {
 	// artifacts is a map of artifacts that are created during the launch process.
 	artifactsDir string
 	artifacts    map[string]string
+
+	bridgeId *uint64
+	relayer  Relayer
 }
 
 func NewLauncher(
@@ -217,6 +232,22 @@ func (l *LauncherContext) GetRPCHelperL1() *utils.RPCHelper {
 
 func (l *LauncherContext) GetRPCHelperL2() *utils.RPCHelper {
 	return l.rpcHelperL2
+}
+
+func (l *LauncherContext) SetBridgeId(id uint64) {
+	l.bridgeId = &id
+}
+
+func (l *LauncherContext) GetBridgeId() *uint64 {
+	return l.bridgeId
+}
+
+func (l *LauncherContext) SetRelayer(relayer Relayer) {
+	l.relayer = relayer
+}
+
+func (l *LauncherContext) GetRelayer() Relayer {
+	return l.relayer
 }
 
 func (l *LauncherContext) WriteOutput(filename string, data string) error {

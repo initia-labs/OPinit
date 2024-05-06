@@ -3,9 +3,10 @@ package launchtools
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"os"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type Input struct {
@@ -13,7 +14,6 @@ type Input struct {
 	L1Config        L1Config             `json:"l1_config"`
 	OpBridge        OpBridge             `json:"op_bridge"`
 	SystemKeys      SystemKeys           `json:"system_keys"`
-	UserKeys        []UserKeys           `json:"user_keys"`
 	GenesisAccounts []AccountWithBalance `json:"genesis_accounts"`
 }
 
@@ -43,7 +43,6 @@ type OpBridge struct {
 	SubmitTarget        string    `json:"submit_target"`
 	SubmissionInterval  string    `json:"submission_interval"`
 	FinalizationPeriod  string    `json:"finalization_period"`
-	EnableOracle        bool      `json:"enable_oracle"`
 }
 
 type L1Config struct {
@@ -74,12 +73,6 @@ type SystemKeys struct {
 	Challenger Account `json:"challenger"`
 	Submitter  Account `json:"submitter"`
 	Relayer    Account `json:"relayer"`
-}
-
-type UserKeys struct {
-	Name     string `json:"name"`
-	Address  string `json:"address"`
-	Mnemonic string `json:"mnemonic"`
 }
 
 func (i Input) Validate() error {
