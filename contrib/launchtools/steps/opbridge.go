@@ -2,6 +2,9 @@ package steps
 
 import (
 	"encoding/json"
+	"strconv"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/initia-labs/OPinit/contrib/launchtools"
@@ -9,7 +12,6 @@ import (
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	ophosthooktypes "github.com/initia-labs/OPinit/x/ophost/types/hook"
 	"github.com/pkg/errors"
-	"time"
 )
 
 const (
@@ -66,7 +68,6 @@ func InitializeOpBridge(
 			sdk.NewCoins(sdk.NewInt64Coin(input.L1Config.Denom, 500000)),
 			createOpBridgeMessage,
 		)
-
 		if err != nil {
 			return errors.Wrap(err, "failed to broadcast tx")
 		}
@@ -84,6 +85,12 @@ func InitializeOpBridge(
 		}
 
 		ctx.Logger().Info("opbridge created", "op-bridge-id", opBridgeId)
+
+		bridgeId, err := strconv.ParseUint(opBridgeId, 10, 64)
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse OpBridgeID %s", opBridgeId)
+		}
+		ctx.SetBridgeId(bridgeId)
 
 		// otherwise write OpBridgeID to file and return
 		return ctx.WriteOutput(BridgeArtifactName, opBridgeId)

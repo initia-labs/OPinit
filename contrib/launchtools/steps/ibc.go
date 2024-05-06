@@ -57,7 +57,10 @@ func establishIBCChannels(
 			return errors.New("app is not initialized")
 		}
 
-		return runLifecycle(NewRelayer(ctx.Context(), relayerPath, ctx.Logger()))
+		relayer := NewRelayer(ctx.Context(), relayerPath, ctx.Logger())
+		ctx.SetRelayer(relayer)
+
+		return runLifecycle(relayer)
 	}
 }
 
@@ -293,4 +296,13 @@ func (r *Relayer) run(args []string) error {
 
 	cmd.SetArgs(append(args, []string{"--home", r.home}...))
 	return cmd.ExecuteContext(context.Background())
+}
+
+func (r *Relayer) UpdateClients() error {
+	r.logger.Info("update clients...")
+	return r.run([]string{
+		"tx",
+		"update-clients",
+		RelayerPathName,
+	})
 }
