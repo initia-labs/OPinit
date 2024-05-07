@@ -1,32 +1,41 @@
 package steps
 
 import (
+	"reflect"
+
+	"github.com/pkg/errors"
+
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
-	"github.com/pkg/errors"
-	"reflect"
 )
+
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeKeyring
 
 // InitializeKeyring adds all system keys to the keyring
 // Only system keys are added to the keyring, since the user keys are added by the user
-func InitializeKeyring(input launchtools.Input) launchtools.LauncherStepFunc {
+func InitializeKeyring(config *launchtools.Config) launchtools.LauncherStepFunc {
 	// keyAdders is a slice of functions that add keys to the keyring
 	var keyAdders = make([]func(keyring.Keyring, log.Logger) error, 0)
 
 	// use reflect to iterate over all system keys, since it's a struct
 	// also this is future-proof in case any new system key is added
-	systemKeys := reflect.ValueOf(input.SystemKeys)
+	systemKeys := reflect.ValueOf(*config.SystemKeys)
 	for i := 0; i < systemKeys.NumField(); i++ {
 		fieldName := systemKeys.Type().Field(i).Name
-		k, ok := systemKeys.Field(i).Interface().(launchtools.Account)
+		k, ok := systemKeys.Field(i).Interface().(*launchtools.Account)
 		if !ok {
 			panic(errors.New("systemKeys must be of type launcher.Account"))
 		}
 
 		keyAdders = append(keyAdders, func(kr keyring.Keyring, l log.Logger) error {
+			if fieldName != BridgeExecutorKeyName && fieldName != OperatorKeyName {
+				return nil
+			}
+
 			l.Info("adding system key",
 				"key-name", fieldName,
 				"address", k.Address,

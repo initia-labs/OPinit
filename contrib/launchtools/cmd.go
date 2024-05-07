@@ -1,8 +1,10 @@
 package launchtools
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"path"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -12,31 +14,55 @@ import (
 )
 
 const (
-	FlagArtifacts = "FlagArtifacts"
+	flagArtifactsDir = "artifacts-dir"
+	flagWithConfig   = "with-config"
 )
 
 func LaunchCmd(
 	appCreator AppCreator,
 	defaultGenesisGetter func(denom string) map[string]json.RawMessage,
-	steps []LauncherStepFuncFactory[Input],
+	steps []LauncherStepFuncFactory[*Config],
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "launch [path to manifest]",
+		Use:   "launch [target-chain-id]",
 		Short: "Launch a new instance of the app",
-		Args:  cobra.ExactArgs(1),
+		Long: `Launch a new instance of the app. This command will execute a series of steps to
+initialize the app and generate the necessary configuration files. The artifacts will be stored in the
+specified directory. The command will output the artifacts to stdout too.
+
+Example:
+$ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
+`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
-			manifestPath := args[0]
-			manifest, err := Input{}.FromFile(manifestPath)
-			if err != nil {
-				return err
+			targetNetwork := args[0]
+			if targetNetwork == "" {
+				return errors.New("target chain id is required")
 			}
 
-			artifactsDir, err := cmd.Flags().GetString(FlagArtifacts)
+			artifactsDir, err := cmd.Flags().GetString(flagArtifactsDir)
 			if err != nil {
 				return errors.Wrap(err, "failed to get artifacts flag")
+			}
+
+			configPath, err := cmd.Flags().GetString(flagWithConfig)
+			if err != nil {
+				return errors.Wrap(err, "failed to get config flag")
+			}
+
+			config := &Config{}
+			if configPath != "" {
+				config, err = Config{}.FromFile(configPath)
+				if err != nil {
+					return err
+				}
+			}
+
+			if err := config.Finalize(targetNetwork, bufio.NewReader(clientCtx.Input)); err != nil {
+				return errors.Wrap(err, "failed to finalize config")
 			}
 
 			launcher := NewLauncher(
@@ -44,14 +70,14 @@ func LaunchCmd(
 				&clientCtx,
 				serverCtx,
 				appCreator,
-				defaultGenesisGetter(manifest.L2Config.Denom),
+				defaultGenesisGetter(config.L2Config.Denom),
 				artifactsDir,
 			)
 
 			stepFns := make([]LauncherStepFunc, len(steps))
 
 			for stepI, step := range steps {
-				stepFns[stepI] = step(*manifest)
+				stepFns[stepI] = step(config)
 			}
 
 			for _, stepFn := range stepFns {
@@ -61,12 +87,21 @@ func LaunchCmd(
 			}
 
 			// print out the artifacts to stdout
-			artifacts, err := launcher.FinalizeOutput()
+			artifacts, err := launcher.FinalizeOutput(config)
 			if err != nil {
 				return errors.Wrap(err, "failed to get output")
 			}
 
-			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "%s", artifacts); err != nil {
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), `
+############################################
+Artifact written to %s and %s.
+
+%s
+`,
+				path.Join(clientCtx.HomeDir, artifactsDir, "config.json"),
+				path.Join(clientCtx.HomeDir, artifactsDir, "artifact.json"),
+				artifacts,
+			); err != nil {
 				return errors.Wrap(err, "failed to write artifacts to stdout")
 			}
 
@@ -74,7 +109,8 @@ func LaunchCmd(
 		},
 	}
 
-	cmd.Flags().String(FlagArtifacts, "artifacts", "Path to the directory where artifacts will be stored")
+	cmd.Flags().String(flagArtifactsDir, "artifacts", "Path to the directory where artifacts will be stored")
+	cmd.Flags().String(flagWithConfig, "", "Path to the config file to use for the launch")
 
 	return cmd
 }

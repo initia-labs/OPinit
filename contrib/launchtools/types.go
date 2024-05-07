@@ -106,7 +106,7 @@ type Launcher interface {
 	WriteOutput(name string, data string) error
 
 	// FinalizeOutput returns the output data in JSON.
-	FinalizeOutput() (string, error)
+	FinalizeOutput(config *Config) (string, error)
 }
 
 var _ Launcher = &LauncherContext{}
@@ -258,15 +258,25 @@ func (l *LauncherContext) WriteOutput(filename string, data string) error {
 	return nil
 }
 
-func (l *LauncherContext) FinalizeOutput() (string, error) {
-	bz, err := json.Marshal(l.artifacts)
+func (l *LauncherContext) FinalizeOutput(config *Config) (string, error) {
+	// write the artifacts to a file
+	bz, err := json.MarshalIndent(l.artifacts, "", " ")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to marshal artifacts")
 	}
 
-	// write the artifacts to a file
 	if err := os.WriteFile(path.Join(l.artifactsDir, "artifacts.json"), bz, os.ModePerm); err != nil {
 		return "", errors.Wrap(err, "failed to write artifacts to file")
+	}
+
+	// write the config to a file
+	configBz, err := json.MarshalIndent(config, "", " ")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to marshal config")
+	}
+
+	if err := os.WriteFile(path.Join(l.artifactsDir, "config.json"), configBz, os.ModePerm); err != nil {
+		return "", errors.Wrap(err, "failed to write config to file")
 	}
 
 	return string(bz), nil
