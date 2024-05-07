@@ -92,14 +92,20 @@ $ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
 				return errors.Wrap(err, "failed to get output")
 			}
 
-			if _, err := fmt.Fprintf(cmd.ErrOrStderr(), `
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), `
 ############################################
-Artifact written to %s and %s.
+Artifact written to 
+* %s
+* %s
 
-%s
 `,
 				path.Join(clientCtx.HomeDir, artifactsDir, "config.json"),
 				path.Join(clientCtx.HomeDir, artifactsDir, "artifact.json"),
+			); err != nil {
+				return errors.Wrap(err, "failed to write artifacts to stdout")
+			}
+
+			if _, err := fmt.Fprintf(cmd.ErrOrStderr(), `%s`,
 				artifacts,
 			); err != nil {
 				return errors.Wrap(err, "failed to write artifacts to stdout")
