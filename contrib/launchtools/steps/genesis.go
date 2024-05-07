@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/log"
-	"github.com/cometbft/cometbft/config"
+	conmetconfig "github.com/cometbft/cometbft/config"
 	cometos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -25,26 +25,28 @@ import (
 type (
 	GenesisPostSetupFunc func(
 		launchtools.Launcher,
-		launchtools.Input,
+		*launchtools.Config,
 		map[string]json.RawMessage,
 		codec.Codec,
 	) (map[string]json.RawMessage, error)
 )
 
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeGenesis
+
 // InitializeGenesis initializes the genesis state for the application.
 // Note: if you prefer adding more to the genesis, consider using InitializeGenesisWithPostSetup.
 func InitializeGenesis(
-	input launchtools.Input,
+	config *launchtools.Config,
 ) launchtools.LauncherStepFunc {
-	return InitializeGenesisWithPostSetup()(input)
+	return InitializeGenesisWithPostSetup()(config)
 }
 
 // InitializeGenesisWithPostSetup initializes the genesis state for the application.
 // This function accepts a list of post-setup functions that can be used to modify the genesis state.
 func InitializeGenesisWithPostSetup(
 	postsetup ...GenesisPostSetupFunc,
-) launchtools.LauncherStepFuncFactory[launchtools.Input] {
-	return func(input launchtools.Input) launchtools.LauncherStepFunc {
+) launchtools.LauncherStepFuncFactory[*launchtools.Config] {
+	return func(config *launchtools.Config) launchtools.LauncherStepFunc {
 		return func(ctx launchtools.Launcher) error {
 			if ctx.IsAppInitialized() {
 				return errors.New("application already initialized. InitializeGenesis should only be called once")
@@ -52,7 +54,7 @@ func InitializeGenesisWithPostSetup(
 
 			appGenesis, err := initializeGenesis(
 				ctx,
-				input,
+				config,
 				ctx.Logger(),
 				ctx.ClientContext().Codec,
 				ctx.ServerContext().Config,
@@ -76,17 +78,17 @@ func InitializeGenesisWithPostSetup(
 
 func initializeGenesis(
 	ctx launchtools.Launcher,
-	manifest launchtools.Input,
+	config *launchtools.Config,
 	log log.Logger,
 	cdc codec.Codec,
-	config *config.Config,
+	cometConfig *conmetconfig.Config,
 	genesisAppState map[string]json.RawMessage,
 	postsetup ...GenesisPostSetupFunc,
 ) (*genutiltypes.AppGenesis, error) {
 	log.Info("initializing genesis")
 
 	// create validator mnemonic for sequencer operation
-	validatorKeySpec := manifest.SystemKeys.Validator
+	validatorKeySpec := config.SystemKeys.Validator
 	if !bip39.IsMnemonicValid(validatorKeySpec.Mnemonic) {
 		return nil, errors.New("invalid mnemonic for validator key")
 	}
@@ -94,7 +96,7 @@ func initializeGenesis(
 	// initialize default configs with validator system key.
 	// this must succeed, given validatorKeySpec is pre-validated
 	nodeId, valPubKey, err := genutil.InitializeNodeValidatorFilesFromMnemonic(
-		config,
+		cometConfig,
 		validatorKeySpec.Mnemonic,
 	)
 	if err != nil {
@@ -104,13 +106,13 @@ func initializeGenesis(
 	log.Info(
 		"created node identity",
 		"node_id", nodeId,
-		"chain_id", manifest.L2Config.ChainID,
+		"chain_id", config.L2Config.ChainID,
 		"validator_address", validatorKeySpec.Address,
-		"moniker", config.Moniker,
+		"moniker", cometConfig.Moniker,
 	)
 
 	// prepare genesis
-	genFilePath := config.GenesisFile()
+	genFilePath := cometConfig.GenesisFile()
 	if cometos.FileExists(genFilePath) {
 		return nil, errors.Wrap(err, "genesis file already exists")
 	}
@@ -122,13 +124,13 @@ func initializeGenesis(
 
 	// Step 1 -------------------------------------------------------------------------------------------
 	// Add genesis accounts to auth and bank modules
-	// iterate over all GenesisAccounts from manifest, validate them, and add them to the genesis state.
+	// iterate over all GenesisAccounts from config, validate them, and add them to the genesis state.
 	// this call modifies appstate.auth, appstate.bank
-	log.Info("adding genesis accounts", "accounts-len", len(manifest.GenesisAccounts))
+	log.Info("adding genesis accounts", "accounts-len", len(*config.GenesisAccounts))
 	genesisAuthState, genesisBankState, err := addGenesisAccounts(
 		cdc,
 		genesisAppState,
-		manifest.GenesisAccounts,
+		*config.GenesisAccounts,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add genesis accounts")
@@ -141,14 +143,14 @@ func initializeGenesis(
 	// Add genesis validator to opchild module
 	// this call modifies appstate.opchild
 	log.Info("adding genesis validator",
-		"moniker", manifest.L2Config.Moniker,
+		"moniker", config.L2Config.Moniker,
 		"validator_address_acc", validatorKeySpec.Address,
 		"validator_address_val", sdk.ValAddress(valPubKey.Address()).String(),
 	)
 	opChildState, err := addGenesisValidator(
 		cdc,
 		genesisAppState,
-		manifest.L2Config.Moniker,
+		config.L2Config.Moniker,
 		valPubKey,
 	)
 	if err != nil {
@@ -161,15 +163,17 @@ func initializeGenesis(
 	// Add fee whitelist to genesis
 	// whitelist specific operators for fee exemption
 	log.Info("adding fee whitelists",
-		"whitelist-len", 2,
+		"whitelist-len", 3,
 		"whitelists", strings.Join([]string{
-			manifest.SystemKeys.Validator.Address,
-			manifest.SystemKeys.Executor.Address,
+			config.SystemKeys.Validator.Address,
+			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.Challenger.Address,
 		}, ","),
 	)
 	opChildState, err = addFeeWhitelists(cdc, genesisAppState, []string{
-		manifest.SystemKeys.Validator.Address,
-		manifest.SystemKeys.Executor.Address,
+		config.SystemKeys.Validator.Address,
+		config.SystemKeys.BridgeExecutor.Address,
+		config.SystemKeys.Challenger.Address,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add fee whitelists")
@@ -180,10 +184,10 @@ func initializeGenesis(
 	// Step 4 -------------------------------------------------------------------------------------------
 	// Set bridge executor address in the genesis parameter
 	log.Info("setting bridge executor address",
-		"bridge-executor", manifest.SystemKeys.Executor.Address,
+		"bridge-executor", config.SystemKeys.BridgeExecutor.Address,
 	)
 
-	opChildState, err = setOpChildBridgeExecutorAddress(cdc, genesisAppState, manifest.SystemKeys.Executor.Address)
+	opChildState, err = setOpChildBridgeExecutorAddress(cdc, genesisAppState, config.SystemKeys.BridgeExecutor.Address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set bridge executor address")
 	}
@@ -193,10 +197,10 @@ func initializeGenesis(
 	// Step 5 -------------------------------------------------------------------------------------------
 	// Set admin address in the genesis parameter
 	log.Info("setting admin address",
-		"admin", manifest.SystemKeys.Validator.Address,
+		"admin", config.SystemKeys.Validator.Address,
 	)
 
-	opChildState, err = setOpChildAdminAddress(cdc, genesisAppState, manifest.SystemKeys.Validator.Address)
+	opChildState, err = setOpChildAdminAddress(cdc, genesisAppState, config.SystemKeys.Validator.Address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set bridge executor address")
 	}
@@ -205,7 +209,7 @@ func initializeGenesis(
 
 	// run post-setup, if any
 	for _, setup := range postsetup {
-		genesisAppState, err = setup(ctx, manifest, genesisAppState, cdc)
+		genesisAppState, err = setup(ctx, config, genesisAppState, cdc)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to run post-setup")
 		}
@@ -218,7 +222,7 @@ func initializeGenesis(
 	}
 	appGenesis.AppName = version.AppName
 	appGenesis.AppVersion = version.Version
-	appGenesis.ChainID = manifest.L2Config.ChainID
+	appGenesis.ChainID = config.L2Config.ChainID
 	appGenesis.AppState, err = json.MarshalIndent(genesisAppState, "", " ")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal app state")
@@ -241,7 +245,7 @@ func addGenesisAccounts(cdc codec.Codec, genesisAppState map[string]json.RawMess
 	bankGenState := banktypes.GetGenesisStateFromAppState(cdc, genesisAppState)
 	authGenState := authtypes.GetGenesisStateFromAppState(cdc, genesisAppState)
 
-	// iterate over all genesis accounts from manifest, validate them, and add them to the genesis state
+	// iterate over all genesis accounts from config, validate them, and add them to the genesis state
 	authAccounts, err := authtypes.UnpackAccounts(authGenState.Accounts)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get accounts from genesis state")

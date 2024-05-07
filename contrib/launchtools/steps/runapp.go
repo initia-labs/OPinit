@@ -11,9 +11,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = RunApp
+
 // RunApp runs the in-process application. This routine temporarily allows creation of empty blocks,
 // in order to expedite IBC channel establishment. It waits until the app generates at least 1 block after the genesis.
-func RunApp(_ launchtools.Input) launchtools.LauncherStepFunc {
+func RunApp(_ *launchtools.Config) launchtools.LauncherStepFunc {
 	return func(ctx launchtools.Launcher) error {
 		// temporarily allow creation of empty blocks
 		// this should help creation of ibc channels.

@@ -2,14 +2,15 @@ package steps
 
 import (
 	"fmt"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/pkg/errors"
 )
 
-var _ launchtools.LauncherStepFuncFactory[launchtools.Input] = GetL1Height
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = GetL1Height
 
 // GetL1Height gets the height of the L1 chain. Useful to determine opinit's initial monitor height.
-func GetL1Height(_ launchtools.Input) launchtools.LauncherStepFunc {
+func GetL1Height(_ *launchtools.Config) launchtools.LauncherStepFunc {
 	const OutputName = "EXECUTOR_L1_MONITOR_HEIGHT"
 
 	return func(ctx launchtools.Launcher) error {

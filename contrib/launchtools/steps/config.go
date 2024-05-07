@@ -2,12 +2,14 @@ package steps
 
 import "github.com/initia-labs/OPinit/contrib/launchtools"
 
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeConfig
+
 // InitializeConfig sets the config for the server context.
-func InitializeConfig(manifest launchtools.Input) launchtools.LauncherStepFunc {
+func InitializeConfig(config *launchtools.Config) launchtools.LauncherStepFunc {
 	return func(ctx launchtools.Launcher) error {
 		// set config
-		config := ctx.ServerContext().Config
-		config.Moniker = manifest.L2Config.Moniker
+		serverConfig := ctx.ServerContext().Config
+		serverConfig.Moniker = config.L2Config.Moniker
 
 		return nil
 	}

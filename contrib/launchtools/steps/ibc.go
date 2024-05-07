@@ -21,15 +21,15 @@ import (
 // - For minimove, this is usually fixed to "nft-transfer", "nft-transfer", "ics721-1".
 // - For miniwasm, this depends on the contract addresses; the caller must specify the correct values.
 // - getPorts needs to be a callback because the address is derived correctly only after sdkConfig is set
-func EstablishIBCChannelsWithNFTTransfer(getPorts func() (srcPort, dstPort, channelVersion string)) launchtools.LauncherStepFuncFactory[launchtools.Input] {
-	return func(input launchtools.Input) launchtools.LauncherStepFunc {
+func EstablishIBCChannelsWithNFTTransfer(getPorts func() (srcPort, dstPort, channelVersion string)) launchtools.LauncherStepFuncFactory[*launchtools.Config] {
+	return func(config *launchtools.Config) launchtools.LauncherStepFunc {
 		src, dst, cv := getPorts()
-		return establishIBCChannels(input, src, dst, cv)
+		return establishIBCChannels(config, src, dst, cv)
 	}
 }
 
 func establishIBCChannels(
-	input launchtools.Input,
+	config *launchtools.Config,
 	srcPort,
 	dstPort,
 	channelVersion string,
@@ -41,9 +41,9 @@ func establishIBCChannels(
 
 	runLifecycle := lifecycle(
 		initializeConfig,
-		initializeChains(input, relayerPath),
-		initializePaths(input, relayerPath),
-		initializeRelayerKeyring(input),
+		initializeChains(config, relayerPath),
+		initializePaths(config, relayerPath),
+		initializeRelayerKeyring(config),
 
 		// create default transfer ports
 		link,
@@ -72,7 +72,7 @@ func initializeConfig(r *Relayer) error {
 // initializeChains creates chain configuration files and initializes chains for the relayer
 // "chains" in cosmos/relayer lingo means srcChain and dstChain. Speficic ports are not created here.
 // see initializePaths.
-func initializeChains(input launchtools.Input, basePath string) func(*Relayer) error {
+func initializeChains(config *launchtools.Config, basePath string) func(*Relayer) error {
 	// ChainConfig is a struct that represents the configuration of a chain
 	// cosmos/relayer specific
 	type ChainConfig struct {
@@ -85,12 +85,12 @@ func initializeChains(input launchtools.Input, basePath string) func(*Relayer) e
 			Type: "cosmos",
 			Value: relayerconfig.CosmosProviderConfig{
 				Key:            RelayerKeyName,
-				ChainID:        input.L1Config.ChainID,
-				RPCAddr:        input.L1Config.RPCURL,
-				AccountPrefix:  input.L1Config.AccountPrefix,
+				ChainID:        config.L1Config.ChainID,
+				RPCAddr:        config.L1Config.RPC_URL,
+				AccountPrefix:  "init",
 				KeyringBackend: KeyringBackend,
 				GasAdjustment:  1.5,
-				GasPrices:      input.L1Config.GasPrices,
+				GasPrices:      config.L1Config.GasPrices,
 				Debug:          true,
 				Timeout:        "160s",
 				OutputFormat:   "json",
@@ -100,12 +100,12 @@ func initializeChains(input launchtools.Input, basePath string) func(*Relayer) e
 			Type: "cosmos",
 			Value: relayerconfig.CosmosProviderConfig{
 				Key:            RelayerKeyName,
-				ChainID:        input.L2Config.ChainID,
+				ChainID:        config.L2Config.ChainID,
 				RPCAddr:        "http://localhost:26657",
-				AccountPrefix:  input.L2Config.AccountPrefix,
+				AccountPrefix:  "init",
 				KeyringBackend: KeyringBackend,
 				GasAdjustment:  1.5,
-				GasPrices:      input.L2Config.GasPrices,
+				GasPrices:      "", // gas prices required for l2 txs
 				Debug:          true,
 				Timeout:        "160s",
 				OutputFormat:   "json",
@@ -153,13 +153,13 @@ func initializeChains(input launchtools.Input, basePath string) func(*Relayer) e
 
 // initializePaths creates a path configuration file and initializes paths for the relayer
 // Paths are nothing more than a pair of chains that are connected by a channel
-func initializePaths(input launchtools.Input, basePath string) func(*Relayer) error {
+func initializePaths(config *launchtools.Config, basePath string) func(*Relayer) error {
 	pathConfig := relayertypes.Path{
 		Src: &relayertypes.PathEnd{
-			ChainID: input.L2Config.ChainID,
+			ChainID: config.L2Config.ChainID,
 		},
 		Dst: &relayertypes.PathEnd{
-			ChainID: input.L1Config.ChainID,
+			ChainID: config.L1Config.ChainID,
 		},
 		Filter: relayertypes.ChannelFilter{
 			Rule:        "",
@@ -184,8 +184,8 @@ func initializePaths(input launchtools.Input, basePath string) func(*Relayer) er
 		return r.run([]string{
 			"paths",
 			"add",
-			input.L2Config.ChainID,
-			input.L1Config.ChainID,
+			config.L2Config.ChainID,
+			config.L1Config.ChainID,
 			RelayerPathName,
 			"-f",
 			fmt.Sprintf("%s/paths.json", basePath),
@@ -195,22 +195,21 @@ func initializePaths(input launchtools.Input, basePath string) func(*Relayer) er
 
 // initializeRelayerKeyring initializes the keyring for the relayer
 // cosmos/relayer uses its own keyring to manage keys. for this, we need to restore the relayer key
-func initializeRelayerKeyring(input launchtools.Input) func(*Relayer) error {
-	relayerKeyFromInput := reflect.ValueOf(input.SystemKeys).FieldByName(RelayerKeyName)
+func initializeRelayerKeyring(config *launchtools.Config) func(*Relayer) error {
+	relayerKeyFromInput := reflect.ValueOf(*config.SystemKeys).FieldByName(RelayerKeyName)
 	if !relayerKeyFromInput.IsValid() {
-		panic(errors.New("relayer key not found in input"))
+		panic(errors.New("relayer key not found in config"))
 	}
 
-	relayerKey := relayerKeyFromInput.Interface().(launchtools.Account)
-
+	relayerKey := relayerKeyFromInput.Interface().(*launchtools.Account)
 	return func(r *Relayer) error {
 		r.logger.Info("initializing keyring for relayer...",
 			"key-name", RelayerKeyName,
 		)
 
 		for _, chainName := range []string{
-			input.L2Config.ChainID,
-			input.L1Config.ChainID,
+			config.L2Config.ChainID,
+			config.L1Config.ChainID,
 		} {
 			if err := r.run([]string{
 				"keys",

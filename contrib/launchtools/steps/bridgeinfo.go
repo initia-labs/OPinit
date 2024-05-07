@@ -12,9 +12,11 @@ import (
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = SetBridgeInfo
+
 // SetBridgeInfo creates OP bridge between OPChild and OPHost
 func SetBridgeInfo(
-	input launchtools.Input,
+	config *launchtools.Config,
 ) launchtools.LauncherStepFunc {
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("SetBridgeInfo")
@@ -54,7 +56,7 @@ func SetBridgeInfo(
 				continue
 			}
 
-			if tcli.ChainId == input.L1Config.ChainID {
+			if tcli.ChainId == config.L1Config.ChainID {
 				ctx.Logger().Info("found L1 tendermint client", "client-id", st.ClientId)
 				l1ClientID = st.ClientId
 				break
@@ -74,17 +76,17 @@ func SetBridgeInfo(
 
 		// create SetBridgeInfo message
 		setBridgeInfoMessage := setBridgeInfo(
-			input.SystemKeys.Executor.Address,
+			config.SystemKeys.BridgeExecutor.Address,
 			bridgeId,
 			bridgeInfo.BridgeAddr,
-			input.L1Config.ChainID,
+			config.L1Config.ChainID,
 			l1ClientID,
 			bridgeInfo.BridgeConfig,
 		)
 		// send createOpBridgeMessage to host (L1)
 		txRes, err := ctx.GetRPCHelperL2().BroadcastTxAndWait(
-			input.SystemKeys.Executor.Address,
-			input.SystemKeys.Executor.Mnemonic,
+			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.BridgeExecutor.Mnemonic,
 			200000,
 			sdk.NewCoins(),
 			setBridgeInfoMessage,

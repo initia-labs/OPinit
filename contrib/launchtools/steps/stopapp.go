@@ -7,7 +7,9 @@ import (
 	launchertypes "github.com/initia-labs/OPinit/contrib/launchtools"
 )
 
-func StopApp(_ launchertypes.Input) launchertypes.LauncherStepFunc {
+var _ launchertypes.LauncherStepFuncFactory[*launchertypes.Config] = StopApp
+
+func StopApp(_ *launchertypes.Config) launchertypes.LauncherStepFunc {
 	return func(ctx launchertypes.Launcher) error {
 		if !ctx.IsAppInitialized() {
 			return errors.New("app is not initialized")

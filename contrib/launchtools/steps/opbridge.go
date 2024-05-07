@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/initia-labs/OPinit/contrib/launchtools"
@@ -14,13 +15,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	BridgeArtifactName = "BRIDGE_ID"
-)
+var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeOpBridge
+
+const BridgeArtifactName = "BRIDGE_ID"
 
 // InitializeOpBridge creates OP bridge between OPChild and OPHost
 func InitializeOpBridge(
-	input launchtools.Input,
+	config *launchtools.Config,
 ) launchtools.LauncherStepFunc {
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("initializing OpBridge")
@@ -40,14 +41,14 @@ func InitializeOpBridge(
 		// create OpBridgeMessage
 		createOpBridgeMessage, err := createOpBridge(
 			channels.Channels,
-			input.SystemKeys.Executor.Address,
-			input.SystemKeys.Challenger.Address,
-			input.SystemKeys.Output.Address,
-			input.SystemKeys.Submitter.Address,
-			input.OpBridge.SubmitTarget,
-			input.OpBridge.SubmissionInterval,
-			input.OpBridge.FinalizationPeriod,
-			input.OpBridge.SubmissionStartTime,
+			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.Challenger.Address,
+			config.SystemKeys.OutputSubmitter.Address,
+			config.SystemKeys.BatchSubmitter.Address,
+			config.OpBridge.BatchSubmitTarget,
+			*config.OpBridge.OutputSubmissionInterval,
+			*config.OpBridge.OutputFinalizationPeriod,
+			*config.OpBridge.OutputSubmissionStartTime,
 		)
 
 		ctx.Logger().Info("creating op bridge...", "message", createOpBridgeMessage.String())
@@ -57,15 +58,19 @@ func InitializeOpBridge(
 		}
 
 		ctx.Logger().Info("broadcasting tx to L1...",
-			"from-address", input.SystemKeys.Executor.Address,
+			"from-address", config.SystemKeys.BridgeExecutor.Address,
 		)
+
+		// already validated in config.go
+		gasPrices, _ := sdk.ParseDecCoins(config.L1Config.GasPrices)
+		gasFees, _ := gasPrices.MulDec(math.LegacyNewDecFromInt(math.NewInt(200000))).TruncateDecimal()
 
 		// send createOpBridgeMessage to host (L1)
 		res, err := ctx.GetRPCHelperL1().BroadcastTxAndWait(
-			input.SystemKeys.Executor.Address,
-			input.SystemKeys.Executor.Mnemonic,
+			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.BridgeExecutor.Mnemonic,
 			200000,
-			sdk.NewCoins(sdk.NewInt64Coin(input.L1Config.Denom, 500000)),
+			gasFees,
 			createOpBridgeMessage,
 		)
 		if err != nil {
@@ -104,8 +109,8 @@ func createOpBridge(
 	outputAddress string,
 	submitterAddress string,
 	submitTarget string,
-	submissionInterval string,
-	finalizationPeriod string,
+	submissionInterval time.Duration,
+	finalizationPeriod time.Duration,
 	submissionStartTime time.Time,
 ) (*ophosttypes.MsgCreateBridge, error) {
 	// generate ophosthooktypes.PermsMetadata
@@ -125,16 +130,6 @@ func createOpBridge(
 		return nil, errors.Wrapf(err, "failed to marshal perms metadata")
 	}
 
-	interval, err := time.ParseDuration(submissionInterval)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse submission interval %s", submissionInterval)
-	}
-
-	period, err := time.ParseDuration(finalizationPeriod)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse finalization period %s", finalizationPeriod)
-	}
-
 	// create OpBridgeMessage
 	return ophosttypes.NewMsgCreateBridge(
 		executorAddress,
@@ -145,8 +140,8 @@ func createOpBridge(
 				Submitter: submitterAddress,
 				Chain:     submitTarget,
 			},
-			SubmissionInterval:  interval,
-			FinalizationPeriod:  period,
+			SubmissionInterval:  submissionInterval,
+			FinalizationPeriod:  finalizationPeriod,
 			SubmissionStartTime: submissionStartTime,
 			Metadata:            permsMetadataJSON,
 		},
