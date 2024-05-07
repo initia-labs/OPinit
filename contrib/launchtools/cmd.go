@@ -92,7 +92,7 @@ $ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
 				return errors.Wrap(err, "failed to get output")
 			}
 
-			if _, err := fmt.Fprintf(cmd.OutOrStdout(), `
+			if _, err := fmt.Fprintf(cmd.ErrOrStderr(), `
 ############################################
 Artifact written to %s and %s.
 
