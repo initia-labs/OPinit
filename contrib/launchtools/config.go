@@ -19,11 +19,11 @@ import (
 )
 
 type Config struct {
-	L1Config        *L1Config        `json:"l1-config,omitempty"`
-	L2Config        *L2Config        `json:"l2-config,omitempty"`
-	OpBridge        *OpBridge        `json:"op-bridge,omitempty"`
-	SystemKeys      *SystemKeys      `json:"system-keys,omitempty"`
-	GenesisAccounts *GenesisAccounts `json:"genesis-accounts,omitempty"`
+	L1Config        *L1Config        `json:"l1_config,omitempty"`
+	L2Config        *L2Config        `json:"l2_config,omitempty"`
+	OpBridge        *OpBridge        `json:"op_bridge,omitempty"`
+	SystemKeys      *SystemKeys      `json:"system_keys,omitempty"`
+	GenesisAccounts *GenesisAccounts `json:"genesis_accounts,omitempty"`
 }
 
 func (input Config) FromFile(path string) (*Config, error) {
@@ -78,12 +78,12 @@ func (i *Config) Finalize(targetNetwork string, buf *bufio.Reader) error {
 }
 
 type L2Config struct {
-	ChainID string `json:"chain-id,omitempty"`
+	ChainID string `json:"chain_id,omitempty"`
 	Denom   string `json:"denom,omitempty"`
 	Moniker string `json:"moniker,omitempty"`
 
 	// BridgeID will be generated after the launch.
-	BridgeID uint64 `json:"bridge-id,omitempty"`
+	BridgeID uint64 `json:"bridge_id,omitempty"`
 }
 
 func (l2config *L2Config) Finalize() error {
@@ -104,12 +104,12 @@ func (l2config *L2Config) Finalize() error {
 
 type OpBridge struct {
 	// output submission setup
-	OutputSubmissionStartTime *time.Time     `json:"output-submission-start-time,omitempty"`
-	OutputSubmissionInterval  *time.Duration `json:"output-submission-interval,omitempty"`
-	OutputFinalizationPeriod  *time.Duration `json:"output-finalization-period,omitempty"`
+	OutputSubmissionStartTime *time.Time     `json:"output_submission_start_time,omitempty"`
+	OutputSubmissionInterval  *time.Duration `json:"output_submission_interval,omitempty"`
+	OutputFinalizationPeriod  *time.Duration `json:"output_finalization_period,omitempty"`
 
 	// batch submission setup
-	BatchSubmitTarget string `json:"batch-submission-target"`
+	BatchSubmitTarget string `json:"batch_submission_target"`
 }
 
 func (opBridge *OpBridge) Finalize() error {
@@ -141,9 +141,9 @@ func (opBridge *OpBridge) Finalize() error {
 }
 
 type L1Config struct {
-	ChainID   string `json:"chain-id,omitempty"`
-	RPC_URL   string `json:"rpc-url,omitempty"`
-	GasPrices string `json:"gas-prices,omitempty"`
+	ChainID   string `json:"chain_id,omitempty"`
+	RPC_URL   string `json:"rpc_url,omitempty"`
+	GasPrices string `json:"gas_prices,omitempty"`
 }
 
 func (l1config *L1Config) Finalize(targetNetwork string) error {
@@ -220,9 +220,9 @@ func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
 
 type SystemKeys struct {
 	Validator       *Account `json:"validator,omitempty"`
-	BridgeExecutor  *Account `json:"bridge-executor,omitempty"`
-	OutputSubmitter *Account `json:"output-submitter,omitempty"`
-	BatchSubmitter  *Account `json:"batch-submitter,omitempty"`
+	BridgeExecutor  *Account `json:"bridge_executor,omitempty"`
+	OutputSubmitter *Account `json:"output_submitter,omitempty"`
+	BatchSubmitter  *Account `json:"batch_submitter,omitempty"`
 
 	// Challenger does not require mnemonic
 	Challenger *Account `json:"challenger,omitempty"`
@@ -294,7 +294,7 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		}
 	}
 	if systemKeys.BridgeExecutor == nil {
-		mnemonic, err := input.GetString("Enter L1 gas token funded bridge-executor bip39 mnemonic", buf)
+		mnemonic, err := input.GetString("Enter L1 gas token funded bridge_executor bip39 mnemonic", buf)
 		if err != nil {
 			return err
 		}
@@ -354,13 +354,13 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		return errors.New("validator account not initialized")
 	}
 	if systemKeys.BatchSubmitter.Address == "" || systemKeys.BatchSubmitter.Mnemonic == "" {
-		return errors.New("batch-submitter account not initialized")
+		return errors.New("batch_submitter account not initialized")
 	}
 	if systemKeys.BridgeExecutor.Address == "" || systemKeys.BridgeExecutor.Mnemonic == "" {
-		return errors.New("bridge-executor account not initialized")
+		return errors.New("bridge_executor account not initialized")
 	}
 	if systemKeys.OutputSubmitter.Address == "" || systemKeys.OutputSubmitter.Mnemonic == "" {
-		return errors.New("output-submitter account not initialized")
+		return errors.New("output_submitter account not initialized")
 	}
 	if systemKeys.Challenger.Address == "" {
 		return errors.New("challenger account not initialized")
