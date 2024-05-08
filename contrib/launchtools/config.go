@@ -353,13 +353,13 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 	if systemKeys.Validator.Address == "" || systemKeys.Validator.Mnemonic == "" {
 		return errors.New("validator account not initialized")
 	}
-	if systemKeys.BatchSubmitter.Address == "" || systemKeys.BatchSubmitter.Mnemonic == "" {
-		return errors.New("batch_submitter account not initialized")
-	}
 	if systemKeys.BridgeExecutor.Address == "" || systemKeys.BridgeExecutor.Mnemonic == "" {
 		return errors.New("bridge_executor account not initialized")
 	}
-	if systemKeys.OutputSubmitter.Address == "" || systemKeys.OutputSubmitter.Mnemonic == "" {
+	if systemKeys.BatchSubmitter.Address == "" {
+		return errors.New("batch_submitter account not initialized")
+	}
+	if systemKeys.OutputSubmitter.Address == "" {
 		return errors.New("output_submitter account not initialized")
 	}
 	if systemKeys.Challenger.Address == "" {
