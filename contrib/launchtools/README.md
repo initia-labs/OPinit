@@ -27,60 +27,57 @@ minitiad launch $TARGET_NETWORK --with-config [path-to-config]
 
 ```json
 {
- "l1-config": {
-  "chain-id": "mahalo-3",
-  "rpc-url": "https://rpc.mahalo-3.initia.xyz:443",
-  "gas-prices": "0.15uinit"
+ "l1_config": {
+  "chain_id": "initiation-1",
+  "rpc_url": "https://rpc.initiation-1.initia.xyz:443",
+  "gas_prices": "0.15uinit"
  },
- "l2-config": {
-  "chain-id": "minitia-PBkigP-1",
+ "l2_config": {
+  "chain_id": "minitia-XDzNjd-1",
   "denom": "umin",
   "moniker": "operator"
  },
- "op-bridge": {
-  "output-submission-start-time": "2024-05-07T18:31:24.575116+09:00",
-  "output-submission-interval": 3600000000000,
-  "output-finalization-period": 3600000000000,
-  "batch-submission-target": "l1"
+ "op_bridge": {
+  "output_submission_start_time": "2024-05-08T12:23:15.488692+09:00",
+  "output_submission_interval": 3600000000000,
+  "output_finalization_period": 3600000000000,
+  "batch_submission_target": "l1"
  },
- "system-keys": {
+ "system_keys": {
   "validator": {
-   "address": "init1sms9vlcf0cn04lt2vuw8246eesgsr3unqcrx7p",
-   "mnemonic": "update cradle typical salute chunk utility confirm ghost science mad bonus ring word cube copy negative endless exact fan artwork pulp chunk valid melody"
+   "address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
+   "mnemonic": "digital kingdom slim fall cereal aspect expose trade once antique treat spatial unfair trip silver diesel other friend invest valve human blouse decrease salt"
   },
-  "bridge-executor": {
+  "bridge_executor": {
    "address": "init13skjgs2x96c4sk9mfkfdzjywm75l6wy63j5gyn",
    "mnemonic": "junk aunt group member rebel dinosaur will trial jacket core club obscure morning unit fame round render napkin boy chest same patrol twelve medal"
   },
-  "output-submitter": {
-   "address": "init1xz3769tse6kj2nr6d0u3cucyjkayee3arhc4f5",
-   "mnemonic": "rug wealth pull physical dragon zebra crash poem weird also exist click return benefit garbage omit mandate letter hidden decline uncle glare found cupboard"
+  "output_submitter": {
+   "address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f",
   },
-  "batch-submitter": {
-   "address": "init19um6segpjw38gjuuuh57pwpl0dutzw70h8k88k",
-   "mnemonic": "very motor food appear stone purse eyebrow round current rare install humble giant assume lawn giraffe tray lecture aspect people weird razor wrestle viable"
+  "batch_submitter": {
+   "address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72",
   },
   "challenger": {
-   "address": "init17kyjcs03d2avxn039f96jcfracahdk2sw40p82",
-   "mnemonic": "surprise foil sibling leisure ocean sketch north cover crowd tiger extra hair laugh hint small sight pole mistake unlock borrow river corn shell measure"
+   "address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88",
   }
  },
- "genesis-accounts": [
+ "genesis_accounts": [
   {
-   "address": "init1sms9vlcf0cn04lt2vuw8246eesgsr3unqcrx7p",
-   "coins": "1000000000umin"
+   "address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
+   "coins": "100000000umin"
   },
   {
    "address": "init13skjgs2x96c4sk9mfkfdzjywm75l6wy63j5gyn"
   },
   {
-   "address": "init1xz3769tse6kj2nr6d0u3cucyjkayee3arhc4f5"
+   "address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f"
   },
   {
-   "address": "init19um6segpjw38gjuuuh57pwpl0dutzw70h8k88k"
+   "address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72"
   },
   {
-   "address": "init17kyjcs03d2avxn039f96jcfracahdk2sw40p82"
+   "address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88"
   }
  ]
 }
