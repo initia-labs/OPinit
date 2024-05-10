@@ -33,16 +33,6 @@ func NewL2OracleHandler(
 	oracleKeeper *oraclekeeper.Keeper,
 	logger log.Logger,
 ) *L2OracleHandler {
-	voteAggregator := slinkyaggregator.NewDefaultVoteAggregator(
-		logger,
-		voteweighted.MedianFromContext(
-			logger,
-			k.HostValidatorStore,
-			voteweighted.DefaultPowerThreshold,
-		),
-		currencypair.NewDefaultCurrencyPairStrategy(oracleKeeper),
-	)
-
 	return &L2OracleHandler{
 		Keeper:       k,
 		oracleKeeper: oracleKeeper,
@@ -54,7 +44,15 @@ func NewL2OracleHandler(
 			slinkycodec.NewDefaultVoteExtensionCodec(),
 			slinkycodec.NewZLibCompressor(),
 		),
-		voteAggregator: voteAggregator,
+		voteAggregator: slinkyaggregator.NewDefaultVoteAggregator(
+			logger,
+			voteweighted.MedianFromContext(
+				logger,
+				k.HostValidatorStore,
+				voteweighted.DefaultPowerThreshold,
+			),
+			currencypair.NewHashCurrencyPairStrategy(oracleKeeper),
+		),
 	}
 }
 
