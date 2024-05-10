@@ -19,6 +19,7 @@ import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 	vetypes "github.com/skip-mev/slinky/abci/ve/types"
 	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
@@ -480,10 +481,13 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 			rawPrice, converted := new(big.Int).SetString(priceString, 10)
 			require.True(t, converted)
 
-			encodedPrice, err := cpStrategy.GetEncodedPrice(sdk.UnwrapSDKContext(ctx), cp, rawPrice)
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
+			encodedPrice, err := cpStrategy.GetEncodedPrice(sdkCtx, cp, rawPrice)
 			require.NoError(t, err)
 
-			id := oracletypes.CurrencyPairToID(currencyPairID)
+			id, err := currencypair.CurrencyPairToHashID(currencyPairID)
+			require.NoError(t, err)
+
 			convertedPrices[id] = encodedPrice
 		}
 		ove := vetypes.OracleVoteExtension{
