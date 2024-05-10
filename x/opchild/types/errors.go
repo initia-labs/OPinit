@@ -24,4 +24,5 @@ var (
 	ErrInvalidBridgeInfo               = errorsmod.Register(ModuleName, 17, "invalid bridge info")
 	ErrInvalidHeight                   = errorsmod.Register(ModuleName, 18, "invalid oracle height")
 	ErrInvalidPrices                   = errorsmod.Register(ModuleName, 19, "invalid oracle prices")
+	ErrMaxValidatorsExceeded           = errorsmod.Register(ModuleName, 20, "max validators exceeded")
 )

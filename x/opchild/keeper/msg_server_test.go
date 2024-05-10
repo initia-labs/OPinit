@@ -142,6 +142,24 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 
 	_, err = ms.AddValidator(ctx, msg)
 	require.Error(t, err)
+
+	params, err := ms.GetParams(ctx)
+	params.MaxValidators = 1
+	ms.SetParams(ctx, params)
+
+	msg, err = types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
+	require.NoError(t, err)
+
+	// max validators reached
+	_, err = ms.AddValidator(ctx, msg)
+	require.Error(t, err)
+
+	params, err = ms.GetParams(ctx)
+	params.MaxValidators = 2
+	ms.SetParams(ctx, params)
+
+	_, err = ms.AddValidator(ctx, msg)
+	require.NoError(t, err)
 }
 
 func Test_MsgServer_RemoveValidator(t *testing.T) {
