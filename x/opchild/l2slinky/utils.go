@@ -34,20 +34,27 @@ func ValidateVoteExtensions(
 	}
 
 	var (
-		// Total voting power of all vote extensions.
+		// Total voting power of all validators in current validator store.
 		totalVP int64
 		// Total voting power of all validators that submitted valid vote extensions.
 		sumVP int64
 	)
 
+	totalBondedTokens, err := valStore.TotalBondedTokens(ctx)
+	if err != nil {
+		return err
+	}
+	totalVP = totalBondedTokens.Int64()
+
 	for _, vote := range extCommit.Votes {
 		valConsAddr := sdk.ConsAddress(vote.Validator.Address)
 		power, err := valStore.GetPowerByConsAddr(ctx, valConsAddr)
 		if err != nil {
-			return fmt.Errorf("failed to get validator %X power: %w", valConsAddr, err)
-		}
+			// return fmt.Errorf("failed to get validator %X power: %w", valConsAddr, err)
 
-		totalVP += power.Int64()
+			// use only current validator set, so ignore if the validator of the vote is not in the set.
+			continue
+		}
 
 		if vote.BlockIdFlag == cmtproto.BlockIDFlagCommit && len(vote.ExtensionSignature) == 0 {
 			return fmt.Errorf("vote extension signature is missing; validator addr %s",

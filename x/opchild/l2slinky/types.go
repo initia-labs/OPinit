@@ -14,6 +14,7 @@ const ReservedCPTimestamp = "TIMESTAMP/NANOSECOND"
 // extension signatures. Typically, this will be implemented by the x/staking
 // module, which has knowledge of the CometBFT public key.
 type ValidatorStore interface {
+	TotalBondedTokens(ctx context.Context) (math.Int, error)
 	GetPubKeyByConsAddr(context.Context, sdk.ConsAddress) (cmtprotocrypto.PublicKey, error)
 	GetPowerByConsAddr(ctx context.Context, consAddr sdk.ConsAddress) (math.Int, error)
 }
