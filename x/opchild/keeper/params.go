@@ -33,6 +33,15 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 		return err
 	}
 
+	allValidators, err := k.GetAllValidators(ctx)
+	if err != nil {
+		return err
+	}
+
+	if int(params.MaxValidators) < len(allValidators) {
+		return types.ErrMaxValidatorsLowerThanCurrent
+	}
+
 	return k.Params.Set(ctx, params)
 }
 

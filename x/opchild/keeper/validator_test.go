@@ -152,10 +152,6 @@ func Test_LastValidatorPower(t *testing.T) {
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.MaxValidators = 1
-	input.OPChildKeeper.SetParams(ctx, params)
-
-	// should panic if there is more than 1 validators
-	require.Panics(t, func() {
-		_, _ = input.OPChildKeeper.GetLastValidators(ctx)
-	})
+	err = input.OPChildKeeper.SetParams(ctx, params)
+	require.Error(t, err)
 }

@@ -141,6 +141,20 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
+	allValidators, err := ms.GetAllValidators(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	numMaxValidators, err := ms.MaxValidators(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if int(numMaxValidators) <= len(allValidators) {
+		return nil, types.ErrMaxValidatorsExceeded
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	valAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.ValidatorAddress)
 	if err != nil {
