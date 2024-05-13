@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_GenesisImportExport(t *testing.T) {
+func Test_GenesisExport(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	params := input.OPHostKeeper.GetParams(ctx)
@@ -64,12 +64,11 @@ func Test_GenesisImportExport(t *testing.T) {
 	input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{1, 2, 3})
 	input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{3, 4, 5})
 
+	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{})
+	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1)
+	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3)
+
 	genState := input.OPHostKeeper.ExportGenesis(ctx)
-	input.OPHostKeeper.InitGenesis(ctx, genState)
-
-	_genState := input.OPHostKeeper.ExportGenesis(ctx)
-	require.Equal(t, genState, _genState)
-
 	require.Equal(t, uint64(3), genState.NextBridgeId)
 	require.Equal(t, params, genState.Params)
 	require.Equal(t, types.Bridge{
@@ -97,5 +96,80 @@ func Test_GenesisImportExport(t *testing.T) {
 			{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 			{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		},
+		BatchInfos: []types.BatchInfoWithOutput{
+			{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{}},
+			{types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1},
+			{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3},
+		},
 	}, genState.Bridges[0])
+}
+
+func Test_GenesisImportExport(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	params := input.OPHostKeeper.GetParams(ctx)
+	config1 := types.BridgeConfig{
+		Challenger:          addrsStr[1],
+		Proposer:            addrsStr[0],
+		SubmissionInterval:  100,
+		FinalizationPeriod:  100,
+		SubmissionStartTime: time.Now().UTC(),
+		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+	}
+	output1 := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   time.Now().UTC(),
+		L2BlockNumber: 100,
+	}
+	output2 := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   time.Now().UTC(),
+		L2BlockNumber: 200,
+	}
+	output3 := types.Output{
+		OutputRoot:    []byte{1, 2, 3},
+		L1BlockTime:   time.Now().UTC(),
+		L2BlockNumber: 100,
+	}
+
+	genState := &types.GenesisState{
+		Params: params,
+		Bridges: []types.Bridge{
+			types.Bridge{
+				BridgeId:        1,
+				NextL1Sequence:  100,
+				NextOutputIndex: 10,
+				BridgeConfig:    config1,
+				TokenPairs: []types.TokenPair{
+					{
+						L1Denom: "l1denom",
+						L2Denom: "l2denom",
+					},
+				},
+				Proposals: []types.WrappedOutput{
+					{
+						OutputIndex:    1,
+						OutputProposal: output1,
+					},
+					{
+						OutputIndex:    2,
+						OutputProposal: output2,
+					},
+				},
+				ProvenWithdrawals: [][]byte{
+					{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+					{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+				},
+				BatchInfos: []types.BatchInfoWithOutput{
+					{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{}},
+					{types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1},
+					{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3},
+				},
+			}},
+		NextBridgeId: 2,
+	}
+
+	input.OPHostKeeper.InitGenesis(ctx, genState)
+	_genState := input.OPHostKeeper.ExportGenesis(ctx)
+	require.Equal(t, genState, _genState)
 }

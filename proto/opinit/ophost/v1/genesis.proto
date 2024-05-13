@@ -34,6 +34,8 @@ message Bridge {
   repeated bytes proven_withdrawals = 6;
   // a list of l2 output proposals.
   repeated WrappedOutput proposals = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // a list of batch infos.
+  repeated BatchInfoWithOutput batch_infos = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 message WrappedOutput {

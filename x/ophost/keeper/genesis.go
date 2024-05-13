@@ -44,6 +44,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 				panic(err)
 			}
 		}
+
+		for _, batchInfo := range bridge.BatchInfos {
+			if err := k.SetBatchInfo(ctx, bridgeId, batchInfo.BatchInfo, batchInfo.Output); err != nil {
+				panic(err)
+			}
+		}
 	}
 
 	if err := k.SetNextBridgeId(ctx, data.NextBridgeId); err != nil {
@@ -96,6 +102,14 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 			return true, err
 		}
 
+		var batchInfos []types.BatchInfoWithOutput
+		if err := k.IterateBatchInfos(ctx, bridgeId, func(key collections.Pair[uint64, uint64], batchInfo types.BatchInfoWithOutput) (stop bool, err error) {
+			batchInfos = append(batchInfos, batchInfo)
+			return false, nil
+		}); err != nil {
+			return true, err
+		}
+
 		bridges = append(bridges, types.Bridge{
 			BridgeId:          bridgeId,
 			NextL1Sequence:    nextL1Sequence,
@@ -104,6 +118,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 			TokenPairs:        tokenPairs,
 			ProvenWithdrawals: provenWithdrawals,
 			Proposals:         proposals,
+			BatchInfos:        batchInfos,
 		})
 
 		return false, nil
