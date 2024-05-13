@@ -153,10 +153,8 @@ func (k Keeper) GetLastValidators(ctx context.Context) (validators []types.Valid
 	}
 
 	validators = make([]types.Validator, 0, maxValidators)
-
 	err = k.IterateLastValidatorPowers(ctx, func(operator []byte, power int64) (stop bool, err error) {
 		validators = append(validators, k.mustGetValidator(ctx, operator))
-
 		// sanity check
 		if len(validators) > int(maxValidators) {
 			panic("more validators than maxValidators found")
