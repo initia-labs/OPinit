@@ -81,3 +81,9 @@ message Output {
   // The l2 block number that the output root was submitted in.
   uint64 l2_block_number = 3;
 }
+
+// BatchInfoWithOutput defines the batch information with output.
+message BatchInfoWithOutput {
+  BatchInfo batchInfo = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Output output = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
