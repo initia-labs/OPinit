@@ -13,6 +13,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type MsgServer struct {
@@ -444,6 +445,26 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	coin := req.Amount
+
+	bridgeId, err := ms.BridgeId(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// register denom metadata
+	if ok := ms.bankKeeper.HasDenomMetaData(ctx, coin.Denom); !ok {
+		return nil, types.ErrNotTokenFromL1
+	}
+
+	baseDenom, ok := ms.getBaseDenomFromMetadata(ctx, coin.Denom)
+	if !ok {
+		return nil, types.ErrNotTokenFromL1
+	}
+
+	expectedL2Denom := ophosttypes.L2Denom(bridgeId, baseDenom)
+	if expectedL2Denom != coin.Denom {
+		return nil, types.ErrNotTokenFromL1
+	}
 
 	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {

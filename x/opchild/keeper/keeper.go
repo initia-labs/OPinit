@@ -157,6 +157,15 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }
 
+func (k Keeper) getBaseDenomFromMetadata(ctx context.Context, denom string) (string, bool) {
+	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	if !ok {
+		return "", false
+	}
+
+	return metadata.Display, true
+}
+
 // UpdateHostValidatorSet updates the host validator set.
 func (k Keeper) UpdateHostValidatorSet(ctx context.Context, clientID string, height int64, validatorSet *cmtproto.ValidatorSet) error {
 	if clientID == "" {
@@ -194,4 +203,13 @@ func (k Keeper) L1ChainId(ctx context.Context) (string, error) {
 	}
 
 	return info.L1ChainId, nil
+}
+
+func (k Keeper) BridgeId(ctx context.Context) (uint64, error) {
+	info, err := k.BridgeInfo.Get(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return info.BridgeId, nil
 }

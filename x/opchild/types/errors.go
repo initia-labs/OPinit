@@ -26,4 +26,5 @@ var (
 	ErrInvalidPrices                   = errorsmod.Register(ModuleName, 19, "invalid oracle prices")
 	ErrMaxValidatorsExceeded           = errorsmod.Register(ModuleName, 20, "max validators exceeded")
 	ErrMaxValidatorsLowerThanCurrent   = errorsmod.Register(ModuleName, 21, "max validators cannot be lower than current number of validators")
+	ErrNotTokenFromL1                  = errorsmod.Register(ModuleName, 22, "token is not from L1")
 )
