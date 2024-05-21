@@ -309,12 +309,12 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	// not token from l1
 	msg := types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin("foo", math.NewInt(100)))
 	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
+	require.Error(t, err)
 
 	// valid
 	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
 	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
-
 }
 
 /////////////////////////////////////////
