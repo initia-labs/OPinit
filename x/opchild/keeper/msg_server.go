@@ -13,7 +13,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type MsgServer struct {
@@ -407,6 +406,15 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		ms.setDenomMetadata(ctx, req.BaseDenom, coin.Denom)
 	}
 
+	// register denom pair
+	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
+		return nil, err
+	} else if !ok {
+		if err := ms.DenomPairs.Set(ctx, coin.Denom, req.BaseDenom); err != nil {
+			return nil, err
+		}
+	}
+
 	event := sdk.NewEvent(
 		types.EventTypeFinalizeTokenDeposit,
 		sdk.NewAttribute(types.AttributeKeyL1Sequence, strconv.FormatUint(req.Sequence, 10)),
@@ -446,23 +454,10 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	coin := req.Amount
 
-	bridgeId, err := ms.BridgeId(ctx)
-	if err != nil {
+	// check denom pair existence
+	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
 		return nil, err
-	}
-
-	// register denom metadata
-	if ok := ms.bankKeeper.HasDenomMetaData(ctx, coin.Denom); !ok {
-		return nil, types.ErrNotTokenFromL1
-	}
-
-	baseDenom, ok := ms.getBaseDenomFromMetadata(ctx, coin.Denom)
-	if !ok {
-		return nil, types.ErrNotTokenFromL1
-	}
-
-	expectedL2Denom := ophosttypes.L2Denom(bridgeId, baseDenom)
-	if expectedL2Denom != coin.Denom {
+	} else if !ok {
 		return nil, types.ErrNotTokenFromL1
 	}
 

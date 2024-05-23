@@ -145,6 +145,7 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	require.Error(t, err)
 
 	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
 	params.MaxValidators = 1
 	ms.SetParams(ctx, params)
 
@@ -156,6 +157,7 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	require.Error(t, err)
 
 	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
 	params.MaxValidators = 2
 	ms.SetParams(ctx, params)
 

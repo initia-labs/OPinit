@@ -50,6 +50,7 @@ type Keeper struct {
 	Validators           collections.Map[[]byte, types.Validator]
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
+	DenomPairs           collections.Map[string, string]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -107,6 +108,7 @@ func NewKeeper(
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
+		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,
@@ -155,15 +157,6 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
-}
-
-func (k Keeper) getBaseDenomFromMetadata(ctx context.Context, denom string) (string, bool) {
-	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
-	if !ok {
-		return "", false
-	}
-
-	return metadata.Display, true
 }
 
 // UpdateHostValidatorSet updates the host validator set.
