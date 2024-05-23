@@ -135,10 +135,14 @@ func Test_DeleteOutput(t *testing.T) {
 	_, err = input.OPHostKeeper.GetOutputProposal(ctx, 1, 1)
 	require.Error(t, err)
 
-	// should able to resubmit the same output
+	// should be able to resubmit the same output
 	proposeRes, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), proposeRes.OutputIndex)
+
+	// invalid output index: nextoutputindex is 2 now
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 2))
+	require.Error(t, err)
 }
 
 func Test_InitiateTokenDeposit(t *testing.T) {

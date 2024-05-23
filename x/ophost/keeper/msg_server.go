@@ -193,6 +193,10 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 		return nil, err
 	}
 
+	if outputIndex >= nextOutputIndex {
+		return nil, types.ErrInvalidOutputIndex
+	}
+
 	// delete output proposals in [outputIndex, nextOutputIndex) range
 	for i := outputIndex; i < nextOutputIndex; i++ {
 		if err := ms.DeleteOutputProposal(ctx, bridgeId, i); err != nil {
