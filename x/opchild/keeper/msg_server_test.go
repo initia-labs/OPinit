@@ -145,6 +145,7 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	require.Error(t, err)
 
 	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
 	params.MaxValidators = 1
 	ms.SetParams(ctx, params)
 
@@ -156,6 +157,7 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	require.Error(t, err)
 
 	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
 	params.MaxValidators = 2
 	ms.SetParams(ctx, params)
 
@@ -272,19 +274,49 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				Chain:     "l1",
+			},
+			SubmissionInterval:  time.Minute,
+			FinalizationPeriod:  time.Hour,
+			SubmissionStartTime: time.Now().UTC(),
+			Metadata:            []byte("metadata"),
+		},
+	}
 
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	baseDenom := "test_token"
+	denom := ophosttypes.L2Denom(1, baseDenom)
+
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil))
+	require.NoError(t, err)
+
+	coins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(1_000_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
 	// fund asset
-	account := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
+	account := input.Faucet.NewFundedAccount(ctx, coins...)
 	accountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(account)
 	require.NoError(t, err)
 
+	// not token from l1
+	msg := types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin("foo", math.NewInt(100)))
+	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
+	require.Error(t, err)
+
 	// valid
-	msg := types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
+	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
 	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
-
 }
 
 /////////////////////////////////////////
