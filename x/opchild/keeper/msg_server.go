@@ -458,7 +458,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
 		return nil, err
 	} else if !ok {
-		return nil, types.ErrNotTokenFromL1
+		return nil, types.ErrNonL1Token
 	}
 
 	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)

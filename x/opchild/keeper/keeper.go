@@ -197,12 +197,3 @@ func (k Keeper) L1ChainId(ctx context.Context) (string, error) {
 
 	return info.L1ChainId, nil
 }
-
-func (k Keeper) BridgeId(ctx context.Context) (uint64, error) {
-	info, err := k.BridgeInfo.Get(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	return info.BridgeId, nil
-}
