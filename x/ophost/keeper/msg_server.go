@@ -78,6 +78,11 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		return nil, err
 	}
 
+	err = ms.SetBatchInfo(ctx, bridgeId, req.Config.BatchInfo, types.Output{})
+	if err != nil {
+		return nil, err
+	}
+
 	// create bridge account
 	bridgeAcc := types.NewBridgeAccountWithAddress(types.BridgeAddress(bridgeId))
 	bridgeAccI := (ms.authKeeper.NewAccount(ctx, bridgeAcc)) // set the account number
@@ -186,6 +191,10 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 	nextOutputIndex, err := ms.GetNextOutputIndex(ctx, bridgeId)
 	if err != nil {
 		return nil, err
+	}
+
+	if outputIndex >= nextOutputIndex {
+		return nil, types.ErrInvalidOutputIndex
 	}
 
 	// delete output proposals in [outputIndex, nextOutputIndex) range
@@ -488,6 +497,11 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 	}
 
 	finalizedOutputIndex, finalizedOutput, err := ms.GetLastFinalizedOutput(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ms.SetBatchInfo(ctx, bridgeId, req.NewBatchInfo, finalizedOutput)
 	if err != nil {
 		return nil, err
 	}

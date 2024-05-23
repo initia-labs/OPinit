@@ -18,4 +18,5 @@ var (
 	ErrWithdrawalAlreadyFinalized = errorsmod.Register(ModuleName, 11, "withdrawal already finalized")
 	ErrEmptyBatchInfo             = errorsmod.Register(ModuleName, 12, "empty batch info")
 	ErrInvalidBridgeMetadata      = errorsmod.Register(ModuleName, 13, "invalid bridge metadata")
+	ErrInvalidBatchInfo           = errorsmod.Register(ModuleName, 14, "invalid batch info")
 )

@@ -141,6 +141,20 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
+	allValidators, err := ms.GetAllValidators(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	numMaxValidators, err := ms.MaxValidators(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if int(numMaxValidators) <= len(allValidators) {
+		return nil, types.ErrMaxValidatorsExceeded
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	valAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.ValidatorAddress)
 	if err != nil {
@@ -392,6 +406,15 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		ms.setDenomMetadata(ctx, req.BaseDenom, coin.Denom)
 	}
 
+	// register denom pair
+	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
+		return nil, err
+	} else if !ok {
+		if err := ms.DenomPairs.Set(ctx, coin.Denom, req.BaseDenom); err != nil {
+			return nil, err
+		}
+	}
+
 	event := sdk.NewEvent(
 		types.EventTypeFinalizeTokenDeposit,
 		sdk.NewAttribute(types.AttributeKeyL1Sequence, strconv.FormatUint(req.Sequence, 10)),
@@ -430,6 +453,13 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	coin := req.Amount
+
+	// check denom pair existence
+	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
+		return nil, err
+	} else if !ok {
+		return nil, types.ErrNonL1Token
+	}
 
 	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {

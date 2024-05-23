@@ -20,7 +20,7 @@ import (
 
 	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
 	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	vmtypes "github.com/skip-mev/slinky/abci/ve/types"
+	vetypes "github.com/skip-mev/slinky/abci/ve/types"
 	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
@@ -51,7 +51,7 @@ func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []
 }
 
 func getSlinky(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, slinkycodec.ExtendedCommitCodec, slinkycodec.VoteExtensionCodec) {
-	cpStrategy := currencypair.NewDefaultCurrencyPairStrategy(oracleKeeper)
+	cpStrategy := currencypair.NewHashCurrencyPairStrategy(oracleKeeper)
 	voteExtensionCodec := slinkycodec.NewCompressionVoteExtensionCodec(
 		slinkycodec.NewDefaultVoteExtensionCodec(),
 		slinkycodec.NewZLibCompressor(),
@@ -278,13 +278,16 @@ func Test_UpdateOracle(t *testing.T) {
 					rawPrice, converted := new(big.Int).SetString(priceString, 10)
 					require.True(t, converted)
 
-					encodedPrice, err := cpStrategy.GetEncodedPrice(sdk.UnwrapSDKContext(ctx), cp, rawPrice)
+					sdkCtx := sdk.UnwrapSDKContext(ctx)
+					encodedPrice, err := cpStrategy.GetEncodedPrice(sdkCtx, cp, rawPrice)
 					require.NoError(t, err)
 
-					id := oracletypes.CurrencyPairToID(currencyPairID)
+					id, err := currencypair.CurrencyPairToHashID(currencyPairID)
+					require.NoError(t, err)
+
 					convertedPrices[id] = encodedPrice
 				}
-				ove := vmtypes.OracleVoteExtension{
+				ove := vetypes.OracleVoteExtension{
 					Prices: convertedPrices,
 				}
 

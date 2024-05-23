@@ -83,7 +83,6 @@ func (s *CLITestSuite) TestNewRecordBatchCmd() {
 
 	addr0, err := s.ac.BytesToString(s.addrs[0])
 	s.NoError(err)
-	fmt.Println(s.addrs[0].String())
 
 	testCases := []struct {
 		name         string

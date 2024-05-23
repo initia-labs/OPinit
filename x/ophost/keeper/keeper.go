@@ -30,6 +30,7 @@ type Keeper struct {
 	NextBridgeId      collections.Sequence
 	Params            collections.Item[types.Params]
 	BridgeConfigs     collections.Map[uint64, types.BridgeConfig]
+	BatchInfos        collections.Map[collections.Pair[uint64, uint64], types.BatchInfoWithOutput]
 	NextL1Sequences   collections.Map[uint64, uint64]
 	TokenPairs        collections.Map[collections.Pair[uint64, string], string]
 	OutputProposals   collections.Map[collections.Pair[uint64, uint64], types.Output]
@@ -67,6 +68,7 @@ func NewKeeper(
 		NextBridgeId:      collections.NewSequence(sb, types.NextBridgeIdKey, "next_bridge_id"),
 		Params:            collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		BridgeConfigs:     collections.NewMap(sb, types.BridgeConfigPrefix, "bridge_configs", collections.Uint64Key, codec.CollValue[types.BridgeConfig](cdc)),
+		BatchInfos:        collections.NewMap(sb, types.BatchInfoPrefix, "batch_infos", collections.PairKeyCodec(collections.Uint64Key, collections.Uint64Key), codec.CollValue[types.BatchInfoWithOutput](cdc)),
 		NextL1Sequences:   collections.NewMap(sb, types.NextL1SequencePrefix, "next_l1_sequences", collections.Uint64Key, collections.Uint64Value),
 		TokenPairs:        collections.NewMap(sb, types.TokenPairPrefix, "token_pairs", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), collections.StringValue),
 		OutputProposals:   collections.NewMap(sb, types.OutputProposalPrefix, "output_proposals", collections.PairKeyCodec(collections.Uint64Key, collections.Uint64Key), codec.CollValue[types.Output](cdc)),

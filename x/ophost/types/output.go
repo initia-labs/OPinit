@@ -7,3 +7,7 @@ func (output Output) Validate() error {
 
 	return nil
 }
+
+func (output Output) IsEmpty() bool {
+	return len(output.OutputRoot) == 0 && output.L1BlockTime.IsZero() && output.L2BlockNumber == 0
+}

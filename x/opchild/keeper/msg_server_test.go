@@ -19,6 +19,7 @@ import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 	vetypes "github.com/skip-mev/slinky/abci/ve/types"
 	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
@@ -142,6 +143,26 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 
 	_, err = ms.AddValidator(ctx, msg)
 	require.Error(t, err)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	params.MaxValidators = 1
+	ms.SetParams(ctx, params)
+
+	msg, err = types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
+	require.NoError(t, err)
+
+	// max validators reached
+	_, err = ms.AddValidator(ctx, msg)
+	require.Error(t, err)
+
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	params.MaxValidators = 2
+	ms.SetParams(ctx, params)
+
+	_, err = ms.AddValidator(ctx, msg)
+	require.NoError(t, err)
 }
 
 func Test_MsgServer_RemoveValidator(t *testing.T) {
@@ -253,19 +274,49 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				Chain:     "l1",
+			},
+			SubmissionInterval:  time.Minute,
+			FinalizationPeriod:  time.Hour,
+			SubmissionStartTime: time.Now().UTC(),
+			Metadata:            []byte("metadata"),
+		},
+	}
 
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	baseDenom := "test_token"
+	denom := ophosttypes.L2Denom(1, baseDenom)
+
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil))
+	require.NoError(t, err)
+
+	coins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(1_000_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
 	// fund asset
-	account := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
+	account := input.Faucet.NewFundedAccount(ctx, coins...)
 	accountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(account)
 	require.NoError(t, err)
 
+	// not token from l1
+	msg := types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin("foo", math.NewInt(100)))
+	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
+	require.Error(t, err)
+
 	// valid
-	msg := types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
+	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
 	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
-
 }
 
 /////////////////////////////////////////
@@ -480,10 +531,13 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 			rawPrice, converted := new(big.Int).SetString(priceString, 10)
 			require.True(t, converted)
 
-			encodedPrice, err := cpStrategy.GetEncodedPrice(sdk.UnwrapSDKContext(ctx), cp, rawPrice)
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
+			encodedPrice, err := cpStrategy.GetEncodedPrice(sdkCtx, cp, rawPrice)
 			require.NoError(t, err)
 
-			id := oracletypes.CurrencyPairToID(currencyPairID)
+			id, err := currencypair.CurrencyPairToHashID(currencyPairID)
+			require.NoError(t, err)
+
 			convertedPrices[id] = encodedPrice
 		}
 		ove := vetypes.OracleVoteExtension{
