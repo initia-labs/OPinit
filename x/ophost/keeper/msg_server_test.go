@@ -189,10 +189,10 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	amount := sdk.NewCoin("l1denom", math.NewInt(3_000_000))
 	input.Faucet.Fund(ctx, types.BridgeAddress(1), amount)
 
-	outputRoot := decodeHex(t, "d87b15f515e52e234f5ddca84627128ad842fa6c741d6b85d589a13bbdad3a89")
+	outputRoot := decodeHex(t, "1d1ff385c7ea31c99289091fd4548072e5cd061b6bbde2b406ff62dd97e3edc3")
 	version := decodeHex(t, "0000000000000000000000000000000000000000000000000000000000000001")
 	stateRoot := decodeHex(t, "0000000000000000000000000000000000000000000000000000000000000002")
-	storageRoot := decodeHex(t, "326ca35f4738f837ad9f335349fc71bdecf4c4ed3485fff1763d3bab55efc88a")
+	storageRoot := decodeHex(t, "b88a9b5af9f2a469cefb7e2e388eb146e7154f2eea8aaad1422f232f1b62067e")
 	blockHash := decodeHex(t, "0000000000000000000000000000000000000000000000000000000000000003")
 	proofs := [][]byte{
 		decodeHex(t, "32e1a72a7c215563f9426bfe267b6fa22ba49b1fba7162d80094dc2f2b6c5a3a"),
