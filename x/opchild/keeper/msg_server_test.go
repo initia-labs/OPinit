@@ -386,6 +386,33 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	require.ErrorContains(t, err, "expected bridge addr")
 }
 
+func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+
+	bz := sha3.Sum256([]byte("test_token"))
+	denom := "l2/" + hex.EncodeToString(bz[:])
+
+	opchildModuleAddress := authtypes.NewModuleAddress(types.ModuleName)
+
+	beforeToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	require.Equal(t, math.ZeroInt(), beforeToBalance.Amount)
+
+	beforeModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
+	require.Equal(t, math.ZeroInt(), beforeModuleBalance.Amount)
+
+	// valid deposit
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], opchildModuleAddress.String(), sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil)
+	_, err := ms.FinalizeTokenDeposit(ctx, msg)
+	require.NoError(t, err)
+
+	afterToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	require.Equal(t, math.NewInt(100), afterToBalance.Amount)
+
+	afterModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
+	require.Equal(t, math.ZeroInt(), afterModuleBalance.Amount)
+}
+
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
