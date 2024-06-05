@@ -156,7 +156,7 @@ func (l1config *L1Config) Finalize(targetNetwork string) error {
 	}
 
 	if l1config.GasPrices == "" {
-		l1config.GasPrices = "0.15uinit"
+		l1config.GasPrices = "0.15move/944f8dd8dc49f96c25fea9849f16436dcfa6d564eec802f3ef7f8b3ea85368ff"
 	}
 
 	_, err := sdk.ParseDecCoins(l1config.GasPrices)
