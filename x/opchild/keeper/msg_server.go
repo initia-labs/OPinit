@@ -47,13 +47,18 @@ func (ms MsgServer) checkBridgeExecutorPermission(ctx context.Context, sender st
 		return err
 	}
 
-	bridgeExecutor, err := ms.BridgeExecutor(ctx)
+	bridgeExecutors, err := ms.BridgeExecutor(ctx)
 	if err != nil {
 		return err
 	}
-
-	if !bridgeExecutor.Equals(sdk.AccAddress(senderAddr)) {
-		return errors.Wrapf(sdkerrors.ErrUnauthorized, "expected %s, got %s", bridgeExecutor, sender)
+	var isIncluded = false
+	for _, bridgeExecutor := range bridgeExecutors {
+		if bytes.Equal(bridgeExecutor, senderAddr) {
+			isIncluded = true
+		}
+	}
+	if !isIncluded {
+		return errors.Wrapf(sdkerrors.ErrUnauthorized, "expected included in %s, got %s", bridgeExecutors, sender)
 	}
 	return nil
 }

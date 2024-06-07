@@ -219,7 +219,7 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	require.NoError(t, err)
 	params.MaxValidators = 1
 	params.HistoricalEntries = 1
-	params.BridgeExecutor = addrs[1].String()
+	params.BridgeExecutor = []string{addrs[1].String()}
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)

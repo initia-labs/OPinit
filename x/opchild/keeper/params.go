@@ -8,13 +8,22 @@ import (
 )
 
 // BridgeExecutor returns params.BridgeExecutor
-func (k Keeper) BridgeExecutor(ctx context.Context) (sdk.AccAddress, error) {
+func (k Keeper) BridgeExecutor(ctx context.Context) ([]sdk.AccAddress, error) {
 	params, err := k.GetParams(ctx)
 	if err != nil {
 		return nil, err
 	}
+	var addrs []sdk.AccAddress
 
-	return k.authKeeper.AddressCodec().StringToBytes(params.BridgeExecutor)
+	for _, be := range params.BridgeExecutor {
+		addr, err := k.authKeeper.AddressCodec().StringToBytes(be)
+		if err != nil {
+			return nil, err
+		}
+		addrs = append(addrs, addr)
+	}
+
+	return addrs, nil
 }
 
 // FeeWhitelist returns params.FeeWhitelist
