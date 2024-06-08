@@ -4,7 +4,7 @@
 
 ### `TokenRegisteredEvent`
 
-The event is emitted when a new token support is added to bridge contract.
+The event is emitted when a new token support is added to the bridge contract.
 
 * In v1 spec, the bridge executor should add a new token support manually.
 
@@ -21,7 +21,7 @@ struct TokenRegisteredEvent has drop, store {
 
 The event is emitted when a user executes `deposit_token` function to move a token from L1 to L2.
 
-* The bridge module maintain `sequence` number to give an unique identifier for each relaying operation.
+* The bridge module maintains `sequence` number to give a unique identifier for each relaying operation.
 * In v1, `l2_id` + `l1_sequence` is the unique identifier.
 
 ```rust
