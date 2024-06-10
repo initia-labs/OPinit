@@ -333,10 +333,7 @@ func setOpChildBridgeExecutorAddress(cdc codec.Codec, genesisAppState map[string
 	*opchildtypes.GenesisState,
 	error,
 ) {
-	opchildState := opchildtypes.GetGenesisStateFromAppState(cdc, genesisAppState)
-	opchildState.Params.BridgeExecutors = []string{bridgeExecutorAddr}
-
-	return opchildState, nil
+	return setMultiOpChildBridgeExecutorsAddress(cdc, genesisAppState, []string{bridgeExecutorAddr})
 }
 
 func setMultiOpChildBridgeExecutorsAddress(cdc codec.Codec, genesisAppState map[string]json.RawMessage, bridgeExecutorsAddrs []string) (
