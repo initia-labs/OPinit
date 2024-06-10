@@ -51,7 +51,7 @@ func (ms MsgServer) checkBridgeExecutorPermission(ctx context.Context, sender st
 	if err != nil {
 		return err
 	}
-	var isIncluded = false
+	isIncluded := false
 	for _, bridgeExecutor := range bridgeExecutors {
 		if bytes.Equal(bridgeExecutor, senderAddr) {
 			isIncluded = true

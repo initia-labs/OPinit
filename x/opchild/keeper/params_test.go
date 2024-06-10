@@ -21,9 +21,9 @@ func Test_Params(t *testing.T) {
 	minGasPrices, err := input.OPChildKeeper.MinGasPrices(ctx)
 	require.NoError(t, err)
 	require.True(t, minGasPrices.Empty())
-	bridgeExecutor, err := input.OPChildKeeper.BridgeExecutors(ctx)
+	bridgeExecutors, err := input.OPChildKeeper.BridgeExecutors(ctx)
 	require.NoError(t, err)
-	require.Equal(t, []sdk.AccAddress{addrs[0]}, bridgeExecutor)
+	require.Equal(t, []sdk.AccAddress{addrs[0]}, bridgeExecutors)
 
 	feeWhitelist, err := input.OPChildKeeper.FeeWhitelist(ctx)
 	require.NoError(t, err)
