@@ -19,7 +19,7 @@ func Test_RegisterExecutorChangePlan(t *testing.T) {
 	l1ProposalID := uint64(rand.Uint64())
 	height := uint64(rand.Uint64())
 	nextValAddr := valAddrsStr[0]
-	nextExecutorAddr := []string{addrsStr[0]}
+	nextExecutorAddr := []string{addrsStr[0], addrsStr[1]}
 	consensusPubKey := "l7aqGv+Zjbm0rallfqfqz+3iN31iOmgJCafWV5pGs6o="
 	moniker := "moniker"
 	info := "info"
@@ -44,7 +44,7 @@ func Test_RegisterExecutorChangePlan(t *testing.T) {
 	require.Equal(t, types.ExecutorChangePlan{
 		ProposalID:    l1ProposalID,
 		Height:        height,
-		NextExecutor:  []string{addrsStr[0]},
+		NextExecutors: []string{addrsStr[0], addrsStr[1]},
 		NextValidator: expectedValidator,
 		Info:          info,
 	}, input.OPChildKeeper.ExecutorChangePlans[height])

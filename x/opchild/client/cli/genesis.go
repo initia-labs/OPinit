@@ -93,14 +93,14 @@ $ %s add-genesis-validator my-key-name --home=/path/to/home/dir --keyring-backen
 			}
 
 			allEmpty := true
-			for _, be := range opchildState.Params.BridgeExecutor {
+			for _, be := range opchildState.Params.BridgeExecutors {
 				if be != "" {
 					allEmpty = false
 					break
 				}
 			}
 			if allEmpty {
-				opchildState.Params.BridgeExecutor = []string{addr.String()}
+				opchildState.Params.BridgeExecutors = []string{addr.String()}
 			}
 
 			opchildGenStateBz, err := cdc.MarshalJSON(opchildState)

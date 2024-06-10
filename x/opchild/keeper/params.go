@@ -8,14 +8,14 @@ import (
 )
 
 // BridgeExecutor returns params.BridgeExecutor
-func (k Keeper) BridgeExecutor(ctx context.Context) ([]sdk.AccAddress, error) {
+func (k Keeper) BridgeExecutors(ctx context.Context) ([]sdk.AccAddress, error) {
 	params, err := k.GetParams(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var addrs []sdk.AccAddress
 
-	for _, be := range params.BridgeExecutor {
+	for _, be := range params.BridgeExecutors {
 		addr, err := k.authKeeper.AddressCodec().StringToBytes(be)
 		if err != nil {
 			return nil, err

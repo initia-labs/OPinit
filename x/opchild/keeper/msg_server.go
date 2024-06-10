@@ -47,7 +47,7 @@ func (ms MsgServer) checkBridgeExecutorPermission(ctx context.Context, sender st
 		return err
 	}
 
-	bridgeExecutors, err := ms.BridgeExecutor(ctx)
+	bridgeExecutors, err := ms.BridgeExecutors(ctx)
 	if err != nil {
 		return err
 	}

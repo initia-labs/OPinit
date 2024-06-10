@@ -50,7 +50,7 @@ func (k Keeper) RegisterExecutorChangePlan(
 	k.ExecutorChangePlans[height] = types.ExecutorChangePlan{
 		ProposalID:    proposalID,
 		Height:        height,
-		NextExecutor:  nextExecutors,
+		NextExecutors: nextExecutors,
 		NextValidator: validator,
 		Info:          info,
 	}
@@ -76,7 +76,7 @@ func (k Keeper) ChangeExecutor(ctx context.Context, plan types.ExecutorChangePla
 	if err != nil {
 		return err
 	}
-	params.BridgeExecutor = plan.NextExecutor
+	params.BridgeExecutors = plan.NextExecutors
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}

@@ -2715,7 +2715,7 @@ func (x *Params) GetMinGasPrices() []*v1beta1.DecCoin {
 	return nil
 }
 
-func (x *Params) GetBridgeExecutor() string {
+func (x *Params) GetBridgeExecutors() string {
 	if x != nil {
 		return x.BridgeExecutor
 	}
