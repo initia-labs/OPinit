@@ -166,7 +166,7 @@ message MsgInitiateTokenDepositResponse {
 
 // MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list
 message MsgFinalizeTokenWithdrawal {
-  option (cosmos.msg.v1.signer) = "sender";
+  option (cosmos.msg.v1.signer) = "receiver";
   option (amino.name)           = "ophost/MsgFinalizeTokenWithdrawal";
 
   // address of the sender of the transaction
