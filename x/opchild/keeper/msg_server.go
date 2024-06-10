@@ -393,8 +393,14 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, err
 	}
 
-	if err := ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, coins); err != nil {
-		return nil, err
+	err = ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, coins)
+	if err != nil {
+		ms.Logger(ctx).Error("failed to finalize token deposit", "error", err)
+
+		// refund the deposit to the sender address
+		if err := ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, fromAddr, coins); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := ms.RecordFinalizedL1Sequence(ctx, req.Sequence); err != nil {
