@@ -11,7 +11,7 @@ import (
 
 func (k Keeper) RegisterExecutorChangePlan(
 	proposalID, height uint64,
-	nextValidator, nextExecutor, moniker, consensusPubKey, info string,
+	nextValidator, moniker, consensusPubKey, info string, nextExecutors []string,
 ) error {
 	if proposalID <= 0 {
 		return errorsmod.Wrap(types.ErrInvalidExecutorChangePlan, "invalid proposal id")
@@ -29,10 +29,11 @@ func (k Keeper) RegisterExecutorChangePlan(
 	if err != nil {
 		return err
 	}
-
-	_, err = k.addressCodec.StringToBytes(nextExecutor)
-	if err != nil {
-		return err
+	for _, nextExecutor := range nextExecutors {
+		_, err = k.addressCodec.StringToBytes(nextExecutor)
+		if err != nil {
+			return err
+		}
 	}
 
 	var pubKey cryptotypes.PubKey
@@ -49,7 +50,7 @@ func (k Keeper) RegisterExecutorChangePlan(
 	k.ExecutorChangePlans[height] = types.ExecutorChangePlan{
 		ProposalID:    proposalID,
 		Height:        height,
-		NextExecutor:  nextExecutor,
+		NextExecutors: nextExecutors,
 		NextValidator: validator,
 		Info:          info,
 	}
@@ -75,7 +76,7 @@ func (k Keeper) ChangeExecutor(ctx context.Context, plan types.ExecutorChangePla
 	if err != nil {
 		return err
 	}
-	params.BridgeExecutor = plan.NextExecutor
+	params.BridgeExecutors = plan.NextExecutors
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}

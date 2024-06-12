@@ -19,16 +19,17 @@ func Test_RegisterExecutorChangePlan(t *testing.T) {
 	l1ProposalID := uint64(rand.Uint64())
 	height := uint64(rand.Uint64())
 	nextValAddr := valAddrsStr[0]
-	nextExecutorAddr := addrsStr[0]
+	nextExecutorAddr := []string{addrsStr[0], addrsStr[1]}
 	consensusPubKey := "l7aqGv+Zjbm0rallfqfqz+3iN31iOmgJCafWV5pGs6o="
 	moniker := "moniker"
 	info := "info"
 
 	err := input.OPChildKeeper.RegisterExecutorChangePlan(
-		l1ProposalID, height, nextValAddr, nextExecutorAddr,
+		l1ProposalID, height, nextValAddr,
 		moniker,
 		fmt.Sprintf(`{"@type":"/cosmos.crypto.ed25519.PubKey","key":"%s"}`, consensusPubKey),
 		info,
+		nextExecutorAddr,
 	)
 	require.NoError(t, err)
 	require.Len(t, input.OPChildKeeper.ExecutorChangePlans, 1)
@@ -43,7 +44,7 @@ func Test_RegisterExecutorChangePlan(t *testing.T) {
 	require.Equal(t, types.ExecutorChangePlan{
 		ProposalID:    l1ProposalID,
 		Height:        height,
-		NextExecutor:  addrsStr[0],
+		NextExecutors: []string{addrsStr[0], addrsStr[1]},
 		NextValidator: expectedValidator,
 		Info:          info,
 	}, input.OPChildKeeper.ExecutorChangePlans[height])

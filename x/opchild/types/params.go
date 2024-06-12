@@ -16,7 +16,7 @@ var (
 func DefaultParams() Params {
 	return NewParams(
 		"",
-		"",
+		[]string{""},
 		DefaultMaxValidators,
 		DefaultHistoricalEntries,
 		DefaultMinGasPrices,
@@ -25,10 +25,10 @@ func DefaultParams() Params {
 }
 
 // NewParams creates a new Params instance
-func NewParams(admin, bridgeExecutor string, maxValidators, historicalEntries uint32, minGasPrice sdk.DecCoins, feeWhitelist []string) Params {
+func NewParams(admin string, bridgeExecutors []string, maxValidators, historicalEntries uint32, minGasPrice sdk.DecCoins, feeWhitelist []string) Params {
 	return Params{
 		Admin:             admin,
-		BridgeExecutor:    bridgeExecutor,
+		BridgeExecutors:   bridgeExecutors,
 		MaxValidators:     maxValidators,
 		HistoricalEntries: historicalEntries,
 		MinGasPrices:      minGasPrice,
@@ -50,9 +50,12 @@ func (p Params) Validate(ac address.Codec) error {
 	if _, err := ac.StringToBytes(p.Admin); err != nil {
 		return err
 	}
-	if _, err := ac.StringToBytes(p.BridgeExecutor); err != nil {
-		return err
+	for _, be := range p.BridgeExecutors {
+		if _, err := ac.StringToBytes(be); err != nil {
+			return err
+		}
 	}
+
 	if err := p.MinGasPrices.Validate(); err != nil {
 		return err
 	}

@@ -7,8 +7,8 @@ type ExecutorChangePlan struct {
 	// Upgrade height
 	Height uint64
 
-	// Next executor address
-	NextExecutor string
+	// Next executor addresses
+	NextExecutors []string
 
 	// Next validator
 	NextValidator Validator

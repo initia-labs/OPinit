@@ -30,10 +30,10 @@ message Params {
   ];
   // the account address of bridge executor who can execute permissioned bridge
   // messages.
-  string bridge_executor = 4 [
+  repeated string bridge_executors = 4 [
     (cosmos_proto.scalar)  = "cosmos.AddressString",
     (amino.dont_omitempty) = true,
-    (gogoproto.moretags)   = "yaml:\"bridge_executor\""
+    (gogoproto.moretags)   = "yaml:\"bridge_executors\""
   ];
   // the account address of admin who can execute permissioned cosmos messages.
   string admin = 5 [

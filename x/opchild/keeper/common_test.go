@@ -325,7 +325,7 @@ func _createTestInput(
 
 	opchildParams := opchildtypes.DefaultParams()
 	opchildParams.Admin = addrs[0].String()
-	opchildParams.BridgeExecutor = addrs[0].String()
+	opchildParams.BridgeExecutors = []string{addrs[0].String()}
 	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
