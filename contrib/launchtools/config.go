@@ -70,7 +70,7 @@ func (i *Config) Finalize(targetNetwork string, buf *bufio.Reader) error {
 	if err := i.SystemKeys.Finalize(buf); err != nil {
 		return err
 	}
-	if err := i.GenesisAccounts.Finalize(*i.SystemKeys); err != nil {
+	if err := i.GenesisAccounts.Finalize(*i.SystemKeys, *i.L2Config); err != nil {
 		return err
 	}
 
@@ -179,7 +179,7 @@ type AccountWithBalance struct {
 
 type GenesisAccounts []AccountWithBalance
 
-func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
+func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys, config L2Config) error {
 	keys := reflect.ValueOf(systemKeys)
 	for idx := 0; idx < keys.NumField(); idx++ {
 		k, ok := keys.Field(idx).Interface().(*Account)
@@ -204,6 +204,19 @@ func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
 		})
 	}
 
+	denom := "umin" // Default value, in case L2Config is not set or denom is empty
+	if config.Denom != "" {
+		denom = config.Denom
+	}
+
+	// Add the faucet account with 1 billion coins of the correct denomination
+	if systemKeys.Faucet != nil {
+		*gas = append(*gas, AccountWithBalance{
+			Account: Account{Address: systemKeys.Faucet.Address},
+			Coins:   fmt.Sprintf("1_000_000_000_000_000%s", denom), // 1 billion coins
+		})
+	}
+
 	for _, ga := range *gas {
 		if ga.Address == "" {
 			return errors.New("genesis account address cannot be empty")
@@ -223,6 +236,7 @@ type SystemKeys struct {
 	BridgeExecutor  *Account `json:"bridge_executor,omitempty"`
 	OutputSubmitter *Account `json:"output_submitter,omitempty"`
 	BatchSubmitter  *Account `json:"batch_submitter,omitempty"`
+	Faucet          *Account `json:"faucet,omitempty"`
 
 	// Challenger does not require mnemonic
 	Challenger *Account `json:"challenger,omitempty"`
@@ -364,6 +378,9 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 	}
 	if systemKeys.Challenger.Address == "" {
 		return errors.New("challenger account not initialized")
+	}
+	if systemKeys.Faucet.Address == "" {
+		return errors.New("faucet account not initialized")
 	}
 
 	return nil
