@@ -309,12 +309,12 @@ func (msg MsgUpdateProposer) Validate(accAddressCodec address.Codec) error {
 func NewMsgUpdateChallenger(
 	authority string,
 	bridgeId uint64,
-	newChallenger string,
+	newChallengers []string,
 ) *MsgUpdateChallenger {
 	return &MsgUpdateChallenger{
-		Authority:     authority,
-		BridgeId:      bridgeId,
-		NewChallenger: newChallenger,
+		Authority:      authority,
+		BridgeId:       bridgeId,
+		NewChallengers: newChallengers,
 	}
 }
 
@@ -327,9 +327,11 @@ func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
 	if msg.BridgeId == 0 {
 		return ErrInvalidBridgeId
 	}
-
-	if _, err := accAddressCodec.StringToBytes(msg.NewChallenger); err != nil {
-		return err
+	for _, challenger := range msg.NewChallengers {
+		_, err := accAddressCodec.StringToBytes(challenger)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -360,8 +362,13 @@ func (msg MsgUpdateBatchInfo) Validate(accAddressCodec address.Codec) error {
 		return ErrInvalidBridgeId
 	}
 
-	if msg.NewBatchInfo.Chain == "" || msg.NewBatchInfo.Submitter == "" {
+	if msg.NewBatchInfo.Chain == "" || len(msg.NewBatchInfo.Submitters) == 0 {
 		return ErrEmptyBatchInfo
+	}
+
+	if !msg.NewBatchInfo.isValidSubmiiters() {
+		return ErrEmptyBatchInfo
+
 	}
 
 	return nil

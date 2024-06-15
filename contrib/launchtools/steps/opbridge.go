@@ -134,11 +134,11 @@ func createOpBridge(
 	return ophosttypes.NewMsgCreateBridge(
 		executorAddress,
 		ophosttypes.BridgeConfig{
-			Challenger: challengerAddress,
-			Proposer:   outputAddress,
+			Challengers: []string{challengerAddress},
+			Proposer:    outputAddress,
 			BatchInfo: ophosttypes.BatchInfo{
-				Submitter: submitterAddress,
-				Chain:     submitTarget,
+				Submitters: []string{submitterAddress},
+				Chain:      submitTarget,
 			},
 			SubmissionInterval:  submissionInterval,
 			FinalizationPeriod:  finalizationPeriod,

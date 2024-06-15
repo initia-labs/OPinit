@@ -1,27 +1,20 @@
 package cli
 
-import "github.com/initia-labs/OPinit/x/ophost/types"
-
 // BridgeConfig defines the set of bridge config.
-//
-// NOTE: it is a modified BridgeConfig from x/ophost/types/types.pb.go to make unmarshal easier
-type BridgeConfig struct {
-	// The address of the challenger.
-	Challenger string `protobuf:"bytes,1,opt,name=challenger,proto3" json:"challenger,omitempty"`
-	// The address of the proposer.
-	Proposer string `protobuf:"bytes,2,opt,name=proposer,proto3" json:"proposer,omitempty"`
-	// The time interval at which checkpoints must be submitted.
-	// NOTE: this param is currently not used, but will be used for challenge in future.
-	SubmissionInterval string `protobuf:"bytes,3,opt,name=submission_interval,json=submissionInterval,proto3,stdduration" json:"submission_interval,omitempty"`
-	// The minium time duration that must elapse before a withdrawal can be finalized.
-	FinalizationPeriod string `protobuf:"bytes,4,opt,name=finalization_period,json=finalizationPeriod,proto3,stdduration" json:"finalization_period,omitempty"`
-	// The time of the first l2 block recorded.
-	// NOTE: this param is currently not used, but will be used for challenge in future.
-	SubmissionStartTime string `protobuf:"bytes,5,opt,name=submission_start_time,json=submissionStartTime,proto3,stdtime" json:"submission_start_time"`
-	// Normally it is IBC channelID for permissioned IBC relayer.
-	Metadata string `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	// BatchInfo is the batch information for the bridge.
-	BatchInfo types.BatchInfo `json:"batch_info"`
+// NOTE: it is a modified BridgeConfig from x/ophost/types/types.go to make unmarshal easier
+type BridgeCliConfig struct {
+	Challenger          string       `json:"challenger"`
+	Proposer            string       `json:"proposer"`
+	SubmissionInterval  string       `json:"submission_interval"`
+	FinalizationPeriod  string       `json:"finalization_period"`
+	SubmissionStartTime string       `json:"submission_start_time"`
+	Metadata            string       `json:"metadata"`
+	BatchInfo           BatchCliInfo `json:"batch_info"`
+}
+
+type BatchCliInfo struct {
+	Submitter string `json:"submitter"`
+	Chain     string `json:"chain"`
 }
 
 // MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list

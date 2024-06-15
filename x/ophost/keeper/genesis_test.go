@@ -13,22 +13,22 @@ func Test_GenesisExport(t *testing.T) {
 
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challenger:          addrsStr[1],
+		Challengers:         []string{addrsStr[1]},
 		Proposer:            addrsStr[0],
 		SubmissionInterval:  100,
 		FinalizationPeriod:  100,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
 	}
 	config2 := types.BridgeConfig{
-		Challenger:          addrsStr[2],
+		Challengers:         []string{addrsStr[2]},
 		Proposer:            addrsStr[3],
 		SubmissionInterval:  200,
 		FinalizationPeriod:  200,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{3, 4, 5},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
@@ -64,9 +64,9 @@ func Test_GenesisExport(t *testing.T) {
 	input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{1, 2, 3})
 	input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{3, 4, 5})
 
-	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{})
-	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1)
-	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3)
+	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"}, types.Output{})
+	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitters: []string{addrsStr[1]}, Chain: "ll1"}, output1)
+	input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"}, output3)
 
 	genState := input.OPHostKeeper.ExportGenesis(ctx)
 	require.Equal(t, uint64(3), genState.NextBridgeId)
@@ -97,9 +97,9 @@ func Test_GenesisExport(t *testing.T) {
 			{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		BatchInfos: []types.BatchInfoWithOutput{
-			{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{}},
-			{types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1},
-			{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3},
+			{types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"}, types.Output{}},
+			{types.BatchInfo{Submitters: []string{addrsStr[1]}, Chain: "ll1"}, output1},
+			{types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"}, output3},
 		},
 	}, genState.Bridges[0])
 }
@@ -108,13 +108,13 @@ func Test_GenesisImportExport(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challenger:          addrsStr[1],
+		Challengers:         []string{addrsStr[1]},
 		Proposer:            addrsStr[0],
 		SubmissionInterval:  100,
 		FinalizationPeriod:  100,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
 	}
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -161,9 +161,9 @@ func Test_GenesisImportExport(t *testing.T) {
 					{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 				},
 				BatchInfos: []types.BatchInfoWithOutput{
-					{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{}},
-					{types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1},
-					{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3},
+					{types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"}, types.Output{}},
+					{types.BatchInfo{Submitters: []string{addrsStr[1]}, Chain: "ll1"}, output1},
+					{types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"}, output3},
 				},
 			}},
 		NextBridgeId: 2,

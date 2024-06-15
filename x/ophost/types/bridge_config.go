@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	time "time"
 
 	"cosmossdk.io/core/address"
@@ -9,8 +10,11 @@ import (
 )
 
 func (config BridgeConfig) Validate(ac address.Codec) error {
-	if _, err := ac.StringToBytes(config.Challenger); err != nil {
-		return err
+	var err error
+	for _, challenger := range config.Challengers {
+		if _, err = ac.StringToBytes(challenger); err != nil {
+			return err
+		}
 	}
 
 	if _, err := ac.StringToBytes(config.Proposer); err != nil {
@@ -21,8 +25,12 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain must be set")
 	}
 
-	if config.BatchInfo.Submitter == "" {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch submitter must be set")
+	if !config.BatchInfo.isValidSubmiiters() {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitters must be non-empty array")
+	}
+
+	if !config.isValidChallengers() {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challengers must be non-empty array")
 	}
 
 	if config.FinalizationPeriod == time.Duration(0) {
@@ -45,16 +53,16 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "proposer must be set")
 	}
 
-	if len(config.Challenger) == 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challenger must be set")
+	if !config.isValidChallengers() {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challengers must be non-empty array")
 	}
 
 	if len(config.BatchInfo.Chain) == 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain must be set")
 	}
 
-	if len(config.BatchInfo.Submitter) == 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch submitter must be set")
+	if !config.BatchInfo.isValidSubmiiters() {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitters must be non-empty array")
 	}
 
 	if config.FinalizationPeriod == time.Duration(0) {
@@ -70,4 +78,28 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 	}
 
 	return nil
+}
+
+func (config BridgeConfig) isValidChallengers() bool {
+	if len(config.Challengers) == 0 {
+		return false
+	}
+
+	if slices.Contains(config.Challengers, "") {
+		return false
+	}
+
+	return true
+}
+
+func (config BatchInfo) isValidSubmiiters() bool {
+	if len(config.Submitters) == 0 {
+		return false
+	}
+
+	if slices.Contains(config.Submitters, "") {
+		return false
+	}
+
+	return true
 }

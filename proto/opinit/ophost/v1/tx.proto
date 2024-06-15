@@ -225,11 +225,12 @@ message MsgUpdateChallenger {
   option (amino.name)           = "ophost/MsgUpdateChallenger";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
-  // or the current challenger address.
+  // or the current challenger address.(supports a single challenger that can replace the existing challenger,
+  // excluding their own address)
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  string new_challenger = 3
-      [(gogoproto.moretags) = "yaml:\"new_challenger\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string new_challengers = 3
+      [(gogoproto.moretags) = "yaml:\"new_challengers\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // MsgUpdateChallengerResponse returns a message handle result.
@@ -267,7 +268,8 @@ message MsgUpdateMetadata {
   option (amino.name)           = "ophost/MsgUpdateMetadata";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
-  // or the current challenger address.
+  // or the current challenger address.(supports a single challenger that can replace the existing challenger,
+// excluding their own address))
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   bytes  metadata  = 3 [(gogoproto.moretags) = "yaml:\"metadata\""];

@@ -296,7 +296,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			origConfig := ophostcli.BridgeConfig{}
+			origConfig := ophostcli.BridgeCliConfig{}
 			err = json.Unmarshal(configBytes, &origConfig)
 			if err != nil {
 				return err
@@ -318,14 +318,18 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			}
 
 			bridgeConfig := ophosttypes.BridgeConfig{
-				Challenger:          origConfig.Challenger,
+				Challengers:         []string{origConfig.Challenger},
 				Proposer:            origConfig.Proposer,
 				SubmissionInterval:  submissionInterval,
 				FinalizationPeriod:  finalizationPeriod,
 				SubmissionStartTime: submissionStartTime,
-				BatchInfo:           origConfig.BatchInfo,
-				Metadata:            []byte(origConfig.Metadata),
+				BatchInfo: ophosttypes.BatchInfo{
+					Chain:      origConfig.BatchInfo.Chain,
+					Submitters: []string{origConfig.BatchInfo.Submitter},
+				},
+				Metadata: []byte(origConfig.Metadata),
 			}
+
 			if err = bridgeConfig.ValidateWithNoAddrValidation(); err != nil {
 				return err
 			}

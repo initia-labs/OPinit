@@ -318,11 +318,11 @@ func _createTestInput(
 }
 
 type bridgeHook struct {
-	proposer   string
-	challenger string
-	batchInfo  ophosttypes.BatchInfo
-	metadata   []byte
-	err        error
+	proposer    string
+	challengers []string
+	batchInfo   ophosttypes.BatchInfo
+	metadata    []byte
+	err         error
 }
 
 func (h *bridgeHook) BridgeCreated(
@@ -336,7 +336,7 @@ func (h *bridgeHook) BridgeCreated(
 
 	h.metadata = bridgeConfig.Metadata
 	h.proposer = bridgeConfig.Proposer
-	h.challenger = bridgeConfig.Challenger
+	h.challengers = bridgeConfig.Challengers
 	return nil
 }
 
@@ -349,7 +349,7 @@ func (h *bridgeHook) BridgeChallengerUpdated(
 		return h.err
 	}
 
-	h.challenger = bridgeConfig.Challenger
+	h.challengers = bridgeConfig.Challengers
 
 	return nil
 }
