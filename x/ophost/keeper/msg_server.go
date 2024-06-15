@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
+	"slices"
 	"strconv"
+	"strings"
 
 	"golang.org/x/crypto/sha3"
 
@@ -92,9 +94,9 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		types.EventTypeCreateBridge,
 		sdk.NewAttribute(types.AttributeKeyCreator, req.Creator),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
-		sdk.NewAttribute(types.AttributeKeyChallenger, req.Config.Challenger),
+		sdk.NewAttribute(types.AttributeKeyChallenger, strings.Join(req.Config.Challengers, ",")),
 		sdk.NewAttribute(types.AttributeKeyBatchChain, req.Config.BatchInfo.Chain),
-		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, strings.Join(req.Config.BatchInfo.Submitters, ",")),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
 
@@ -182,9 +184,15 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 	if err != nil {
 		return nil, err
 	}
-
+	permission := false
+	for _, c := range bridgeConfig.Challengers {
+		if c == challenger {
+			permission = true
+			break
+		}
+	}
 	// permission check
-	if challenger != bridgeConfig.Challenger {
+	if !permission {
 		return nil, errors.ErrUnauthorized.Wrap("invalid challenger")
 	}
 
@@ -441,12 +449,25 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 		return nil, err
 	}
 
-	// gov or current challenger can update challenger.
-	if ms.authority != req.Authority && config.Challenger != req.Authority {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Challenger, req.Authority)
+	if len(req.NewChallengers) == 0 {
+		panic("invalid challengers")
+	}
+	if req.Authority == ms.authority {
+		// gov can update multiple challengers
+		config.Challengers = req.NewChallengers
+
+	} else if idx := slices.Index(config.Challengers, req.Authority); idx >= 0 {
+
+		// replace byself
+		if len(req.NewChallengers) != 1 {
+			return nil, errors.ErrUnauthorized.Wrap("invalid new challengers, only one new challenger is allowed to replace the old one")
+		}
+		config.Challengers[idx] = req.NewChallengers[0]
+
+	} else {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or in %s, got %s", ms.authority, config.Challengers, req.Authority)
 	}
 
-	config.Challenger = req.NewChallenger
 	if err := ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
@@ -462,7 +483,7 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateChallenger,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
-		sdk.NewAttribute(types.AttributeKeyChallenger, req.NewChallenger),
+		sdk.NewAttribute(types.AttributeKeyChallenger, strings.Join(config.Challengers, ",")),
 		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
@@ -512,7 +533,7 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 		types.EventTypeUpdateBatchInfo,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyBatchChain, req.NewBatchInfo.Chain),
-		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.NewBatchInfo.Submitter),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, strings.Join(req.NewBatchInfo.Submitters, ",")),
 		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))

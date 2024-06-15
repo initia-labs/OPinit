@@ -80,12 +80,12 @@ func Test_IsFinalized(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challenger:          addrsStr[1],
+		Challengers:         []string{addrsStr[1]},
 		Proposer:            addrsStr[0],
 		SubmissionInterval:  100,
 		FinalizationPeriod:  time.Second * 10,
 		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
 	})
 	require.NoError(t, err)
 
@@ -139,11 +139,11 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
 		Proposer:            addrsStr[0],
-		Challenger:          addrsStr[1],
+		Challengers:         []string{addrsStr[1]},
 		SubmissionInterval:  100,
 		FinalizationPeriod:  time.Second * 10,
 		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
 	})
 	require.NoError(t, err)
 
@@ -183,11 +183,11 @@ func Test_DeleteOutputProposal(t *testing.T) {
 
 	err = input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
 		Proposer:            addrsStr[0],
-		Challenger:          addrsStr[1],
+		Challengers:         []string{addrsStr[1]},
 		SubmissionInterval:  100,
 		FinalizationPeriod:  time.Second * 10,
 		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
 	})
 	require.NoError(t, err)
 

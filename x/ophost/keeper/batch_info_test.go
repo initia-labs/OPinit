@@ -11,8 +11,8 @@ import (
 func Test_SetGetBatchInfo(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	batchInfo1 := types.BatchInfo{
-		Submitter: addrsStr[0],
-		Chain:     "l1",
+		Submitters: []string{addrsStr[0]},
+		Chain:      "l1",
 	}
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -24,8 +24,8 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo2 := types.BatchInfo{
-		Submitter: addrsStr[1],
-		Chain:     "ll1",
+		Submitters: []string{addrsStr[1]},
+		Chain:      "ll1",
 	}
 	output2 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},
@@ -37,8 +37,8 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo3 := types.BatchInfo{
-		Submitter: addrsStr[0],
-		Chain:     "lll1",
+		Submitters: []string{addrsStr[0]},
+		Chain:      "lll1",
 	}
 	output3 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -50,8 +50,8 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo4 := types.BatchInfo{
-		Submitter: addrsStr[1],
-		Chain:     "llll1",
+		Submitters: []string{addrsStr[1]},
+		Chain:      "llll1",
 	}
 	output4 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},
@@ -63,8 +63,8 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo5 := types.BatchInfo{
-		Submitter: addrsStr[1],
-		Chain:     "lllll1",
+		Submitters: []string{addrsStr[1]},
+		Chain:      "lllll1",
 	}
 	output5 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},

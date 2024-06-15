@@ -32,16 +32,29 @@ func (k MockChannelKeeper) GetNextSequenceSend(ctx sdk.Context, portID, channelI
 	return seq, ok
 }
 
+type MockPermRelayerList struct {
+	Relayers []sdk.AccAddress
+}
+
+func (l MockPermRelayerList) Equals(relayer sdk.AccAddress) bool {
+	for _, r := range l.Relayers {
+		if r.Equals(relayer) {
+			return true
+		}
+	}
+	return false
+}
+
 type MockPermKeeper struct {
-	perms map[string]sdk.AccAddress
+	perms map[string]MockPermRelayerList
 }
 
 func (k MockPermKeeper) HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error) {
 	return k.perms[portID+"/"+channelID].Equals(relayer), nil
 }
 
-func (k MockPermKeeper) SetPermissionedRelayer(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) error {
-	k.perms[portID+"/"+channelID] = relayer
+func (k MockPermKeeper) SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error {
+	k.perms[portID+"/"+channelID] = MockPermRelayerList{Relayers: relayers}
 	return nil
 }
 
@@ -53,7 +66,7 @@ func setup() (context.Context, hook.BridgeHook) {
 			"transfer/channel-2": 1,
 		},
 	}, MockPermKeeper{
-		perms: make(map[string]sdk.AccAddress),
+		perms: make(map[string]MockPermRelayerList),
 	}, address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()))
 
 	ms := store.NewCommitMultiStore(dbm.NewMemDB(), log.NewNopLogger(), metrics.NewNoOpMetrics())
@@ -65,8 +78,8 @@ func setup() (context.Context, hook.BridgeHook) {
 	return ctx, h
 }
 
-func acc_addr() sdk.AccAddress {
-	return sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+func acc_addr() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()), sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())}
 }
 
 func Test_BridgeHook_BridgeCreated(t *testing.T) {
@@ -94,25 +107,28 @@ func Test_BridgeHook_BridgeCreated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: addr.String(),
-		Metadata:   metadata,
+		Challengers: []string{addr[0].String(), addr[1].String()},
+		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
 	// cannot take non-1 sequence channel
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: addr.String(),
-		Metadata:   metadata2,
+		Challengers: []string{addr[0].String(), addr[1].String()},
+		Metadata:    metadata2,
 	})
 	require.Error(t, err)
 
 	// check permission is applied
-	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr)
+	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
+	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-1", addr[1])
+	require.NoError(t, err)
+	require.False(t, ok)
 
 	// check permission is applied
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", acc_addr())
+	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-1", addr[0])
 	require.NoError(t, err)
 	require.False(t, ok)
 }
@@ -132,20 +148,24 @@ func Test_BridgeHook_ChallengerUpdated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: addr.String(),
-		Metadata:   metadata,
+		Challengers: []string{addr[0].String(), addr[1].String()},
+		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
 	newAddr := acc_addr()
 	err = h.BridgeChallengerUpdated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: newAddr.String(),
-		Metadata:   metadata,
+		Challengers: []string{newAddr[0].String(), newAddr[1].String()},
+		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
 	// check permission is applied
-	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", newAddr)
+	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", newAddr[0])
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", newAddr[1])
 	require.NoError(t, err)
 	require.True(t, ok)
 }
@@ -165,8 +185,8 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: addr.String(),
-		Metadata:   metadata,
+		Challengers: []string{addr[0].String(), addr[1].String()},
+		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
@@ -187,8 +207,8 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 
 	// cannot take non-1 sequence channel
 	err = h.BridgeMetadataUpdated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: addr.String(),
-		Metadata:   metadata,
+		Challengers: []string{addr[0].String(), addr[1].String()},
+		Metadata:    metadata,
 	})
 	require.Error(t, err)
 
@@ -208,13 +228,17 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 	require.NoError(t, err)
 
 	err = h.BridgeMetadataUpdated(ctx, 1, ophosttypes.BridgeConfig{
-		Challenger: addr.String(),
-		Metadata:   metadata,
+		Challengers: []string{addr[0].String(), addr[1].String()},
+		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
 	// check permission is applied
-	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-2", addr)
+	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-2", addr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
+
+	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-1", addr[0])
+	require.NoError(t, err)
+	require.False(t, ok)
 }
