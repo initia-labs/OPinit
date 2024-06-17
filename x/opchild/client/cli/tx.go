@@ -323,11 +323,8 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				SubmissionInterval:  submissionInterval,
 				FinalizationPeriod:  finalizationPeriod,
 				SubmissionStartTime: submissionStartTime,
-				BatchInfo: ophosttypes.BatchInfo{
-					Chain:      origConfig.BatchInfo.Chain,
-					Submitters: []string{origConfig.BatchInfo.Submitter},
-				},
-				Metadata: []byte(origConfig.Metadata),
+				BatchInfo:           ophosttypes.BatchInfo(origConfig.BatchInfo),
+				Metadata:            []byte(origConfig.Metadata),
 			}
 
 			if err = bridgeConfig.ValidateWithNoAddrValidation(); err != nil {

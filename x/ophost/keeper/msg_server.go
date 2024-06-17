@@ -96,7 +96,7 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
 		sdk.NewAttribute(types.AttributeKeyChallenger, strings.Join(req.Config.Challengers, ",")),
 		sdk.NewAttribute(types.AttributeKeyBatchChain, req.Config.BatchInfo.Chain),
-		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, strings.Join(req.Config.BatchInfo.Submitters, ",")),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
 
@@ -448,7 +448,7 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	}
 
 	if len(req.NewChallengers) == 0 {
-		panic("invalid challengers")
+		return nil, errors.ErrUnauthorized.Wrap("invalid new challengers, at least one new challenger is required")
 	}
 	if req.Authority == ms.authority {
 		// gov can update multiple challengers
@@ -531,7 +531,7 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 		types.EventTypeUpdateBatchInfo,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyBatchChain, req.NewBatchInfo.Chain),
-		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, strings.Join(req.NewBatchInfo.Submitters, ",")),
+		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.NewBatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))

@@ -229,7 +229,7 @@ message MsgSpendFeePool {
 // MsgSpendFeePoolResponse returns deposit result data
 message MsgSpendFeePoolResponse {}
 
-// MsgUpdateOracle is a message to update oracle prices which contains L1 extended commits for oracle. 
+// MsgUpdateOracle is a message to update oracle prices which contains L1 extended commits for oracle.
 message MsgUpdateOracle {
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name)           = "opchild/MsgUpdateOracle";

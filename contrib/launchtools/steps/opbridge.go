@@ -137,8 +137,8 @@ func createOpBridge(
 			Challengers: []string{challengerAddress},
 			Proposer:    outputAddress,
 			BatchInfo: ophosttypes.BatchInfo{
-				Submitters: []string{submitterAddress},
-				Chain:      submitTarget,
+				Submitter: submitterAddress,
+				Chain:     submitTarget,
 			},
 			SubmissionInterval:  submissionInterval,
 			FinalizationPeriod:  finalizationPeriod,

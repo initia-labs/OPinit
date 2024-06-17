@@ -149,7 +149,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 			config := types.BridgeConfig{
 				Challengers:         []string{origConfig.Challenger}, // Ensure Challenger is properly assigned
 				Proposer:            origConfig.Proposer,
-				BatchInfo:           types.BatchInfo{Submitters: []string{origConfig.BatchInfo.Submitter}, Chain: origConfig.BatchInfo.Chain}, // Ensure Submitter is properly assigned
+				BatchInfo:           types.BatchInfo{Submitter: origConfig.BatchInfo.Submitter, Chain: origConfig.BatchInfo.Chain}, // Ensure Submitter is properly assigned
 				SubmissionInterval:  submissionInterval,
 				FinalizationPeriod:  finalizationPeriod,
 				SubmissionStartTime: submissionStartTime,

@@ -60,7 +60,7 @@ message BridgeConfig {
 // BatchInfo defines the set of batch information.
 message BatchInfo {
   // The address of the batch submitter.
-  repeated string submitters = 1;
+  string submitter = 1;
   // The target chain
   string chain = 2;
 }
@@ -85,5 +85,5 @@ message Output {
 // BatchInfoWithOutput defines the batch information with output.
 message BatchInfoWithOutput {
   BatchInfo batchInfo = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-  Output output = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Output    output    = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
