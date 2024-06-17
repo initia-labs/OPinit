@@ -114,7 +114,7 @@ func initializeGenesis(
 	// prepare genesis
 	genFilePath := cometConfig.GenesisFile()
 	if cometos.FileExists(genFilePath) {
-		return nil, errors.Wrap(err, "genesis file already exists")
+		return nil, errors.New("genesis file already exists")
 	}
 
 	// prepare default genesis
