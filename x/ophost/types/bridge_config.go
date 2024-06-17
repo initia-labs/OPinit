@@ -25,8 +25,8 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain must be set")
 	}
 
-	if !config.BatchInfo.isValidSubmiiters() {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitters must be non-empty array")
+	if config.BatchInfo.Submitter == "" {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitter must be non-empty array")
 	}
 
 	if !config.isValidChallengers() {
@@ -61,8 +61,8 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain must be set")
 	}
 
-	if !config.BatchInfo.isValidSubmiiters() {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitters must be non-empty array")
+	if config.BatchInfo.Submitter == "" {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitter must be non-empty array")
 	}
 
 	if config.FinalizationPeriod == time.Duration(0) {
@@ -86,18 +86,6 @@ func (config BridgeConfig) isValidChallengers() bool {
 	}
 
 	if slices.Contains(config.Challengers, "") {
-		return false
-	}
-
-	return true
-}
-
-func (config BatchInfo) isValidSubmiiters() bool {
-	if len(config.Submitters) == 0 {
-		return false
-	}
-
-	if slices.Contains(config.Submitters, "") {
 		return false
 	}
 

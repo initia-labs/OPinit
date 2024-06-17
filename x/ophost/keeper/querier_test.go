@@ -19,7 +19,7 @@ func Test_QueryBridge(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, config)
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func Test_QueryBridges(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	config2 := types.BridgeConfig{
 		Challengers:         []string{addrs[1].String()},
@@ -55,7 +55,7 @@ func Test_QueryBridges(t *testing.T) {
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
 		Metadata:            []byte{3, 4, 5},
-		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
@@ -186,7 +186,7 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 		SubmissionInterval:  100,
 		FinalizationPeriod:  time.Second * 10,
 		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitters: []string{addrsStr[0]}, Chain: "l1"},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
 	})
 	require.NoError(t, err)
 

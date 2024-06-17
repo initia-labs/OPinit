@@ -77,13 +77,8 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 			!bridge.BatchInfos[0].Output.IsEmpty() {
 			return ErrInvalidBatchInfo
 		}
-		if len(bridge.BatchInfos[len(bridge.BatchInfos)-1].BatchInfo.Submitters) != len(bridge.BridgeConfig.BatchInfo.Submitters) {
+		if bridge.BatchInfos[len(bridge.BatchInfos)-1].BatchInfo.Submitter != bridge.BridgeConfig.BatchInfo.Submitter {
 			return ErrInvalidBatchInfo
-		}
-		for i, submitter := range bridge.BatchInfos[len(bridge.BatchInfos)-1].BatchInfo.Submitters {
-			if submitter != bridge.BridgeConfig.BatchInfo.Submitters[i] {
-				return ErrInvalidBatchInfo
-			}
 		}
 	}
 
