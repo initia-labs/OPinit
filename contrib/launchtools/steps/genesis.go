@@ -68,7 +68,7 @@ func InitializeGenesisWithPostSetup(
 
 			// store genesis
 			if err := genutil.ExportGenesisFile(appGenesis, ctx.ServerContext().Config.GenesisFile()); err != nil {
-				return errors.Wrap(err, "failed to export genesis file")
+				return errors.New("failed to export genesis file")
 			}
 
 			return nil
@@ -114,7 +114,7 @@ func initializeGenesis(
 	// prepare genesis
 	genFilePath := cometConfig.GenesisFile()
 	if cometos.FileExists(genFilePath) {
-		return nil, errors.Wrap(err, "genesis file already exists")
+		return nil, errors.New("genesis file already exists")
 	}
 
 	// prepare default genesis
