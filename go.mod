@@ -27,7 +27,7 @@ require (
 	github.com/initia-labs/OPinit/api v0.2.6
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk/v2 v2.1.1
-	github.com/skip-mev/slinky v0.4.2
+	github.com/skip-mev/slinky v0.4.3
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.23.0
