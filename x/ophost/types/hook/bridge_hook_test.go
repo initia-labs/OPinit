@@ -32,13 +32,13 @@ func (k MockChannelKeeper) GetNextSequenceSend(ctx sdk.Context, portID, channelI
 	return seq, ok
 }
 
-type MockPermRelayerList struct {
-	Relayers []sdk.AccAddress
+type MockPermissionRelayers struct {
+	Relayers []string
 }
 
-func (l MockPermRelayerList) Equals(relayer sdk.AccAddress) bool {
+func (l MockPermissionRelayers) HasRelayer(relayer string) bool {
 	for _, r := range l.Relayers {
-		if r.Equals(relayer) {
+		if r == relayer {
 			return true
 		}
 	}
@@ -46,15 +46,20 @@ func (l MockPermRelayerList) Equals(relayer sdk.AccAddress) bool {
 }
 
 type MockPermKeeper struct {
-	perms map[string]MockPermRelayerList
+	perms map[string]MockPermissionRelayers
+	ac    address.Bech32Codec
 }
 
 func (k MockPermKeeper) HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error) {
-	return k.perms[portID+"/"+channelID].Equals(relayer), nil
+	return k.perms[portID+"/"+channelID].HasRelayer(relayer.String()), nil
 }
 
 func (k MockPermKeeper) SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error {
-	k.perms[portID+"/"+channelID] = MockPermRelayerList{Relayers: relayers}
+	var relayersStr []string
+	for _, r := range relayers {
+		relayersStr = append(relayersStr, r.String())
+	}
+	k.perms[portID+"/"+channelID] = MockPermissionRelayers{Relayers: relayersStr}
 	return nil
 }
 
@@ -66,7 +71,7 @@ func setup() (context.Context, hook.BridgeHook) {
 			"transfer/channel-2": 1,
 		},
 	}, MockPermKeeper{
-		perms: make(map[string]MockPermRelayerList),
+		perms: make(map[string]MockPermissionRelayers),
 	}, address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()))
 
 	ms := store.NewCommitMultiStore(dbm.NewMemDB(), log.NewNopLogger(), metrics.NewNoOpMetrics())
@@ -107,12 +112,12 @@ func Test_BridgeHook_BridgeCreated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String(), addr[1].String()},
+		Challengers: []string{addr[0].String()},
 		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
-	// cannot take non-1 sequence channel
+	// challenger is only one when creating bridge
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
 		Challengers: []string{addr[0].String(), addr[1].String()},
 		Metadata:    metadata2,
@@ -123,17 +128,13 @@ func Test_BridgeHook_BridgeCreated(t *testing.T) {
 	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-1", addr[1])
-	require.NoError(t, err)
-	require.False(t, ok)
 
-	// check permission is applied
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-1", addr[0])
+	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[1])
 	require.NoError(t, err)
 	require.False(t, ok)
 }
 
-func Test_BridgeHook_ChallengerUpdated(t *testing.T) {
+func Test_BridgeHook_ChallengersUpdated(t *testing.T) {
 	ctx, h := setup()
 
 	metadata, err := json.Marshal(hook.PermsMetadata{
@@ -148,13 +149,13 @@ func Test_BridgeHook_ChallengerUpdated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String(), addr[1].String()},
+		Challengers: []string{addr[0].String()},
 		Metadata:    metadata,
 	})
 	require.NoError(t, err)
 
 	newAddr := acc_addr()
-	err = h.BridgeChallengerUpdated(ctx, 1, ophosttypes.BridgeConfig{
+	err = h.BridgeChallengersUpdated(ctx, 1, ophosttypes.BridgeConfig{
 		Challengers: []string{newAddr[0].String(), newAddr[1].String()},
 		Metadata:    metadata,
 	})
@@ -168,6 +169,10 @@ func Test_BridgeHook_ChallengerUpdated(t *testing.T) {
 	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", newAddr[1])
 	require.NoError(t, err)
 	require.True(t, ok)
+
+	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[0])
+	require.NoError(t, err)
+	require.False(t, ok)
 }
 
 func Test_BridgeHook_MetadataUpdated(t *testing.T) {
@@ -185,7 +190,7 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String(), addr[1].String()},
+		Challengers: []string{addr[0].String()},
 		Metadata:    metadata,
 	})
 	require.NoError(t, err)

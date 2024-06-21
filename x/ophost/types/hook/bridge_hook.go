@@ -2,6 +2,7 @@ package hook
 
 import (
 	"context"
+	"errors"
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,7 +50,9 @@ func (h BridgeHook) BridgeCreated(
 		}
 		challengers = append(challengers, challenger)
 	}
-
+	if len(challengers) != 1 {
+		return errors.New("only one challenger is allowed on bridge creation")
+	}
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
@@ -66,7 +69,7 @@ func (h BridgeHook) BridgeCreated(
 	return nil
 }
 
-func (h BridgeHook) BridgeChallengerUpdated(
+func (h BridgeHook) BridgeChallengersUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,

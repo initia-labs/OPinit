@@ -122,56 +122,49 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 			origConfig := BridgeCliConfig{}
 			err = json.Unmarshal(configBytes, &origConfig)
 			if err != nil {
-				fmt.Println("Error unmarshaling config file:", err)
+
 				return err
 			}
 
 			submissionInterval, err := time.ParseDuration(origConfig.SubmissionInterval)
 			if err != nil {
-				fmt.Println("Error parsing submission interval:", err)
 				return err
 			}
 
 			finalizationPeriod, err := time.ParseDuration(origConfig.FinalizationPeriod)
 			if err != nil {
-				fmt.Println("Error parsing finalization period:", err)
 				return err
 			}
 
 			submissionStartTime, err := time.Parse(time.RFC3339, origConfig.SubmissionStartTime)
 			if err != nil {
-				fmt.Println("Error parsing submission start time:", err)
 				return err
 			}
-
-			fmt.Println("Original Config:", origConfig)
 
 			config := types.BridgeConfig{
 				Challengers:         []string{origConfig.Challenger}, // Ensure Challenger is properly assigned
 				Proposer:            origConfig.Proposer,
-				BatchInfo:           types.BatchInfo{Submitter: origConfig.BatchInfo.Submitter, Chain: origConfig.BatchInfo.Chain}, // Ensure Submitter is properly assigned
 				SubmissionInterval:  submissionInterval,
 				FinalizationPeriod:  finalizationPeriod,
 				SubmissionStartTime: submissionStartTime,
 				Metadata:            []byte(origConfig.Metadata),
+				BatchInfo:           types.BatchInfo(origConfig.BatchInfo),
 			}
 
-			fmt.Println("Converted Config:", config)
-
 			if err = config.Validate(ac); err != nil {
-				fmt.Println("Error validating config:", err)
+
 				return err
 			}
 
 			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
 			if err != nil {
-				fmt.Println("Error getting from address:", err)
+
 				return err
 			}
 
 			msg := types.NewMsgCreateBridge(fromAddr, config)
 			if err = msg.Validate(ac); err != nil {
-				fmt.Println("Error validating message:", err)
+
 				return err
 			}
 

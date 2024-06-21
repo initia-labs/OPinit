@@ -26,7 +26,7 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 	}
 
 	if config.BatchInfo.Submitter == "" {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitter must be non-empty array")
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch submitter must be set")
 	}
 
 	if !config.isValidChallengers() {
@@ -62,7 +62,7 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 	}
 
 	if config.BatchInfo.Submitter == "" {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "submitter must be non-empty array")
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch submitter must be set")
 	}
 
 	if config.FinalizationPeriod == time.Duration(0) {

@@ -8,7 +8,7 @@ type BridgeHook interface {
 		bridgeId uint64,
 		bridgeConfig BridgeConfig,
 	) error
-	BridgeChallengerUpdated(
+	BridgeChallengersUpdated(
 		ctx context.Context,
 		bridgeId uint64,
 		bridgeConfig BridgeConfig,
@@ -52,13 +52,13 @@ func (hooks BridgeHooks) BridgeCreated(
 	return nil
 }
 
-func (hooks BridgeHooks) BridgeChallengerUpdated(
+func (hooks BridgeHooks) BridgeChallengersUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig BridgeConfig,
 ) error {
 	for _, h := range hooks {
-		if err := h.BridgeChallengerUpdated(ctx, bridgeId, bridgeConfig); err != nil {
+		if err := h.BridgeChallengersUpdated(ctx, bridgeId, bridgeConfig); err != nil {
 			return err
 		}
 	}
