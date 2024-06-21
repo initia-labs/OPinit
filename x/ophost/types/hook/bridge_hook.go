@@ -42,17 +42,14 @@ func (h BridgeHook) BridgeCreated(
 	if !hasPermChannels {
 		return nil
 	}
-	var challengers []sdk.AccAddress
-	for _, challenger := range bridgeConfig.Challengers {
-		challenger, err := h.ac.StringToBytes(challenger)
-		if err != nil {
-			return err
-		}
-		challengers = append(challengers, challenger)
-	}
-	if len(challengers) != 1 {
+
+	if len(bridgeConfig.Challengers) != 1 {
 		return errors.New("only one challenger is allowed on bridge creation")
 	}
+	challengers := make([]sdk.AccAddress, 1)
+	challengerStr, _ := h.ac.StringToBytes(bridgeConfig.Challengers[0])
+	challengers[0] = challengerStr
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
