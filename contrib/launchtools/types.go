@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"os"
 	"path"
-	"path/filepath"
 	"sync"
 
 	"cosmossdk.io/log"
@@ -147,12 +146,6 @@ func NewLauncher(
 	artifactsDir string,
 ) *LauncherContext {
 
-	logger := log.NewLogger(os.Stderr)
-	minitiaDir := filepath.Join(clientCtx.HomeDir, ".minitia")
-	if _, err := os.Stat(minitiaDir); err == nil {
-		logger.Error("minitia directory already exists, please remove it first")
-		os.Exit(1)
-	}
 	kr, err := keyring.New("minitia", keyring.BackendTest, clientCtx.HomeDir, nil, clientCtx.Codec)
 	if err != nil {
 		panic("failed to create keyring")
@@ -176,7 +169,7 @@ func NewLauncher(
 	}
 
 	return &LauncherContext{
-		log:            logger,
+		log:            log.NewLogger(os.Stderr),
 		mtx:            new(sync.Mutex),
 		clientCtx:      &nextClientCtx,
 		serverCtx:      serverCtx,

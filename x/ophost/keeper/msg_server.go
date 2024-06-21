@@ -466,7 +466,7 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or in %s, got %s", ms.authority, config.Challengers, req.Authority)
 	}
 
-	if err := ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
+	if err := ms.Keeper.bridgeHook.BridgeChallengersUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 

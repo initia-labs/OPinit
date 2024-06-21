@@ -340,7 +340,7 @@ func (h *bridgeHook) BridgeCreated(
 	return nil
 }
 
-func (h *bridgeHook) BridgeChallengerUpdated(
+func (h *bridgeHook) BridgeChallengersUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
