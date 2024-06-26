@@ -177,8 +177,8 @@ message MsgFinalizeTokenWithdrawal {
 
   // withdraw tx data
 
-  string sender   = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  string receiver = 5 [(gogoproto.moretags) = "yaml:\"receiver\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string sender   = 5 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string receiver = 1 [(gogoproto.moretags) = "yaml:\"receiver\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 sequence = 6 [(gogoproto.moretags) = "yaml:\"sequence\""];
   cosmos.base.v1beta1.Coin amount = 7
       [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
