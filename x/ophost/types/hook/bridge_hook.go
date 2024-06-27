@@ -26,7 +26,7 @@ type ChannelKeeper interface {
 
 type PermKeeper interface {
 	HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error)
-	SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayer []sdk.AccAddress) error
+	SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error
 }
 
 func NewBridgeHook(channelKeeper ChannelKeeper, permKeeper PermKeeper, ac address.Codec) BridgeHook {
@@ -43,12 +43,20 @@ func (h BridgeHook) BridgeCreated(
 		return nil
 	}
 
+	// TODO (reviewer): This is a temporary solution to allow only one challenger on bridge creation.
 	if len(bridgeConfig.Challengers) != 1 {
-		return errors.New("only one challenger is allowed on bridge creation")
+		return errors.New("bridge must have exactly one challenger on creation")
 	}
-	challengers := make([]sdk.AccAddress, 1)
-	challengerStr, _ := h.ac.StringToBytes(bridgeConfig.Challengers[0])
-	challengers[0] = challengerStr
+
+	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
+	for i, challenger := range bridgeConfig.Challengers {
+		challengerAddr, err := h.ac.StringToBytes(challenger)
+		if err != nil {
+			return err
+		}
+
+		challengers[i] = challengerAddr
+	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
@@ -58,6 +66,8 @@ func (h BridgeHook) BridgeCreated(
 		} else if seq != 1 {
 			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayer for the channel in use")
 		}
+
+		// register challengers as channel relayer
 		if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
 			return err
 		}
@@ -76,22 +86,23 @@ func (h BridgeHook) BridgeChallengersUpdated(
 		return nil
 	}
 
-	var challengers []sdk.AccAddress
-	for _, challenger := range bridgeConfig.Challengers {
-		challenger, err := h.ac.StringToBytes(challenger)
+	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
+	for i, challenger := range bridgeConfig.Challengers {
+		challengerAddr, err := h.ac.StringToBytes(challenger)
 		if err != nil {
 			return err
 		}
-		challengers = append(challengers, challenger)
+
+		challengers[i] = challengerAddr
 	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
-		// register challenger as channel relayer
+		// register challengers as channel relayers
 		if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
 			return err
 		}
-
 	}
 
 	return nil
@@ -124,36 +135,45 @@ func (h BridgeHook) BridgeMetadataUpdated(
 		return nil
 	}
 
-	var challengers []sdk.AccAddress
-	for _, challenger := range bridgeConfig.Challengers {
-		challenger, err := h.ac.StringToBytes(challenger)
+	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
+	for i, challenger := range bridgeConfig.Challengers {
+		challengerAddr, err := h.ac.StringToBytes(challenger)
 		if err != nil {
 			return err
 		}
-		challengers = append(challengers, challenger)
+
+		challengers[i] = challengerAddr
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
+
+		hasPermission := true
+
+		// check if the challengers are already registered as a permissioned relayers
 		for _, challenger := range challengers {
-			// check if the relayer is already registered as a permissioned relayer
-			if hasPermission, err := h.IBCPermKeeper.HasPermission(ctx, portID, channelID, challenger); err != nil {
+			if hasPerm, err := h.IBCPermKeeper.HasPermission(ctx, portID, channelID, challenger); err != nil {
 				return err
-			} else if hasPermission {
-				continue
+			} else if !hasPerm {
+				hasPermission = false
+				break
 			}
+		}
 
-			if seq, ok := h.IBCChannelKeeper.GetNextSequenceSend(sdkCtx, portID, channelID); !ok {
-				return channeltypes.ErrChannelNotFound.Wrap("failed to register permissioned relayer")
-			} else if seq != 1 {
-				return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayer for the channel in use")
-			}
+		if hasPermission {
+			continue
+		}
 
-			// register challenger as channel relayer
-			if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
-				return err
-			}
+		if seq, ok := h.IBCChannelKeeper.GetNextSequenceSend(sdkCtx, portID, channelID); !ok {
+			return channeltypes.ErrChannelNotFound.Wrap("failed to register permissioned relayer")
+		} else if seq != 1 {
+			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayer for the channel in use")
+		}
+
+		// register challengers as channel relayers
+		if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
+			return err
 		}
 	}
 

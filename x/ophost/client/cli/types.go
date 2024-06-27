@@ -3,7 +3,7 @@ package cli
 // BridgeConfig defines the set of bridge config.
 // NOTE: it is a modified BridgeConfig from x/ophost/types/types.go to make unmarshal easier
 type BridgeCliConfig struct {
-	Challenger          string       `json:"challenger"`
+	Challengers         []string     `json:"challengers"`
 	Proposer            string       `json:"proposer"`
 	SubmissionInterval  string       `json:"submission_interval"`
 	FinalizationPeriod  string       `json:"finalization_period"`

@@ -184,15 +184,9 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 	if err != nil {
 		return nil, err
 	}
-	permission := false
-	for _, c := range bridgeConfig.Challengers {
-		if c == challenger {
-			permission = true
-			break
-		}
-	}
+
 	// permission check
-	if !permission {
+	if !slices.Contains(bridgeConfig.Challengers, challenger) {
 		return nil, errors.ErrUnauthorized.Wrap("invalid challenger")
 	}
 
@@ -436,7 +430,7 @@ func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProp
 	}, nil
 }
 
-func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
+func (ms MsgServer) UpdateChallengers(ctx context.Context, req *types.MsgUpdateChallengers) (*types.MsgUpdateChallengersResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
 	}
@@ -447,23 +441,27 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 		return nil, err
 	}
 
-	if len(req.NewChallengers) == 0 {
-		return nil, errors.ErrUnauthorized.Wrap("invalid new challengers, at least one new challenger is required")
-	}
+	// permission check
 	if req.Authority == ms.authority {
-		// gov can update multiple challengers
 		config.Challengers = req.NewChallengers
-
 	} else if idx := slices.Index(config.Challengers, req.Authority); idx >= 0 {
-
-		// replace byself
-		if len(req.NewChallengers) != 1 {
-			return nil, errors.ErrUnauthorized.Wrap("invalid new challengers, only one new challenger is allowed to replace the old one")
+		removedChallengers := []string{}
+		for _, challenger := range config.Challengers {
+			if found := slices.Contains(req.NewChallengers, challenger); !found {
+				removedChallengers = append(removedChallengers, challenger)
+			}
 		}
-		config.Challengers[idx] = req.NewChallengers[0]
 
+		originChallengersLen := len(config.Challengers)
+		newChallengersLen := len(req.NewChallengers)
+		removedChallengersLen := len(removedChallengers)
+		if removedChallengersLen != 1 || removedChallengers[0] != req.Authority || originChallengersLen-newChallengersLen < 0 {
+			return nil, types.ErrInvalidChallengerUpdate.Wrap("a challenger can replace only oneself or remove oneself")
+		}
+
+		config.Challengers = req.NewChallengers
 	} else {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or in %s, got %s", ms.authority, config.Challengers, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or one in [%s], but got %s", ms.authority, strings.Join(config.Challengers, ","), req.Authority)
 	}
 
 	if err := ms.Keeper.bridgeHook.BridgeChallengersUpdated(ctx, bridgeId, config); err != nil {
@@ -486,7 +484,7 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateChallengerResponse{
+	return &types.MsgUpdateChallengersResponse{
 		OutputIndex:   finalizedOutputIndex,
 		L2BlockNumber: finalizedOutput.L2BlockNumber,
 	}, nil

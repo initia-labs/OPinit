@@ -164,7 +164,7 @@ func (s *CLITestSuite) TestNewCreateBridge() {
 
 	invalidConfig.WriteString(`{}`)
 	validConfig.WriteString(`{
-        "challenger": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+        "challengers": ["init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g"],
         "proposer": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
         "submission_interval": "100s",
         "finalization_period": "1000s",

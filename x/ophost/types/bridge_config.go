@@ -10,11 +10,17 @@ import (
 )
 
 func (config BridgeConfig) Validate(ac address.Codec) error {
-	var err error
+	challengerDupMap := make(map[string]bool, len(config.Challengers))
 	for _, challenger := range config.Challengers {
-		if _, err = ac.StringToBytes(challenger); err != nil {
+		if _, err := ac.StringToBytes(challenger); err != nil {
 			return err
 		}
+
+		if _, ok := challengerDupMap[challenger]; ok {
+			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challengers must be unique")
+		}
+
+		challengerDupMap[challenger] = true
 	}
 
 	if _, err := ac.StringToBytes(config.Proposer); err != nil {

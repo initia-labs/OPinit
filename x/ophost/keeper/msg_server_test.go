@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"slices"
 	"testing"
 	"time"
 
@@ -283,13 +282,13 @@ func Test_UpdateProposal(t *testing.T) {
 	require.Error(t, err)
 }
 
-func Test_UpdateChallenger(t *testing.T) {
+func Test_UpdateChallengers(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
 		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
+		Challengers:         []string{addrsStr[1], addrsStr[2], addrsStr[3]},
 		SubmissionInterval:  time.Second * 10,
 		FinalizationPeriod:  time.Second * 60,
 		SubmissionStartTime: time.Now().UTC(),
@@ -303,37 +302,69 @@ func Test_UpdateChallenger(t *testing.T) {
 	// gov signer
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
-	msg := types.NewMsgUpdateChallenger(govAddr, 1, []string{addrsStr[2], addrsStr[3]})
-	_, err = ms.UpdateChallenger(ctx, msg)
+	msg := types.NewMsgUpdateChallengers(govAddr, 1, []string{addrsStr[2], addrsStr[3]})
+	_, err = ms.UpdateChallengers(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.True(t, slices.Contains(_config.Challengers, addrsStr[2]))
-	require.True(t, slices.Contains(input.BridgeHook.challengers, addrsStr[2]))
+	require.Equal(t, []string{addrsStr[2], addrsStr[3]}, _config.Challengers)
+	require.Equal(t, input.BridgeHook.challengers, _config.Challengers)
+
 	// current challenger
-	msg = types.NewMsgUpdateChallenger(addrsStr[2], 1, []string{addrsStr[4]})
-	_, err = ms.UpdateChallenger(ctx, msg)
+
+	// case 1. replace oneself
+	msg = types.NewMsgUpdateChallengers(addrsStr[2], 1, []string{addrsStr[3], addrsStr[4]})
+	_, err = ms.UpdateChallengers(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.True(t, slices.Contains(_config.Challengers, addrsStr[4]))
-	require.True(t, slices.Contains(input.BridgeHook.challengers, addrsStr[4]))
+	require.Equal(t, []string{addrsStr[3], addrsStr[4]}, _config.Challengers)
+	require.Equal(t, input.BridgeHook.challengers, _config.Challengers)
+
+	// case 2. try to remove other challenger
+	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[4]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.Error(t, err)
+
+	// case 2. try to replace other challenger
+	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[2], addrsStr[4]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.Error(t, err)
+
+	// case 3. remove oneself
+	msg = types.NewMsgUpdateChallengers(addrsStr[3], 1, []string{addrsStr[4]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.NoError(t, err)
+	_config, err = ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, []string{addrsStr[4]}, _config.Challengers)
+	require.Equal(t, input.BridgeHook.challengers, _config.Challengers)
+
+	// case 4. try to add more challenger
+	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[3], addrsStr[4]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.Error(t, err)
+
+	// case 5. try to add more challenger with replace
+	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[2], addrsStr[3]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.Error(t, err)
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
-	msg = types.NewMsgUpdateChallenger(invalidAddr, 1, []string{addrsStr[1]})
+	msg = types.NewMsgUpdateChallengers(invalidAddr, 1, []string{addrsStr[1]})
 	require.NoError(t, err)
 
-	_, err = ms.UpdateChallenger(
+	_, err = ms.UpdateChallengers(
 		ctx,
 		msg,
 	)
 	require.Error(t, err)
 
 	// invalid case
-	msg = types.NewMsgUpdateChallenger(govAddr, 1, []string{})
-	_, err = ms.UpdateChallenger(ctx, msg)
+	msg = types.NewMsgUpdateChallengers(govAddr, 1, []string{})
+	_, err = ms.UpdateChallengers(ctx, msg)
 	require.Error(t, err)
 }
 

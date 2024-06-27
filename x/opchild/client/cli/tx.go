@@ -261,7 +261,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			fmt.Sprintf(
 				`send a tx to set a bridge info with a config file as a json.
 				Example:
-				$ %s tx ophost set-bridge-info 1 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 mahalo-2 07-tendermint-0 path/to/bridge-config.json
+				$ %s tx opchild set-bridge-info 1 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 mahalo-2 07-tendermint-0 path/to/bridge-config.json
 				
 				Where bridge-config.json contains:
 				{
@@ -318,7 +318,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			}
 
 			bridgeConfig := ophosttypes.BridgeConfig{
-				Challengers:         []string{origConfig.Challenger},
+				Challengers:         origConfig.Challengers,
 				Proposer:            origConfig.Proposer,
 				SubmissionInterval:  submissionInterval,
 				FinalizationPeriod:  finalizationPeriod,
