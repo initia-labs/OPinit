@@ -334,7 +334,9 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 			seed = append(seed, types.Splitter)
 			seed = binary.BigEndian.AppendUint64(seed, amount.Uint64())
 
+			// double hash the leaf node
 			withdrawalHash = sha3.Sum256(seed)
+			withdrawalHash = sha3.Sum256(withdrawalHash[:])
 		}
 
 		if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {

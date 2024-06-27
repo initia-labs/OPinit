@@ -128,12 +128,7 @@ func (hv HostValidatorStore) GetAllValidators(ctx context.Context) (validators [
 }
 
 func (hv HostValidatorStore) DeleteAllValidators(ctx context.Context) error {
-	return hv.validators.Walk(ctx, nil, func(key []byte, _ stakingtypes.Validator) (stop bool, err error) {
-		if err := hv.validators.Remove(ctx, key); err != nil {
-			return true, err
-		}
-		return false, nil
-	})
+	return hv.validators.Clear(ctx, nil)
 }
 
 func (hv HostValidatorStore) GetLastHeight(ctx context.Context) (int64, error) {
