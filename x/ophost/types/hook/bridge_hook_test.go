@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
@@ -14,6 +15,8 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
 	"github.com/stretchr/testify/require"
 
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
@@ -45,22 +48,37 @@ func (l MockPermissionRelayers) HasRelayer(relayer string) bool {
 	return false
 }
 
+type MockPermRelayerList struct {
+	Relayers []sdk.AccAddress
+}
+
+func (l MockPermRelayerList) Equals(relayer sdk.AccAddress) bool {
+	for _, r := range l.Relayers {
+		if r.Equals(relayer) {
+			return true
+		}
+	}
+	return false
+}
+
 type MockPermKeeper struct {
-	perms map[string]MockPermissionRelayers
-	ac    address.Bech32Codec
+	perms map[string]MockPermRelayerList
 }
 
 func (k MockPermKeeper) HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error) {
-	return k.perms[portID+"/"+channelID].HasRelayer(relayer.String()), nil
+	return k.perms[portID+"/"+channelID].Equals(relayer), nil
 }
 
 func (k MockPermKeeper) SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error {
-	var relayersStr []string
-	for _, r := range relayers {
-		relayersStr = append(relayersStr, r.String())
-	}
-	k.perms[portID+"/"+channelID] = MockPermissionRelayers{Relayers: relayersStr}
+	k.perms[portID+"/"+channelID] = MockPermRelayerList{Relayers: relayers}
 	return nil
+}
+
+func (k MockPermKeeper) GetPermissionedRelayers(ctx context.Context, portID, channelID string) ([]sdk.AccAddress, error) {
+	if _, ok := k.perms[portID+"/"+channelID]; !ok {
+		return nil, collections.ErrNotFound
+	}
+	return k.perms[portID+"/"+channelID].Relayers, nil
 }
 
 func setup() (context.Context, hook.BridgeHook) {
@@ -71,7 +89,7 @@ func setup() (context.Context, hook.BridgeHook) {
 			"transfer/channel-2": 1,
 		},
 	}, MockPermKeeper{
-		perms: make(map[string]MockPermissionRelayers),
+		perms: make(map[string]MockPermRelayerList),
 	}, address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()))
 
 	ms := store.NewCommitMultiStore(dbm.NewMemDB(), log.NewNopLogger(), metrics.NewNoOpMetrics())
@@ -117,18 +135,26 @@ func Test_BridgeHook_BridgeCreated(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// challenger is only one when creating bridge
+	// can't create bridge with already taken channel
+	err = h.BridgeCreated(ctx, 2, ophosttypes.BridgeConfig{
+		Challengers: []string{addr[0].String()},
+		Metadata:    metadata,
+	})
+	require.ErrorIs(t, err, channeltypes.ErrChannelExists)
+
+	// cannot take non-1 sequence channel
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String(), addr[1].String()},
+		Challengers: []string{addr[0].String()},
 		Metadata:    metadata2,
 	})
-	require.Error(t, err)
+	require.ErrorIs(t, err, channeltypes.ErrChannelExists)
 
 	// check permission is applied
 	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
 
+	// check permission is applied
 	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[1])
 	require.NoError(t, err)
 	require.False(t, ok)

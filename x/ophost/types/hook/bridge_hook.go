@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -27,6 +28,7 @@ type ChannelKeeper interface {
 type PermKeeper interface {
 	HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error)
 	SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error
+	GetPermissionedRelayers(ctx context.Context, portID, channelID string) ([]sdk.AccAddress, error)
 }
 
 func NewBridgeHook(channelKeeper ChannelKeeper, permKeeper PermKeeper, ac address.Codec) BridgeHook {
@@ -62,9 +64,16 @@ func (h BridgeHook) BridgeCreated(
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
 		if seq, ok := h.IBCChannelKeeper.GetNextSequenceSend(sdkCtx, portID, channelID); !ok {
-			return channeltypes.ErrChannelNotFound.Wrap("failed to register permissioned relayer")
+			return channeltypes.ErrChannelNotFound.Wrap("failed to get next sequence send")
 		} else if seq != 1 {
-			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayer for the channel in use")
+			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayers for the channel in use")
+		}
+
+		// check if the channel has a permissioned relayer
+		if _, err := h.IBCPermKeeper.GetPermissionedRelayers(ctx, portID, channelID); err == nil {
+			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayers for the channel in use")
+		} else if !errors.Is(err, collections.ErrNotFound) {
+			return err
 		}
 
 		// register challengers as channel relayer
