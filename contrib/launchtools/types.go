@@ -145,6 +145,7 @@ func NewLauncher(
 	defaultGenesis map[string]json.RawMessage,
 	artifactsDir string,
 ) *LauncherContext {
+
 	kr, err := keyring.New("minitia", keyring.BackendTest, clientCtx.HomeDir, nil, clientCtx.Codec)
 	if err != nil {
 		panic("failed to create keyring")

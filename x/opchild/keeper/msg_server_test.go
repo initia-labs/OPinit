@@ -280,8 +280,8 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger: addrsStr[2],
-			Proposer:   addrsStr[3],
+			Challengers: []string{addrsStr[2]},
+			Proposer:    addrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
 				Submitter: addrsStr[4],
 				Chain:     "l1",
@@ -332,8 +332,8 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger: addrsStr[2],
-			Proposer:   addrsStr[3],
+			Challengers: []string{addrsStr[2]},
+			Proposer:    addrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
 				Submitter: addrsStr[4],
 				Chain:     "l1",

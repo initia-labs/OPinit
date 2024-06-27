@@ -97,7 +97,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				
 				Where bridge-config.json contains:
 				{
-					"challenger": "bech32-address",
+					"challengers": ["bech32-address"],
 					"proposer": "bech32-addresss",
 					"submission_interval": "duration",
 					"finalization_period": "duration",
@@ -119,9 +119,10 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			origConfig := BridgeConfig{}
+			origConfig := BridgeCliConfig{}
 			err = json.Unmarshal(configBytes, &origConfig)
 			if err != nil {
+
 				return err
 			}
 
@@ -141,25 +142,29 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 			}
 
 			config := types.BridgeConfig{
-				Challenger:          origConfig.Challenger,
+				Challengers:         origConfig.Challengers, // Ensure Challenger is properly assigned
 				Proposer:            origConfig.Proposer,
 				SubmissionInterval:  submissionInterval,
 				FinalizationPeriod:  finalizationPeriod,
 				SubmissionStartTime: submissionStartTime,
 				Metadata:            []byte(origConfig.Metadata),
-				BatchInfo:           origConfig.BatchInfo,
+				BatchInfo:           types.BatchInfo(origConfig.BatchInfo),
 			}
+
 			if err = config.Validate(ac); err != nil {
+
 				return err
 			}
 
 			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
 			if err != nil {
+
 				return err
 			}
 
 			msg := types.NewMsgCreateBridge(fromAddr, config)
 			if err = msg.Validate(ac); err != nil {
+
 				return err
 			}
 

@@ -54,8 +54,8 @@ service Msg {
   // UpdateProposer defines a rpc handler method for MsgUpdateProposer.
   rpc UpdateProposer(MsgUpdateProposer) returns (MsgUpdateProposerResponse);
 
-  // UpdateChallenger defines a rpc handler method for MsgUpdateChallenger.
-  rpc UpdateChallenger(MsgUpdateChallenger) returns (MsgUpdateChallengerResponse);
+  // UpdateChallengers defines a rpc handler method for MsgUpdateChallengers.
+  rpc UpdateChallengers(MsgUpdateChallengers) returns (MsgUpdateChallengersResponse);
 
   // UpdateBatchInfo defines a rpc handler method for MsgUpdateBatchInfo.
   rpc UpdateBatchInfo(MsgUpdateBatchInfo) returns (MsgUpdateBatchInfoResponse);
@@ -220,20 +220,22 @@ message MsgUpdateProposerResponse {
 }
 
 // MsgUpdateChallenger is a message to change a challenger
-message MsgUpdateChallenger {
+message MsgUpdateChallengers {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateChallenger";
+  option (amino.name)           = "ophost/MsgUpdateChallengers";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current challenger address.
+  //
+  // If the given authority is a challenger address, it has the ability to replace itself with another address.
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  string new_challenger = 3
-      [(gogoproto.moretags) = "yaml:\"new_challenger\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string new_challengers = 3
+      [(gogoproto.moretags) = "yaml:\"new_challengers\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-// MsgUpdateChallengerResponse returns a message handle result.
-message MsgUpdateChallengerResponse {
+// MsgUpdateChallengersResponse returns a message handle result.
+message MsgUpdateChallengersResponse {
   // last finalized output index
   uint64 output_index = 1;
   // last finalized l2 block number
@@ -268,6 +270,9 @@ message MsgUpdateMetadata {
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current challenger address.
+  //
+  // If the given authority is a challenger address, it has the ability to replace oneself to another address or remove
+  // oneself.
   string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   bytes  metadata  = 3 [(gogoproto.moretags) = "yaml:\"metadata\""];

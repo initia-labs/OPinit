@@ -119,7 +119,7 @@ $ %s add-genesis-validator my-key-name --home=/path/to/home/dir --keyring-backen
 
 			genDoc.AppState = appStateJSON
 			if err = genutil.ExportGenesisFile(genDoc, config.GenesisFile()); err != nil {
-				return errors.Wrap(err, "Failed to export genesis file")
+				return errors.New("Failed to export genesis file")
 			}
 
 			return nil
@@ -203,7 +203,7 @@ the address will be looked up in the local Keybase.
 
 			genDoc.AppState = appStateJSON
 			if err = genutil.ExportGenesisFile(genDoc, config.GenesisFile()); err != nil {
-				return errors.Wrap(err, "Failed to export genesis file")
+				return errors.New("Failed to export genesis file")
 			}
 
 			return nil

@@ -13,7 +13,7 @@ var (
 	_ sdk.Msg = &MsgFinalizeTokenWithdrawal{}
 	_ sdk.Msg = &MsgInitiateTokenDeposit{}
 	_ sdk.Msg = &MsgUpdateProposer{}
-	_ sdk.Msg = &MsgUpdateChallenger{}
+	_ sdk.Msg = &MsgUpdateChallengers{}
 	_ sdk.Msg = &MsgUpdateBatchInfo{}
 	_ sdk.Msg = &MsgUpdateMetadata{}
 	_ sdk.Msg = &MsgUpdateParams{}
@@ -303,23 +303,23 @@ func (msg MsgUpdateProposer) Validate(accAddressCodec address.Codec) error {
 	return nil
 }
 
-/* MsgUpdateChallenger */
+/* MsgUpdateChallengers */
 
-// NewMsgUpdateChallenger creates a new MsgUpdateChallenger instance.
-func NewMsgUpdateChallenger(
+// NewMsgUpdateChallengers creates a new MsgUpdateChallengers instance.
+func NewMsgUpdateChallengers(
 	authority string,
 	bridgeId uint64,
-	newChallenger string,
-) *MsgUpdateChallenger {
-	return &MsgUpdateChallenger{
-		Authority:     authority,
-		BridgeId:      bridgeId,
-		NewChallenger: newChallenger,
+	newChallengers []string,
+) *MsgUpdateChallengers {
+	return &MsgUpdateChallengers{
+		Authority:      authority,
+		BridgeId:       bridgeId,
+		NewChallengers: newChallengers,
 	}
 }
 
-// Validate performs basic MsgUpdateChallenger message validation.
-func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
+// Validate performs basic MsgUpdateChallengers message validation.
+func (msg MsgUpdateChallengers) Validate(accAddressCodec address.Codec) error {
 	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
@@ -328,8 +328,22 @@ func (msg MsgUpdateChallenger) Validate(accAddressCodec address.Codec) error {
 		return ErrInvalidBridgeId
 	}
 
-	if _, err := accAddressCodec.StringToBytes(msg.NewChallenger); err != nil {
-		return err
+	dupCheckMap := make(map[string]bool)
+	for _, challenger := range msg.NewChallengers {
+		_, err := accAddressCodec.StringToBytes(challenger)
+		if err != nil {
+			return err
+		}
+
+		if _, found := dupCheckMap[challenger]; found {
+			return ErrInvalidChallengerUpdate.Wrap("duplicate challenger")
+		}
+
+		dupCheckMap[challenger] = true
+	}
+
+	if len(msg.NewChallengers) == 0 {
+		return ErrInvalidChallengerUpdate.Wrap("at least one new challenger is required")
 	}
 
 	return nil
