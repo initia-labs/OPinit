@@ -47,8 +47,8 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 // NewDepositCmd returns a CLI command handler for the transaction sending a deposit to an user account.
 func NewDepositCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit [sequence] [from_l1] [to_l2] [amount] [base_denom]",
-		Args:  cobra.ExactArgs(5),
+		Use:   "deposit [sequence] [height] [from_l1] [to_l2] [amount] [base_denom]",
+		Args:  cobra.ExactArgs(6),
 		Short: "send a deposit to an user account",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -66,21 +66,26 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			from, err := ac.StringToBytes(args[1])
-			if err != nil {
-				return err
-			}
-			to, err := ac.StringToBytes(args[2])
+			height, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			amount, err := sdk.ParseCoinNormalized(args[3])
+			from, err := ac.StringToBytes(args[2])
+			if err != nil {
+				return err
+			}
+			to, err := ac.StringToBytes(args[3])
 			if err != nil {
 				return err
 			}
 
-			baseDenom := args[4]
+			amount, err := sdk.ParseCoinNormalized(args[4])
+			if err != nil {
+				return err
+			}
+
+			baseDenom := args[5]
 
 			hookMsg, err := cmd.Flags().GetString(FlagHookMsg)
 			if err != nil {
@@ -88,7 +93,7 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 			}
 
 			txf, msg, err := newBuildDepositMsg(
-				clientCtx, ac, txf, sequence,
+				clientCtx, ac, txf, sequence, height,
 				from, to, amount, baseDenom,
 				[]byte(hookMsg),
 			)
@@ -381,6 +386,7 @@ func newBuildDepositMsg(
 	ac address.Codec,
 	txf tx.Factory,
 	sequence uint64,
+	height uint64,
 	from, to sdk.AccAddress,
 	amount sdk.Coin,
 	baseDenom string,
@@ -402,7 +408,7 @@ func newBuildDepositMsg(
 		return txf, nil, err
 	}
 
-	msg := types.NewMsgFinalizeTokenDeposit(senderAddr, fromAddr, toAddr, amount, sequence, baseDenom, hookMsg)
+	msg := types.NewMsgFinalizeTokenDeposit(senderAddr, fromAddr, toAddr, amount, sequence, height, baseDenom, hookMsg)
 	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}
