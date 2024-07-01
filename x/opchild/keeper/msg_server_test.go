@@ -299,7 +299,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	baseDenom := "test_token"
 	denom := ophosttypes.L2Denom(1, baseDenom)
 
-	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil))
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil))
 	require.NoError(t, err)
 
 	coins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(1_000_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
@@ -402,7 +402,7 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	require.Equal(t, math.ZeroInt(), beforeModuleBalance.Amount)
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], opchildModuleAddress.String(), sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil)
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], opchildModuleAddress.String(), sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -421,7 +421,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
 	// unauthorized deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[1], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil)
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[1], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.Error(t, err)
 
@@ -429,7 +429,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	require.Equal(t, math.ZeroInt(), beforeBalance.Amount)
 
 	// valid deposit
-	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", nil)
+	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -453,7 +453,7 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	input.BridgeHook.err = nil
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", hookMsgBytes)
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", hookMsgBytes)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 	require.Equal(t, hookMsgBytes, input.BridgeHook.msgBytes)
@@ -479,7 +479,7 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	input.BridgeHook.err = errors.New("should be failed")
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, "test_token", []byte("invalid_message"))
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", []byte("invalid_message"))
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 	require.Empty(t, input.BridgeHook.msgBytes)

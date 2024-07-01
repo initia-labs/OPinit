@@ -170,6 +170,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 			"invalid transaction (invalid from_l1)",
 			[]string{
 				"1",
+				"1",
 				"_invalid_acc_",
 				s.addrs[0].String(),
 				"100umin",
@@ -185,6 +186,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 			"invalid transaction (invalid to_l2)",
 			[]string{
 				s.addrs[0].String(),
+				"1",
 				"_invalid_acc_",
 				"1",
 				"100umin",
@@ -200,6 +202,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 			"invalid transaction (invalid sequence)",
 			[]string{
 				"-1",
+				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),
 				"100umin",
@@ -214,6 +217,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 		{
 			"invalid transaction (invalid amount)",
 			[]string{
+				"1",
 				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),
@@ -230,6 +234,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 			"invalid transaction (invalid base_denom)",
 			[]string{
 				"1",
+				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),
 				"100umin",
@@ -244,6 +249,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 		{
 			"valid transaction without hook msg",
 			[]string{
+				"1",
 				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),
@@ -260,6 +266,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 			"valid transaction with valid hook msg",
 			[]string{
 				"1",
+				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),
 				"100umin",
@@ -275,6 +282,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 		{
 			"valid transaction with invalid hook msg",
 			[]string{
+				"1",
 				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),

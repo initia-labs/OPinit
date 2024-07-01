@@ -224,6 +224,7 @@ func NewMsgFinalizeTokenDeposit(
 	sender, from, to string,
 	amount sdk.Coin,
 	sequence uint64,
+	height uint64,
 	baseDenom string,
 	data []byte,
 ) *MsgFinalizeTokenDeposit {
@@ -233,6 +234,7 @@ func NewMsgFinalizeTokenDeposit(
 		To:        to,
 		Amount:    amount,
 		Sequence:  sequence,
+		Height:    height,
 		BaseDenom: baseDenom,
 		Data:      data,
 	}
@@ -262,6 +264,10 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 
 	if msg.Sequence == 0 {
 		return ErrInvalidSequence
+	}
+
+	if msg.Height == 0 {
+		return ErrInvalidBlockHeight
 	}
 
 	return nil
