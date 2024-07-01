@@ -16,7 +16,7 @@ var (
 	ErrDepositAlreadyFinalized         = errorsmod.Register(ModuleName, 9, "deposit already finalized")
 	ErrInvalidAmount                   = errorsmod.Register(ModuleName, 10, "invalid amount")
 	ErrInvalidSequence                 = errorsmod.Register(ModuleName, 11, "invalid sequence")
-	ErrInvalidBlockHeight              = errorsmod.Register(ModuleName, 12, "invalid sequence")
+	ErrInvalidBlockHeight              = errorsmod.Register(ModuleName, 12, "invalid block height")
 	ErrZeroMaxValidators               = errorsmod.Register(ModuleName, 13, "max validators must be non-zero")
 	ErrInvalidExecuteMsg               = errorsmod.Register(ModuleName, 14, "invalid execute message")
 	ErrUnroutableExecuteMsg            = errorsmod.Register(ModuleName, 15, "unroutable execute message")
