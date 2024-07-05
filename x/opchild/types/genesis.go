@@ -25,13 +25,13 @@ func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeIn
 // DefaultGenesisState gets the raw genesis raw message for testing
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:               DefaultParams(),
-		LastValidatorPowers:  []LastValidatorPower{},
-		Validators:           []Validator{},
-		Exported:             false,
-		NextL2Sequence:       DefaultL2SequenceStart,
-		FinalizedL1Sequences: []uint64{},
-		BridgeInfo:           nil,
+		Params:              DefaultParams(),
+		LastValidatorPowers: []LastValidatorPower{},
+		Validators:          []Validator{},
+		Exported:            false,
+		NextL2Sequence:      DefaultL2SequenceStart,
+		FinalizedL1Sequence: 0,
+		BridgeInfo:          nil,
 	}
 }
 

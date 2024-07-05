@@ -117,61 +117,15 @@ func (x *_GenesisState_3_list) IsValid() bool {
 	return x.list != nil
 }
 
-var _ protoreflect.List = (*_GenesisState_7_list)(nil)
-
-type _GenesisState_7_list struct {
-	list *[]uint64
-}
-
-func (x *_GenesisState_7_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_GenesisState_7_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfUint64((*x.list)[i])
-}
-
-func (x *_GenesisState_7_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Uint()
-	concreteValue := valueUnwrapped
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_GenesisState_7_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Uint()
-	concreteValue := valueUnwrapped
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_GenesisState_7_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message GenesisState at list field FinalizedL1Sequences as it is not of Message kind"))
-}
-
-func (x *_GenesisState_7_list) Truncate(n int) {
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_GenesisState_7_list) NewElement() protoreflect.Value {
-	v := uint64(0)
-	return protoreflect.ValueOfUint64(v)
-}
-
-func (x *_GenesisState_7_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
-	md_GenesisState                        protoreflect.MessageDescriptor
-	fd_GenesisState_params                 protoreflect.FieldDescriptor
-	fd_GenesisState_last_validator_powers  protoreflect.FieldDescriptor
-	fd_GenesisState_validators             protoreflect.FieldDescriptor
-	fd_GenesisState_exported               protoreflect.FieldDescriptor
-	fd_GenesisState_next_l2_sequence       protoreflect.FieldDescriptor
-	fd_GenesisState_finalized_l1_sequences protoreflect.FieldDescriptor
-	fd_GenesisState_bridge_info            protoreflect.FieldDescriptor
+	md_GenesisState                       protoreflect.MessageDescriptor
+	fd_GenesisState_params                protoreflect.FieldDescriptor
+	fd_GenesisState_last_validator_powers protoreflect.FieldDescriptor
+	fd_GenesisState_validators            protoreflect.FieldDescriptor
+	fd_GenesisState_exported              protoreflect.FieldDescriptor
+	fd_GenesisState_next_l2_sequence      protoreflect.FieldDescriptor
+	fd_GenesisState_finalized_l1_sequence protoreflect.FieldDescriptor
+	fd_GenesisState_bridge_info           protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -182,7 +136,7 @@ func init() {
 	fd_GenesisState_validators = md_GenesisState.Fields().ByName("validators")
 	fd_GenesisState_exported = md_GenesisState.Fields().ByName("exported")
 	fd_GenesisState_next_l2_sequence = md_GenesisState.Fields().ByName("next_l2_sequence")
-	fd_GenesisState_finalized_l1_sequences = md_GenesisState.Fields().ByName("finalized_l1_sequences")
+	fd_GenesisState_finalized_l1_sequence = md_GenesisState.Fields().ByName("finalized_l1_sequence")
 	fd_GenesisState_bridge_info = md_GenesisState.Fields().ByName("bridge_info")
 }
 
@@ -281,9 +235,9 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if len(x.FinalizedL1Sequences) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_7_list{list: &x.FinalizedL1Sequences})
-		if !f(fd_GenesisState_finalized_l1_sequences, value) {
+	if x.FinalizedL1Sequence != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.FinalizedL1Sequence)
+		if !f(fd_GenesisState_finalized_l1_sequence, value) {
 			return
 		}
 	}
@@ -318,8 +272,8 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 		return x.Exported != false
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		return x.NextL2Sequence != uint64(0)
-	case "opinit.opchild.v1.GenesisState.finalized_l1_sequences":
-		return len(x.FinalizedL1Sequences) != 0
+	case "opinit.opchild.v1.GenesisState.finalized_l1_sequence":
+		return x.FinalizedL1Sequence != uint64(0)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		return x.BridgeInfo != nil
 	default:
@@ -348,8 +302,8 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 		x.Exported = false
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		x.NextL2Sequence = uint64(0)
-	case "opinit.opchild.v1.GenesisState.finalized_l1_sequences":
-		x.FinalizedL1Sequences = nil
+	case "opinit.opchild.v1.GenesisState.finalized_l1_sequence":
+		x.FinalizedL1Sequence = uint64(0)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		x.BridgeInfo = nil
 	default:
@@ -389,12 +343,9 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		value := x.NextL2Sequence
 		return protoreflect.ValueOfUint64(value)
-	case "opinit.opchild.v1.GenesisState.finalized_l1_sequences":
-		if len(x.FinalizedL1Sequences) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_7_list{})
-		}
-		listValue := &_GenesisState_7_list{list: &x.FinalizedL1Sequences}
-		return protoreflect.ValueOfList(listValue)
+	case "opinit.opchild.v1.GenesisState.finalized_l1_sequence":
+		value := x.FinalizedL1Sequence
+		return protoreflect.ValueOfUint64(value)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		value := x.BridgeInfo
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
@@ -432,10 +383,8 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 		x.Exported = value.Bool()
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		x.NextL2Sequence = value.Uint()
-	case "opinit.opchild.v1.GenesisState.finalized_l1_sequences":
-		lv := value.List()
-		clv := lv.(*_GenesisState_7_list)
-		x.FinalizedL1Sequences = *clv.list
+	case "opinit.opchild.v1.GenesisState.finalized_l1_sequence":
+		x.FinalizedL1Sequence = value.Uint()
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		x.BridgeInfo = value.Message().Interface().(*BridgeInfo)
 	default:
@@ -475,12 +424,6 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		}
 		value := &_GenesisState_3_list{list: &x.Validators}
 		return protoreflect.ValueOfList(value)
-	case "opinit.opchild.v1.GenesisState.finalized_l1_sequences":
-		if x.FinalizedL1Sequences == nil {
-			x.FinalizedL1Sequences = []uint64{}
-		}
-		value := &_GenesisState_7_list{list: &x.FinalizedL1Sequences}
-		return protoreflect.ValueOfList(value)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		if x.BridgeInfo == nil {
 			x.BridgeInfo = new(BridgeInfo)
@@ -490,6 +433,8 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		panic(fmt.Errorf("field exported of message opinit.opchild.v1.GenesisState is not mutable"))
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		panic(fmt.Errorf("field next_l2_sequence of message opinit.opchild.v1.GenesisState is not mutable"))
+	case "opinit.opchild.v1.GenesisState.finalized_l1_sequence":
+		panic(fmt.Errorf("field finalized_l1_sequence of message opinit.opchild.v1.GenesisState is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -516,9 +461,8 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 		return protoreflect.ValueOfBool(false)
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		return protoreflect.ValueOfUint64(uint64(0))
-	case "opinit.opchild.v1.GenesisState.finalized_l1_sequences":
-		list := []uint64{}
-		return protoreflect.ValueOfList(&_GenesisState_7_list{list: &list})
+	case "opinit.opchild.v1.GenesisState.finalized_l1_sequence":
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		m := new(BridgeInfo)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -613,12 +557,8 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.NextL2Sequence != 0 {
 			n += 1 + runtime.Sov(uint64(x.NextL2Sequence))
 		}
-		if len(x.FinalizedL1Sequences) > 0 {
-			l = 0
-			for _, e := range x.FinalizedL1Sequences {
-				l += runtime.Sov(uint64(e))
-			}
-			n += 1 + runtime.Sov(uint64(l)) + l
+		if x.FinalizedL1Sequence != 0 {
+			n += 1 + runtime.Sov(uint64(x.FinalizedL1Sequence))
 		}
 		if x.BridgeInfo != nil {
 			l = options.Size(x.BridgeInfo)
@@ -667,25 +607,10 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			i--
 			dAtA[i] = 0x42
 		}
-		if len(x.FinalizedL1Sequences) > 0 {
-			var pksize2 int
-			for _, num := range x.FinalizedL1Sequences {
-				pksize2 += runtime.Sov(uint64(num))
-			}
-			i -= pksize2
-			j1 := i
-			for _, num := range x.FinalizedL1Sequences {
-				for num >= 1<<7 {
-					dAtA[j1] = uint8(uint64(num)&0x7f | 0x80)
-					num >>= 7
-					j1++
-				}
-				dAtA[j1] = uint8(num)
-				j1++
-			}
-			i = runtime.EncodeVarint(dAtA, i, uint64(pksize2))
+		if x.FinalizedL1Sequence != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.FinalizedL1Sequence))
 			i--
-			dAtA[i] = 0x3a
+			dAtA[i] = 0x38
 		}
 		if x.NextL2Sequence != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.NextL2Sequence))
@@ -941,80 +866,23 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					}
 				}
 			case 7:
-				if wireType == 0 {
-					var v uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-						}
-						if iNdEx >= l {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FinalizedL1Sequence", wireType)
+				}
+				x.FinalizedL1Sequence = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
 					}
-					x.FinalizedL1Sequences = append(x.FinalizedL1Sequences, v)
-				} else if wireType == 2 {
-					var packedLen int
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-						}
-						if iNdEx >= l {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						packedLen |= int(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					if packedLen < 0 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-					}
-					postIndex := iNdEx + packedLen
-					if postIndex < 0 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-					}
-					if postIndex > l {
+					if iNdEx >= l {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 					}
-					var elementCount int
-					var count int
-					for _, integer := range dAtA[iNdEx:postIndex] {
-						if integer < 128 {
-							count++
-						}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.FinalizedL1Sequence |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
 					}
-					elementCount = count
-					if elementCount != 0 && len(x.FinalizedL1Sequences) == 0 {
-						x.FinalizedL1Sequences = make([]uint64, 0, elementCount)
-					}
-					for iNdEx < postIndex {
-						var v uint64
-						for shift := uint(0); ; shift += 7 {
-							if shift >= 64 {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-							}
-							if iNdEx >= l {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-							}
-							b := dAtA[iNdEx]
-							iNdEx++
-							v |= uint64(b&0x7F) << shift
-							if b < 0x80 {
-								break
-							}
-						}
-						x.FinalizedL1Sequences = append(x.FinalizedL1Sequences, v)
-					}
-				} else {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FinalizedL1Sequences", wireType)
 				}
 			case 8:
 				if wireType != 2 {
@@ -1580,11 +1448,11 @@ type GenesisState struct {
 	// of the last-block's bonded validators.
 	LastValidatorPowers []*LastValidatorPower `protobuf:"bytes,2,rep,name=last_validator_powers,json=lastValidatorPowers,proto3" json:"last_validator_powers,omitempty"`
 	// delegations defines the validator set at genesis.
-	Validators           []*Validator `protobuf:"bytes,3,rep,name=validators,proto3" json:"validators,omitempty"`
-	Exported             bool         `protobuf:"varint,5,opt,name=exported,proto3" json:"exported,omitempty"`
-	NextL2Sequence       uint64       `protobuf:"varint,6,opt,name=next_l2_sequence,json=nextL2Sequence,proto3" json:"next_l2_sequence,omitempty"`
-	FinalizedL1Sequences []uint64     `protobuf:"varint,7,rep,packed,name=finalized_l1_sequences,json=finalizedL1Sequences,proto3" json:"finalized_l1_sequences,omitempty"`
-	BridgeInfo           *BridgeInfo  `protobuf:"bytes,8,opt,name=bridge_info,json=bridgeInfo,proto3" json:"bridge_info,omitempty"`
+	Validators          []*Validator `protobuf:"bytes,3,rep,name=validators,proto3" json:"validators,omitempty"`
+	Exported            bool         `protobuf:"varint,5,opt,name=exported,proto3" json:"exported,omitempty"`
+	NextL2Sequence      uint64       `protobuf:"varint,6,opt,name=next_l2_sequence,json=nextL2Sequence,proto3" json:"next_l2_sequence,omitempty"`
+	FinalizedL1Sequence uint64       `protobuf:"varint,7,opt,name=finalized_l1_sequence,json=finalizedL1Sequence,proto3" json:"finalized_l1_sequence,omitempty"`
+	BridgeInfo          *BridgeInfo  `protobuf:"bytes,8,opt,name=bridge_info,json=bridgeInfo,proto3" json:"bridge_info,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -1642,11 +1510,11 @@ func (x *GenesisState) GetNextL2Sequence() uint64 {
 	return 0
 }
 
-func (x *GenesisState) GetFinalizedL1Sequences() []uint64 {
+func (x *GenesisState) GetFinalizedL1Sequence() uint64 {
 	if x != nil {
-		return x.FinalizedL1Sequences
+		return x.FinalizedL1Sequence
 	}
-	return nil
+	return 0
 }
 
 func (x *GenesisState) GetBridgeInfo() *BridgeInfo {
@@ -1714,7 +1582,7 @@ var file_opinit_opchild_v1_genesis_proto_rawDesc = []byte{
 	0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f,
 	0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1d, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74,
 	0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x79, 0x70, 0x65,
-	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xb7, 0x03, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65,
+	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xb5, 0x03, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65,
 	0x73, 0x69, 0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x3c, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61,
 	0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69,
 	0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72,
@@ -1734,34 +1602,34 @@ var file_opinit_opchild_v1_genesis_proto_rawDesc = []byte{
 	0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x65, 0x78, 0x70, 0x6f, 0x72, 0x74, 0x65,
 	0x64, 0x12, 0x28, 0x0a, 0x10, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x6c, 0x32, 0x5f, 0x73, 0x65, 0x71,
 	0x75, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e, 0x6e, 0x65, 0x78,
-	0x74, 0x4c, 0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x34, 0x0a, 0x16, 0x66,
+	0x74, 0x4c, 0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x32, 0x0a, 0x15, 0x66,
 	0x69, 0x6e, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x64, 0x5f, 0x6c, 0x31, 0x5f, 0x73, 0x65, 0x71, 0x75,
-	0x65, 0x6e, 0x63, 0x65, 0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x04, 0x52, 0x14, 0x66, 0x69, 0x6e,
-	0x61, 0x6c, 0x69, 0x7a, 0x65, 0x64, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65,
-	0x73, 0x12, 0x3e, 0x0a, 0x0b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f,
-	0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e,
-	0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67,
-	0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0a, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x49, 0x6e, 0x66,
-	0x6f, 0x22, 0x68, 0x0a, 0x12, 0x4c, 0x61, 0x73, 0x74, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
-	0x6f, 0x72, 0x50, 0x6f, 0x77, 0x65, 0x72, 0x12, 0x32, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69,
-	0x6e, 0x67, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x70, 0x6f, 0x77, 0x65,
-	0x72, 0x3a, 0x08, 0x88, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x00, 0x42, 0xca, 0x01, 0x0a, 0x15,
-	0x63, 0x6f, 0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69,
-	0x6c, 0x64, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72,
-	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
-	0x6d, 0x2f, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50,
-	0x69, 0x6e, 0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f,
-	0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x63, 0x68, 0x69,
-	0x6c, 0x64, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x11, 0x4f, 0x70, 0x69,
-	0x6e, 0x69, 0x74, 0x2e, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x56, 0x31, 0xca, 0x02,
-	0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x5c,
-	0x56, 0x31, 0xe2, 0x02, 0x1d, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68,
-	0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61,
-	0x74, 0x61, 0xea, 0x02, 0x13, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x63,
-	0x68, 0x69, 0x6c, 0x64, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x6e, 0x63, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x04, 0x52, 0x13, 0x66, 0x69, 0x6e, 0x61,
+	0x6c, 0x69, 0x7a, 0x65, 0x64, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12,
+	0x3e, 0x0a, 0x0b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x08,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70,
+	0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x49,
+	0x6e, 0x66, 0x6f, 0x52, 0x0a, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22,
+	0x68, 0x0a, 0x12, 0x4c, 0x61, 0x73, 0x74, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72,
+	0x50, 0x6f, 0x77, 0x65, 0x72, 0x12, 0x32, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
+	0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x6f, 0x77,
+	0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x3a,
+	0x08, 0x88, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x00, 0x42, 0xca, 0x01, 0x0a, 0x15, 0x63, 0x6f,
+	0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0x50, 0x01, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50, 0x69, 0x6e,
+	0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70,
+	0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x2e, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x11, 0x4f,
+	0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31,
+	0xe2, 0x02, 0x1d, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c,
+	0x64, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61,
+	0xea, 0x02, 0x13, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x63, 0x68, 0x69,
+	0x6c, 0x64, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (

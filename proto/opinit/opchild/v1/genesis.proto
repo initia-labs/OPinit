@@ -22,7 +22,7 @@ message GenesisState {
 
   bool            exported               = 5;
   uint64          next_l2_sequence       = 6;
-  repeated uint64 finalized_l1_sequences = 7;
+  uint64 finalized_l1_sequence = 7;
   BridgeInfo      bridge_info            = 8;
 }
 

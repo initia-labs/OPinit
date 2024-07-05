@@ -376,11 +376,16 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, err
 	}
 
-	// check already finalized
-	if ok, err := ms.HasFinalizedL1Sequence(ctx, req.Sequence); err != nil {
+	finalizedL1Sequence, err := ms.GetFinalizedL1Sequence(ctx)
+	if err != nil {
 		return nil, err
-	} else if ok {
-		return nil, types.ErrDepositAlreadyFinalized
+	}
+
+	if req.Sequence < finalizedL1Sequence {
+		// No op instead of returning an error
+		return &types.MsgFinalizeTokenDepositResponse{}, nil
+	} else if req.Sequence > finalizedL1Sequence {
+		return nil, types.ErrInvalidSequence
 	}
 
 	fromAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.From)
@@ -408,7 +413,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		}
 	}
 
-	if err := ms.RecordFinalizedL1Sequence(ctx, req.Sequence); err != nil {
+	if _, err := ms.IncreaseFinalizedL1Sequence(ctx); err != nil {
 		return nil, err
 	}
 

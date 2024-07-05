@@ -5,20 +5,41 @@ import (
 
 	"cosmossdk.io/collections"
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
-func (k Keeper) RecordFinalizedL1Sequence(ctx context.Context, l1Sequence uint64) error {
-	return k.FinalizedL1Sequence.Set(ctx, l1Sequence, true)
+func (k Keeper) GetFinalizedL1Sequence(ctx context.Context) (uint64, error) {
+	finalizedL1Sequence, err := k.FinalizedL1Sequence.Peek(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if finalizedL1Sequence == collections.DefaultSequenceStart {
+		return ophosttypes.DefaultL1SequenceStart, nil
+	}
+
+	return finalizedL1Sequence, nil
 }
 
-func (k Keeper) HasFinalizedL1Sequence(ctx context.Context, l1Sequence uint64) (bool, error) {
-	return k.FinalizedL1Sequence.Has(ctx, l1Sequence)
+func (k Keeper) SetFinalizedL1Sequence(ctx context.Context, l1Sequence uint64) error {
+	return k.FinalizedL1Sequence.Set(ctx, l1Sequence)
 }
 
-func (k Keeper) IterateFinalizedL1Sequences(ctx context.Context, cb func(l1Sequence uint64) (stop bool, err error)) error {
-	return k.FinalizedL1Sequence.Walk(ctx, nil, func(l1sequence uint64, _ bool) (stop bool, err error) {
-		return cb(l1sequence)
-	})
+func (k Keeper) IncreaseFinalizedL1Sequence(ctx context.Context) (uint64, error) {
+	finalizedL1Sequence, err := k.FinalizedL1Sequence.Next(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if finalizedL1Sequence == collections.DefaultSequenceStart {
+		if err := k.FinalizedL1Sequence.Set(ctx, ophosttypes.DefaultL1SequenceStart+1); err != nil {
+			return 0, err
+		}
+
+		return ophosttypes.DefaultL1SequenceStart, nil
+	}
+
+	return finalizedL1Sequence, nil
 }
 
 func (k Keeper) SetNextL2Sequence(ctx context.Context, l2Sequence uint64) error {
