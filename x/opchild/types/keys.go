@@ -22,10 +22,10 @@ var (
 	LastValidatorPowerPrefix   = []byte{0x21} // prefix for each key to a validator index, for bonded validators
 	ValidatorsPrefix           = []byte{0x31} // prefix for each key to a validator
 	ValidatorsByConsAddrPrefix = []byte{0x41} // prefix for each key to a validator index, by pubkey
-	HistoricalInfoPrefix       = []byte{0x61} // prefix for the historical info
-	DenomPairPrefix            = []byte{0x71} // prefix for the denom pair
+	HistoricalInfoPrefix       = []byte{0x51} // prefix for the historical info
+	DenomPairPrefix            = []byte{0x61} // prefix for the denom pair
 
 	// HostValidatorStore keys
-	HostHeightKey        = []byte{0x81}
-	HostValidatorsPrefix = []byte{0x82}
+	HostHeightKey        = []byte{0x71}
+	HostValidatorsPrefix = []byte{0x72}
 )
