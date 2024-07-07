@@ -71,10 +71,8 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		}
 	}
 
-	for _, finalizedL1Sequence := range data.FinalizedL1Sequences {
-		if err := k.RecordFinalizedL1Sequence(ctx, finalizedL1Sequence); err != nil {
-			panic(err)
-		}
+	if err := k.SetNextL1Sequence(ctx, data.NextL1Sequence); err != nil {
+		panic(err)
 	}
 
 	if err := k.SetNextL2Sequence(ctx, data.NextL2Sequence); err != nil {
@@ -107,11 +105,7 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
-	var finalizedL1Sequences []uint64
-	err = k.IterateFinalizedL1Sequences(ctx, func(l1Sequence uint64) (bool, error) {
-		finalizedL1Sequences = append(finalizedL1Sequences, l1Sequence)
-		return false, nil
-	})
+	finalizedL1Sequence, err := k.GetNextL1Sequence(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -144,12 +138,12 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	}
 
 	return &types.GenesisState{
-		Params:               params,
-		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           validators,
-		Exported:             true,
-		FinalizedL1Sequences: finalizedL1Sequences,
-		NextL2Sequence:       nextL2Sequence,
-		BridgeInfo:           bridgeInfo,
+		Params:              params,
+		LastValidatorPowers: lastValidatorPowers,
+		Validators:          validators,
+		Exported:            true,
+		NextL1Sequence:      finalizedL1Sequence,
+		NextL2Sequence:      nextL2Sequence,
+		BridgeInfo:          bridgeInfo,
 	}
 }

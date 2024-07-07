@@ -17,15 +17,15 @@ var (
 	ParamsKey         = []byte{0x11} // prefix for parameters for module x/opchild
 	NextL2SequenceKey = []byte{0x12} // key for the outbound sequence number
 	BridgeInfoKey     = []byte{0x13} // prefix for bridge_info
+	NextL1SequenceKey = []byte{0x14} // prefix for inbound deposit sequence number
 
 	LastValidatorPowerPrefix   = []byte{0x21} // prefix for each key to a validator index, for bonded validators
 	ValidatorsPrefix           = []byte{0x31} // prefix for each key to a validator
 	ValidatorsByConsAddrPrefix = []byte{0x41} // prefix for each key to a validator index, by pubkey
-	FinalizedL1SequencePrefix  = []byte{0x51} // prefix for finalized deposit sequences
-	HistoricalInfoPrefix       = []byte{0x61} // prefix for the historical info
-	DenomPairPrefix            = []byte{0x71} // prefix for the denom pair
+	HistoricalInfoPrefix       = []byte{0x51} // prefix for the historical info
+	DenomPairPrefix            = []byte{0x61} // prefix for the denom pair
 
 	// HostValidatorStore keys
-	HostHeightKey        = []byte{0x81}
-	HostValidatorsPrefix = []byte{0x82}
+	HostHeightKey        = []byte{0x71}
+	HostValidatorsPrefix = []byte{0x72}
 )

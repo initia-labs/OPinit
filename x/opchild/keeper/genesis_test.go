@@ -23,8 +23,8 @@ func Test_GenesisImportExport(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), seq)
 
-	input.OPChildKeeper.RecordFinalizedL1Sequence(ctx, 1)
-	input.OPChildKeeper.RecordFinalizedL1Sequence(ctx, 2)
+	input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 2
+	input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 3
 
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
 	require.Nil(t, genState.BridgeInfo)

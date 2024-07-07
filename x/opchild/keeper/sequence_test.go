@@ -6,31 +6,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_FinalizedL1Sequence(t *testing.T) {
+func Test_NextL1GetNextL1Sequence(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	res, err := input.OPChildKeeper.HasFinalizedL1Sequence(ctx, 1)
+	res, err := input.OPChildKeeper.GetNextL1Sequence(ctx)
 	require.NoError(t, err)
-	require.False(t, res)
+	require.Equal(t, uint64(1), res)
 
-	input.OPChildKeeper.RecordFinalizedL1Sequence(ctx, 1)
-	res, err = input.OPChildKeeper.HasFinalizedL1Sequence(ctx, 1)
+	input.OPChildKeeper.IncreaseNextL1Sequence(ctx)
+	res, err = input.OPChildKeeper.GetNextL1Sequence(ctx)
 	require.NoError(t, err)
-	require.True(t, res)
-}
-
-func Test_IterateFinalizedL1Sequences(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-
-	sequences := []uint64{1, 2, 4}
-	for _, v := range sequences {
-		input.OPChildKeeper.RecordFinalizedL1Sequence(ctx, v)
-	}
-	require.NoError(t, input.OPChildKeeper.IterateFinalizedL1Sequences(ctx, func(l1Sequence uint64) (bool, error) {
-		require.Equal(t, sequences[0], l1Sequence)
-		sequences = sequences[1:]
-		return false, nil
-	}))
+	require.Equal(t, uint64(2), res)
 }
 
 func Test_SetAndSetNextL2Sequence(t *testing.T) {
