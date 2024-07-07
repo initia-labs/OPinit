@@ -14,10 +14,10 @@ const (
 
 var (
 	// Keys for store prefixes
-	ParamsKey              = []byte{0x11} // prefix for parameters for module x/opchild
-	NextL2SequenceKey      = []byte{0x12} // key for the outbound sequence number
-	BridgeInfoKey          = []byte{0x13} // prefix for bridge_info
-	FinalizedL1SequenceKey = []byte{0x14} // prefix for finalized deposit sequences
+	ParamsKey         = []byte{0x11} // prefix for parameters for module x/opchild
+	NextL2SequenceKey = []byte{0x12} // key for the outbound sequence number
+	BridgeInfoKey     = []byte{0x13} // prefix for bridge_info
+	NextL1SequenceKey = []byte{0x14} // prefix for inbound deposit sequence number
 
 	LastValidatorPowerPrefix   = []byte{0x21} // prefix for each key to a validator index, for bonded validators
 	ValidatorsPrefix           = []byte{0x31} // prefix for each key to a validator

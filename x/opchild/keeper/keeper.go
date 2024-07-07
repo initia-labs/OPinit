@@ -42,7 +42,7 @@ type Keeper struct {
 	consensusAddressCodec address.Codec
 
 	Schema               collections.Schema
-	FinalizedL1Sequence  collections.Sequence
+	NextL1Sequence       collections.Sequence
 	NextL2Sequence       collections.Sequence
 	Params               collections.Item[types.Params]
 	BridgeInfo           collections.Item[types.BridgeInfo]
@@ -100,7 +100,7 @@ func NewKeeper(
 		addressCodec:          addressCodec,
 		validatorAddressCodec: validatorAddressCodec,
 		consensusAddressCodec: consensusAddressCodec,
-		FinalizedL1Sequence:   collections.NewSequence(sb, types.FinalizedL1SequenceKey, "finalized_l1_sequence"),
+		NextL1Sequence:        collections.NewSequence(sb, types.NextL1SequenceKey, "finalized_l1_sequence"),
 		NextL2Sequence:        collections.NewSequence(sb, types.NextL2SequenceKey, "next_l2_sequence"),
 		Params:                collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		BridgeInfo:            collections.NewItem(sb, types.BridgeInfoKey, "bridge_info", codec.CollValue[types.BridgeInfo](cdc)),

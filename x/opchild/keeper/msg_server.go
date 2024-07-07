@@ -376,7 +376,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, err
 	}
 
-	finalizedL1Sequence, err := ms.GetFinalizedL1Sequence(ctx)
+	finalizedL1Sequence, err := ms.GetNextL1Sequence(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +413,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		}
 	}
 
-	if _, err := ms.IncreaseFinalizedL1Sequence(ctx); err != nil {
+	if _, err := ms.IncreaseNextL1Sequence(ctx); err != nil {
 		return nil, err
 	}
 

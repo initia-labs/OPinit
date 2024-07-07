@@ -8,8 +8,8 @@ import (
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
-func (k Keeper) GetFinalizedL1Sequence(ctx context.Context) (uint64, error) {
-	finalizedL1Sequence, err := k.FinalizedL1Sequence.Peek(ctx)
+func (k Keeper) GetNextL1Sequence(ctx context.Context) (uint64, error) {
+	finalizedL1Sequence, err := k.NextL1Sequence.Peek(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -21,18 +21,18 @@ func (k Keeper) GetFinalizedL1Sequence(ctx context.Context) (uint64, error) {
 	return finalizedL1Sequence, nil
 }
 
-func (k Keeper) SetFinalizedL1Sequence(ctx context.Context, l1Sequence uint64) error {
-	return k.FinalizedL1Sequence.Set(ctx, l1Sequence)
+func (k Keeper) SetNextL1Sequence(ctx context.Context, l1Sequence uint64) error {
+	return k.NextL1Sequence.Set(ctx, l1Sequence)
 }
 
-func (k Keeper) IncreaseFinalizedL1Sequence(ctx context.Context) (uint64, error) {
-	finalizedL1Sequence, err := k.FinalizedL1Sequence.Next(ctx)
+func (k Keeper) IncreaseNextL1Sequence(ctx context.Context) (uint64, error) {
+	finalizedL1Sequence, err := k.NextL1Sequence.Next(ctx)
 	if err != nil {
 		return 0, err
 	}
 
 	if finalizedL1Sequence == collections.DefaultSequenceStart {
-		if err := k.FinalizedL1Sequence.Set(ctx, ophosttypes.DefaultL1SequenceStart+1); err != nil {
+		if err := k.NextL1Sequence.Set(ctx, ophosttypes.DefaultL1SequenceStart+1); err != nil {
 			return 0, err
 		}
 

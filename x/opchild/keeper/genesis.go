@@ -71,7 +71,7 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		}
 	}
 
-	if err := k.SetFinalizedL1Sequence(ctx, data.FinalizedL1Sequence); err != nil {
+	if err := k.SetNextL1Sequence(ctx, data.NextL1Sequence); err != nil {
 		panic(err)
 	}
 
@@ -105,7 +105,7 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
-	finalizedL1Sequence, err := k.GetFinalizedL1Sequence(ctx)
+	finalizedL1Sequence, err := k.GetNextL1Sequence(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -142,7 +142,7 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		LastValidatorPowers: lastValidatorPowers,
 		Validators:          validators,
 		Exported:            true,
-		FinalizedL1Sequence: finalizedL1Sequence,
+		NextL1Sequence:      finalizedL1Sequence,
 		NextL2Sequence:      nextL2Sequence,
 		BridgeInfo:          bridgeInfo,
 	}

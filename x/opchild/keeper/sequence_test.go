@@ -6,15 +6,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_FinalizedL1Sequence(t *testing.T) {
+func Test_NextL1GetNextL1Sequence(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	res, err := input.OPChildKeeper.GetFinalizedL1Sequence(ctx)
+	res, err := input.OPChildKeeper.GetNextL1Sequence(ctx)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), res)
 
-	input.OPChildKeeper.IncreaseFinalizedL1Sequence(ctx)
-	res, err = input.OPChildKeeper.GetFinalizedL1Sequence(ctx)
+	input.OPChildKeeper.IncreaseNextL1Sequence(ctx)
+	res, err = input.OPChildKeeper.GetNextL1Sequence(ctx)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), res)
 }
