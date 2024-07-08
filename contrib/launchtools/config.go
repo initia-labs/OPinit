@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 
 	"github.com/cosmos/go-bip39"
 )
@@ -249,10 +248,6 @@ func generateMnemonic() (string, error) {
 	}
 
 	return mnemonic, nil
-}
-
-func l1AddressFromBytes(bz []byte) (string, error) {
-	return authcodec.NewBech32Codec("init").BytesToString(bz)
 }
 
 func deriveAddress(mnemonic string) (string, string, error) {
