@@ -270,7 +270,7 @@ func deriveAddress(mnemonic string) (string, string, error) {
 	addrBz := privKey.PubKey().Address()
 
 	// use init Bech32 prefix for l1 address
-	l1Addr, err := l1AddressFromBytes(addrBz)
+	l1Addr, err := utils.L1AddressCodec().BytesToString(addrBz)
 	if err != nil {
 		return "", "", errors.Wrap(err, "failed to convert address to bech32")
 	}
