@@ -101,16 +101,16 @@ func (s *CLITestSuite) TestNewWithdrawCmd() {
 		respType     proto.Message
 	}{
 		{
-			"invalid transaction (invalid to_l1)",
+			"valid transaction (not init-prefixed to_l1)",
 			[]string{
-				"_invalid_acc_",
+				"anyformataddr",
 				"100umin",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
-			true, 0, &sdk.TxResponse{},
+			false, 0, &sdk.TxResponse{},
 		},
 		{
 			"invalid transaction (invalid amount)",
@@ -167,11 +167,11 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 		respType     proto.Message
 	}{
 		{
-			"invalid transaction (invalid from_l1)",
+			"valid transaction (not init-prefixed from_l1)",
 			[]string{
 				"1",
 				"1",
-				"_invalid_acc_",
+				"l1addrinanyformat",
 				s.addrs[0].String(),
 				"100umin",
 				"test_token",
@@ -180,7 +180,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
-			true, 0, &sdk.TxResponse{},
+			false, 0, &sdk.TxResponse{},
 		},
 		{
 			"invalid transaction (invalid to_l2)",

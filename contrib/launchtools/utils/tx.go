@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -69,6 +70,9 @@ func SignTxOffline(
 		ctx.TxConfig,
 		sequence,
 	)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to sign with private key")
+	}
 
 	// set signature
 	if err := txbldr.SetSignatures(sigV2); err != nil {
@@ -76,9 +80,9 @@ func SignTxOffline(
 	}
 
 	// validate if the transaction is valid
-	if err := txbldr.GetTx().ValidateBasic(); err != nil {
-		return nil, errors.Wrapf(err, "failed to validate basic")
-	}
+	// if err := txbldr.GetTx().ValidateBasic(); err != nil {
+	// 	return nil, errors.Wrapf(err, "failed to validate basic")
+	// }
 
 	// return if no problem
 	return txbldr.GetTx(), nil

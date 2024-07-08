@@ -509,7 +509,7 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
         "bridge_id": 1,
         "output_index": 2,
 		"withdrawal_proofs": ["8e1fa5cd035b30e5d5818934dbc7491fe44f4ab15d30b3abcbc01d44edf25f18", "80d66720e75121fedc738e9847048466ac8d05626406fe3b438b1699dcbfa37e"],
-		"receiver": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
+		"sender": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
 		"sequence": 3,
 		"amount": "10000000uatom",
 		"version": "5ca4f3850ccc331aaf8a257d6086e526a3b42a63e18cb11d020847985b31d188",

@@ -18,6 +18,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/go-bip39"
 	"github.com/initia-labs/OPinit/contrib/launchtools"
+	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/pkg/errors"
 )
@@ -107,7 +108,7 @@ func initializeGenesis(
 		"created node identity",
 		"node_id", nodeId,
 		"chain_id", config.L2Config.ChainID,
-		"validator_address", validatorKeySpec.Address,
+		"validator_address", validatorKeySpec.L2Address,
 		"moniker", cometConfig.Moniker,
 	)
 
@@ -144,7 +145,7 @@ func initializeGenesis(
 	// this call modifies appstate.opchild
 	log.Info("adding genesis validator",
 		"moniker", config.L2Config.Moniker,
-		"validator_address_acc", validatorKeySpec.Address,
+		"validator_address_acc", validatorKeySpec.L2Address,
 		"validator_address_val", sdk.ValAddress(valPubKey.Address()).String(),
 	)
 	opChildState, err := addGenesisValidator(
@@ -165,15 +166,15 @@ func initializeGenesis(
 	log.Info("adding fee whitelists",
 		"whitelist-len", 3,
 		"whitelists", strings.Join([]string{
-			config.SystemKeys.Validator.Address,
-			config.SystemKeys.BridgeExecutor.Address,
-			config.SystemKeys.Challenger.Address,
+			config.SystemKeys.Validator.L2Address,
+			config.SystemKeys.BridgeExecutor.L2Address,
+			config.SystemKeys.Challenger.L2Address,
 		}, ","),
 	)
 	opChildState, err = addFeeWhitelists(cdc, genesisAppState, []string{
-		config.SystemKeys.Validator.Address,
-		config.SystemKeys.BridgeExecutor.Address,
-		config.SystemKeys.Challenger.Address,
+		config.SystemKeys.Validator.L2Address,
+		config.SystemKeys.BridgeExecutor.L2Address,
+		config.SystemKeys.Challenger.L2Address,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add fee whitelists")
@@ -184,10 +185,10 @@ func initializeGenesis(
 	// Step 4 -------------------------------------------------------------------------------------------
 	// Set bridge executor address in the genesis parameter
 	log.Info("setting bridge executor address",
-		"bridge-executor", config.SystemKeys.BridgeExecutor.Address,
+		"bridge-executor", config.SystemKeys.BridgeExecutor.L2Address,
 	)
 
-	opChildState, err = setOpChildBridgeExecutorAddress(cdc, genesisAppState, config.SystemKeys.BridgeExecutor.Address)
+	opChildState, err = setOpChildBridgeExecutorAddress(cdc, genesisAppState, config.SystemKeys.BridgeExecutor.L2Address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set bridge executor address")
 	}
@@ -197,10 +198,10 @@ func initializeGenesis(
 	// Step 5 -------------------------------------------------------------------------------------------
 	// Set admin address in the genesis parameter
 	log.Info("setting admin address",
-		"admin", config.SystemKeys.Validator.Address,
+		"admin", config.SystemKeys.Validator.L2Address,
 	)
 
-	opChildState, err = setOpChildAdminAddress(cdc, genesisAppState, config.SystemKeys.Validator.Address)
+	opChildState, err = setOpChildAdminAddress(cdc, genesisAppState, config.SystemKeys.Validator.L2Address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set bridge executor address")
 	}
@@ -236,7 +237,7 @@ func initializeGenesis(
 	return appGenesis, nil
 }
 
-func addGenesisAccounts(cdc codec.Codec, genesisAppState map[string]json.RawMessage, genAccsManifest []launchtools.AccountWithBalance) (
+func addGenesisAccounts(cdc codec.Codec, genesisAppState map[string]json.RawMessage, genAccsManifest []launchtools.GenesisAccount) (
 	*authtypes.GenesisState,
 	*banktypes.GenesisState,
 	error,
@@ -253,7 +254,7 @@ func addGenesisAccounts(cdc codec.Codec, genesisAppState map[string]json.RawMess
 
 	for _, acc := range genAccsManifest {
 		// acc
-		addr, addrErr := sdk.AccAddressFromBech32(acc.Address)
+		addr, addrErr := utils.L2AddressCodec().StringToBytes(acc.Address)
 		if addrErr != nil {
 			return nil, nil, errors.Wrap(addrErr, fmt.Sprintf("failed to parse genesis account address %s", acc.Address))
 		}

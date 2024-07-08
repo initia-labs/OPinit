@@ -167,8 +167,8 @@ func (msg MsgInitiateTokenWithdrawal) Validate(ac address.Codec) error {
 		return err
 	}
 
-	if _, err := ac.StringToBytes(msg.To); err != nil {
-		return err
+	if len(msg.To) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("to address cannot be empty")
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
@@ -246,12 +246,16 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 		return err
 	}
 
-	if _, err := ac.StringToBytes(msg.From); err != nil {
-		return err
+	// from address can be different form of address (e.g. L1 address)
+	if len(msg.From) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("from address cannot be empty")
 	}
 
-	if _, err := ac.StringToBytes(msg.To); err != nil {
-		return err
+	// allow hook as a special address
+	if msg.To != "hook" {
+		if _, err := ac.StringToBytes(msg.To); err != nil {
+			return err
+		}
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {

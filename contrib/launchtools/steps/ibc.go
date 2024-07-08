@@ -8,12 +8,15 @@ import (
 	"path"
 	"reflect"
 
+	"github.com/pkg/errors"
+
 	"cosmossdk.io/log"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	relayercmd "github.com/cosmos/relayer/v2/cmd"
 	relayertypes "github.com/cosmos/relayer/v2/relayer"
 	relayerconfig "github.com/cosmos/relayer/v2/relayer/chains/cosmos"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
-	"github.com/pkg/errors"
 )
 
 // EstablishIBCChannelsWithNFTTransfer creates a new IBC channel for fungible transfer, and one with NFT transfer
@@ -53,6 +56,12 @@ func establishIBCChannels(
 	)
 
 	return func(ctx launchtools.Launcher) error {
+		// ibc relayer seems changing the bech32 prefix for the account,
+		// so we need to reset it after the relayer setup is done
+		originPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
+		originPubPrefix := sdk.GetConfig().GetBech32AccountPubPrefix()
+		defer sdk.GetConfig().SetBech32PrefixForAccount(originPrefix, originPubPrefix)
+
 		if !ctx.IsAppInitialized() {
 			return errors.New("app is not initialized")
 		}
@@ -102,7 +111,7 @@ func initializeChains(config *launchtools.Config, basePath string) func(*Relayer
 				Key:            RelayerKeyName,
 				ChainID:        config.L2Config.ChainID,
 				RPCAddr:        "http://localhost:26657",
-				AccountPrefix:  "init",
+				AccountPrefix:  sdk.GetConfig().GetBech32AccountAddrPrefix(),
 				KeyringBackend: KeyringBackend,
 				GasAdjustment:  1.5,
 				GasPrices:      "", // gas prices required for l2 txs
@@ -201,7 +210,7 @@ func initializeRelayerKeyring(config *launchtools.Config) func(*Relayer) error {
 		panic(errors.New("relayer key not found in config"))
 	}
 
-	relayerKey := relayerKeyFromInput.Interface().(*launchtools.Account)
+	relayerKey := relayerKeyFromInput.Interface().(*launchtools.SystemAccount)
 	return func(r *Relayer) error {
 		r.logger.Info("initializing keyring for relayer...",
 			"key-name", RelayerKeyName,

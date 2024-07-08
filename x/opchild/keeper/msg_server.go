@@ -3,9 +3,12 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 	"strconv"
 
-	"cosmossdk.io/errors"
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -34,7 +37,7 @@ func (ms MsgServer) checkAdminPermission(ctx context.Context, sender string) err
 	}
 
 	if params.Admin != sender {
-		return errors.Wrapf(sdkerrors.ErrUnauthorized, "the message is allowed to be executed by admin %s", params.Admin)
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "the message is allowed to be executed by admin %s", params.Admin)
 	}
 
 	return nil
@@ -58,7 +61,7 @@ func (ms MsgServer) checkBridgeExecutorPermission(ctx context.Context, sender st
 		}
 	}
 	if !isIncluded {
-		return errors.Wrapf(sdkerrors.ErrUnauthorized, "expected included in %s, got %s", bridgeExecutors, sender)
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "expected included in %s, got %s", bridgeExecutors, sender)
 	}
 	return nil
 }
@@ -94,7 +97,7 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 		// perform a basic validation of the message
 		if m, ok := msg.(sdk.HasValidateBasic); ok {
 			if err := m.ValidateBasic(); err != nil {
-				return nil, errors.Wrap(types.ErrInvalidExecuteMsg, err.Error())
+				return nil, errorsmod.Wrap(types.ErrInvalidExecuteMsg, err.Error())
 			}
 		}
 
@@ -108,12 +111,12 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 
 		// assert that the opchild module account is the only signer for ExecuteMessages message
 		if !bytes.Equal(signers[0], authority) {
-			return nil, errors.Wrapf(types.ErrInvalidSigner, sdk.AccAddress(signers[0]).String())
+			return nil, errorsmod.Wrapf(types.ErrInvalidSigner, sdk.AccAddress(signers[0]).String())
 		}
 
 		handler := ms.Router().Handler(msg)
 		if handler == nil {
-			return nil, errors.Wrap(types.ErrUnroutableExecuteMsg, sdk.MsgTypeURL(msg))
+			return nil, errorsmod.Wrap(types.ErrUnroutableExecuteMsg, sdk.MsgTypeURL(msg))
 		}
 
 		var res *sdk.Result
@@ -143,7 +146,7 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 	}
 
 	if ms.authority != req.Authority {
-		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
 	allValidators, err := ms.GetAllValidators(ctx)
@@ -173,7 +176,7 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 
 	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, errors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
 	}
 
 	if _, found := ms.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
@@ -191,7 +194,7 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 			}
 		}
 		if !hasKeyType {
-			return nil, errors.Wrapf(
+			return nil, errorsmod.Wrapf(
 				types.ErrValidatorPubKeyTypeNotSupported,
 				"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
 			)
@@ -227,7 +230,7 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 	}
 
 	if ms.authority != req.Authority {
-		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -238,7 +241,7 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 
 	val, found := ms.Keeper.GetValidator(ctx, valAddr)
 	if !found {
-		return nil, errors.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
+		return nil, errorsmod.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
 	}
 	val.ConsPower = 0
 
@@ -270,7 +273,7 @@ func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams
 	}
 
 	if ms.authority != req.Authority {
-		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
 	if err := ms.SetParams(ctx, *req.Params); err != nil {
@@ -287,7 +290,7 @@ func (ms MsgServer) SpendFeePool(ctx context.Context, req *types.MsgSpendFeePool
 	}
 
 	if ms.authority != req.Authority {
-		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
 	recipientAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Recipient)
@@ -388,29 +391,28 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, types.ErrInvalidSequence
 	}
 
-	fromAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.From)
-	if err != nil {
-		return nil, err
-	}
-
-	toAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
-	if err != nil {
-		return nil, err
-	}
-
 	coins := sdk.NewCoins(coin)
 	if err := ms.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		return nil, err
 	}
 
-	err = ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, coins)
-	if err != nil {
-		ms.Logger(ctx).Error("failed to finalize token deposit", "error", err)
+	// handle hook - if the recipient is "hook"
+	executeHook := len(req.Data) > 0 && req.To == "hook"
 
-		// refund the deposit to the sender address
-		if err := ms.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, fromAddr, coins); err != nil {
+	var toAddr sdk.AccAddress
+	if executeHook {
+		// intermediate address
+		toAddr = types.DeriveIntermediateSender(req.From)
+	} else {
+		toAddr, err = ms.authKeeper.AddressCodec().StringToBytes(req.To)
+		if err != nil {
 			return nil, err
 		}
+	}
+
+	success, err := ms.safeDepositToken(ctx, toAddr, coins)
+	if err != nil {
+		return nil, err
 	}
 
 	if _, err := ms.IncreaseNextL1Sequence(ctx); err != nil {
@@ -441,21 +443,55 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
 	)
 
-	// handle hook
-	if len(req.Data) > 0 {
-		subCtx, commit := sdkCtx.CacheContext()
+	if success && executeHook {
+		cacheCtx, commit := sdkCtx.CacheContext()
 
-		err = ms.bridgeHook(subCtx, fromAddr, req.Data)
-		if err == nil {
+		// in this case, the recipient is "hook" and the toAddr is the intermediate address
+		if err := ms.bridgeHook(cacheCtx, toAddr, req.Data); err == nil {
 			commit()
-			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, "true"))
-		} else {
-			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, "false"))
 		}
-	}
-	sdkCtx.EventManager().EmitEvent(event)
 
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, strconv.FormatBool(err == nil)))
+	}
+
+	sdkCtx.EventManager().EmitEvent(event)
 	return &types.MsgFinalizeTokenDepositResponse{}, nil
+}
+
+// safeDepositToken deposits the token to the recipient address
+// - if the deposit is failed, it records the pending deposit
+// - if the deposit is successful, it returns true and writes the changes
+func (ms MsgServer) safeDepositToken(ctx context.Context, toAddr sdk.AccAddress, coins sdk.Coins) (success bool, err error) {
+	// use cache context to avoid relaying failure
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	cacheCtx, commit := sdkCtx.CacheContext()
+
+	// transfer can be failed due to contract logics
+	if err = ms.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, toAddr, coins); err != nil {
+		ms.Logger(ctx).Error("failed to finalize token deposit", "error", err)
+
+		// records pending deposits
+		pendingDeposits, err := ms.PendingDeposits.Get(ctx, toAddr)
+		if err != nil && errors.Is(err, collections.ErrNotFound) {
+			pendingDeposits = types.PendingDeposits{
+				Deposits: sdk.NewCoins(),
+			}
+		} else if err != nil {
+			return false, err
+		}
+
+		pendingDeposits.Deposits = pendingDeposits.Deposits.Add(coins...)
+		if err := ms.PendingDeposits.Set(ctx, toAddr, pendingDeposits); err != nil {
+			return false, err
+		}
+
+		return false, nil
+	}
+
+	// write the changes only if the transfer is successful
+	commit()
+
+	return true, nil
 }
 
 /////////////////////////////////////////////////////
@@ -467,8 +503,8 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		return nil, err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	coin := req.Amount
+	burnCoins := sdk.NewCoins(coin)
 
 	// check denom pair existence
 	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
@@ -482,18 +518,55 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		return nil, err
 	}
 
-	coins := sdk.NewCoins(coin)
+	// check pending deposits and withdraw from them if necessary
+	pendingDeposits, err := ms.PendingDeposits.Get(ctx, senderAddr)
+	if err == nil {
+		pendingAmount := pendingDeposits.Deposits.AmountOf(coin.Denom)
+		if pendingAmount.IsPositive() {
+			var pendingWithdrawAmount math.Int
+			if coin.Amount.GT(pendingAmount) {
+				pendingWithdrawAmount = pendingAmount
+			} else {
+				pendingWithdrawAmount = coin.Amount
+			}
+
+			// withdraw from the pending deposits
+			withdrawnCoinFromPendingDeposits := sdk.NewCoin(coin.Denom, pendingWithdrawAmount)
+			coin = coin.Sub(withdrawnCoinFromPendingDeposits)
+
+			// update pending deposits
+			pendingDeposits.Deposits = pendingDeposits.Deposits.Sub(withdrawnCoinFromPendingDeposits)
+			if pendingDeposits.Deposits.IsZero() {
+				if err := ms.PendingDeposits.Remove(ctx, senderAddr); err != nil {
+					return nil, err
+				}
+			} else {
+				if err := ms.PendingDeposits.Set(ctx, senderAddr, pendingDeposits); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
 	l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, coins); err != nil {
-		return nil, err
+
+	// send coins to the module account only if the amount is positive
+	// - pending deposits are already accounted for
+	if coin.IsPositive() {
+		if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+			return nil, err
+		}
 	}
-	if err := ms.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
+
+	// burn withdrawn coins from the module account
+	if err := ms.bankKeeper.BurnCoins(ctx, types.ModuleName, burnCoins); err != nil {
 		return nil, err
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),

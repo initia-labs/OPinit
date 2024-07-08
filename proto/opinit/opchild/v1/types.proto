@@ -100,3 +100,12 @@ message BridgeInfo {
   // bridge_config is the configuration of the bridge.
   opinit.ophost.v1.BridgeConfig bridge_config = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
+
+// PendingDeposits defines the set of pending deposits.
+message PendingDeposits {
+  repeated cosmos.base.v1beta1.Coin deposits = 1 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -35,6 +36,9 @@ $ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			sdk.SetAddrCacheEnabled(false)
+			defer sdk.SetAddrCacheEnabled(true)
+
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
@@ -53,12 +57,9 @@ $ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
 				return errors.Wrap(err, "failed to get config flag")
 			}
 
-			config := &Config{}
-			if configPath != "" {
-				config, err = Config{}.FromFile(configPath)
-				if err != nil {
-					return err
-				}
+			config, err := NewConfig(configPath)
+			if err != nil {
+				return err
 			}
 
 			if err := config.Finalize(targetNetwork, bufio.NewReader(clientCtx.Input)); err != nil {

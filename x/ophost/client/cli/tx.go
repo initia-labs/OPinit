@@ -281,10 +281,10 @@ func NewInitiateTokenDeposit(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			// cannot validate to address here because it is l2 address.
 			toAddr := args[1]
-			_, err = ac.StringToBytes(toAddr)
-			if err != nil {
-				return err
+			if len(toAddr) == 0 {
+				return fmt.Errorf("to address is required")
 			}
 
 			amount, err := sdk.ParseCoinNormalized(args[2])
@@ -332,7 +332,7 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 					"bridge_id": 1,
 					"output_index": 0,
 					"withdrawal_proofs": [ "proof1", "proof2", ... ],
-					"receiver": "bech32-address",
+					"sender" : "bech32-address",
 					"sequence": 0,
 					"amount": "10000000uatom",
 					"version": "version hex",
@@ -367,10 +367,10 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				}
 			}
 
-			receiver := withdrawalInfo.Receiver
-			_, err = ac.StringToBytes(receiver)
-			if err != nil {
-				return err
+			// cannot validate sender address here because it is l2 address.
+			sender := withdrawalInfo.Sender
+			if len(sender) == 0 {
+				return fmt.Errorf("sender address is required")
 			}
 
 			amount, err := sdk.ParseCoinNormalized(withdrawalInfo.Amount)
@@ -398,7 +398,7 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			receiver, err := ac.BytesToString(clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
@@ -408,7 +408,7 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				withdrawalInfo.OutputIndex,
 				withdrawalInfo.Sequence,
 				withdrawalProofs,
-				fromAddr,
+				sender,
 				receiver,
 				amount,
 				version,

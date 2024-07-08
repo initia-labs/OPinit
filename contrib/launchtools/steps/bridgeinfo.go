@@ -76,16 +76,16 @@ func SetBridgeInfo(
 
 		// create SetBridgeInfo message
 		setBridgeInfoMessage := setBridgeInfo(
-			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.BridgeExecutor.L2Address,
 			bridgeId,
 			bridgeInfo.BridgeAddr,
 			config.L1Config.ChainID,
 			l1ClientID,
 			bridgeInfo.BridgeConfig,
 		)
-		// send createOpBridgeMessage to host (L1)
+		// send MsgSetBridgeInfo to host (L1)
 		txRes, err := ctx.GetRPCHelperL2().BroadcastTxAndWait(
-			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.BridgeExecutor.L2Address,
 			config.SystemKeys.BridgeExecutor.Mnemonic,
 			200000,
 			sdk.NewCoins(),
