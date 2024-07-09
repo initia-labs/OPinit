@@ -1117,6 +1117,194 @@ func (m *QueryNextL1SequenceResponse) GetNextL1Sequence() uint64 {
 	return 0
 }
 
+// QueryClaimedRequest is request type for the Query/Claimed RPC method.
+type QueryClaimedRequest struct {
+	BridgeId       uint64 `protobuf:"varint,1,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty"`
+	WithdrawalHash []byte `protobuf:"bytes,2,opt,name=withdrawal_hash,json=withdrawalHash,proto3" json:"withdrawal_hash,omitempty"`
+}
+
+func (m *QueryClaimedRequest) Reset()         { *m = QueryClaimedRequest{} }
+func (m *QueryClaimedRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryClaimedRequest) ProtoMessage()    {}
+func (*QueryClaimedRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7dd525d30e46de74, []int{18}
+}
+func (m *QueryClaimedRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryClaimedRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryClaimedRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryClaimedRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryClaimedRequest.Merge(m, src)
+}
+func (m *QueryClaimedRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryClaimedRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryClaimedRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryClaimedRequest proto.InternalMessageInfo
+
+func (m *QueryClaimedRequest) GetBridgeId() uint64 {
+	if m != nil {
+		return m.BridgeId
+	}
+	return 0
+}
+
+func (m *QueryClaimedRequest) GetWithdrawalHash() []byte {
+	if m != nil {
+		return m.WithdrawalHash
+	}
+	return nil
+}
+
+// QueryClaimedResponse is response type for the Query/Claimed RPC method
+type QueryClaimedResponse struct {
+	Claimed bool `protobuf:"varint,1,opt,name=claimed,proto3" json:"claimed,omitempty"`
+}
+
+func (m *QueryClaimedResponse) Reset()         { *m = QueryClaimedResponse{} }
+func (m *QueryClaimedResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryClaimedResponse) ProtoMessage()    {}
+func (*QueryClaimedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7dd525d30e46de74, []int{19}
+}
+func (m *QueryClaimedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryClaimedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryClaimedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryClaimedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryClaimedResponse.Merge(m, src)
+}
+func (m *QueryClaimedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryClaimedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryClaimedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryClaimedResponse proto.InternalMessageInfo
+
+func (m *QueryClaimedResponse) GetClaimed() bool {
+	if m != nil {
+		return m.Claimed
+	}
+	return false
+}
+
+// QueryNextL1SequenceRequest is request type for the Query/NextL1Sequence RPC method.
+type QueryNextL1SequenceRequest struct {
+	BridgeId uint64 `protobuf:"varint,1,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty"`
+}
+
+func (m *QueryNextL1SequenceRequest) Reset()         { *m = QueryNextL1SequenceRequest{} }
+func (m *QueryNextL1SequenceRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryNextL1SequenceRequest) ProtoMessage()    {}
+func (*QueryNextL1SequenceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7dd525d30e46de74, []int{20}
+}
+func (m *QueryNextL1SequenceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNextL1SequenceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNextL1SequenceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNextL1SequenceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNextL1SequenceRequest.Merge(m, src)
+}
+func (m *QueryNextL1SequenceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNextL1SequenceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNextL1SequenceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNextL1SequenceRequest proto.InternalMessageInfo
+
+func (m *QueryNextL1SequenceRequest) GetBridgeId() uint64 {
+	if m != nil {
+		return m.BridgeId
+	}
+	return 0
+}
+
+// QueryNextL1SequenceResponse is response type for the Query/NextL1Sequence RPC method.
+type QueryNextL1SequenceResponse struct {
+	NextL1Sequence uint64 `protobuf:"varint,1,opt,name=next_l1_sequence,json=nextL1Sequence,proto3" json:"next_l1_sequence,omitempty"`
+}
+
+func (m *QueryNextL1SequenceResponse) Reset()         { *m = QueryNextL1SequenceResponse{} }
+func (m *QueryNextL1SequenceResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryNextL1SequenceResponse) ProtoMessage()    {}
+func (*QueryNextL1SequenceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7dd525d30e46de74, []int{21}
+}
+func (m *QueryNextL1SequenceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNextL1SequenceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNextL1SequenceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNextL1SequenceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNextL1SequenceResponse.Merge(m, src)
+}
+func (m *QueryNextL1SequenceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNextL1SequenceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNextL1SequenceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNextL1SequenceResponse proto.InternalMessageInfo
+
+func (m *QueryNextL1SequenceResponse) GetNextL1Sequence() uint64 {
+	if m != nil {
+		return m.NextL1Sequence
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*QueryBridgeRequest)(nil), "opinit.ophost.v1.QueryBridgeRequest")
 	proto.RegisterType((*QueryBridgeResponse)(nil), "opinit.ophost.v1.QueryBridgeResponse")
