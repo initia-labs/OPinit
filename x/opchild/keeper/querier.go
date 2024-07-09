@@ -75,3 +75,21 @@ func (q Querier) Params(ctx context.Context, req *types.QueryParamsRequest) (*ty
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
+
+func (q Querier) NextL1Sequence(ctx context.Context, req *types.QueryNextL1SequenceRequest) (*types.QueryNextL1SequenceResponse, error) {
+	nextL1Sequence, err := q.GetNextL1Sequence(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryNextL1SequenceResponse{NextL1Sequence: nextL1Sequence}, nil
+}
+
+func (q Querier) NextL2Sequence(ctx context.Context, req *types.QueryNextL2SequenceRequest) (*types.QueryNextL2SequenceResponse, error) {
+	nextL2Sequence, err := q.GetNextL2Sequence(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryNextL2SequenceResponse{NextL2Sequence: nextL2Sequence}, nil
+}

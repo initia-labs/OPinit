@@ -29,6 +29,7 @@ const (
 	Query_OutputProposals_FullMethodName     = "/opinit.ophost.v1.Query/OutputProposals"
 	Query_Params_FullMethodName              = "/opinit.ophost.v1.Query/Params"
 	Query_Claimed_FullMethodName             = "/opinit.ophost.v1.Query/Claimed"
+	Query_NextL1Sequence_FullMethodName      = "/opinit.ophost.v1.Query/NextL1Sequence"
 )
 
 // QueryClient is the client API for Query service.
@@ -56,6 +57,8 @@ type QueryClient interface {
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// Claimed queries whether the output is claimed.
 	Claimed(ctx context.Context, in *QueryClaimedRequest, opts ...grpc.CallOption) (*QueryClaimedResponse, error)
+	// NextL1Sequence queries the next l1 sequence.
+	NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error)
 }
 
 type queryClient struct {
@@ -166,6 +169,16 @@ func (c *queryClient) Claimed(ctx context.Context, in *QueryClaimedRequest, opts
 	return out, nil
 }
 
+func (c *queryClient) NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryNextL1SequenceResponse)
+	err := c.cc.Invoke(ctx, Query_NextL1Sequence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -191,6 +204,8 @@ type QueryServer interface {
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// Claimed queries whether the output is claimed.
 	Claimed(context.Context, *QueryClaimedRequest) (*QueryClaimedResponse, error)
+	// NextL1Sequence queries the next l1 sequence.
+	NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -227,6 +242,9 @@ func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*Q
 }
 func (UnimplementedQueryServer) Claimed(context.Context, *QueryClaimedRequest) (*QueryClaimedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Claimed not implemented")
+}
+func (UnimplementedQueryServer) NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NextL1Sequence not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -421,6 +439,24 @@ func _Query_Claimed_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_NextL1Sequence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryNextL1SequenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NextL1Sequence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_NextL1Sequence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NextL1Sequence(ctx, req.(*QueryNextL1SequenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -467,6 +503,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Claimed",
 			Handler:    _Query_Claimed_Handler,
+		},
+		{
+			MethodName: "NextL1Sequence",
+			Handler:    _Query_NextL1Sequence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
