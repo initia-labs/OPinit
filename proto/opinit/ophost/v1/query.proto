@@ -65,6 +65,12 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/ophost/v1/params";
   }
+
+  // Claimed queries whether the output is claimed.
+  rpc Claimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/{withdrawal_hash}/claimed";
+  }
 }
 
 // QueryBridgeRequest is request type for Query/Bridge RPC method.
@@ -182,4 +188,15 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// QueryClaimedRequest is request type for the Query/Claimed RPC method.
+message QueryClaimedRequest {
+  uint64 bridge_id       = 1;
+  bytes  withdrawal_hash = 2;
+}
+
+// QueryClaimedResponse is response type for the Query/Claimed RPC method
+message QueryClaimedResponse {
+  bool claimed = 1;
 }

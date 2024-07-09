@@ -217,3 +217,29 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 		L2BlockNumber: 100,
 	}, res.OutputProposal)
 }
+
+func Test_QueryClaimed(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	wh := [32]byte{1, 2, 3}
+
+	// Check if the withdrawal is not claimed
+	res, err := keeper.NewQuerier(input.OPHostKeeper).Claimed(ctx, &types.QueryClaimedRequest{
+		BridgeId:       1,
+		WithdrawalHash: wh[:],
+	})
+	require.NoError(t, err)
+	require.False(t, res.Claimed)
+
+	// Record the withdrawal as claimed
+	err = input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, wh)
+	require.NoError(t, err)
+
+	// Check if the withdrawal is claimed
+	res, err = keeper.NewQuerier(input.OPHostKeeper).Claimed(ctx, &types.QueryClaimedRequest{
+		BridgeId:       1,
+		WithdrawalHash: wh[:],
+	})
+	require.NoError(t, err)
+	require.True(t, res.Claimed)
+}
