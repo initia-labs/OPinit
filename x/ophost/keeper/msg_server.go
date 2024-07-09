@@ -275,10 +275,6 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		return nil, err
 	}
 
-	sender, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
-	if err != nil {
-		return nil, err
-	}
 	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.Receiver)
 	if err != nil {
 		return nil, err
@@ -324,10 +320,10 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 			seed = binary.BigEndian.AppendUint64(seed, bridgeId)
 			seed = binary.BigEndian.AppendUint64(seed, req.Sequence)
 			// variable length
-			seed = append(seed, sender...)
+			seed = append(seed, req.Sender...) // put utf8 encoded address
 			seed = append(seed, types.Splitter)
 			// variable length
-			seed = append(seed, receiver...)
+			seed = append(seed, req.Receiver...) // put utf8 encoded address
 			seed = append(seed, types.Splitter)
 			// variable length
 			seed = append(seed, []byte(denom)...)
@@ -378,8 +374,8 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyOutputIndex, strconv.FormatUint(outputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
-		sdk.NewAttribute(types.AttributeKeyFrom, sdk.AccAddress(sender).String()),
-		sdk.NewAttribute(types.AttributeKeyTo, sdk.AccAddress(receiver).String()),
+		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
+		sdk.NewAttribute(types.AttributeKeyTo, req.Receiver),
 		sdk.NewAttribute(types.AttributeKeyL1Denom, denom),
 		sdk.NewAttribute(types.AttributeKeyL2Denom, types.L2Denom(bridgeId, denom)),
 		sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),

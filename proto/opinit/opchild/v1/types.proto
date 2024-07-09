@@ -100,3 +100,24 @@ message BridgeInfo {
   // bridge_config is the configuration of the bridge.
   opinit.ophost.v1.BridgeConfig bridge_config = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
+
+// PendingDeposits defines the set of pending deposits.
+message PendingDeposits {
+  // recipient is the address of the recipient.
+  string recipient = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // coins is a list of coins to be deposited.
+  repeated cosmos.base.v1beta1.Coin coins = 2 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message CoinsWrapper {
+  repeated cosmos.base.v1beta1.Coin coins = 1 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

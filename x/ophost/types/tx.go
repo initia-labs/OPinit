@@ -3,6 +3,7 @@ package types
 import (
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var (
@@ -174,8 +175,9 @@ func (msg MsgInitiateTokenDeposit) Validate(accAddressCodec address.Codec) error
 		return err
 	}
 
-	if _, err := accAddressCodec.StringToBytes(msg.To); err != nil {
-		return err
+	// cannot validate to address as it can be any format of address based on the chain.
+	if len(msg.To) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("to address cannot be empty")
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
@@ -222,8 +224,9 @@ func NewMsgFinalizeTokenWithdrawal(
 
 // Validate performs basic MsgFinalizeTokenWithdrawal message validation.
 func (msg MsgFinalizeTokenWithdrawal) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Sender); err != nil {
-		return err
+	// cannot validate sender address as it can be any format of address based on the chain.
+	if len(msg.Sender) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("sender address cannot be empty")
 	}
 
 	if _, err := accAddressCodec.StringToBytes(msg.Receiver); err != nil {

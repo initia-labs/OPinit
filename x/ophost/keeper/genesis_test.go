@@ -97,9 +97,9 @@ func Test_GenesisExport(t *testing.T) {
 			{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		BatchInfos: []types.BatchInfoWithOutput{
-			{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{}},
-			{types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1},
-			{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3},
+			{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, Output: types.Output{}},
+			{BatchInfo: types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, Output: output1},
+			{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, Output: output3},
 		},
 	}, genState.Bridges[0])
 }
@@ -135,7 +135,7 @@ func Test_GenesisImportExport(t *testing.T) {
 	genState := &types.GenesisState{
 		Params: params,
 		Bridges: []types.Bridge{
-			types.Bridge{
+			{
 				BridgeId:        1,
 				NextL1Sequence:  100,
 				NextOutputIndex: 10,
@@ -161,9 +161,9 @@ func Test_GenesisImportExport(t *testing.T) {
 					{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 				},
 				BatchInfos: []types.BatchInfoWithOutput{
-					{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, types.Output{}},
-					{types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, output1},
-					{types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, output3},
+					{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, Output: types.Output{}},
+					{BatchInfo: types.BatchInfo{Submitter: addrsStr[1], Chain: "ll1"}, Output: output1},
+					{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"}, Output: output3},
 				},
 			}},
 		NextBridgeId: 2,

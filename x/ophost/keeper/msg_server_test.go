@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"testing"
 	"time"
 
@@ -167,7 +166,7 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	input.Faucet.Fund(ctx, addrs[1], amount)
 	_, err = ms.InitiateTokenDeposit(
 		ctx,
-		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, addrsStr[2], amount, []byte("messages")),
+		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, "hook", amount, []byte("messages")),
 	)
 	require.NoError(t, err)
 	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).IsZero())
@@ -194,15 +193,15 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	amount := sdk.NewCoin("uinit", math.NewInt(1_000_000))
 	input.Faucet.Fund(ctx, types.BridgeAddress(1), amount)
 
-	outputRoot := decodeBase64(t, "0cg24XcpDwTIFXHY4jNyxg2EQS5RUqcMvlMJeuI5rf4=")
+	outputRoot := decodeBase64(t, "at+mtcWpUvvV+K/uBm+tRufWD0WH4SZVskw9WKn5N/A=")
 	version := decodeBase64(t, "Ch4nNnd/gKYr6y33K2SYeEgcDKEBlLgytRNr77rlQBc=")
 	stateRoot := decodeBase64(t, "C2ZdjJ7uX41NaadA/FjlMiG6btiDfYnxE2ABqJocHxI=")
-	storageRoot := decodeBase64(t, "VcN+0UZbTtGyyLfQtAHW+bCv5ixadyyT0ZZ26aUT1JY=")
+	storageRoot := decodeBase64(t, "8EorDbcn/PYtbfU8+e35gHR5e/Liy/mycsULLPWzJww=")
 	blockHash := decodeBase64(t, "tgmfQJT4uipVToW631xz0RXdrfzu7n5XxGNoPpX6isI=")
 	proofs := [][]byte{
-		decodeBase64(t, "gnUeNU3EnW4iBOk8wounvu98aTER0BP5dOD0lkuwBBE="),
-		decodeBase64(t, "yE4zjliK5P9sfdzR2iNh6nYHmD+mjDK6dONuZ3QlVcA="),
-		decodeBase64(t, "GQXXUQ5P/egGvbAHkYfWHIAfgyCEmnjz/fUMKrWCEn8="),
+		decodeBase64(t, "Ux19nu4Nl3N7gBy/ID3rzuXrRpScnxOR9u/PUCxlTC0="),
+		decodeBase64(t, "vWrbSRyDJ+FnWxY5Plr7Ltgyyusr/uDW7nQDq8PDDQY="),
+		decodeBase64(t, "opvMy3Dv9tUfa4pNr/IBM1GOw8qOlwfxqoXVH5gKPIo="),
 	}
 
 	now := time.Now().UTC()
@@ -211,9 +210,8 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
-	sender, err := input.AccountKeeper.AddressCodec().BytesToString(decodeHex(t, "70b337786a5a87d896d5f9480016817529d0d61b"))
-	require.NoError(t, err)
-	receiver, err := input.AccountKeeper.AddressCodec().BytesToString(decodeHex(t, "f56d386248d1ced6acd23c364909fe88e2ea6f70"))
+	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
+	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
 	require.NoError(t, err)
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
 		1, 1, 1, proofs,
@@ -223,14 +221,10 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 		version, stateRoot, storageRoot, blockHash,
 	))
 	require.NoError(t, err)
-	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, sdk.AccAddress(decodeHex(t, "f56d386248d1ced6acd23c364909fe88e2ea6f70")), amount.Denom))
-}
 
-func decodeHex(t *testing.T, str string) []byte {
-	bz, err := hex.DecodeString(str)
+	receiverAddr, err := sdk.AccAddressFromBech32("cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg")
 	require.NoError(t, err)
-
-	return bz
+	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
 }
 
 func decodeBase64(t *testing.T, str string) []byte {

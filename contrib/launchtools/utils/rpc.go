@@ -10,6 +10,7 @@ import (
 	"github.com/cometbft/cometbft/rpc/client/http"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,6 +22,7 @@ import (
 )
 
 type RPCHelper struct {
+	isL1   bool
 	log    log.Logger
 	cliCtx client.Context
 }
@@ -30,6 +32,7 @@ type RPCHelper struct {
 // - Assumes that cdc and interfaceRegistry already registered all the necessary types. (ophost/opchild inclusively)
 // - Assumes that txConfig is already set up.
 func NewRPCHelper(
+	isL1 bool,
 	log log.Logger,
 	rpcAddr string,
 	chainId string,
@@ -42,8 +45,10 @@ func NewRPCHelper(
 		return nil, err
 	}
 
+	cdc.InterfaceRegistry().SigningContext().AddressCodec()
 	return &RPCHelper{
-		log: log,
+		isL1: isL1,
+		log:  log,
 		cliCtx: client.Context{}.
 			WithClient(httpCli).
 			WithChainID(chainId).
@@ -58,9 +63,20 @@ func (r *RPCHelper) GetStatus() (*coretypes.ResultStatus, error) {
 	return r.cliCtx.Client.Status(context.Background())
 }
 
-// GetNonce returns the account information for the given address
-func (r *RPCHelper) GetNonce(address string) (client.Account, error) {
-	addr, _ := sdk.AccAddressFromBech32(address)
+// getNonce returns the account information for the given address
+func (r *RPCHelper) getNonce(addrStr string) (client.Account, error) {
+	var ac address.Codec
+	if r.isL1 {
+		ac = L1AddressCodec()
+	} else {
+		ac = L2AddressCodec()
+	}
+
+	addr, err := ac.StringToBytes(addrStr)
+	if err != nil {
+		return nil, err
+	}
+
 	ar := authtypes.AccountRetriever{}
 	return ar.GetAccount(
 		r.cliCtx,
@@ -110,7 +126,12 @@ func (r *RPCHelper) BroadcastTxAndWait(
 		"msgs-len", len(msgs),
 	)
 
-	acc, err := r.GetNonce(senderAddress)
+	if r.isL1 {
+		cleanup := HackBech32Prefix("init")
+		defer cleanup()
+	}
+
+	acc, err := r.getNonce(senderAddress)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get nonce for %s", senderAddress)
 	}

@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
+	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 )
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeKeyring
@@ -26,7 +27,7 @@ func InitializeKeyring(config *launchtools.Config) launchtools.LauncherStepFunc 
 	systemKeys := reflect.ValueOf(*config.SystemKeys)
 	for i := 0; i < systemKeys.NumField(); i++ {
 		fieldName := systemKeys.Type().Field(i).Name
-		k, ok := systemKeys.Field(i).Interface().(*launchtools.Account)
+		k, ok := systemKeys.Field(i).Interface().(*launchtools.SystemAccount)
 		if !ok {
 			panic(errors.New("systemKeys must be of type launcher.Account"))
 		}
@@ -38,7 +39,7 @@ func InitializeKeyring(config *launchtools.Config) launchtools.LauncherStepFunc 
 
 			l.Info("adding system key",
 				"key-name", fieldName,
-				"address", k.Address,
+				"address", k.L2Address,
 			)
 
 			accountRecord, err := kr.NewAccount(
@@ -60,8 +61,26 @@ func InitializeKeyring(config *launchtools.Config) launchtools.LauncherStepFunc 
 				return errors.Wrapf(addrErr, "failed to get address for key %s", fieldName)
 			}
 
-			if addr.String() != k.Address {
-				return errors.Errorf("address mismatch for key %s, keyring=%s, input=%s", fieldName, addr.String(), k.Address)
+			if k.L2Address != "" {
+				l2Addr, err := utils.L2AddressCodec().BytesToString(addr)
+				if err != nil {
+					return errors.Wrapf(err, "failed to convert address to string for key %s", fieldName)
+				}
+
+				if l2Addr != k.L2Address {
+					return errors.Errorf("address mismatch for key %s, keyring=%s, input=%s", fieldName, l2Addr, k.L2Address)
+				}
+			}
+
+			if k.L1Address != "" {
+				l1Addr, err := utils.L1AddressCodec().BytesToString(addr)
+				if err != nil {
+					return errors.Wrapf(err, "failed to convert address to string for key %s", fieldName)
+				}
+
+				if l1Addr != k.L1Address {
+					return errors.Errorf("address mismatch for key %s, keyring=%s, input=%s", fieldName, l1Addr, k.L1Address)
+				}
 			}
 
 			return nil

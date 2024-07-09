@@ -43,6 +43,7 @@ service Query {
     option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs";
   }
 
+  // LastFinalizedOutput queries last finalized output.
   rpc LastFinalizedOutput(QueryLastFinalizedOutputRequest) returns (QueryLastFinalizedOutputResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/last_finalized_output";
@@ -174,7 +175,6 @@ message QueryOutputProposalResponse {
 // QueryOutputProposalsRequest is response type for the Query/OutputProposals RPC method
 message QueryOutputProposalsRequest {
   uint64 bridge_id    = 1;
-  uint64 output_index = 2;
   // pagination defines the pagination in the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }

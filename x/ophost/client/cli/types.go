@@ -24,9 +24,9 @@ type MsgFinalizeTokenWithdrawal struct {
 	BridgeId         uint64   `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
 	OutputIndex      uint64   `protobuf:"varint,3,opt,name=output_index,json=outputIndex,proto3" json:"output_index,omitempty" yaml:"output_index"`
 	WithdrawalProofs []string `protobuf:"bytes,4,rep,name=withdrawal_proofs,json=withdrawalProofs,proto3" json:"withdrawal_proofs,omitempty"`
-	// no sender here
-	//Sender           string   `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
-	Receiver string `protobuf:"bytes,5,opt,name=receiver,proto3" json:"receiver,omitempty" yaml:"receiver"`
+	Sender           string   `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
+	// no receiver here
+	// Receiver string `protobuf:"bytes,5,opt,name=receiver,proto3" json:"receiver,omitempty" yaml:"receiver"`
 	Sequence uint64 `protobuf:"varint,6,opt,name=sequence,proto3" json:"sequence,omitempty" yaml:"sequence"`
 	Amount   string `protobuf:"bytes,7,opt,name=amount,proto3" json:"amount" yaml:"amount"`
 	// version of the output root

@@ -21,6 +21,7 @@ func InitializeRPCHelpers(config *launchtools.Config) launchtools.LauncherStepFu
 		)
 
 		l1, err := launchutils.NewRPCHelper(
+			true,
 			ctx.Logger().With("module", "rpc-helper"),
 			config.L1Config.RPC_URL,
 			config.L1Config.ChainID,
@@ -38,6 +39,7 @@ func InitializeRPCHelpers(config *launchtools.Config) launchtools.LauncherStepFu
 		)
 
 		l2, err := launchutils.NewRPCHelper(
+			false,
 			ctx.Logger().With("module", "rpc-helper"),
 			"http://localhost:26657",
 			config.L2Config.ChainID,

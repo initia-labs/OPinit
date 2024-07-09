@@ -19,6 +19,7 @@ func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeIn
 	return &GenesisState{
 		Params:              params,
 		LastValidatorPowers: []LastValidatorPower{},
+		PendingDeposits:     []PendingDeposits{},
 		Validators:          validators,
 		Exported:            false,
 		BridgeInfo:          bridgeInfo,
@@ -31,10 +32,11 @@ func DefaultGenesisState() *GenesisState {
 		Params:              DefaultParams(),
 		LastValidatorPowers: []LastValidatorPower{},
 		Validators:          []Validator{},
-		Exported:            false,
+		PendingDeposits:     []PendingDeposits{},
 		NextL1Sequence:      DefaultL1SequenceStart,
 		NextL2Sequence:      DefaultL2SequenceStart,
 		BridgeInfo:          nil,
+		Exported:            false,
 	}
 }
 

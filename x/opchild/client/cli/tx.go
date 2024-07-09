@@ -71,10 +71,9 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			from, err := ac.StringToBytes(args[2])
-			if err != nil {
-				return err
-			}
+			// we can't validate the address here because the address is not l2 address.
+			fromAddr := args[2]
+
 			to, err := ac.StringToBytes(args[3])
 			if err != nil {
 				return err
@@ -94,7 +93,7 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 
 			txf, msg, err := newBuildDepositMsg(
 				clientCtx, ac, txf, sequence, height,
-				from, to, amount, baseDenom,
+				fromAddr, to, amount, baseDenom,
 				[]byte(hookMsg),
 			)
 			if err != nil {
@@ -128,16 +127,15 @@ func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			to, err := ac.StringToBytes(args[0])
-			if err != nil {
-				return err
-			}
+			// we can't validate the address here because the address is not l2 address.
+			toAddr := args[0]
+
 			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
 
-			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, to, amount)
+			txf, msg, err := newBuildWithdrawMsg(clientCtx, ac, txf, toAddr, amount)
 			if err != nil {
 				return err
 			}
@@ -361,14 +359,9 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 	return cmd
 }
 
-func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, to sdk.AccAddress, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
+func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Factory, toAddr string, amount sdk.Coin) (tx.Factory, *types.MsgInitiateTokenWithdrawal, error) {
 	sender := clientCtx.GetFromAddress()
 	senderAddr, err := ac.BytesToString(sender)
-	if err != nil {
-		return txf, nil, err
-	}
-
-	toAddr, err := ac.BytesToString(to)
 	if err != nil {
 		return txf, nil, err
 	}
@@ -387,18 +380,14 @@ func newBuildDepositMsg(
 	txf tx.Factory,
 	sequence uint64,
 	height uint64,
-	from, to sdk.AccAddress,
+	fromAddr string,
+	to sdk.AccAddress,
 	amount sdk.Coin,
 	baseDenom string,
 	hookMsg []byte,
 ) (tx.Factory, *types.MsgFinalizeTokenDeposit, error) {
 	sender := clientCtx.GetFromAddress()
 	senderAddr, err := ac.BytesToString(sender)
-	if err != nil {
-		return txf, nil, err
-	}
-
-	fromAddr, err := ac.BytesToString(from)
 	if err != nil {
 		return txf, nil, err
 	}

@@ -51,6 +51,7 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 	DenomPairs           collections.Map[string, string]
+	PendingDeposits      collections.Map[[]byte, types.CoinsWrapper]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -109,6 +110,7 @@ func NewKeeper(
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
+		PendingDeposits:       collections.NewMap(sb, types.PendingDepositsKey, "pending_deposits", collections.BytesKey, codec.CollValue[types.CoinsWrapper](cdc)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,

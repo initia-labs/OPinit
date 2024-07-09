@@ -41,10 +41,10 @@ func InitializeOpBridge(
 		// create OpBridgeMessage
 		createOpBridgeMessage, err := createOpBridge(
 			channels.Channels,
-			config.SystemKeys.BridgeExecutor.Address,
-			config.SystemKeys.Challenger.Address,
-			config.SystemKeys.OutputSubmitter.Address,
-			config.SystemKeys.BatchSubmitter.Address,
+			config.SystemKeys.BridgeExecutor.L1Address,
+			config.SystemKeys.Challenger.L1Address,
+			config.SystemKeys.OutputSubmitter.L1Address,
+			config.SystemKeys.BatchSubmitter.L1Address,
 			config.OpBridge.BatchSubmitTarget,
 			*config.OpBridge.OutputSubmissionInterval,
 			*config.OpBridge.OutputFinalizationPeriod,
@@ -58,7 +58,7 @@ func InitializeOpBridge(
 		}
 
 		ctx.Logger().Info("broadcasting tx to L1...",
-			"from-address", config.SystemKeys.BridgeExecutor.Address,
+			"from-address", config.SystemKeys.BridgeExecutor.L1Address,
 		)
 
 		// already validated in config.go
@@ -67,7 +67,7 @@ func InitializeOpBridge(
 
 		// send createOpBridgeMessage to host (L1)
 		res, err := ctx.GetRPCHelperL1().BroadcastTxAndWait(
-			config.SystemKeys.BridgeExecutor.Address,
+			config.SystemKeys.BridgeExecutor.L1Address,
 			config.SystemKeys.BridgeExecutor.Mnemonic,
 			200000,
 			gasFees,
