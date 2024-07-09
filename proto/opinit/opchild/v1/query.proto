@@ -39,6 +39,18 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/opchild/v1/params";
   }
+
+  // NextL1Sequence queries the next l1 sequence number.
+  rpc NextL1Sequence(QueryNextL1SequenceRequest) returns (QueryNextL1SequenceResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/opchild/v1/next_l1_sequence";
+  }
+
+  // NextL2Sequence queries the next l2 sequence number.
+  rpc NextL2Sequence(QueryNextL2SequenceRequest) returns (QueryNextL2SequenceResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/opchild/v1/next_l2_sequence";
+  }
 }
 
 // QueryValidatorsRequest is request type for Query/Validators RPC method.
@@ -84,4 +96,22 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+// QueryNextL1SequenceRequest is request type for the Query/NextL1Sequence RPC method.
+message QueryNextL1SequenceRequest {}
+
+// QueryNextL1SequenceResponse is response type for the Query/NextL1Sequence RPC method.
+message QueryNextL1SequenceResponse {
+  // next_l1_sequence holds the next l1 sequence number.
+  uint64 next_l1_sequence = 1;
+}
+
+// QueryNextL2SequenceRequest is request type for the Query/NextL2Sequence RPC method.
+message QueryNextL2SequenceRequest {}
+
+// QueryNextL2SequenceResponse is response type for the Query/NextL2Sequence RPC method.
+message QueryNextL2SequenceResponse {
+  // next_l2_sequence holds the next l2 sequence number.
+  uint64 next_l2_sequence = 1;
 }
