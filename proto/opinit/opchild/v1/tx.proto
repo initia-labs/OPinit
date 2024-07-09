@@ -126,7 +126,9 @@ message MsgFinalizeTokenDeposit {
 }
 
 // MsgFinalizeTokenDepositResponse returns deposit result data
-message MsgFinalizeTokenDepositResponse {}
+message MsgFinalizeTokenDepositResponse {
+  ResponseResultType result = 1;
+}
 
 // MsgInitiateTokenWithdrawal is a message to withdraw a new token from L2 to L1.
 message MsgInitiateTokenWithdrawal {

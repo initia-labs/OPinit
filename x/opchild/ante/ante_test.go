@@ -4,9 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	"cosmossdk.io/simapp"
 	dbm "github.com/cosmos/cosmos-db"
 
@@ -22,6 +26,10 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
+
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/initia-labs/OPinit/x/opchild/ante"
 )
 
 // AnteTestSuite is a test suite to be used with ante handler tests.
@@ -121,4 +129,68 @@ func (suite *AnteTestSuite) CreateTestTx(
 
 func TestAnteTestSuite(t *testing.T) {
 	suite.Run(t, new(AnteTestSuite))
+}
+
+var _ sdk.Tx = testTx{}
+
+type testTx struct {
+	msgs []sdk.Msg
+}
+
+func (t testTx) GetMsgsV2() ([]protoreflect.ProtoMessage, error) {
+	return nil, nil
+}
+
+func (t testTx) GetMsgs() []sdk.Msg {
+	return t.msgs
+}
+
+func TestRedundantTx(t *testing.T) {
+	ctx, input := createTestInput(t, true)
+	rbd := ante.NewRedundantBridgeDecorator(input.OPChildKeeper)
+
+	// input.Faucet.Mint(ctx, addrs[0], sdk.NewCoin(testDenoms[0], math.NewInt(100000)))
+
+	tx := testTx{
+		msgs: []sdk.Msg{
+			types.NewMsgFinalizeTokenDeposit(
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 1, 1, "l1_test0", []byte(""),
+			),
+			types.NewMsgFinalizeTokenDeposit(
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", []byte(""),
+			),
+		},
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	_, err := rbd.AnteHandle(sdkCtx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) { return sdk.Context{}, nil })
+	require.NoError(t, err)
+
+	_, err = rbd.AnteHandle(sdkCtx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) { return sdk.Context{}, nil })
+	require.True(t, errorsmod.IsOf(err, types.ErrRedundantTx))
+
+	tx = testTx{
+		msgs: []sdk.Msg{
+			types.NewMsgFinalizeTokenDeposit(
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", []byte(""),
+			),
+			types.NewMsgFinalizeTokenDeposit(
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 3, 1, "l1_test0", []byte(""),
+			),
+		},
+	}
+
+	_, err = rbd.AnteHandle(sdkCtx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) { return sdk.Context{}, nil })
+	require.NoError(t, err)
+
+	tx = testTx{
+		msgs: []sdk.Msg{
+			types.NewMsgFinalizeTokenDeposit(
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 4, 1, "l1_test0", []byte(""),
+			),
+		},
+	}
+
+	_, err = rbd.AnteHandle(sdkCtx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) { return sdk.Context{}, nil })
+	require.NoError(t, err)
 }

@@ -121,3 +121,15 @@ message CoinsWrapper {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
+
+// ResponseResultType defines the possible outcomes of the execution of a message
+enum ResponseResultType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default zero value enumeration
+  RESPONSE_RESULT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
+  // The message did not execute msg operation (because, for example, deposit had already been finalized)
+  RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
+  // The message was executed successfully
+  RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+}

@@ -386,7 +386,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 
 	if req.Sequence < finalizedL1Sequence {
 		// No op instead of returning an error
-		return &types.MsgFinalizeTokenDepositResponse{}, nil
+		return &types.MsgFinalizeTokenDepositResponse{Result: types.NOOP}, nil
 	} else if req.Sequence > finalizedL1Sequence {
 		return nil, types.ErrInvalidSequence
 	}
@@ -455,7 +455,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	}
 
 	sdkCtx.EventManager().EmitEvent(event)
-	return &types.MsgFinalizeTokenDepositResponse{}, nil
+	return &types.MsgFinalizeTokenDepositResponse{Result: types.SUCCESS}, nil
 }
 
 // safeDepositToken deposits the token to the recipient address
