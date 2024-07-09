@@ -243,3 +243,17 @@ func Test_QueryClaimed(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, res.Claimed)
 }
+
+func Test_QueryNextL1Sequence(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	// update the next L1 sequence
+	require.NoError(t, input.OPHostKeeper.NextL1Sequences.Set(ctx, 100, 100))
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.NextL1Sequence(ctx, &types.QueryNextL1SequenceRequest{
+		BridgeId: 100,
+	})
+	require.NoError(t, err)
+	require.Equal(t, types.QueryNextL1SequenceResponse{NextL1Sequence: 100}, *res)
+}

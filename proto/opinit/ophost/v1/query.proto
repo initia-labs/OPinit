@@ -72,6 +72,12 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/{withdrawal_hash}/claimed";
   }
+
+  // NextL1Sequence queries the next l1 sequence.
+  rpc NextL1Sequence(QueryNextL1SequenceRequest) returns (QueryNextL1SequenceResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/next_l1_sequence";
+  }
 }
 
 // QueryBridgeRequest is request type for Query/Bridge RPC method.
@@ -199,4 +205,14 @@ message QueryClaimedRequest {
 // QueryClaimedResponse is response type for the Query/Claimed RPC method
 message QueryClaimedResponse {
   bool claimed = 1;
+}
+
+// QueryNextL1SequenceRequest is request type for the Query/NextL1Sequence RPC method.
+message QueryNextL1SequenceRequest {
+  uint64 bridge_id = 1;
+}
+
+// QueryNextL1SequenceResponse is response type for the Query/NextL1Sequence RPC method.
+message QueryNextL1SequenceResponse {
+  uint64 next_l1_sequence = 1;
 }

@@ -156,3 +156,14 @@ func (q Querier) Claimed(ctx context.Context, req *types.QueryClaimedRequest) (*
 		Claimed: claimed,
 	}, nil
 }
+
+func (q Querier) NextL1Sequence(ctx context.Context, req *types.QueryNextL1SequenceRequest) (*types.QueryNextL1SequenceResponse, error) {
+	sequence, err := q.GetNextL1Sequence(ctx, req.BridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryNextL1SequenceResponse{
+		NextL1Sequence: sequence,
+	}, nil
+}
