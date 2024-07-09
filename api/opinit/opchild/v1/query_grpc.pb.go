@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	Query_Validators_FullMethodName = "/opinit.opchild.v1.Query/Validators"
-	Query_Validator_FullMethodName  = "/opinit.opchild.v1.Query/Validator"
-	Query_BridgeInfo_FullMethodName = "/opinit.opchild.v1.Query/BridgeInfo"
-	Query_Params_FullMethodName     = "/opinit.opchild.v1.Query/Params"
+	Query_Validators_FullMethodName     = "/opinit.opchild.v1.Query/Validators"
+	Query_Validator_FullMethodName      = "/opinit.opchild.v1.Query/Validator"
+	Query_BridgeInfo_FullMethodName     = "/opinit.opchild.v1.Query/BridgeInfo"
+	Query_Params_FullMethodName         = "/opinit.opchild.v1.Query/Params"
+	Query_NextL1Sequence_FullMethodName = "/opinit.opchild.v1.Query/NextL1Sequence"
+	Query_NextL2Sequence_FullMethodName = "/opinit.opchild.v1.Query/NextL2Sequence"
 )
 
 // QueryClient is the client API for Query service.
@@ -42,6 +44,10 @@ type QueryClient interface {
 	BridgeInfo(ctx context.Context, in *QueryBridgeInfoRequest, opts ...grpc.CallOption) (*QueryBridgeInfoResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// NextL1Sequence queries the next l1 sequence number.
+	NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error)
+	// NextL2Sequence queries the next l2 sequence number.
+	NextL2Sequence(ctx context.Context, in *QueryNextL2SequenceRequest, opts ...grpc.CallOption) (*QueryNextL2SequenceResponse, error)
 }
 
 type queryClient struct {
@@ -92,6 +98,26 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryNextL1SequenceResponse)
+	err := c.cc.Invoke(ctx, Query_NextL1Sequence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) NextL2Sequence(ctx context.Context, in *QueryNextL2SequenceRequest, opts ...grpc.CallOption) (*QueryNextL2SequenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryNextL2SequenceResponse)
+	err := c.cc.Invoke(ctx, Query_NextL2Sequence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -109,6 +135,10 @@ type QueryServer interface {
 	BridgeInfo(context.Context, *QueryBridgeInfoRequest) (*QueryBridgeInfoResponse, error)
 	// Parameters queries the rollup parameters.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// NextL1Sequence queries the next l1 sequence number.
+	NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error)
+	// NextL2Sequence queries the next l2 sequence number.
+	NextL2Sequence(context.Context, *QueryNextL2SequenceRequest) (*QueryNextL2SequenceResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -127,6 +157,12 @@ func (UnimplementedQueryServer) BridgeInfo(context.Context, *QueryBridgeInfoRequ
 }
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NextL1Sequence not implemented")
+}
+func (UnimplementedQueryServer) NextL2Sequence(context.Context, *QueryNextL2SequenceRequest) (*QueryNextL2SequenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NextL2Sequence not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -213,6 +249,42 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_NextL1Sequence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryNextL1SequenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NextL1Sequence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_NextL1Sequence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NextL1Sequence(ctx, req.(*QueryNextL1SequenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_NextL2Sequence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryNextL2SequenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NextL2Sequence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_NextL2Sequence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NextL2Sequence(ctx, req.(*QueryNextL2SequenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -235,6 +307,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "NextL1Sequence",
+			Handler:    _Query_NextL1Sequence_Handler,
+		},
+		{
+			MethodName: "NextL2Sequence",
+			Handler:    _Query_NextL2Sequence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
