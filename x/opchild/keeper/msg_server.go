@@ -473,14 +473,14 @@ func (ms MsgServer) safeDepositToken(ctx context.Context, toAddr sdk.AccAddress,
 		// records pending deposits
 		pendingDeposits, err := ms.PendingDeposits.Get(ctx, toAddr)
 		if err != nil && errors.Is(err, collections.ErrNotFound) {
-			pendingDeposits = types.PendingDeposits{
-				Deposits: sdk.NewCoins(),
+			pendingDeposits = types.CoinsWrapper{
+				Coins: sdk.NewCoins(),
 			}
 		} else if err != nil {
 			return false, err
 		}
 
-		pendingDeposits.Deposits = pendingDeposits.Deposits.Add(coins...)
+		pendingDeposits.Coins = pendingDeposits.Coins.Add(coins...)
 		if err := ms.PendingDeposits.Set(ctx, toAddr, pendingDeposits); err != nil {
 			return false, err
 		}
@@ -521,7 +521,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	// check pending deposits and withdraw from them if necessary
 	pendingDeposits, err := ms.PendingDeposits.Get(ctx, senderAddr)
 	if err == nil {
-		pendingAmount := pendingDeposits.Deposits.AmountOf(coin.Denom)
+		pendingAmount := pendingDeposits.Coins.AmountOf(coin.Denom)
 		if pendingAmount.IsPositive() {
 			var pendingWithdrawAmount math.Int
 			if coin.Amount.GT(pendingAmount) {
@@ -535,8 +535,8 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 			coin = coin.Sub(withdrawnCoinFromPendingDeposits)
 
 			// update pending deposits
-			pendingDeposits.Deposits = pendingDeposits.Deposits.Sub(withdrawnCoinFromPendingDeposits)
-			if pendingDeposits.Deposits.IsZero() {
+			pendingDeposits.Coins = pendingDeposits.Coins.Sub(withdrawnCoinFromPendingDeposits)
+			if pendingDeposits.Coins.IsZero() {
 				if err := ms.PendingDeposits.Remove(ctx, senderAddr); err != nil {
 					return nil, err
 				}

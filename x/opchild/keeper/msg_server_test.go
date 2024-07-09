@@ -416,7 +416,7 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	// pending deposits
 	deposits, err := input.OPChildKeeper.PendingDeposits.Get(ctx, opchildModuleAddress)
 	require.NoError(t, err)
-	require.Equal(t, deposits.Deposits[0].Amount, math.NewInt(100))
+	require.Equal(t, deposits.Coins[0].Amount, math.NewInt(100))
 }
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {

@@ -89,6 +89,21 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		}
 	}
 
+	for _, pd := range data.PendingDeposits {
+		addr, err := k.addressCodec.StringToBytes(pd.Recipient)
+		if err != nil {
+			panic(err)
+		}
+
+		if err := pd.Coins.Validate(); err != nil {
+			panic(err)
+		}
+
+		if err := k.PendingDeposits.Set(ctx, addr, types.CoinsWrapper{Coins: pd.Coins}); err != nil {
+			panic(err)
+		}
+	}
+
 	return res
 }
 
@@ -137,6 +152,20 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		bridgeInfo = &bridgeInfo_
 	}
 
+	pendingDeposits := []types.PendingDeposits{}
+	k.PendingDeposits.Walk(ctx, nil, func(key []byte, value types.CoinsWrapper) (stop bool, err error) {
+		addr, err := k.addressCodec.BytesToString(key)
+		if err != nil {
+			return false, err
+		}
+
+		pendingDeposits = append(pendingDeposits, types.PendingDeposits{
+			Recipient: addr,
+			Coins:     value.Coins,
+		})
+		return false, nil
+	})
+
 	return &types.GenesisState{
 		Params:              params,
 		LastValidatorPowers: lastValidatorPowers,
@@ -145,5 +174,6 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		NextL1Sequence:      finalizedL1Sequence,
 		NextL2Sequence:      nextL2Sequence,
 		BridgeInfo:          bridgeInfo,
+		PendingDeposits:     pendingDeposits,
 	}
 }

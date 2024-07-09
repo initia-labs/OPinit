@@ -48,6 +48,7 @@ type QueryClient interface {
 	TokenPairByL2Denom(ctx context.Context, in *QueryTokenPairByL2DenomRequest, opts ...grpc.CallOption) (*QueryTokenPairByL2DenomResponse, error)
 	// TokenPairs queries all (l1 denom, l2 denom) pair.
 	TokenPairs(ctx context.Context, in *QueryTokenPairsRequest, opts ...grpc.CallOption) (*QueryTokenPairsResponse, error)
+	// LastFinalizedOutput queries last finalized output.
 	LastFinalizedOutput(ctx context.Context, in *QueryLastFinalizedOutputRequest, opts ...grpc.CallOption) (*QueryLastFinalizedOutputResponse, error)
 	// OutputProposal queries output proposal by output index.
 	OutputProposal(ctx context.Context, in *QueryOutputProposalRequest, opts ...grpc.CallOption) (*QueryOutputProposalResponse, error)
@@ -195,6 +196,7 @@ type QueryServer interface {
 	TokenPairByL2Denom(context.Context, *QueryTokenPairByL2DenomRequest) (*QueryTokenPairByL2DenomResponse, error)
 	// TokenPairs queries all (l1 denom, l2 denom) pair.
 	TokenPairs(context.Context, *QueryTokenPairsRequest) (*QueryTokenPairsResponse, error)
+	// LastFinalizedOutput queries last finalized output.
 	LastFinalizedOutput(context.Context, *QueryLastFinalizedOutputRequest) (*QueryLastFinalizedOutputResponse, error)
 	// OutputProposal queries output proposal by output index.
 	OutputProposal(context.Context, *QueryOutputProposalRequest) (*QueryOutputProposalResponse, error)

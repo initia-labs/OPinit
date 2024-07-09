@@ -117,15 +117,67 @@ func (x *_GenesisState_3_list) IsValid() bool {
 	return x.list != nil
 }
 
+var _ protoreflect.List = (*_GenesisState_4_list)(nil)
+
+type _GenesisState_4_list struct {
+	list *[]*PendingDeposits
+}
+
+func (x *_GenesisState_4_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_GenesisState_4_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_GenesisState_4_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*PendingDeposits)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_GenesisState_4_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*PendingDeposits)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_GenesisState_4_list) AppendMutable() protoreflect.Value {
+	v := new(PendingDeposits)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_GenesisState_4_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_GenesisState_4_list) NewElement() protoreflect.Value {
+	v := new(PendingDeposits)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_GenesisState_4_list) IsValid() bool {
+	return x.list != nil
+}
+
 var (
 	md_GenesisState                       protoreflect.MessageDescriptor
 	fd_GenesisState_params                protoreflect.FieldDescriptor
 	fd_GenesisState_last_validator_powers protoreflect.FieldDescriptor
 	fd_GenesisState_validators            protoreflect.FieldDescriptor
-	fd_GenesisState_exported              protoreflect.FieldDescriptor
+	fd_GenesisState_pending_deposits      protoreflect.FieldDescriptor
 	fd_GenesisState_next_l2_sequence      protoreflect.FieldDescriptor
 	fd_GenesisState_next_l1_sequence      protoreflect.FieldDescriptor
 	fd_GenesisState_bridge_info           protoreflect.FieldDescriptor
+	fd_GenesisState_exported              protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -134,10 +186,11 @@ func init() {
 	fd_GenesisState_params = md_GenesisState.Fields().ByName("params")
 	fd_GenesisState_last_validator_powers = md_GenesisState.Fields().ByName("last_validator_powers")
 	fd_GenesisState_validators = md_GenesisState.Fields().ByName("validators")
-	fd_GenesisState_exported = md_GenesisState.Fields().ByName("exported")
+	fd_GenesisState_pending_deposits = md_GenesisState.Fields().ByName("pending_deposits")
 	fd_GenesisState_next_l2_sequence = md_GenesisState.Fields().ByName("next_l2_sequence")
 	fd_GenesisState_next_l1_sequence = md_GenesisState.Fields().ByName("next_l1_sequence")
 	fd_GenesisState_bridge_info = md_GenesisState.Fields().ByName("bridge_info")
+	fd_GenesisState_exported = md_GenesisState.Fields().ByName("exported")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -223,9 +276,9 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if x.Exported != false {
-		value := protoreflect.ValueOfBool(x.Exported)
-		if !f(fd_GenesisState_exported, value) {
+	if len(x.PendingDeposits) != 0 {
+		value := protoreflect.ValueOfList(&_GenesisState_4_list{list: &x.PendingDeposits})
+		if !f(fd_GenesisState_pending_deposits, value) {
 			return
 		}
 	}
@@ -244,6 +297,12 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 	if x.BridgeInfo != nil {
 		value := protoreflect.ValueOfMessage(x.BridgeInfo.ProtoReflect())
 		if !f(fd_GenesisState_bridge_info, value) {
+			return
+		}
+	}
+	if x.Exported != false {
+		value := protoreflect.ValueOfBool(x.Exported)
+		if !f(fd_GenesisState_exported, value) {
 			return
 		}
 	}
@@ -268,14 +327,16 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 		return len(x.LastValidatorPowers) != 0
 	case "opinit.opchild.v1.GenesisState.validators":
 		return len(x.Validators) != 0
-	case "opinit.opchild.v1.GenesisState.exported":
-		return x.Exported != false
+	case "opinit.opchild.v1.GenesisState.pending_deposits":
+		return len(x.PendingDeposits) != 0
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		return x.NextL2Sequence != uint64(0)
 	case "opinit.opchild.v1.GenesisState.next_l1_sequence":
 		return x.NextL1Sequence != uint64(0)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		return x.BridgeInfo != nil
+	case "opinit.opchild.v1.GenesisState.exported":
+		return x.Exported != false
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -298,14 +359,16 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 		x.LastValidatorPowers = nil
 	case "opinit.opchild.v1.GenesisState.validators":
 		x.Validators = nil
-	case "opinit.opchild.v1.GenesisState.exported":
-		x.Exported = false
+	case "opinit.opchild.v1.GenesisState.pending_deposits":
+		x.PendingDeposits = nil
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		x.NextL2Sequence = uint64(0)
 	case "opinit.opchild.v1.GenesisState.next_l1_sequence":
 		x.NextL1Sequence = uint64(0)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		x.BridgeInfo = nil
+	case "opinit.opchild.v1.GenesisState.exported":
+		x.Exported = false
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -337,9 +400,12 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 		}
 		listValue := &_GenesisState_3_list{list: &x.Validators}
 		return protoreflect.ValueOfList(listValue)
-	case "opinit.opchild.v1.GenesisState.exported":
-		value := x.Exported
-		return protoreflect.ValueOfBool(value)
+	case "opinit.opchild.v1.GenesisState.pending_deposits":
+		if len(x.PendingDeposits) == 0 {
+			return protoreflect.ValueOfList(&_GenesisState_4_list{})
+		}
+		listValue := &_GenesisState_4_list{list: &x.PendingDeposits}
+		return protoreflect.ValueOfList(listValue)
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		value := x.NextL2Sequence
 		return protoreflect.ValueOfUint64(value)
@@ -349,6 +415,9 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		value := x.BridgeInfo
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "opinit.opchild.v1.GenesisState.exported":
+		value := x.Exported
+		return protoreflect.ValueOfBool(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -379,14 +448,18 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 		lv := value.List()
 		clv := lv.(*_GenesisState_3_list)
 		x.Validators = *clv.list
-	case "opinit.opchild.v1.GenesisState.exported":
-		x.Exported = value.Bool()
+	case "opinit.opchild.v1.GenesisState.pending_deposits":
+		lv := value.List()
+		clv := lv.(*_GenesisState_4_list)
+		x.PendingDeposits = *clv.list
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		x.NextL2Sequence = value.Uint()
 	case "opinit.opchild.v1.GenesisState.next_l1_sequence":
 		x.NextL1Sequence = value.Uint()
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		x.BridgeInfo = value.Message().Interface().(*BridgeInfo)
+	case "opinit.opchild.v1.GenesisState.exported":
+		x.Exported = value.Bool()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -424,17 +497,23 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		}
 		value := &_GenesisState_3_list{list: &x.Validators}
 		return protoreflect.ValueOfList(value)
+	case "opinit.opchild.v1.GenesisState.pending_deposits":
+		if x.PendingDeposits == nil {
+			x.PendingDeposits = []*PendingDeposits{}
+		}
+		value := &_GenesisState_4_list{list: &x.PendingDeposits}
+		return protoreflect.ValueOfList(value)
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		if x.BridgeInfo == nil {
 			x.BridgeInfo = new(BridgeInfo)
 		}
 		return protoreflect.ValueOfMessage(x.BridgeInfo.ProtoReflect())
-	case "opinit.opchild.v1.GenesisState.exported":
-		panic(fmt.Errorf("field exported of message opinit.opchild.v1.GenesisState is not mutable"))
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		panic(fmt.Errorf("field next_l2_sequence of message opinit.opchild.v1.GenesisState is not mutable"))
 	case "opinit.opchild.v1.GenesisState.next_l1_sequence":
 		panic(fmt.Errorf("field next_l1_sequence of message opinit.opchild.v1.GenesisState is not mutable"))
+	case "opinit.opchild.v1.GenesisState.exported":
+		panic(fmt.Errorf("field exported of message opinit.opchild.v1.GenesisState is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -457,8 +536,9 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	case "opinit.opchild.v1.GenesisState.validators":
 		list := []*Validator{}
 		return protoreflect.ValueOfList(&_GenesisState_3_list{list: &list})
-	case "opinit.opchild.v1.GenesisState.exported":
-		return protoreflect.ValueOfBool(false)
+	case "opinit.opchild.v1.GenesisState.pending_deposits":
+		list := []*PendingDeposits{}
+		return protoreflect.ValueOfList(&_GenesisState_4_list{list: &list})
 	case "opinit.opchild.v1.GenesisState.next_l2_sequence":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "opinit.opchild.v1.GenesisState.next_l1_sequence":
@@ -466,6 +546,8 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	case "opinit.opchild.v1.GenesisState.bridge_info":
 		m := new(BridgeInfo)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "opinit.opchild.v1.GenesisState.exported":
+		return protoreflect.ValueOfBool(false)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.GenesisState"))
@@ -551,8 +633,11 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
-		if x.Exported {
-			n += 2
+		if len(x.PendingDeposits) > 0 {
+			for _, e := range x.PendingDeposits {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
 		}
 		if x.NextL2Sequence != 0 {
 			n += 1 + runtime.Sov(uint64(x.NextL2Sequence))
@@ -563,6 +648,9 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.BridgeInfo != nil {
 			l = options.Size(x.BridgeInfo)
 			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.Exported {
+			n += 2
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -593,6 +681,16 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+		if x.Exported {
+			i--
+			if x.Exported {
+				dAtA[i] = 1
+			} else {
+				dAtA[i] = 0
+			}
+			i--
+			dAtA[i] = 0x40
+		}
 		if x.BridgeInfo != nil {
 			encoded, err := options.Marshal(x.BridgeInfo)
 			if err != nil {
@@ -605,27 +703,33 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x42
+			dAtA[i] = 0x3a
 		}
 		if x.NextL1Sequence != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.NextL1Sequence))
 			i--
-			dAtA[i] = 0x38
+			dAtA[i] = 0x30
 		}
 		if x.NextL2Sequence != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.NextL2Sequence))
 			i--
-			dAtA[i] = 0x30
-		}
-		if x.Exported {
-			i--
-			if x.Exported {
-				dAtA[i] = 1
-			} else {
-				dAtA[i] = 0
-			}
-			i--
 			dAtA[i] = 0x28
+		}
+		if len(x.PendingDeposits) > 0 {
+			for iNdEx := len(x.PendingDeposits) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.PendingDeposits[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0x22
+			}
 		}
 		if len(x.Validators) > 0 {
 			for iNdEx := len(x.Validators) - 1; iNdEx >= 0; iNdEx-- {
@@ -826,11 +930,11 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 5:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Exported", wireType)
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PendingDeposits", wireType)
 				}
-				var v int
+				var msglen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -840,13 +944,27 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					v |= int(b&0x7F) << shift
+					msglen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				x.Exported = bool(v != 0)
-			case 6:
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.PendingDeposits = append(x.PendingDeposits, &PendingDeposits{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.PendingDeposits[len(x.PendingDeposits)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 5:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NextL2Sequence", wireType)
 				}
@@ -865,7 +983,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 7:
+			case 6:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NextL1Sequence", wireType)
 				}
@@ -884,7 +1002,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 8:
+			case 7:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BridgeInfo", wireType)
 				}
@@ -920,6 +1038,26 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
+			case 8:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Exported", wireType)
+				}
+				var v int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				x.Exported = bool(v != 0)
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1448,11 +1586,13 @@ type GenesisState struct {
 	// of the last-block's bonded validators.
 	LastValidatorPowers []*LastValidatorPower `protobuf:"bytes,2,rep,name=last_validator_powers,json=lastValidatorPowers,proto3" json:"last_validator_powers,omitempty"`
 	// delegations defines the validator set at genesis.
-	Validators     []*Validator `protobuf:"bytes,3,rep,name=validators,proto3" json:"validators,omitempty"`
-	Exported       bool         `protobuf:"varint,5,opt,name=exported,proto3" json:"exported,omitempty"`
-	NextL2Sequence uint64       `protobuf:"varint,6,opt,name=next_l2_sequence,json=nextL2Sequence,proto3" json:"next_l2_sequence,omitempty"`
-	NextL1Sequence uint64       `protobuf:"varint,7,opt,name=next_l1_sequence,json=nextL1Sequence,proto3" json:"next_l1_sequence,omitempty"`
-	BridgeInfo     *BridgeInfo  `protobuf:"bytes,8,opt,name=bridge_info,json=bridgeInfo,proto3" json:"bridge_info,omitempty"`
+	Validators []*Validator `protobuf:"bytes,3,rep,name=validators,proto3" json:"validators,omitempty"`
+	// the pending deposits that are not failed to be deposited.
+	PendingDeposits []*PendingDeposits `protobuf:"bytes,4,rep,name=pending_deposits,json=pendingDeposits,proto3" json:"pending_deposits,omitempty"`
+	NextL2Sequence  uint64             `protobuf:"varint,5,opt,name=next_l2_sequence,json=nextL2Sequence,proto3" json:"next_l2_sequence,omitempty"`
+	NextL1Sequence  uint64             `protobuf:"varint,6,opt,name=next_l1_sequence,json=nextL1Sequence,proto3" json:"next_l1_sequence,omitempty"`
+	BridgeInfo      *BridgeInfo        `protobuf:"bytes,7,opt,name=bridge_info,json=bridgeInfo,proto3" json:"bridge_info,omitempty"`
+	Exported        bool               `protobuf:"varint,8,opt,name=exported,proto3" json:"exported,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -1496,11 +1636,11 @@ func (x *GenesisState) GetValidators() []*Validator {
 	return nil
 }
 
-func (x *GenesisState) GetExported() bool {
+func (x *GenesisState) GetPendingDeposits() []*PendingDeposits {
 	if x != nil {
-		return x.Exported
+		return x.PendingDeposits
 	}
-	return false
+	return nil
 }
 
 func (x *GenesisState) GetNextL2Sequence() uint64 {
@@ -1522,6 +1662,13 @@ func (x *GenesisState) GetBridgeInfo() *BridgeInfo {
 		return x.BridgeInfo
 	}
 	return nil
+}
+
+func (x *GenesisState) GetExported() bool {
+	if x != nil {
+		return x.Exported
+	}
+	return false
 }
 
 // LastValidatorPower required for validator set update logic.
@@ -1582,7 +1729,7 @@ var file_opinit_opchild_v1_genesis_proto_rawDesc = []byte{
 	0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f,
 	0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1d, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74,
 	0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x79, 0x70, 0x65,
-	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xab, 0x03, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65,
+	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x85, 0x04, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65,
 	0x73, 0x69, 0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x3c, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61,
 	0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69,
 	0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72,
@@ -1598,38 +1745,43 @@ var file_opinit_opchild_v1_genesis_proto_rawDesc = []byte{
 	0x32, 0x1c, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c,
 	0x64, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x42, 0x09,
 	0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0a, 0x76, 0x61, 0x6c, 0x69, 0x64,
-	0x61, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x1a, 0x0a, 0x08, 0x65, 0x78, 0x70, 0x6f, 0x72, 0x74, 0x65,
-	0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x65, 0x78, 0x70, 0x6f, 0x72, 0x74, 0x65,
-	0x64, 0x12, 0x28, 0x0a, 0x10, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x6c, 0x32, 0x5f, 0x73, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e, 0x6e, 0x65, 0x78,
-	0x74, 0x4c, 0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x28, 0x0a, 0x10, 0x6e,
-	0x65, 0x78, 0x74, 0x5f, 0x6c, 0x31, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x18,
-	0x07, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e, 0x6e, 0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x3e, 0x0a, 0x0b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f,
-	0x69, 0x6e, 0x66, 0x6f, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6f, 0x70, 0x69,
-	0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x42,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0a, 0x62, 0x72, 0x69, 0x64, 0x67,
-	0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x68, 0x0a, 0x12, 0x4c, 0x61, 0x73, 0x74, 0x56, 0x61, 0x6c,
-	0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x50, 0x6f, 0x77, 0x65, 0x72, 0x12, 0x32, 0x0a, 0x07, 0x61,
-	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4,
-	0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
-	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12,
-	0x14, 0x0a, 0x05, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05,
-	0x70, 0x6f, 0x77, 0x65, 0x72, 0x3a, 0x08, 0x88, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x00, 0x42,
-	0xca, 0x01, 0x0a, 0x15, 0x63, 0x6f, 0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f,
-	0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73,
-	0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62,
-	0x73, 0x2f, 0x4f, 0x50, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69,
-	0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x3b, 0x6f,
-	0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02,
-	0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e,
-	0x56, 0x31, 0xca, 0x02, 0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68,
-	0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1d, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c,
-	0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65,
-	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x13, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a,
-	0x3a, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x58, 0x0a, 0x10, 0x70, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67,
+	0x5f, 0x64, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x22, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2e, 0x76, 0x31, 0x2e, 0x50, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x44, 0x65, 0x70, 0x6f, 0x73,
+	0x69, 0x74, 0x73, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0f,
+	0x70, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x44, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x73, 0x12,
+	0x28, 0x0a, 0x10, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x6c, 0x32, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65,
+	0x6e, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e, 0x6e, 0x65, 0x78, 0x74, 0x4c,
+	0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x28, 0x0a, 0x10, 0x6e, 0x65, 0x78,
+	0x74, 0x5f, 0x6c, 0x31, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x06, 0x20,
+	0x01, 0x28, 0x04, 0x52, 0x0e, 0x6e, 0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65,
+	0x6e, 0x63, 0x65, 0x12, 0x3e, 0x0a, 0x0b, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f, 0x69, 0x6e,
+	0x66, 0x6f, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x72, 0x69,
+	0x64, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0a, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x49,
+	0x6e, 0x66, 0x6f, 0x12, 0x1a, 0x0a, 0x08, 0x65, 0x78, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x64, 0x18,
+	0x08, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x65, 0x78, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x64, 0x22,
+	0x68, 0x0a, 0x12, 0x4c, 0x61, 0x73, 0x74, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72,
+	0x50, 0x6f, 0x77, 0x65, 0x72, 0x12, 0x32, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
+	0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x6f, 0x77,
+	0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x3a,
+	0x08, 0x88, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x00, 0x42, 0xca, 0x01, 0x0a, 0x15, 0x63, 0x6f,
+	0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0x50, 0x01, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50, 0x69, 0x6e,
+	0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70,
+	0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x2e, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x11, 0x4f,
+	0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31,
+	0xe2, 0x02, 0x1d, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c,
+	0x64, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61,
+	0xea, 0x02, 0x13, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x63, 0x68, 0x69,
+	0x6c, 0x64, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1650,18 +1802,20 @@ var file_opinit_opchild_v1_genesis_proto_goTypes = []interface{}{
 	(*LastValidatorPower)(nil), // 1: opinit.opchild.v1.LastValidatorPower
 	(*Params)(nil),             // 2: opinit.opchild.v1.Params
 	(*Validator)(nil),          // 3: opinit.opchild.v1.Validator
-	(*BridgeInfo)(nil),         // 4: opinit.opchild.v1.BridgeInfo
+	(*PendingDeposits)(nil),    // 4: opinit.opchild.v1.PendingDeposits
+	(*BridgeInfo)(nil),         // 5: opinit.opchild.v1.BridgeInfo
 }
 var file_opinit_opchild_v1_genesis_proto_depIdxs = []int32{
 	2, // 0: opinit.opchild.v1.GenesisState.params:type_name -> opinit.opchild.v1.Params
 	1, // 1: opinit.opchild.v1.GenesisState.last_validator_powers:type_name -> opinit.opchild.v1.LastValidatorPower
 	3, // 2: opinit.opchild.v1.GenesisState.validators:type_name -> opinit.opchild.v1.Validator
-	4, // 3: opinit.opchild.v1.GenesisState.bridge_info:type_name -> opinit.opchild.v1.BridgeInfo
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 3: opinit.opchild.v1.GenesisState.pending_deposits:type_name -> opinit.opchild.v1.PendingDeposits
+	5, // 4: opinit.opchild.v1.GenesisState.bridge_info:type_name -> opinit.opchild.v1.BridgeInfo
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_opinit_opchild_v1_genesis_proto_init() }
