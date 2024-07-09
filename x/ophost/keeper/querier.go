@@ -141,3 +141,18 @@ func (q Querier) OutputProposals(ctx context.Context, req *types.QueryOutputProp
 func (q Querier) Params(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	return &types.QueryParamsResponse{Params: q.GetParams(ctx)}, nil
 }
+
+func (q Querier) Claimed(ctx context.Context, req *types.QueryClaimedRequest) (*types.QueryClaimedResponse, error) {
+	if len(req.WithdrawalHash) != 32 {
+		return nil, status.Error(codes.InvalidArgument, "invalid withdrawal hash")
+	}
+
+	claimed, err := q.HasProvenWithdrawal(ctx, req.BridgeId, [32]byte(req.WithdrawalHash))
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryClaimedResponse{
+		Claimed: claimed,
+	}, nil
+}
