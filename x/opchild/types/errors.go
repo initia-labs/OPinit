@@ -27,4 +27,7 @@ var (
 	ErrMaxValidatorsExceeded           = errorsmod.Register(ModuleName, 20, "max validators exceeded")
 	ErrMaxValidatorsLowerThanCurrent   = errorsmod.Register(ModuleName, 21, "max validators cannot be lower than current number of validators")
 	ErrNonL1Token                      = errorsmod.Register(ModuleName, 22, "token is not from L1")
+
+	// Antehandler error
+	ErrRedundantTx = errorsmod.Register(ModuleName, 23, "tx messages are all redundant")
 )
