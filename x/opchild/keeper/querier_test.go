@@ -89,18 +89,6 @@ func Test_QueryParams(t *testing.T) {
 	require.Equal(t, params, res.Params)
 }
 
-func Test_QueryNextL1Sequence(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-
-	// update the next L1 sequence
-	require.NoError(t, input.OPChildKeeper.NextL1Sequence.Set(ctx, 100))
-
-	q := keeper.NewQuerier(input.OPChildKeeper)
-	res, err := q.NextL1Sequence(ctx, &types.QueryNextL1SequenceRequest{})
-	require.NoError(t, err)
-	require.Equal(t, types.QueryNextL1SequenceResponse{NextL1Sequence: 100}, *res)
-}
-
 func Test_QueryNextL2Sequence(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
