@@ -3,13 +3,10 @@ package keeper
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/hex"
 	"slices"
 	"strconv"
 	"strings"
-
-	"golang.org/x/crypto/sha3"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
@@ -298,69 +295,28 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	}
 
 	// validate output root generation
-	{
-		seed := make([]byte, 32*4)
-		copy(seed, req.Version)
-		copy(seed[32:], req.StateRoot)
-		copy(seed[64:], req.StorageRoot)
-		copy(seed[96:], req.LatestBlockHash)
-		outputRoot := sha3.Sum256(seed)
-
-		if !bytes.Equal(outputProposal.OutputRoot, outputRoot[:]) {
-			return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid output root")
-		}
+	outputRoot := types.GenerateOutputRoot(req.Version, req.StateRoot, req.StorageRoot, req.LatestBlockHash)
+	if !bytes.Equal(outputProposal.OutputRoot, outputRoot[:]) {
+		return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid output root")
 	}
 
 	// verify storage root can be generated from
 	// withdrawal proofs and withdrawal tx data.
-	{
-		var withdrawalHash [32]byte
-		{
-			seed := []byte{}
-			seed = binary.BigEndian.AppendUint64(seed, bridgeId)
-			seed = binary.BigEndian.AppendUint64(seed, req.Sequence)
-			// variable length
-			seed = append(seed, req.Sender...) // put utf8 encoded address
-			seed = append(seed, types.Splitter)
-			// variable length
-			seed = append(seed, req.Receiver...) // put utf8 encoded address
-			seed = append(seed, types.Splitter)
-			// variable length
-			seed = append(seed, []byte(denom)...)
-			seed = append(seed, types.Splitter)
-			seed = binary.BigEndian.AppendUint64(seed, amount.Uint64())
+	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, l2Sequence, req.Sender, req.Receiver, denom, amount.Uint64())
+	if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
+		return nil, err
+	} else if ok {
+		return nil, types.ErrWithdrawalAlreadyFinalized
+	}
 
-			// double hash the leaf node
-			withdrawalHash = sha3.Sum256(seed)
-			withdrawalHash = sha3.Sum256(withdrawalHash[:])
-		}
+	// should works with sorted merkle tree
+	rootHash := types.GenerateRootHashFromProofs(withdrawalHash, req.WithdrawalProofs)
+	if !bytes.Equal(req.StorageRoot, rootHash[:]) {
+		return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid storage root proofs")
+	}
 
-		if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
-			return nil, err
-		} else if ok {
-			return nil, types.ErrWithdrawalAlreadyFinalized
-		}
-
-		// should works with sorted merkle tree
-		rootSeed := withdrawalHash
-		proofs := req.WithdrawalProofs
-		for _, proof := range proofs {
-			switch bytes.Compare(rootSeed[:], proof) {
-			case 0, 1: // equal or greater
-				rootSeed = sha3.Sum256(append(proof, rootSeed[:]...))
-			case -1: // less
-				rootSeed = sha3.Sum256(append(rootSeed[:], proof...))
-			}
-		}
-
-		rootHash := rootSeed
-		if !bytes.Equal(req.StorageRoot, rootHash[:]) {
-			return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid storage root proofs")
-		}
-
-		if err := ms.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
-			return nil, err
-		}
+	if err := ms.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
+		return nil, err
 	}
 
 	// transfer asset to a user from the bridge account
