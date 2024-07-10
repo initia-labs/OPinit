@@ -30,7 +30,7 @@ The challenger always monitor the oracle output and do challenge when the output
 
 #### BridgeExecutor
 
-The bridge executor is the core component in minitia rollup, which is charge of following operations via [L2 Bridge Module](./specs/l2_bridge.md):
+The bridge executor is the core component in minitia rollup, which is in charge of following operations via [L2 Bridge Module](./specs/l2_bridge.md):
 
 * Finalize L1 deposit transaction to L2.
 * Construct withdraw tx storage Merkle Tree.
