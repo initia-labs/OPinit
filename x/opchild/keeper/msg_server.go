@@ -439,6 +439,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		sdk.NewAttribute(types.AttributeKeySender, req.From),
 		sdk.NewAttribute(types.AttributeKeyRecipient, req.To),
 		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyBaseDenom, req.BaseDenom),
 		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
 	)
@@ -506,11 +507,12 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	coin := req.Amount
 	burnCoins := sdk.NewCoins(coin)
 
-	// check denom pair existence
-	if ok, err := ms.DenomPairs.Has(ctx, coin.Denom); err != nil {
+	baseDenom, err := ms.DenomPairs.Get(ctx, coin.Denom)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, types.ErrNonL1Token
+		}
 		return nil, err
-	} else if !ok {
-		return nil, types.ErrNonL1Token
 	}
 
 	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
@@ -572,6 +574,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
 		sdk.NewAttribute(types.AttributeKeyTo, req.To),
 		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyBaseDenom, baseDenom),
 		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
 	))

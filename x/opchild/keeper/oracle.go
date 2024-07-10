@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -59,17 +60,22 @@ func NewL2OracleHandler(
 func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCommitBz []byte) error {
 	hostStoreLastHeight, err := k.HostValidatorStore.GetLastHeight(ctx)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return types.ErrOracleValidatorsNotRegistered
+		}
 		return err
 	}
 
 	if hostStoreLastHeight > int64(height) {
-		return errors.New("invalid height")
+		return types.ErrInvalidOracleHeight
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	hostChainID, err := k.L1ChainId(ctx)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return types.ErrBridgeInfoNotExists
+		}
 		return err
 	}
 
@@ -99,7 +105,7 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 
 	// if there is no timestamp price, skip the price update
 	if _, ok := prices[tsCp]; !ok {
-		return types.ErrInvalidPrices.Wrap("timestamp not found")
+		return types.ErrOracleTimestampNotExists
 	}
 
 	updatedTime := time.Unix(0, prices[tsCp].Int64())
