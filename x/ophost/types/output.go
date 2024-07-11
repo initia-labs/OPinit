@@ -51,14 +51,20 @@ func GenerateWithdrawalHash(bridgeId uint64, l2Sequence uint64, sender string, r
 	return withdrawalHash
 }
 
+func GenerateNodeHash(a, b []byte) [32]byte {
+	var data [32]byte
+	switch bytes.Compare(a, b) {
+	case 0, 1: // equal or greater
+		data = sha3.Sum256(append(b, a...))
+	case -1: // less
+		data = sha3.Sum256(append(a, b...))
+	}
+	return data
+}
+
 func GenerateRootHashFromProofs(data [32]byte, proofs [][]byte) [32]byte {
 	for _, proof := range proofs {
-		switch bytes.Compare(data[:], proof) {
-		case 0, 1: // equal or greater
-			data = sha3.Sum256(append(proof, data[:]...))
-		case -1: // less
-			data = sha3.Sum256(append(data[:], proof...))
-		}
+		data = GenerateNodeHash(data[:], proof)
 	}
 	return data
 }

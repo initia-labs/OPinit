@@ -20,6 +20,7 @@ const (
 	AttributeKeyRecipient      = "recipient"
 	AttributeKeyAmount         = "amount"
 	AttributeKeyDenom          = "denom"
+	AttributeKeyBaseDenom      = "base_denom"
 	AttributeKeyStructTag      = "struct_tag"
 	AttributeKeyValidator      = "validator"
 	AttributeKeyMetadata       = "metadata"
