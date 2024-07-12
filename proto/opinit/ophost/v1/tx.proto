@@ -187,9 +187,8 @@ message MsgFinalizeTokenWithdrawal {
 
   // version of the output root
   bytes version           = 8 [(gogoproto.moretags) = "yaml:\"version\""];
-  bytes state_root        = 9 [(gogoproto.moretags) = "yaml:\"state_root\""];
-  bytes storage_root      = 10 [(gogoproto.moretags) = "yaml:\"storage_root\""];
-  bytes latest_block_hash = 11 [(gogoproto.moretags) = "yaml:\"latest_block_hash\""];
+  bytes storage_root      = 9 [(gogoproto.moretags) = "yaml:\"storage_root\""];
+  bytes latest_block_hash = 10 [(gogoproto.moretags) = "yaml:\"latest_block_hash\""];
 }
 
 // MsgFinalizeTokenWithdrawalResponse returns a message handle result.

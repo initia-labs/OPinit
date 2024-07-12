@@ -512,7 +512,7 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 		"sender": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
 		"sequence": 3,
 		"amount": "10000000uatom",
-		"version": "5ca4f3850ccc331aaf8a257d6086e526a3b42a63e18cb11d020847985b31d188",
+		"version": "5c",
 		"state_root": "1d844ab7b05fad0adab1efa288baeb640ceddc1931dccdd89b521379329bc55d",
 		"storage_root": "45cba73df03a0d62aa297ea7e949bb0e608b01290205dde56a8fdc8f96239f3b",
 		"latest_block_hash": "32935c42573839f5ff3065941d98e378e3e73227bf29e349de4aa7af0ca8addd"

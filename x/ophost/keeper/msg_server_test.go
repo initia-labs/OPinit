@@ -12,6 +12,7 @@ import (
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
 	"github.com/initia-labs/OPinit/x/ophost/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_RecordBatch(t *testing.T) {
@@ -193,32 +194,42 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	amount := sdk.NewCoin("uinit", math.NewInt(1_000_000))
 	input.Faucet.Fund(ctx, types.BridgeAddress(1), amount)
 
-	outputRoot := decodeBase64(t, "at+mtcWpUvvV+K/uBm+tRufWD0WH4SZVskw9WKn5N/A=")
-	version := decodeBase64(t, "Ch4nNnd/gKYr6y33K2SYeEgcDKEBlLgytRNr77rlQBc=")
-	stateRoot := decodeBase64(t, "C2ZdjJ7uX41NaadA/FjlMiG6btiDfYnxE2ABqJocHxI=")
-	storageRoot := decodeBase64(t, "8EorDbcn/PYtbfU8+e35gHR5e/Liy/mycsULLPWzJww=")
+	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
+	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
+
+	version := []byte{1}
+
+	withdrawal1 := ophosttypes.GenerateWithdrawalHash(1, 1, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal2 := ophosttypes.GenerateWithdrawalHash(1, 2, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal3 := ophosttypes.GenerateWithdrawalHash(1, 3, sender, receiver, amount.Denom, amount.Amount.Uint64())
+
+	proof1 := withdrawal2
+	proof2 := ophosttypes.GenerateNodeHash(withdrawal3[:], withdrawal3[:])
+
+	node12 := ophosttypes.GenerateNodeHash(withdrawal1[:], withdrawal2[:])
+
+	storageRoot := ophosttypes.GenerateNodeHash(node12[:], proof2[:])
 	blockHash := decodeBase64(t, "tgmfQJT4uipVToW631xz0RXdrfzu7n5XxGNoPpX6isI=")
+	outputRoot := ophosttypes.GenerateOutputRoot(version, storageRoot[:], blockHash)
 	proofs := [][]byte{
-		decodeBase64(t, "Ux19nu4Nl3N7gBy/ID3rzuXrRpScnxOR9u/PUCxlTC0="),
-		decodeBase64(t, "vWrbSRyDJ+FnWxY5Plr7Ltgyyusr/uDW7nQDq8PDDQY="),
-		decodeBase64(t, "opvMy3Dv9tUfa4pNr/IBM1GOw8qOlwfxqoXVH5gKPIo="),
+		proof1[:],
+		proof2[:],
 	}
 
 	now := time.Now().UTC()
 	ctx = ctx.WithBlockTime(now)
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, outputRoot))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, outputRoot[:]))
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
-	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
-	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
+
 	require.NoError(t, err)
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
 		1, 1, 1, proofs,
 		sender,
 		receiver,
 		amount,
-		version, stateRoot, storageRoot, blockHash,
+		version, storageRoot[:], blockHash,
 	))
 	require.NoError(t, err)
 
