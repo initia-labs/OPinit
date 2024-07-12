@@ -150,10 +150,12 @@ message QueryTokenPairsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
+// QueryLastFinalizedOutputRequest is request type for the Query/LastFinalizedOutput RPC method.
 message QueryLastFinalizedOutputRequest {
   uint64 bridge_id = 1;
 }
 
+// QueryLastFinalizedOutputResponse is response type for the Query/LastFinalizedOutput RPC method
 message QueryLastFinalizedOutputResponse {
   uint64 output_index    = 1;
   Output output_proposal = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
@@ -174,7 +176,7 @@ message QueryOutputProposalResponse {
 
 // QueryOutputProposalsRequest is response type for the Query/OutputProposals RPC method
 message QueryOutputProposalsRequest {
-  uint64 bridge_id    = 1;
+  uint64 bridge_id = 1;
   // pagination defines the pagination in the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }

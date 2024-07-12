@@ -2402,6 +2402,7 @@ func (x *Bridge) GetBatchInfos() []*BatchInfoWithOutput {
 	return nil
 }
 
+// WrappedOutput defines a wrapped output containing its index and proposal.
 type WrappedOutput struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

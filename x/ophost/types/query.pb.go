@@ -528,6 +528,7 @@ func (m *QueryTokenPairsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
+// QueryLastFinalizedOutputRequest is request type for the Query/LastFinalizedOutput RPC method.
 type QueryLastFinalizedOutputRequest struct {
 	BridgeId uint64 `protobuf:"varint,1,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty"`
 }
@@ -572,6 +573,7 @@ func (m *QueryLastFinalizedOutputRequest) GetBridgeId() uint64 {
 	return 0
 }
 
+// QueryLastFinalizedOutputResponse is response type for the Query/LastFinalizedOutput RPC method
 type QueryLastFinalizedOutputResponse struct {
 	OutputIndex    uint64 `protobuf:"varint,1,opt,name=output_index,json=outputIndex,proto3" json:"output_index,omitempty"`
 	OutputProposal Output `protobuf:"bytes,2,opt,name=output_proposal,json=outputProposal,proto3" json:"output_proposal"`

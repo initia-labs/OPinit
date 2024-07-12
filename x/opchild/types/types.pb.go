@@ -290,6 +290,7 @@ func (m *PendingDeposits) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PendingDeposits proto.InternalMessageInfo
 
+// CoinsWrapper defines the set of coins.
 type CoinsWrapper struct {
 	Coins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=coins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"coins"`
 }
