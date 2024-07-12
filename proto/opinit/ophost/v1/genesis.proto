@@ -38,6 +38,7 @@ message Bridge {
   repeated BatchInfoWithOutput batch_infos = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
+// WrappedOutput defines a wrapped output containing its index and proposal.
 message WrappedOutput {
   uint64 output_index    = 1;
   Output output_proposal = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
