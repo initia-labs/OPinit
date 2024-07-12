@@ -4130,6 +4130,7 @@ func (x *PendingDeposits) GetCoins() []*v1beta1.Coin {
 	return nil
 }
 
+// CoinsWrapper defines the set of coins.
 type CoinsWrapper struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

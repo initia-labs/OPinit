@@ -176,7 +176,7 @@ message QueryOutputProposalResponse {
 
 // QueryOutputProposalsRequest is response type for the Query/OutputProposals RPC method
 message QueryOutputProposalsRequest {
-  uint64 bridge_id    = 1;
+  uint64 bridge_id = 1;
   // pagination defines the pagination in the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }

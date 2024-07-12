@@ -196,6 +196,7 @@ func (m *Bridge) GetBatchInfos() []BatchInfoWithOutput {
 	return nil
 }
 
+// WrappedOutput defines a wrapped output containing its index and proposal.
 type WrappedOutput struct {
 	OutputIndex    uint64 `protobuf:"varint,1,opt,name=output_index,json=outputIndex,proto3" json:"output_index,omitempty"`
 	OutputProposal Output `protobuf:"bytes,2,opt,name=output_proposal,json=outputProposal,proto3" json:"output_proposal"`

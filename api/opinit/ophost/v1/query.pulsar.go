@@ -10677,6 +10677,7 @@ func (x *QueryTokenPairsResponse) GetPagination() *v1beta1.PageResponse {
 	return nil
 }
 
+// QueryLastFinalizedOutputRequest is request type for the Query/LastFinalizedOutput RPC method.
 type QueryLastFinalizedOutputRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -10712,6 +10713,7 @@ func (x *QueryLastFinalizedOutputRequest) GetBridgeId() uint64 {
 	return 0
 }
 
+// QueryLastFinalizedOutputResponse is response type for the Query/LastFinalizedOutput RPC method
 type QueryLastFinalizedOutputResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
