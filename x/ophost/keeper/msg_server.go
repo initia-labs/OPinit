@@ -295,7 +295,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	}
 
 	// validate output root generation
-	outputRoot := types.GenerateOutputRoot(req.Version, req.StorageRoot, req.LatestBlockHash)
+	outputRoot := types.GenerateOutputRoot(req.Version[0], req.StorageRoot, req.LatestBlockHash)
 	if !bytes.Equal(outputProposal.OutputRoot, outputRoot[:]) {
 		return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid output root")
 	}

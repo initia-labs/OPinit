@@ -197,7 +197,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
 	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
 
-	version := []byte{1}
+	version := byte(1)
 
 	withdrawal1 := ophosttypes.GenerateWithdrawalHash(1, 1, sender, receiver, amount.Denom, amount.Amount.Uint64())
 	withdrawal2 := ophosttypes.GenerateWithdrawalHash(1, 2, sender, receiver, amount.Denom, amount.Amount.Uint64())
@@ -229,7 +229,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 		sender,
 		receiver,
 		amount,
-		version, storageRoot[:], blockHash,
+		[]byte{version}, storageRoot[:], blockHash,
 	))
 	require.NoError(t, err)
 

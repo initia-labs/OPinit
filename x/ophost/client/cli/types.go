@@ -31,7 +31,6 @@ type MsgFinalizeTokenWithdrawal struct {
 	Amount   string `protobuf:"bytes,7,opt,name=amount,proto3" json:"amount" yaml:"amount"`
 	// version of the output root
 	Version         string `protobuf:"bytes,8,opt,name=version,proto3" json:"version,omitempty" yaml:"version"`
-	StateRoot       string `protobuf:"bytes,9,opt,name=state_root,json=stateRoot,proto3" json:"state_root,omitempty" yaml:"state_root"`
 	StorageRoot     string `protobuf:"bytes,10,opt,name=storage_root,json=storageRoot,proto3" json:"storage_root,omitempty" yaml:"storage_root"`
 	LatestBlockHash string `protobuf:"bytes,11,opt,name=latest_block_hash,json=latestBlockHash,proto3" json:"latest_block_hash,omitempty" yaml:"latest_block_hash"`
 }

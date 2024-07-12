@@ -19,9 +19,9 @@ func (output Output) IsEmpty() bool {
 	return len(output.OutputRoot) == 0 && output.L1BlockTime.IsZero() && output.L2BlockNumber == 0
 }
 
-func GenerateOutputRoot(version []byte, storageRoot []byte, latestBlockHash []byte) [32]byte {
+func GenerateOutputRoot(version byte, storageRoot []byte, latestBlockHash []byte) [32]byte {
 	seed := make([]byte, 1+32+32)
-	seed[0] = version[0]
+	seed[0] = version
 	copy(seed[1:], storageRoot[:32])
 	copy(seed[1+32:], latestBlockHash[:32])
 	return sha3.Sum256(seed)
