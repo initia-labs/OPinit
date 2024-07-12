@@ -11418,7 +11418,7 @@ func (*MsgDeleteOutputResponse) Descriptor() ([]byte, []int) {
 	return file_opinit_ophost_v1_tx_proto_rawDescGZIP(), []int{7}
 }
 
-// MsgInitiateTokenDeposit defines a SDK message for adding a new validator.
+// MsgInitiateTokenDeposit is a message to deposit a new token from L1 to L2.
 type MsgInitiateTokenDeposit struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -11522,7 +11522,7 @@ func (x *MsgInitiateTokenDepositResponse) GetSequence() uint64 {
 	return 0
 }
 
-// MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list
+// MsgFinalizeTokenWithdrawal is a message finalizing funds withdrawal from L2.
 type MsgFinalizeTokenWithdrawal struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
