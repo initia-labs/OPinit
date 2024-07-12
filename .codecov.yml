@@ -29,6 +29,7 @@ ignore:
   - "custom/"
   - "**/cli"
   - "**/rest"
+  - "**/*.pulsar.go"
   - "**/*.pb.go"
   - "**/*.pb.gw.go"
   - "**/test_utils.go"
