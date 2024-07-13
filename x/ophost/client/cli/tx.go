@@ -383,11 +383,6 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			stateRoot, err := hex.DecodeString(withdrawalInfo.StateRoot)
-			if err != nil {
-				return err
-			}
-
 			storageRoot, err := hex.DecodeString(withdrawalInfo.StorageRoot)
 			if err != nil {
 				return err
@@ -412,7 +407,6 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				receiver,
 				amount,
 				version,
-				stateRoot,
 				storageRoot,
 				latestBlockHash,
 			)

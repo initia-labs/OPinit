@@ -203,7 +203,6 @@ func NewMsgFinalizeTokenWithdrawal(
 	receiver string,
 	amount sdk.Coin,
 	version []byte,
-	stateRoot []byte,
 	storageRoot []byte,
 	latestBlockHash []byte,
 ) *MsgFinalizeTokenWithdrawal {
@@ -216,7 +215,6 @@ func NewMsgFinalizeTokenWithdrawal(
 		Sequence:         sequence,
 		Amount:           amount,
 		Version:          version,
-		StateRoot:        stateRoot,
 		StorageRoot:      storageRoot,
 		LatestBlockHash:  latestBlockHash,
 	}
@@ -255,12 +253,8 @@ func (msg MsgFinalizeTokenWithdrawal) Validate(accAddressCodec address.Codec) er
 		}
 	}
 
-	if len(msg.Version) != 32 {
+	if len(msg.Version) != 1 {
 		return ErrInvalidHashLength.Wrap("version")
-	}
-
-	if len(msg.StateRoot) != 32 {
-		return ErrInvalidHashLength.Wrap("state_root")
 	}
 
 	if len(msg.StorageRoot) != 32 {
