@@ -345,7 +345,7 @@ func (m *MsgDeleteOutputResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDeleteOutputResponse proto.InternalMessageInfo
 
-// MsgInitiateTokenDeposit defines a SDK message for adding a new validator.
+// MsgInitiateTokenDeposit is a message to deposit a new token from L1 to L2.
 type MsgInitiateTokenDeposit struct {
 	Sender   string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
 	BridgeId uint64     `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
@@ -425,7 +425,7 @@ func (m *MsgInitiateTokenDepositResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgInitiateTokenDepositResponse proto.InternalMessageInfo
 
-// MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list
+// MsgFinalizeTokenWithdrawal is a message finalizing funds withdrawal from L2.
 type MsgFinalizeTokenWithdrawal struct {
 	BridgeId         uint64     `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
 	OutputIndex      uint64     `protobuf:"varint,3,opt,name=output_index,json=outputIndex,proto3" json:"output_index,omitempty" yaml:"output_index"`
