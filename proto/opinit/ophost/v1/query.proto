@@ -69,7 +69,7 @@ service Query {
   // Claimed queries whether the output is claimed.
   rpc Claimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/{withdrawal_hash}/claimed";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/claimed/by_hash";
   }
 
   // NextL1Sequence queries the next l1 sequence.
