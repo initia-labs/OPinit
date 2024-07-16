@@ -75,13 +75,12 @@ func Test_ProposeOutput(t *testing.T) {
 	ctx = ctx.WithBlockTime(blockTime)
 
 	// unauthorized
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[1], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[1], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.Error(t, err)
 
 	// valid
-	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
 	output, err := input.OPHostKeeper.GetOutputProposal(ctx, 1, 1)
 	require.NoError(t, err)
@@ -113,13 +112,11 @@ func Test_DeleteOutput(t *testing.T) {
 	blockTime := time.Now().UTC()
 	ctx = ctx.WithBlockTime(blockTime)
 
-	proposeRes, err := ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
-	proposeRes, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 200, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 2, 200, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), proposeRes.OutputIndex)
 
 	// unauthorized
 	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[0], 1, 1))
@@ -137,9 +134,8 @@ func Test_DeleteOutput(t *testing.T) {
 	require.Error(t, err)
 
 	// should be able to resubmit the same output
-	proposeRes, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
-	require.Equal(t, uint64(1), proposeRes.OutputIndex)
 
 	// invalid output index: nextoutputindex is 2 now
 	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 2))
@@ -218,7 +214,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	now := time.Now().UTC()
 	ctx = ctx.WithBlockTime(now)
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 100, outputRoot[:]))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, outputRoot[:]))
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))

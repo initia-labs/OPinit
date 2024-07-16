@@ -89,12 +89,14 @@ func (msg MsgCreateBridge) Validate(ac address.Codec) error {
 func NewMsgProposeOutput(
 	proposer string,
 	bridgeId uint64,
+	outputIndex uint64,
 	l2BlockNumber uint64,
 	outputRoot []byte,
 ) *MsgProposeOutput {
 	return &MsgProposeOutput{
 		Proposer:      proposer,
 		BridgeId:      bridgeId,
+		OutputIndex:   outputIndex,
 		L2BlockNumber: l2BlockNumber,
 		OutputRoot:    outputRoot,
 	}
