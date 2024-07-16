@@ -84,11 +84,6 @@ func (b AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
 }
 
-// GetQueryCmd returns no root query command for the move module.
-func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
-}
-
 // RegisterInterfaces implements InterfaceModule
 func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)

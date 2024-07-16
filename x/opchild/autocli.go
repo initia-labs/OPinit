@@ -40,7 +40,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Query the next l2 sequence",
 				},
 			},
-			EnhanceCustomCommand: true, // We still have manual commands in gov that we want to keep
+			EnhanceCustomCommand: true,
 		},
 	}
 }
