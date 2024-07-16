@@ -274,7 +274,7 @@ func (s *CLITestSuite) TestNewProposeOutput() {
 				"1",
 				"1",
 				"1234",
-				"XK+A/MAyMz3pzUNsVNqKNPPQh7Up64VsRTycHqA8arE=",
+				"--XK+A/MAyMz3pzUNsVNqKNPPQh7Up64VsRTycHqA8arE=",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -511,14 +511,16 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 	invalidConfig.WriteString(`{}`)
 	validConfig.WriteString(`{
 		"bridge_id": 1,
-		"output_index": 1,
-		"withdrawal_proofs": [],
+		"output_index": 1180,
+		"withdrawal_proofs": [
+			"q6T8JJm7AdbD4rgZ3BjanRHdE1x7aLZwp36pPrOOey4="
+		],
 		"sender": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
-		"sequence": 1,
+		"sequence": 5,
 		"amount": "100uinit",
 		"version": "AQ==",
-		"storage_root": "tlq3mixjeo/mNGesmDVJUrCdOHKpAmQNi33g3kmx2b8=",
-		"latest_block_hash": "PVvx7lXPp7UX6xJqBFSYljZZEg0heiRkaT/xtvANDgI="
+		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
+		"latest_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
 		}`)
 
 	testCases := []struct {

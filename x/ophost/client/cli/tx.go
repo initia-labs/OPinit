@@ -204,7 +204,7 @@ func NewProposeOutput(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			outputBytes, err := hex.DecodeString(args[3])
+			outputBytes, err := base64.StdEncoding.DecodeString(args[3])
 			if err != nil {
 				return err
 			}
