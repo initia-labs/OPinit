@@ -19,12 +19,19 @@ func StopApp(_ *launchertypes.Config) launchertypes.LauncherStepFunc {
 		log.Info("cleanup")
 		log.Info("waiting for app to stop")
 
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		err := syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		if err != nil {
+			log.Error("failed to raise a kill signal", "error", err)
+		}
 
 		// wait for the app to stop
-		ctx.GetErrorGroup().Wait()
-		log.Info("cleanup finished")
+		err = ctx.GetErrorGroup().Wait()
+		if err != nil {
+			log.Error("cleanup failed", "error", err)
+			return err
+		}
 
+		log.Info("cleanup finished")
 		return nil
 	}
 }

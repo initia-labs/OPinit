@@ -393,7 +393,7 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 func randString(n int) string {
-	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	rand := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint
 
 	b := make([]rune, n)
 	for i := range b {

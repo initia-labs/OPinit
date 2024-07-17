@@ -86,8 +86,8 @@ func NewKeeper(
 }
 
 // GetAuthority returns the x/move module's authority.
-func (ak Keeper) GetAuthority() string {
-	return ak.authority
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.

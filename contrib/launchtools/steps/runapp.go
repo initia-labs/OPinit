@@ -23,7 +23,7 @@ func RunApp(_ *launchtools.Config) launchtools.LauncherStepFunc {
 		ctx.ServerContext().Config.Consensus.CreateEmptyBlocks = true
 		ctx.ServerContext().Config.Consensus.CreateEmptyBlocksInterval = CreateEmptyBlocksInterval
 
-		// create a channel to synchronise on app creation
+		// create a channel to synchronize on app creation
 		var syncDone = make(chan interface{})
 
 		// create cobra command context
