@@ -180,9 +180,9 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 // NewProposeOutput returns a CLI command handler for transaction to propose an output.
 func NewProposeOutput(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "propose-output [bridge-id] [l2-block-number] [output-root-hash]",
+		Use:   "propose-output [bridge-id] [output-index] [l2-block-number] [output-root-hash]",
 		Short: "send a output-proposing tx",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -194,12 +194,17 @@ func NewProposeOutput(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			l2BlockNumber, err := strconv.ParseUint(args[1], 10, 64)
+			outputIndex, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			outputBytes, err := hex.DecodeString(args[2])
+			l2BlockNumber, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			outputBytes, err := base64.StdEncoding.DecodeString(args[3])
 			if err != nil {
 				return err
 			}
@@ -209,7 +214,7 @@ func NewProposeOutput(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgProposeOutput(fromAddr, bridgeId, l2BlockNumber, outputBytes)
+			msg := types.NewMsgProposeOutput(fromAddr, bridgeId, outputIndex, l2BlockNumber, outputBytes)
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
@@ -331,14 +336,13 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				{
 					"bridge_id": 1,
 					"output_index": 0,
-					"withdrawal_proofs": [ "proof1", "proof2", ... ],
+					"withdrawal_proofs": [ "base64-encoded proof1", "proof2", ... ],
 					"sender" : "bech32-address",
 					"sequence": 0,
-					"amount": "10000000uatom",
-					"version": "version hex",
-					"state_root": "state-root hex",
-					"storage_root": "storage-root hex",
-					"latest_block_hash": "latest-block-hash"
+					"amount": "10000000uinit",
+					"version": "base64-encoded version",
+					"storage_root": "base64-encoded storage-root",
+					"latest_block_hash": "base64-encoded latest-block-hash"
 				}`, version.AppName,
 			),
 		),
@@ -359,14 +363,6 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			withdrawalProofs := make([][]byte, len(withdrawalInfo.WithdrawalProofs))
-			for i, wp := range withdrawalInfo.WithdrawalProofs {
-				withdrawalProofs[i], err = hex.DecodeString(wp)
-				if err != nil {
-					return err
-				}
-			}
-
 			// cannot validate sender address here because it is l2 address.
 			sender := withdrawalInfo.Sender
 			if len(sender) == 0 {
@@ -374,21 +370,6 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 			}
 
 			amount, err := sdk.ParseCoinNormalized(withdrawalInfo.Amount)
-			if err != nil {
-				return err
-			}
-
-			version, err := hex.DecodeString(withdrawalInfo.Version)
-			if err != nil {
-				return err
-			}
-
-			storageRoot, err := hex.DecodeString(withdrawalInfo.StorageRoot)
-			if err != nil {
-				return err
-			}
-
-			latestBlockHash, err := hex.DecodeString(withdrawalInfo.LatestBlockHash)
 			if err != nil {
 				return err
 			}
@@ -402,13 +383,13 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				withdrawalInfo.BridgeId,
 				withdrawalInfo.OutputIndex,
 				withdrawalInfo.Sequence,
-				withdrawalProofs,
+				withdrawalInfo.WithdrawalProofs,
 				sender,
 				receiver,
 				amount,
-				version,
-				storageRoot,
-				latestBlockHash,
+				withdrawalInfo.Version,
+				withdrawalInfo.StorageRoot,
+				withdrawalInfo.LatestBlockHash,
 			)
 			if err = msg.Validate(ac); err != nil {
 				return err

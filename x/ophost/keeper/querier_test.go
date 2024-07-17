@@ -257,3 +257,45 @@ func Test_QueryNextL1Sequence(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, types.QueryNextL1SequenceResponse{NextL1Sequence: 100}, *res)
 }
+
+func Test_QueryBatchInfos(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	config1 := types.BridgeConfig{
+		Challengers:         []string{addrs[0].String()},
+		Proposer:            addrs[0].String(),
+		SubmissionInterval:  time.Second * 10,
+		FinalizationPeriod:  time.Second * 60,
+		SubmissionStartTime: time.Now().UTC(),
+		Metadata:            []byte{1, 2, 3},
+		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+	}
+	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, config1.BatchInfo, types.Output{}))
+
+	batchInfo := types.BatchInfoWithOutput{
+		BatchInfo: types.BatchInfo{
+			Submitter: addrsStr[0],
+			Chain:     "celestia",
+		},
+		Output: types.Output{
+			OutputRoot:    []byte{1, 2, 3},
+			L1BlockTime:   time.Now().UTC(),
+			L2BlockNumber: 300,
+		},
+	}
+	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, batchInfo.BatchInfo, batchInfo.Output))
+
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	res, err := q.BatchInfos(ctx, &types.QueryBatchInfosRequest{BridgeId: 1})
+
+	require.NoError(t, err)
+	require.Equal(t, []types.BatchInfoWithOutput{
+		{
+			BatchInfo: config1.BatchInfo,
+		},
+		{
+			BatchInfo: batchInfo.BatchInfo,
+			Output:    batchInfo.Output,
+		},
+	}, res.BatchInfos,
+	)
+}

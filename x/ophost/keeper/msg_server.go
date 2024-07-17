@@ -132,6 +132,9 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 	if err != nil {
 		return nil, err
 	}
+	if outputIndex != req.OutputIndex {
+		return nil, types.ErrInvalidOutputIndex.Wrapf("expected %d, got %d", outputIndex, req.OutputIndex)
+	}
 
 	// check this is first submission or not
 	if outputIndex != 1 {
@@ -141,7 +144,7 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 		}
 
 		if l2BlockNumber <= lastOutputProposal.L2BlockNumber {
-			return nil, types.ErrInvalidL2BlockNumber
+			return nil, types.ErrInvalidL2BlockNumber.Wrapf("last %d, got %d", lastOutputProposal.L2BlockNumber, l2BlockNumber)
 		}
 	}
 
@@ -163,9 +166,7 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 		sdk.NewAttribute(types.AttributeKeyOutputRoot, hex.EncodeToString(outputRoot)),
 	))
 
-	return &types.MsgProposeOutputResponse{
-		OutputIndex: outputIndex,
-	}, nil
+	return &types.MsgProposeOutputResponse{}, nil
 }
 
 func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput) (*types.MsgDeleteOutputResponse, error) {

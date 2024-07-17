@@ -78,6 +78,12 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/next_l1_sequence";
   }
+
+  // BatchInfos queries all batch infos.
+  rpc BatchInfos(QueryBatchInfosRequest) returns (QueryBatchInfosResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/batch_infos";
+  }
 }
 
 // QueryBridgeRequest is request type for Query/Bridge RPC method.
@@ -178,7 +184,7 @@ message QueryOutputProposalResponse {
 message QueryOutputProposalsRequest {
   uint64 bridge_id = 1;
   // pagination defines the pagination in the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryOutputProposalsResponse is response type for the Query/OutputProposals RPC method
@@ -217,4 +223,18 @@ message QueryNextL1SequenceRequest {
 // QueryNextL1SequenceResponse is response type for the Query/NextL1Sequence RPC method.
 message QueryNextL1SequenceResponse {
   uint64 next_l1_sequence = 1;
+}
+
+// QueryBatchInfosRequest is request type for Query/BatchInfos RPC method. 
+message QueryBatchInfosRequest {
+  uint64 bridge_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryBatchInfosResponse is response type for Query/BatchInfos RPC method. 
+message QueryBatchInfosResponse {
+  repeated BatchInfoWithOutput batch_infos = 1
+      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

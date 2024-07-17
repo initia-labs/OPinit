@@ -244,8 +244,9 @@ func (s *CLITestSuite) TestNewProposeOutput() {
 			"invalid transaction (invalid bridge-id)",
 			[]string{
 				"0",
+				"1",
 				"1234",
-				"12e297e695e451144fc44db083d6b3d56f0a5f920721e3efc90ec7662c7775d1",
+				"XK+A/MAyMz3pzUNsVNqKNPPQh7Up64VsRTycHqA8arE=",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -257,8 +258,9 @@ func (s *CLITestSuite) TestNewProposeOutput() {
 			"invalid transaction (invalid l2-block-nmber)",
 			[]string{
 				"1",
+				"1",
 				"-1",
-				"12e297e695e451144fc44db083d6b3d56f0a5f920721e3efc90ec7662c7775d1",
+				"XK+A/MAyMz3pzUNsVNqKNPPQh7Up64VsRTycHqA8arE=",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -270,8 +272,9 @@ func (s *CLITestSuite) TestNewProposeOutput() {
 			"invalid transaction (invalid output-root-hash)",
 			[]string{
 				"1",
+				"1",
 				"1234",
-				"2e297e695e451144fc44db083d6b3d56f0a5f920721e3efc90ec7662c7775d1",
+				"--XK+A/MAyMz3pzUNsVNqKNPPQh7Up64VsRTycHqA8arE=",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -283,8 +286,9 @@ func (s *CLITestSuite) TestNewProposeOutput() {
 			"valid transaction",
 			[]string{
 				"1",
+				"1",
 				"1234",
-				"12e297e695e451144fc44db083d6b3d56f0a5f920721e3efc90ec7662c7775d1",
+				"XK+A/MAyMz3pzUNsVNqKNPPQh7Up64VsRTycHqA8arE=",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -506,16 +510,18 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 
 	invalidConfig.WriteString(`{}`)
 	validConfig.WriteString(`{
-        "bridge_id": 1,
-        "output_index": 2,
-		"withdrawal_proofs": ["8e1fa5cd035b30e5d5818934dbc7491fe44f4ab15d30b3abcbc01d44edf25f18", "80d66720e75121fedc738e9847048466ac8d05626406fe3b438b1699dcbfa37e"],
-		"sender": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
-		"sequence": 3,
-		"amount": "10000000uatom",
-		"version": "5c",
-		"storage_root": "45cba73df03a0d62aa297ea7e949bb0e608b01290205dde56a8fdc8f96239f3b",
-		"latest_block_hash": "32935c42573839f5ff3065941d98e378e3e73227bf29e349de4aa7af0ca8addd"
-        }`)
+		"bridge_id": 1,
+		"output_index": 1180,
+		"withdrawal_proofs": [
+			"q6T8JJm7AdbD4rgZ3BjanRHdE1x7aLZwp36pPrOOey4="
+		],
+		"sender": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+		"sequence": 5,
+		"amount": "100uinit",
+		"version": "AQ==",
+		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
+		"latest_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
+		}`)
 
 	testCases := []struct {
 		name         string

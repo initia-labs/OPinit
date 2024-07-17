@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"encoding/hex"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/sha3"
 
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -111,4 +113,29 @@ func Test_QueryNextL2Sequence(t *testing.T) {
 	res, err := q.NextL2Sequence(ctx, &types.QueryNextL2SequenceRequest{})
 	require.NoError(t, err)
 	require.Equal(t, types.QueryNextL2SequenceResponse{NextL2Sequence: 100}, *res)
+}
+
+func Test_QueryBaseDenom(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	bz := sha3.Sum256([]byte("base_denom"))
+	denom := "l2/" + hex.EncodeToString(bz[:])
+
+	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	_, err := ms.FinalizeTokenDeposit(ctx, &types.MsgFinalizeTokenDeposit{
+		Sender:    addrsStr[0],
+		Amount:    sdk.NewInt64Coin(denom, 100),
+		From:      addrsStr[0],
+		To:        addrsStr[1],
+		Sequence:  1,
+		Height:    1,
+		BaseDenom: "base_denom",
+	})
+	require.NoError(t, err)
+
+	q := keeper.NewQuerier(input.OPChildKeeper)
+	res, err := q.BaseDenom(ctx, &types.QueryBaseDenomRequest{Denom: denom})
+	require.NoError(t, err)
+
+	require.Equal(t, types.QueryBaseDenomResponse{BaseDenom: "base_denom"}, *res)
 }

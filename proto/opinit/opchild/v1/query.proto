@@ -51,6 +51,11 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/opchild/v1/next_l2_sequence";
   }
+
+  rpc BaseDenom(QueryBaseDenomRequest) returns (QueryBaseDenomResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/opchild/v1/base_denom/{denom}";
+  }
 }
 
 // QueryValidatorsRequest is request type for Query/Validators RPC method.
@@ -114,4 +119,14 @@ message QueryNextL2SequenceRequest {}
 message QueryNextL2SequenceResponse {
   // next_l2_sequence holds the next l2 sequence number.
   uint64 next_l2_sequence = 1;
+}
+
+// QueryBaseDenomRequest is request type for the Query/BaseDenom RPC method.
+message QueryBaseDenomRequest {
+  string denom = 1;
+}
+
+// QueryBaseDenomResponse is response type for the Query/BaseDenom RPC method.
+message QueryBaseDenomResponse {
+  string base_denom = 1;
 }

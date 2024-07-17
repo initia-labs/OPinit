@@ -507,11 +507,8 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	coin := req.Amount
 	burnCoins := sdk.NewCoins(coin)
 
-	baseDenom, err := ms.DenomPairs.Get(ctx, coin.Denom)
+	baseDenom, err := ms.GetBaseDenom(ctx, coin.Denom)
 	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			return nil, types.ErrNonL1Token
-		}
 		return nil, err
 	}
 

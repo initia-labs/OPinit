@@ -167,3 +167,17 @@ func (q Querier) NextL1Sequence(ctx context.Context, req *types.QueryNextL1Seque
 		NextL1Sequence: sequence,
 	}, nil
 }
+
+func (q Querier) BatchInfos(ctx context.Context, req *types.QueryBatchInfosRequest) (*types.QueryBatchInfosResponse, error) {
+	batchInfos, pageRes, err := query.CollectionPaginate(ctx, q.Keeper.BatchInfos, req.Pagination, func(key collections.Pair[uint64, uint64], batchInfoWithOutput types.BatchInfoWithOutput) (types.BatchInfoWithOutput, error) {
+		return batchInfoWithOutput, nil
+	}, query.WithCollectionPaginationPairPrefix[uint64, uint64](req.BridgeId))
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryBatchInfosResponse{
+		BatchInfos: batchInfos,
+		Pagination: pageRes,
+	}, nil
+}
