@@ -9,47 +9,7 @@ import (
 func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Query: &autocliv1.ServiceCommandDescriptor{
-			Service: opchildv1.Query_ServiceDesc.ServiceName,
-			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
-				{
-					RpcMethod: "Validator",
-					Use:       "validator [validator-addr]",
-					Short:     "Query a validator",
-					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
-						{ProtoField: "validator_addr"},
-					},
-				},
-				{
-					RpcMethod: "Validators",
-					Use:       "validators",
-					Short:     "Query for all validators",
-				},
-				{
-					RpcMethod: "Params",
-					Use:       "params",
-					Short:     "Query the current opchild parameters information",
-				},
-				{
-					RpcMethod: "NextL1Sequence",
-					Use:       "next_l1_sequence",
-					Short:     "Query the next l1 sequence",
-				},
-				{
-					RpcMethod: "NextL2Sequence",
-					Use:       "next_l2_sequence",
-					Short:     "Query the next l2 sequence",
-				},
-				{
-					RpcMethod: "BridgeInfo",
-					Use:       "bridge_info",
-					Short:     "Query the bridge info",
-				},
-				{
-					RpcMethod: "BaseDenom",
-					Use:       "base_denom",
-					Short:     "Query the base denom",
-				},
-			},
+			Service:              opchildv1.Query_ServiceDesc.ServiceName,
 			EnhanceCustomCommand: true,
 		},
 	}
