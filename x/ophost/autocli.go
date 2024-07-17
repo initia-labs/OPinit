@@ -25,6 +25,16 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Get bridges info",
 				},
 				{
+					RpcMethod: "Claimed",
+					Use:       "claimed [bridge-id] [withdrawal-hash]",
+					Short:     "Query whether a withdrawal has been claimed",
+				},
+				{
+					RpcMethod: "NextL1Sequence",
+					Use:       "next_l1_sequence [bridge-id]",
+					Short:     "Get the next l1 sequence",
+				},
+				{
 					RpcMethod: "TokenPairByL1Denom",
 					Use:       "token_pair_by_l1_denom [bridge-id]",
 					Short:     "Get the token pair by l1 denom",
