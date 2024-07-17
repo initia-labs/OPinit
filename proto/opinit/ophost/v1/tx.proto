@@ -144,7 +144,7 @@ message MsgDeleteOutputResponse {}
 ///////////////////////////
 // Authority Messages
 
-// MsgInitiateTokenDeposit defines a SDK message for adding a new validator.
+// MsgInitiateTokenDeposit is a message to deposit a new token from L1 to L2.
 message MsgInitiateTokenDeposit {
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name)           = "ophost/MsgInitiateTokenDeposit";
@@ -165,7 +165,7 @@ message MsgInitiateTokenDepositResponse {
   uint64 sequence = 1;
 }
 
-// MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list
+// MsgFinalizeTokenWithdrawal is a message finalizing funds withdrawal from L2.
 message MsgFinalizeTokenWithdrawal {
   option (cosmos.msg.v1.signer) = "receiver";
   option (amino.name)           = "ophost/MsgFinalizeTokenWithdrawal";

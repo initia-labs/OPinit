@@ -325,10 +325,10 @@ func NewInitiateTokenDeposit(ac address.Codec) *cobra.Command {
 func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "finalize-token-withdrawal [path/to/withdrawal-info.json]",
-		Short: "send a token deposit initiating tx",
+		Short: "send a tx to finalize token withdrawal",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`send a tx to finalize tokwn withdrawal with withdrawal info json.
+				`send a tx to finalize token withdrawal with withdrawal info json.
 				Example:
 				$ %s tx ophost finalize-token-withdrawal path/to/withdrawal-info.json
 				
