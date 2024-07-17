@@ -68,8 +68,8 @@ func (msg MsgExecuteMessages) Validate(ac address.Codec) error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (m MsgExecuteMessages) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return sdktx.UnpackInterfaces(unpacker, m.Messages)
+func (msg MsgExecuteMessages) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return sdktx.UnpackInterfaces(unpacker, msg.Messages)
 }
 
 /* MsgAddValidator */

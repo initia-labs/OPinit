@@ -266,7 +266,7 @@ func (l *LauncherContext) FinalizeOutput(config *Config) (string, error) {
 		return "", errors.Wrap(err, "failed to marshal artifacts")
 	}
 
-	if err := os.WriteFile(path.Join(l.artifactsDir, "artifacts.json"), bz, os.ModePerm); err != nil {
+	if err := os.WriteFile(path.Join(l.artifactsDir, "artifacts.json"), bz, 0600); err != nil {
 		return "", errors.Wrap(err, "failed to write artifacts to file")
 	}
 
@@ -276,7 +276,7 @@ func (l *LauncherContext) FinalizeOutput(config *Config) (string, error) {
 		return "", errors.Wrap(err, "failed to marshal config")
 	}
 
-	if err := os.WriteFile(path.Join(l.artifactsDir, "config.json"), configBz, os.ModePerm); err != nil {
+	if err := os.WriteFile(path.Join(l.artifactsDir, "config.json"), configBz, 0600); err != nil {
 		return "", errors.Wrap(err, "failed to write config to file")
 	}
 

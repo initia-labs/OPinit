@@ -132,7 +132,7 @@ func initializeChains(config *launchtools.Config, basePath string) func(*Relayer
 		pathName := fmt.Sprintf("chain%d", i)
 		fileName := fmt.Sprintf("%s/%s.json", basePath, pathName)
 
-		if err := os.WriteFile(fileName, bz, 0644); err != nil {
+		if err := os.WriteFile(fileName, bz, 0600); err != nil {
 			panic(errors.New("failed to write chain config"))
 		}
 	}
@@ -180,7 +180,7 @@ func initializePaths(config *launchtools.Config, basePath string) func(*Relayer)
 		panic(errors.New("failed to create path config"))
 	}
 
-	if err := os.WriteFile(fmt.Sprintf("%s/paths.json", basePath), pathConfigJSON, 0644); err != nil {
+	if err := os.WriteFile(fmt.Sprintf("%s/paths.json", basePath), pathConfigJSON, 0600); err != nil {
 		panic(errors.New("failed to write path config"))
 	}
 

@@ -153,7 +153,7 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	}
 
 	pendingDeposits := []types.PendingDeposits{}
-	k.PendingDeposits.Walk(ctx, nil, func(key []byte, value types.CoinsWrapper) (stop bool, err error) {
+	err = k.PendingDeposits.Walk(ctx, nil, func(key []byte, value types.CoinsWrapper) (stop bool, err error) {
 		addr, err := k.addressCodec.BytesToString(key)
 		if err != nil {
 			return false, err
@@ -165,6 +165,9 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		})
 		return false, nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	return &types.GenesisState{
 		Params:              params,

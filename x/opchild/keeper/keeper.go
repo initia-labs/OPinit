@@ -128,8 +128,8 @@ func NewKeeper(
 }
 
 // GetAuthority returns the x/move module's authority.
-func (ak Keeper) GetAuthority() string {
-	return ak.authority
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.
@@ -139,8 +139,8 @@ func (k Keeper) Logger(ctx context.Context) log.Logger {
 }
 
 // Router returns the gov keeper's router
-func (keeper Keeper) Router() *baseapp.MsgServiceRouter {
-	return keeper.router
+func (k Keeper) Router() *baseapp.MsgServiceRouter {
+	return k.router
 }
 
 // setDenomMetadata sets an OPinit token's denomination metadata

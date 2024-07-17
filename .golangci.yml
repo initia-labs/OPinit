@@ -1,26 +1,44 @@
 linters:
-  disable-all: true
   enable:
+    - asciicheck
+    - bodyclose
+    - dogsled
+    - dupl
     - errcheck
-    - golint
-    - ineffassign
-    - unconvert
-    - misspell
-    - govet
-    # - unused
-    # - deadcode
+    - exportloopref
     - goconst
+    - gofmt
+    - goimports
     - gosec
-    # - staticcheck
-linters-settings:
-  gocyclo:
-    min-complexity: 11
-  errcheck:
-    ignore: fmt:.*,io/ioutil:^Read.*,github.com/spf13/cobra:MarkFlagRequired,github.com/spf13/viper:BindPFlag
-  golint:
-    min-confidence: 1.1
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    # - nakedret
+    - nolintlint
+    # - prealloc
+    - staticcheck
+    # - structcheck // to be fixed by golangci-lint
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unused
+
 issues:
-  exclude:
-    - composite
-run:
-  tests: false
+  exclude-rules:
+    - linters:
+        - stylecheck
+      text: "ST1003:"
+  max-same-issues: 50
+
+linters-settings:
+  dogsled:
+    max-blank-identifiers: 3
+  #golint:
+  #  min-confidence: 0
+  goconst:
+    ignore-tests: true
+  #maligned:
+  #  suggest-new: true
+  misspell:
+    locale: US
