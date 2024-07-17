@@ -40,6 +40,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Query the next l2 sequence",
 				},
 				{
+					RpcMethod: "BridgeInfo",
+					Use:       "bridge_info",
+					Short:     "Query the bridge info",
+				},
+				{
 					RpcMethod: "BaseDenom",
 					Use:       "base_denom",
 					Short:     "Query the base denom",
