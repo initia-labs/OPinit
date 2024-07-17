@@ -31,13 +31,18 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				},
 				{
 					RpcMethod: "NextL1Sequence",
-					Use:       "next-l1-sequence",
+					Use:       "next_l1_sequence",
 					Short:     "Query the next l1 sequence",
 				},
 				{
 					RpcMethod: "NextL2Sequence",
-					Use:       "next-l2-sequence",
+					Use:       "next_l2_sequence",
 					Short:     "Query the next l2 sequence",
+				},
+				{
+					RpcMethod: "BaseDenom",
+					Use:       "base_denom",
+					Short:     "Query the base denom",
 				},
 			},
 			EnhanceCustomCommand: true,

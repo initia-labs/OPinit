@@ -25,6 +25,7 @@ const (
 	Query_Params_FullMethodName         = "/opinit.opchild.v1.Query/Params"
 	Query_NextL1Sequence_FullMethodName = "/opinit.opchild.v1.Query/NextL1Sequence"
 	Query_NextL2Sequence_FullMethodName = "/opinit.opchild.v1.Query/NextL2Sequence"
+	Query_BaseDenom_FullMethodName      = "/opinit.opchild.v1.Query/BaseDenom"
 )
 
 // QueryClient is the client API for Query service.
@@ -48,6 +49,7 @@ type QueryClient interface {
 	NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error)
 	// NextL2Sequence queries the next l2 sequence number.
 	NextL2Sequence(ctx context.Context, in *QueryNextL2SequenceRequest, opts ...grpc.CallOption) (*QueryNextL2SequenceResponse, error)
+	BaseDenom(ctx context.Context, in *QueryBaseDenomRequest, opts ...grpc.CallOption) (*QueryBaseDenomResponse, error)
 }
 
 type queryClient struct {
@@ -118,6 +120,16 @@ func (c *queryClient) NextL2Sequence(ctx context.Context, in *QueryNextL2Sequenc
 	return out, nil
 }
 
+func (c *queryClient) BaseDenom(ctx context.Context, in *QueryBaseDenomRequest, opts ...grpc.CallOption) (*QueryBaseDenomResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryBaseDenomResponse)
+	err := c.cc.Invoke(ctx, Query_BaseDenom_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -139,6 +151,7 @@ type QueryServer interface {
 	NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error)
 	// NextL2Sequence queries the next l2 sequence number.
 	NextL2Sequence(context.Context, *QueryNextL2SequenceRequest) (*QueryNextL2SequenceResponse, error)
+	BaseDenom(context.Context, *QueryBaseDenomRequest) (*QueryBaseDenomResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -163,6 +176,9 @@ func (UnimplementedQueryServer) NextL1Sequence(context.Context, *QueryNextL1Sequ
 }
 func (UnimplementedQueryServer) NextL2Sequence(context.Context, *QueryNextL2SequenceRequest) (*QueryNextL2SequenceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NextL2Sequence not implemented")
+}
+func (UnimplementedQueryServer) BaseDenom(context.Context, *QueryBaseDenomRequest) (*QueryBaseDenomResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BaseDenom not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -285,6 +301,24 @@ func _Query_NextL2Sequence_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_BaseDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBaseDenomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BaseDenom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BaseDenom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BaseDenom(ctx, req.(*QueryBaseDenomRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -315,6 +349,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NextL2Sequence",
 			Handler:    _Query_NextL2Sequence_Handler,
+		},
+		{
+			MethodName: "BaseDenom",
+			Handler:    _Query_BaseDenom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

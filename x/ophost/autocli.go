@@ -84,6 +84,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					},
 				},
 				{
+					RpcMethod: "BatchInfos",
+					Use:       "batch_infos [bridge-id]",
+					Short:     "Get all batch infos",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "bridge_id"},
+					},
+				},
+				{
 					RpcMethod: "Params",
 					Use:       "params",
 					Short:     "Returns the ophost module's parameters",

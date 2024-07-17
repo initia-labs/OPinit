@@ -258,7 +258,7 @@ func Test_QueryNextL1Sequence(t *testing.T) {
 	require.Equal(t, types.QueryNextL1SequenceResponse{NextL1Sequence: 100}, *res)
 }
 
-func Test_QueryBatchInfo(t *testing.T) {
+func Test_QueryBatchInfos(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config1 := types.BridgeConfig{
 		Challengers:         []string{addrs[0].String()},

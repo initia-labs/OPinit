@@ -93,3 +93,12 @@ func (q Querier) NextL2Sequence(ctx context.Context, req *types.QueryNextL2Seque
 
 	return &types.QueryNextL2SequenceResponse{NextL2Sequence: nextL2Sequence}, nil
 }
+
+func (q Querier) BaseDenom(ctx context.Context, req *types.QueryBaseDenomRequest) (*types.QueryBaseDenomResponse, error) {
+	baseDenom, err := q.GetBaseDenom(ctx, req.Denom)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryBaseDenomResponse{BaseDenom: baseDenom}, nil
+}

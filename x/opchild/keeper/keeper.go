@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -159,6 +160,17 @@ func (k Keeper) setDenomMetadata(ctx context.Context, baseDenom, denom string) {
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+}
+
+func (k Keeper) GetBaseDenom(ctx context.Context, denom string) (string, error) {
+	baseDenom, err := k.DenomPairs.Get(ctx, denom)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return "", types.ErrNonL1Token
+		}
+		return "", err
+	}
+	return baseDenom, nil
 }
 
 // UpdateHostValidatorSet updates the host validator set.
