@@ -310,7 +310,8 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		return nil, types.ErrWithdrawalAlreadyFinalized
 	}
 
-	// should works with sorted merkle tree
+	// should use the same node hash generation function `types.GenerateNodeHash`
+	// to make this node hash generation deterministic with commutative property.
 	rootHash := types.GenerateRootHashFromProofs(withdrawalHash, req.WithdrawalProofs)
 	if !bytes.Equal(req.StorageRoot, rootHash[:]) {
 		return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid storage root proofs")
