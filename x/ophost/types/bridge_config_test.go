@@ -2,10 +2,8 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,10 +16,6 @@ func Test_JSONMarshalUnmarshal(t *testing.T) {
 	bz, err := json.Marshal(batchInfo)
 	require.NoError(t, err)
 	require.Equal(t, `{"submitter":"submitter","chain_type":"INITIA"}`, string(bz))
-
-	val, err := proto.MarshalJSONEnum(BatchInfo_ChainType_name, int32(batchInfo.ChainType))
-	fmt.Println("SIBONG", string(val))
-	require.Error(t, err)
 
 	var batchInfo1 BatchInfo
 	err = json.Unmarshal(bz, &batchInfo1)
