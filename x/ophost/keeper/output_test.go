@@ -80,12 +80,12 @@ func Test_IsFinalized(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challengers:         []string{addrsStr[1]},
-		Proposer:            addrsStr[0],
-		SubmissionInterval:  100,
-		FinalizationPeriod:  time.Second * 10,
-		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Challengers:           []string{addrsStr[1]},
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    time.Second * 10,
+		SubmissionStartHeight: 1,
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -138,12 +138,12 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  100,
-		FinalizationPeriod:  time.Second * 10,
-		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    100,
+		FinalizationPeriod:    time.Second * 10,
+		SubmissionStartHeight: 1,
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -182,12 +182,12 @@ func Test_DeleteOutputProposal(t *testing.T) {
 	require.NoError(t, err)
 
 	err = input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  100,
-		FinalizationPeriod:  time.Second * 10,
-		SubmissionStartTime: time.Now().UTC(),
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    100,
+		FinalizationPeriod:    time.Second * 10,
+		SubmissionStartHeight: 1,
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	})
 	require.NoError(t, err)
 

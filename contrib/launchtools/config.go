@@ -9,15 +9,16 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 	"github.com/pkg/errors"
 
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/go-bip39"
+
+	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type Config struct {
@@ -110,22 +111,21 @@ func (l2config *L2Config) Finalize() error {
 
 type OpBridge struct {
 	// output submission setup
-	OutputSubmissionStartTime *time.Time     `json:"output_submission_start_time,omitempty"`
-	OutputSubmissionInterval  *time.Duration `json:"output_submission_interval,omitempty"`
-	OutputFinalizationPeriod  *time.Duration `json:"output_finalization_period,omitempty"`
+	OutputSubmissionInterval    *time.Duration `json:"output_submission_interval,omitempty"`
+	OutputFinalizationPeriod    *time.Duration `json:"output_finalization_period,omitempty"`
+	OutputSubmissionStartHeight uint64         `json:"output_submission_start_height,omitempty"`
 
 	// batch submission setup
-	BatchSubmitTarget string `json:"batch_submission_target"`
+	BatchSubmitTarget ophosttypes.BatchInfo_ChainType `json:"batch_submission_target"`
 }
 
 func (opBridge *OpBridge) Finalize() error {
-	if opBridge.OutputSubmissionStartTime == nil {
-		now := time.Now()
-		opBridge.OutputSubmissionStartTime = &now
+	if opBridge.OutputSubmissionStartHeight == 0 {
+		opBridge.OutputSubmissionStartHeight = 1
 	}
 
-	if opBridge.BatchSubmitTarget == "" {
-		opBridge.BatchSubmitTarget = "l1"
+	if opBridge.BatchSubmitTarget == ophosttypes.BatchInfo_CHAIN_TYPE_UNSPECIFIED {
+		opBridge.BatchSubmitTarget = ophosttypes.BatchInfo_CHAIN_TYPE_INITIA
 	}
 
 	if opBridge.OutputSubmissionInterval == nil {
@@ -137,11 +137,6 @@ func (opBridge *OpBridge) Finalize() error {
 		period := time.Hour
 		opBridge.OutputFinalizationPeriod = &period
 	}
-
-	// TODO: validate batch submit target
-	// if opBridge.BatchSubmitTarget != "l1" && opBridge.BatchSubmitTarget != "celestia" {
-	// 	return errors.New(fmt.Sprintf("invalid batch submit target: %s", opBridge.BatchSubmitTarget))
-	// }
 
 	return nil
 }

@@ -9,6 +9,8 @@ import (
 
 	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -52,8 +54,8 @@ type BankKeeper interface {
 }
 
 type OracleKeeper interface {
+	currencypair.OracleKeeper
 	GetAllCurrencyPairs(ctx sdk.Context) []slinkytypes.CurrencyPair
-	GetPriceForCurrencyPair(ctx sdk.Context, cp slinkytypes.CurrencyPair) (oracletypes.QuotePrice, error)
 	SetPriceForCurrencyPair(ctx sdk.Context, cp slinkytypes.CurrencyPair, qp oracletypes.QuotePrice) error
 }
 

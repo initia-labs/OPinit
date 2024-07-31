@@ -15,7 +15,7 @@ const (
 	AttributeKeyCreator                = "creator"
 	AttributeKeyProposer               = "proposer"
 	AttributeKeyChallenger             = "challenger"
-	AttributeKeyBatchChain             = "batch_chain"
+	AttributeKeyBatchChainType         = "batch_chain_type"
 	AttributeKeyBatchSubmitter         = "batch_submitter"
 	AttributeKeyBridgeId               = "bridge_id"
 	AttributeKeyOutputIndex            = "output_index"

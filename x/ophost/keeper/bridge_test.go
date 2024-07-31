@@ -11,13 +11,13 @@ import (
 func Test_BridgeConfig(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config := types.BridgeConfig{
-		Challengers:         []string{addrs[0].String()},
-		Proposer:            addrs[1].String(),
-		SubmissionInterval:  time.Second * 100,
-		FinalizationPeriod:  time.Second * 10,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Challengers:           []string{addrs[0].String()},
+		Proposer:              addrs[1].String(),
+		SubmissionInterval:    time.Second * 100,
+		FinalizationPeriod:    time.Second * 10,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config))
 	_config, err := input.OPHostKeeper.GetBridgeConfig(ctx, 1)
@@ -28,22 +28,22 @@ func Test_BridgeConfig(t *testing.T) {
 func Test_IterateBridgeConfig(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config1 := types.BridgeConfig{
-		Challengers:         []string{addrs[0].String()},
-		Proposer:            addrs[1].String(),
-		SubmissionInterval:  time.Second * 100,
-		FinalizationPeriod:  time.Second * 10,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Challengers:           []string{addrs[0].String()},
+		Proposer:              addrs[1].String(),
+		SubmissionInterval:    time.Second * 100,
+		FinalizationPeriod:    time.Second * 10,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challengers:         []string{addrs[2].String()},
-		Proposer:            addrs[3].String(),
-		SubmissionInterval:  time.Second * 100,
-		FinalizationPeriod:  time.Second * 10,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{3, 4, 5},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Challengers:           []string{addrs[2].String()},
+		Proposer:              addrs[3].String(),
+		SubmissionInterval:    time.Second * 100,
+		FinalizationPeriod:    time.Second * 10,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{3, 4, 5},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))

@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
-	"github.com/initia-labs/OPinit/x/ophost/types"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	types "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_RecordBatch(t *testing.T) {
@@ -34,13 +33,13 @@ func Test_CreateBridge(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challengers:         []string{addrsStr[0]},
-		Proposer:            addrsStr[0],
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Challengers:           []string{addrsStr[0]},
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -59,13 +58,13 @@ func Test_ProposeOutput(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challengers:         []string{addrsStr[0]},
-		Proposer:            addrsStr[0],
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Challengers:           []string{addrsStr[0]},
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -96,13 +95,13 @@ func Test_DeleteOutput(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	createReq := types.NewMsgCreateBridge(addrsStr[0], config)
 	createRes, err := ms.CreateBridge(ctx, createReq)
@@ -147,13 +146,13 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -175,13 +174,13 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -195,18 +194,18 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	version := byte(1)
 
-	withdrawal1 := ophosttypes.GenerateWithdrawalHash(1, 1, sender, receiver, amount.Denom, amount.Amount.Uint64())
-	withdrawal2 := ophosttypes.GenerateWithdrawalHash(1, 2, sender, receiver, amount.Denom, amount.Amount.Uint64())
-	withdrawal3 := ophosttypes.GenerateWithdrawalHash(1, 3, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal1 := types.GenerateWithdrawalHash(1, 1, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal2 := types.GenerateWithdrawalHash(1, 2, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal3 := types.GenerateWithdrawalHash(1, 3, sender, receiver, amount.Denom, amount.Amount.Uint64())
 
 	proof1 := withdrawal2
-	proof2 := ophosttypes.GenerateNodeHash(withdrawal3[:], withdrawal3[:])
+	proof2 := types.GenerateNodeHash(withdrawal3[:], withdrawal3[:])
 
-	node12 := ophosttypes.GenerateNodeHash(withdrawal1[:], withdrawal2[:])
+	node12 := types.GenerateNodeHash(withdrawal1[:], withdrawal2[:])
 
-	storageRoot := ophosttypes.GenerateNodeHash(node12[:], proof2[:])
+	storageRoot := types.GenerateNodeHash(node12[:], proof2[:])
 	blockHash := decodeBase64(t, "tgmfQJT4uipVToW631xz0RXdrfzu7n5XxGNoPpX6isI=")
-	outputRoot := ophosttypes.GenerateOutputRoot(version, storageRoot[:], blockHash)
+	outputRoot := types.GenerateOutputRoot(version, storageRoot[:], blockHash)
 	proofs := [][]byte{
 		proof1[:],
 		proof2[:],
@@ -246,13 +245,13 @@ func Test_UpdateProposal(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
@@ -296,13 +295,13 @@ func Test_UpdateChallengers(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1], addrsStr[2], addrsStr[3]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1], addrsStr[2], addrsStr[3]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
@@ -382,15 +381,15 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
 		BatchInfo: types.BatchInfo{
 			Submitter: addrsStr[1],
-			Chain:     "l1",
+			ChainType: types.BatchInfo_CHAIN_TYPE_INITIA,
 		},
 	}
 
@@ -402,27 +401,27 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 	msg := types.NewMsgUpdateBatchInfo(govAddr, 1, types.BatchInfo{
 		Submitter: addrsStr[2],
-		Chain:     "celestia",
+		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
 	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, _config.BatchInfo.Submitter, addrsStr[2])
-	require.Equal(t, "celestia", _config.BatchInfo.Chain)
+	require.Equal(t, types.BatchInfo_CHAIN_TYPE_CELESTIA, _config.BatchInfo.ChainType)
 	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
 
 	// current proposer signer
 	msg = types.NewMsgUpdateBatchInfo(addrsStr[0], 1, types.BatchInfo{
 		Submitter: addrsStr[3],
-		Chain:     "l1",
+		ChainType: types.BatchInfo_CHAIN_TYPE_INITIA,
 	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, _config.BatchInfo.Submitter, addrsStr[3])
-	require.Equal(t, "l1", _config.BatchInfo.Chain)
+	require.Equal(t, types.BatchInfo_CHAIN_TYPE_INITIA, _config.BatchInfo.ChainType)
 	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
 
 	// invalid signer
@@ -430,7 +429,7 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 	msg = types.NewMsgUpdateBatchInfo(invalidAddr, 1, types.BatchInfo{
 		Submitter: addrsStr[2],
-		Chain:     "celestia",
+		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
 	})
 	require.NoError(t, err)
 
@@ -446,13 +445,13 @@ func Test_UpdateMetadata(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:            addrsStr[0],
-		Challengers:         []string{addrsStr[1]},
-		SubmissionInterval:  time.Second * 10,
-		FinalizationPeriod:  time.Second * 60,
-		SubmissionStartTime: time.Now().UTC(),
-		Metadata:            []byte{1, 2, 3},
-		BatchInfo:           types.BatchInfo{Submitter: addrsStr[0], Chain: "l1"},
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
