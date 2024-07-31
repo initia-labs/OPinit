@@ -74,8 +74,6 @@ func SetBridgeInfo(
 			return errors.Wrapf(err, "failed to get bridge info from L1")
 		}
 
-		ctx.Logger().Info("bridge info", "bridge-info", bridgeInfo.BridgeConfig.String())
-
 		// create SetBridgeInfo message
 		setBridgeInfoMessage := setBridgeInfo(
 			config.SystemKeys.BridgeExecutor.L2Address,
