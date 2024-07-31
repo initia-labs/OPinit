@@ -56,7 +56,8 @@ func Test_GetHostPubKeyByConsAddr(t *testing.T) {
 	require.Error(t, err)
 
 	// set validator
-	hostValidatorStore.SetValidator(ctx, val)
+	err = hostValidatorStore.SetValidator(ctx, val)
+	require.NoError(t, err)
 
 	valPubKeyAfter, err := hostValidatorStore.GetPubKeyByConsAddr(ctx, consAddr)
 	require.NoError(t, err)
@@ -80,7 +81,8 @@ func Test_HostValidatorByConsAddr(t *testing.T) {
 	require.Error(t, err)
 
 	// set validator
-	hostValidatorStore.SetValidator(ctx, val)
+	err = hostValidatorStore.SetValidator(ctx, val)
+	require.NoError(t, err)
 
 	valAfter, err := hostValidatorStore.ValidatorByConsAddr(ctx, consAddr)
 	require.NoError(t, err)

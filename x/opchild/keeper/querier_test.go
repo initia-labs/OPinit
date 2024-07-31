@@ -23,7 +23,7 @@ func Test_QueryValidator(t *testing.T) {
 	val, err := types.NewValidator(valAddrs[0], valPubKeys[0], "validator1")
 	require.NoError(t, err)
 
-	input.OPChildKeeper.SetValidator(ctx, val)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val))
 	q := keeper.NewQuerier(input.OPChildKeeper)
 
 	res, err := q.Validator(ctx, &types.QueryValidatorRequest{ValidatorAddr: val.OperatorAddress})
@@ -40,8 +40,8 @@ func Test_QueryValidators(t *testing.T) {
 
 	val2, err := types.NewValidator(valAddrs[1], valPubKeys[1], "validator2")
 	require.NoError(t, err)
-	input.OPChildKeeper.SetValidator(ctx, val1)
-	input.OPChildKeeper.SetValidator(ctx, val2)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
 	q := keeper.NewQuerier(input.OPChildKeeper)
 
 	res, err := q.Validators(ctx, &types.QueryValidatorsRequest{})
@@ -83,7 +83,7 @@ func Test_QueryParams(t *testing.T) {
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.MinGasPrices = sdk.NewDecCoins(sdk.NewInt64DecCoin("stake", 1))
-	input.OPChildKeeper.SetParams(ctx, params)
+	require.NoError(t, input.OPChildKeeper.SetParams(ctx, params))
 
 	q := keeper.NewQuerier(input.OPChildKeeper)
 	res, err := q.Params(ctx, &types.QueryParamsRequest{})

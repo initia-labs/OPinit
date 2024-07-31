@@ -14,7 +14,7 @@ import (
 
 func Test_GenesisImportExport(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	input.OPChildKeeper.SetNextL2Sequence(ctx, 1)
+	require.NoError(t, input.OPChildKeeper.SetNextL2Sequence(ctx, 1))
 
 	seq, err := input.OPChildKeeper.IncreaseNextL2Sequence(ctx)
 	require.NoError(t, err)
@@ -23,8 +23,10 @@ func Test_GenesisImportExport(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), seq)
 
-	input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 2
-	input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 3
+	_, err = input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 2
+	require.NoError(t, err)
+	_, err = input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 3
+	require.NoError(t, err)
 
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
 	require.Nil(t, genState.BridgeInfo)

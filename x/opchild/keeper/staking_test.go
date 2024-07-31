@@ -13,7 +13,7 @@ func Test_MaxValidators(t *testing.T) {
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.MaxValidators = 10
-	input.OPChildKeeper.SetParams(ctx, params)
+	require.NoError(t, input.OPChildKeeper.SetParams(ctx, params))
 
 	maxValidators, err := input.OPChildKeeper.MaxValidators(ctx)
 	require.NoError(t, err)
@@ -26,7 +26,7 @@ func Test_HistoricalEntries(t *testing.T) {
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.HistoricalEntries = 10
-	input.OPChildKeeper.SetParams(ctx, params)
+	require.NoError(t, input.OPChildKeeper.SetParams(ctx, params))
 
 	entries, err := input.OPChildKeeper.HistoricalEntries(ctx)
 	require.NoError(t, err)

@@ -83,7 +83,8 @@ func Test_QueryTokenPair(t *testing.T) {
 		L1Denom: "l1denom",
 		L2Denom: types.L2Denom(1, "l1denom"),
 	}
-	input.OPHostKeeper.SetTokenPair(ctx, 1, pair.L2Denom, pair.L1Denom)
+	err := input.OPHostKeeper.SetTokenPair(ctx, 1, pair.L2Denom, pair.L1Denom)
+	require.NoError(t, err)
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
 	res, err := q.TokenPairByL1Denom(ctx, &types.QueryTokenPairByL1DenomRequest{
@@ -111,8 +112,8 @@ func Test_QueryTokenPairs(t *testing.T) {
 		L1Denom: "l1denom2",
 		L2Denom: types.L2Denom(1, "l1denom2"),
 	}
-	input.OPHostKeeper.SetTokenPair(ctx, 1, pair1.L2Denom, pair1.L1Denom)
-	input.OPHostKeeper.SetTokenPair(ctx, 1, pair2.L2Denom, pair2.L1Denom)
+	require.NoError(t, input.OPHostKeeper.SetTokenPair(ctx, 1, pair1.L2Denom, pair1.L1Denom))
+	require.NoError(t, input.OPHostKeeper.SetTokenPair(ctx, 1, pair2.L2Denom, pair2.L1Denom))
 
 	q := keeper.NewQuerier(input.OPHostKeeper)
 	res, err := q.TokenPairs(ctx, &types.QueryTokenPairsRequest{

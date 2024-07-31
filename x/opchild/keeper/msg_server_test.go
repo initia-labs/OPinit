@@ -54,10 +54,12 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	val, err := types.NewValidator(valAddrs[0], valPubKeys[0], "val1")
 	require.NoError(t, err)
 
-	input.OPChildKeeper.SetValidator(ctx, val)
+	err = input.OPChildKeeper.SetValidator(ctx, val)
+	require.NoError(t, err)
 
 	// apply validator updates
-	input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
@@ -83,7 +85,8 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	require.NoError(t, err)
 
 	// apply validator updates
-	input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
 
 	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
@@ -148,7 +151,8 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	params, err := ms.GetParams(ctx)
 	require.NoError(t, err)
 	params.MaxValidators = 1
-	ms.SetParams(ctx, params)
+	err = ms.SetParams(ctx, params)
+	require.NoError(t, err)
 
 	msg, err = types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
 	require.NoError(t, err)
@@ -160,7 +164,8 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	params, err = ms.GetParams(ctx)
 	require.NoError(t, err)
 	params.MaxValidators = 2
-	ms.SetParams(ctx, params)
+	err = ms.SetParams(ctx, params)
+	require.NoError(t, err)
 
 	_, err = ms.AddValidator(ctx, msg)
 	require.NoError(t, err)
@@ -176,7 +181,8 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	val, err := types.NewValidator(valAddrs[0], valPubKeys[0], "val1")
 	require.NoError(t, err)
 
-	input.OPChildKeeper.SetValidator(ctx, val)
+	err = input.OPChildKeeper.SetValidator(ctx, val)
+	require.NoError(t, err)
 
 	// invalid signer
 	msg, err := types.NewMsgRemoveValidator(addrsStr[0], valAddrsStr[0])
