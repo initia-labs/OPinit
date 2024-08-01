@@ -30,7 +30,7 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 	}
 
 	if config.BatchInfo.ChainType == BatchInfo_CHAIN_TYPE_UNSPECIFIED {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain_id must be set")
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain type must be set")
 	}
 
 	if config.BatchInfo.Submitter == "" {
@@ -66,7 +66,7 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 	}
 
 	if config.BatchInfo.ChainType == BatchInfo_CHAIN_TYPE_UNSPECIFIED {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain_id must be set")
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain type must be set")
 	} else if _, ok := BatchInfo_ChainType_name[int32(config.BatchInfo.ChainType)]; !ok {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid chain type")
 	}
