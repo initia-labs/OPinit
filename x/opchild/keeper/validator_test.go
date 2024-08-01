@@ -22,14 +22,14 @@ func Test_GetValidator(t *testing.T) {
 	require.False(t, found)
 
 	// set validator
-	input.OPChildKeeper.SetValidator(ctx, val)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val))
 
 	valAfter, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
 	require.True(t, found)
 	require.Equal(t, val, valAfter)
 
 	// remove validator
-	input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1])
+	require.NoError(t, input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1]))
 
 	// should be empty
 	_, found = input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
@@ -51,15 +51,15 @@ func Test_GetValidatorByConsAddr(t *testing.T) {
 	require.False(t, found)
 
 	// set validator
-	input.OPChildKeeper.SetValidator(ctx, val)
-	input.OPChildKeeper.SetValidatorByConsAddr(ctx, val)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val))
+	require.NoError(t, input.OPChildKeeper.SetValidatorByConsAddr(ctx, val))
 
 	valAfter, found := input.OPChildKeeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.True(t, found)
 	require.Equal(t, val, valAfter)
 
 	// remove validator
-	input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1])
+	require.NoError(t, input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1]))
 
 	// should be empty
 	_, found = input.OPChildKeeper.GetValidatorByConsAddr(ctx, consAddr)
@@ -76,8 +76,8 @@ func Test_GetAllValidators(t *testing.T) {
 	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
-	input.OPChildKeeper.SetValidator(ctx, val1)
-	input.OPChildKeeper.SetValidator(ctx, val2)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
 
 	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
@@ -96,8 +96,8 @@ func Test_GetValidators(t *testing.T) {
 	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
-	input.OPChildKeeper.SetValidator(ctx, val1)
-	input.OPChildKeeper.SetValidator(ctx, val2)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
 
 	vals, err := input.OPChildKeeper.GetValidators(ctx, 1)
 	require.NoError(t, err)
@@ -119,17 +119,17 @@ func Test_LastValidatorPower(t *testing.T) {
 	require.Equal(t, int64(0), beforePower)
 
 	// set validator with power index
-	input.OPChildKeeper.SetValidator(ctx, val1)
-	input.OPChildKeeper.SetValidator(ctx, val2)
-	input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[1], 100)
-	input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[2], 200)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
+	require.NoError(t, input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[1], 100))
+	require.NoError(t, input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[2], 200))
 
 	afterPower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, valAddrs[1])
 	require.NoError(t, err)
 	require.Equal(t, int64(100), afterPower)
 
 	// iterate all powers
-	input.OPChildKeeper.IterateLastValidatorPowers(ctx, func(key []byte, power int64) (stop bool, err error) {
+	require.NoError(t, input.OPChildKeeper.IterateLastValidatorPowers(ctx, func(key []byte, power int64) (stop bool, err error) {
 		valAddr := sdk.ValAddress(key)
 		if valAddr.Equals(valAddrs[1]) {
 			require.Equal(t, int64(100), power)
@@ -139,7 +139,7 @@ func Test_LastValidatorPower(t *testing.T) {
 		}
 
 		return false, nil
-	})
+	}))
 
 	// get last validators from the power index
 	vals, err := input.OPChildKeeper.GetLastValidators(ctx)

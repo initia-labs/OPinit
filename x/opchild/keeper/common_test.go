@@ -295,7 +295,7 @@ func _createTestInput(
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		ctx.Logger(),
 	)
-	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	require.NoError(t, bankKeeper.SetParams(ctx, banktypes.DefaultParams()))
 
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)

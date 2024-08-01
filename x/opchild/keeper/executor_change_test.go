@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
+	"math"
+	"math/big"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -16,16 +18,18 @@ func Test_RegisterExecutorChangePlan(t *testing.T) {
 	_, input := createTestInput(t, false)
 
 	// Arguments
-	l1ProposalID := rand.Uint64()
-	height := rand.Uint64()
+	l1ProposalID, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+	require.NoError(t, err)
+	height, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+	require.NoError(t, err)
 	nextValAddr := valAddrsStr[0]
 	nextExecutorAddr := []string{addrsStr[0], addrsStr[1]}
 	consensusPubKey := "l7aqGv+Zjbm0rallfqfqz+3iN31iOmgJCafWV5pGs6o="
 	moniker := "moniker"
 	info := "info"
 
-	err := input.OPChildKeeper.RegisterExecutorChangePlan(
-		l1ProposalID, height, nextValAddr,
+	err = input.OPChildKeeper.RegisterExecutorChangePlan(
+		l1ProposalID.Uint64(), height.Uint64(), nextValAddr,
 		moniker,
 		fmt.Sprintf(`{"@type":"/cosmos.crypto.ed25519.PubKey","key":"%s"}`, consensusPubKey),
 		info,
@@ -42,10 +46,10 @@ func Test_RegisterExecutorChangePlan(t *testing.T) {
 	}, moniker)
 	require.NoError(t, err)
 	require.Equal(t, types.ExecutorChangePlan{
-		ProposalID:    l1ProposalID,
-		Height:        height,
+		ProposalID:    l1ProposalID.Uint64(),
+		Height:        height.Uint64(),
 		NextExecutors: []string{addrsStr[0], addrsStr[1]},
 		NextValidator: expectedValidator,
 		Info:          info,
-	}, input.OPChildKeeper.ExecutorChangePlans[height])
+	}, input.OPChildKeeper.ExecutorChangePlans[height.Uint64()])
 }

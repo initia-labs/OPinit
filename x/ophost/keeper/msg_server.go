@@ -92,7 +92,7 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyCreator, req.Creator),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
 		sdk.NewAttribute(types.AttributeKeyChallenger, strings.Join(req.Config.Challengers, ",")),
-		sdk.NewAttribute(types.AttributeKeyBatchChain, req.Config.BatchInfo.Chain),
+		sdk.NewAttribute(types.AttributeKeyBatchChainType, req.Config.BatchInfo.ChainType.StringWithoutPrefix()),
 		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 	))
@@ -484,7 +484,7 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateBatchInfo,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
-		sdk.NewAttribute(types.AttributeKeyBatchChain, req.NewBatchInfo.Chain),
+		sdk.NewAttribute(types.AttributeKeyBatchChainType, req.NewBatchInfo.ChainType.StringWithoutPrefix()),
 		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.NewBatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),

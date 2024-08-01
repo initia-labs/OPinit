@@ -427,19 +427,21 @@ func (s *CLITestSuite) TestNewSetBridgeInfo() {
 	require.NoError(err)
 	defer os.Remove(validConfig.Name())
 
-	invalidConfig.WriteString(`{}`)
-	validConfig.WriteString(`{
+	_, err = invalidConfig.WriteString(`{}`)
+	s.NoError(err)
+	_, err = validConfig.WriteString(`{
         "challengers": ["init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g"],
         "proposer": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
         "submission_interval": "100s",
         "finalization_period": "1000s",
-        "submission_start_time" : "2023-12-01T00:00:00Z",
+        "submission_start_height" : "1",
         "metadata": "channel-0",
 		"batch_info": {
 			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
-			"chain": "l1"
+			"chain_type": "INITIA"
 		}
     }`)
+	s.NoError(err)
 
 	testCases := []struct {
 		name         string

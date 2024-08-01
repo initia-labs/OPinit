@@ -16,7 +16,8 @@ func Test_Params(t *testing.T) {
 	params.MinGasPrices = sdk.NewDecCoins()
 	params.FeeWhitelist = []string{addrsStr[0], addrsStr[1]}
 
-	input.OPChildKeeper.SetParams(ctx, params)
+	err = input.OPChildKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
 
 	minGasPrices, err := input.OPChildKeeper.MinGasPrices(ctx)
 	require.NoError(t, err)
@@ -45,9 +46,9 @@ func Test_Change_MaxValidators(t *testing.T) {
 	err = input.OPChildKeeper.SetParams(ctx, params)
 	require.NoError(t, err)
 
-	input.OPChildKeeper.Validators.Set(ctx, []byte{0}, types.Validator{})
+	err = input.OPChildKeeper.Validators.Set(ctx, []byte{0}, types.Validator{})
 	require.NoError(t, err)
-	input.OPChildKeeper.Validators.Set(ctx, []byte{1}, types.Validator{})
+	err = input.OPChildKeeper.Validators.Set(ctx, []byte{1}, types.Validator{})
 	require.NoError(t, err)
 
 	// cannot be lower than current number of validators

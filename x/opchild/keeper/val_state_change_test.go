@@ -21,8 +21,8 @@ func Test_BlockValidatorUpdates(t *testing.T) {
 	require.NoError(t, err)
 
 	// set validators
-	input.OPChildKeeper.SetValidator(ctx, val1)
-	input.OPChildKeeper.SetValidator(ctx, val2)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
 
 	// apply val updates
 	updates, err := input.OPChildKeeper.BlockValidatorUpdates(ctx)
@@ -48,7 +48,7 @@ func Test_BlockValidatorUpdates(t *testing.T) {
 
 	// val2 removed
 	val2.ConsPower = 0
-	input.OPChildKeeper.SetValidator(ctx, val2)
+	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
 	updates, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
 	require.NoError(t, err)
 	require.Equal(t, []abci.ValidatorUpdate{val2.ABCIValidatorUpdateZero()}, updates)

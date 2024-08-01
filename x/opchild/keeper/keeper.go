@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -66,7 +65,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	bh types.BridgeHook,
-	ok *oraclekeeper.Keeper,
+	ok types.OracleKeeper,
 	router *baseapp.MsgServiceRouter,
 	authority string,
 	addressCodec address.Codec,

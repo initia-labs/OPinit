@@ -11,7 +11,7 @@ export TARGET_NETWORK=mahalo-3
 
 # Using default setup
 #
-# To use default setup, you need to prepare L1 coin funded 
+# To use default setup, you need to prepare L1 coin funded
 # bridge-executor account.
 #
 # Get funds from the faucet
@@ -27,58 +27,58 @@ minitiad launch $TARGET_NETWORK --with-config [path-to-config]
 
 ```json
 {
- "l1_config": {
-  "chain_id": "initiation-1",
-  "rpc_url": "https://rpc.initiation-1.initia.xyz:443",
-  "gas_prices": "0.15uinit"
- },
- "l2_config": {
-  "chain_id": "minitia-XDzNjd-1",
-  "denom": "umin",
-  "moniker": "operator"
- },
- "op_bridge": {
-  "output_submission_start_time": "2024-05-08T12:23:15.488692+09:00",
-  "output_submission_interval": 3600000000000,
-  "output_finalization_period": 3600000000000,
-  "batch_submission_target": "l1"
- },
- "system_keys": {
-  "validator": {
-   "address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
-   "mnemonic": "digital kingdom slim fall cereal aspect expose trade once antique treat spatial unfair trip silver diesel other friend invest valve human blouse decrease salt"
+  "l1_config": {
+    "chain_id": "initiation-1",
+    "rpc_url": "https://rpc.initiation-1.initia.xyz:443",
+    "gas_prices": "0.15uinit"
   },
-  "bridge_executor": {
-   "address": "init13skjgs2x96c4sk9mfkfdzjywm75l6wy63j5gyn",
-   "mnemonic": "junk aunt group member rebel dinosaur will trial jacket core club obscure morning unit fame round render napkin boy chest same patrol twelve medal"
+  "l2_config": {
+    "chain_id": "minitia-XDzNjd-1",
+    "denom": "umin",
+    "moniker": "operator"
   },
-  "output_submitter": {
-   "address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f",
+  "op_bridge": {
+    "output_submission_start_height": "1",
+    "output_submission_interval": 3600000000000,
+    "output_finalization_period": 3600000000000,
+    "batch_submission_target": "INITIA"
   },
-  "batch_submitter": {
-   "address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72",
+  "system_keys": {
+    "validator": {
+      "address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
+      "mnemonic": "digital kingdom slim fall cereal aspect expose trade once antique treat spatial unfair trip silver diesel other friend invest valve human blouse decrease salt"
+    },
+    "bridge_executor": {
+      "address": "init13skjgs2x96c4sk9mfkfdzjywm75l6wy63j5gyn",
+      "mnemonic": "junk aunt group member rebel dinosaur will trial jacket core club obscure morning unit fame round render napkin boy chest same patrol twelve medal"
+    },
+    "output_submitter": {
+      "address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f"
+    },
+    "batch_submitter": {
+      "address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72"
+    },
+    "challenger": {
+      "address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88"
+    }
   },
-  "challenger": {
-   "address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88",
-  }
- },
- "genesis_accounts": [
-  {
-   "address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
-   "coins": "100000000umin"
-  },
-  {
-   "address": "init13skjgs2x96c4sk9mfkfdzjywm75l6wy63j5gyn"
-  },
-  {
-   "address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f"
-  },
-  {
-   "address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72"
-  },
-  {
-   "address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88"
-  }
- ]
+  "genesis_accounts": [
+    {
+      "address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
+      "coins": "100000000umin"
+    },
+    {
+      "address": "init13skjgs2x96c4sk9mfkfdzjywm75l6wy63j5gyn"
+    },
+    {
+      "address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f"
+    },
+    {
+      "address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72"
+    },
+    {
+      "address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88"
+    }
+  ]
 }
 ```

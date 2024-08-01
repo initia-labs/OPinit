@@ -17,11 +17,11 @@ func Test_HistoricalInfo(t *testing.T) {
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.HistoricalEntries = 2
-	input.OPChildKeeper.SetParams(ctx, params)
+	require.NoError(t, input.OPChildKeeper.SetParams(ctx, params))
 
-	input.OPChildKeeper.TrackHistoricalInfo(sdkCtx.WithBlockHeight(1))
-	input.OPChildKeeper.TrackHistoricalInfo(sdkCtx.WithBlockHeight(2))
-	input.OPChildKeeper.TrackHistoricalInfo(sdkCtx.WithBlockHeight(3))
+	require.NoError(t, input.OPChildKeeper.TrackHistoricalInfo(sdkCtx.WithBlockHeight(1)))
+	require.NoError(t, input.OPChildKeeper.TrackHistoricalInfo(sdkCtx.WithBlockHeight(2)))
+	require.NoError(t, input.OPChildKeeper.TrackHistoricalInfo(sdkCtx.WithBlockHeight(3)))
 
 	_, err = input.OPChildKeeper.GetHistoricalInfo(ctx, 1)
 	require.ErrorIs(t, err, collections.ErrNotFound)

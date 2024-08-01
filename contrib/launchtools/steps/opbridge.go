@@ -48,7 +48,7 @@ func InitializeOpBridge(
 			config.OpBridge.BatchSubmitTarget,
 			*config.OpBridge.OutputSubmissionInterval,
 			*config.OpBridge.OutputFinalizationPeriod,
-			*config.OpBridge.OutputSubmissionStartTime,
+			config.OpBridge.OutputSubmissionStartHeight,
 		)
 
 		ctx.Logger().Info("creating op bridge...", "message", createOpBridgeMessage.String())
@@ -108,10 +108,10 @@ func createOpBridge(
 	challengerAddress string,
 	outputAddress string,
 	submitterAddress string,
-	submitTarget string,
+	submitTarget ophosttypes.BatchInfo_ChainType,
 	submissionInterval time.Duration,
 	finalizationPeriod time.Duration,
-	submissionStartTime time.Time,
+	submissionStartHeight uint64,
 ) (*ophosttypes.MsgCreateBridge, error) {
 	// generate ophosthooktypes.PermsMetadata
 	// assume that all channels in IBC keeper need to be permitted on OPChild
@@ -138,12 +138,12 @@ func createOpBridge(
 			Proposer:    outputAddress,
 			BatchInfo: ophosttypes.BatchInfo{
 				Submitter: submitterAddress,
-				Chain:     submitTarget,
+				ChainType: submitTarget,
 			},
-			SubmissionInterval:  submissionInterval,
-			FinalizationPeriod:  finalizationPeriod,
-			SubmissionStartTime: submissionStartTime,
-			Metadata:            permsMetadataJSON,
+			SubmissionInterval:    submissionInterval,
+			FinalizationPeriod:    finalizationPeriod,
+			SubmissionStartHeight: submissionStartHeight,
+			Metadata:              permsMetadataJSON,
 		},
 	), nil
 }

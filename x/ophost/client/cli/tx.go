@@ -101,8 +101,8 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 					"proposer": "bech32-addresss",
 					"submission_interval": "duration",
 					"finalization_period": "duration",
-					"submission_start_time" : "rfc3339-datetime",
-					"batch_info": {"submitter": "bech32-address","chain": "l1|celestia"},
+					"submission_start_height" : "l2-block-height",
+					"batch_info": {"submitter": "bech32-address","chain": "INITIA|CELESTIA"},
 					"metadata": "{\"perm_channels\":[{\"port_id\":\"transfer\", \"channel_id\":\"channel-0\"}, {\"port_id\":\"icqhost\", \"channel_id\":\"channel-1\"}]}"
 				}`, version.AppName,
 			),
@@ -136,19 +136,19 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			submissionStartTime, err := time.Parse(time.RFC3339, origConfig.SubmissionStartTime)
+			submissionStartHeight, err := strconv.ParseUint(origConfig.SubmissionStartHeight, 10, 64)
 			if err != nil {
 				return err
 			}
 
 			config := types.BridgeConfig{
-				Challengers:         origConfig.Challengers, // Ensure Challenger is properly assigned
-				Proposer:            origConfig.Proposer,
-				SubmissionInterval:  submissionInterval,
-				FinalizationPeriod:  finalizationPeriod,
-				SubmissionStartTime: submissionStartTime,
-				Metadata:            []byte(origConfig.Metadata),
-				BatchInfo:           types.BatchInfo(origConfig.BatchInfo),
+				Challengers:           origConfig.Challengers, // Ensure Challenger is properly assigned
+				Proposer:              origConfig.Proposer,
+				SubmissionInterval:    submissionInterval,
+				FinalizationPeriod:    finalizationPeriod,
+				SubmissionStartHeight: submissionStartHeight,
+				Metadata:              []byte(origConfig.Metadata),
+				BatchInfo:             origConfig.BatchInfo,
 			}
 
 			if err = config.Validate(ac); err != nil {

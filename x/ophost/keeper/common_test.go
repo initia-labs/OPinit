@@ -279,7 +279,8 @@ func _createTestInput(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ctx.Logger(),
 	)
-	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := bankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	require.NoError(t, err)
 
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
@@ -297,7 +298,8 @@ func _createTestInput(
 	)
 
 	ophostParams := ophosttypes.DefaultParams()
-	ophostKeeper.SetParams(ctx, ophostParams)
+	err = ophostKeeper.SetParams(ctx, ophostParams)
+	require.NoError(t, err)
 
 	// register handlers to msg router
 	ophosttypes.RegisterMsgServer(msgRouter, ophostkeeper.NewMsgServerImpl(*ophostKeeper))

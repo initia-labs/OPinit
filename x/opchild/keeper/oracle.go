@@ -14,7 +14,6 @@ import (
 	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 	"github.com/skip-mev/slinky/pkg/math/voteweighted"
 	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 
 	"github.com/initia-labs/OPinit/x/opchild/l2slinky"
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -31,7 +30,7 @@ type L2OracleHandler struct {
 
 func NewL2OracleHandler(
 	k *Keeper,
-	oracleKeeper *oraclekeeper.Keeper,
+	oracleKeeper types.OracleKeeper,
 	logger log.Logger,
 ) *L2OracleHandler {
 	return &L2OracleHandler{

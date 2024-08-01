@@ -13,7 +13,7 @@ func Test_Params(t *testing.T) {
 	params := input.OPHostKeeper.GetParams(ctx)
 	params.RegistrationFee = sdk.NewCoins()
 
-	input.OPHostKeeper.SetParams(ctx, params)
-
+	err := input.OPHostKeeper.SetParams(ctx, params)
+	require.NoError(t, err)
 	require.True(t, input.OPHostKeeper.RegistrationFee(ctx).IsZero())
 }

@@ -148,6 +148,7 @@ func (s *CLITestSuite) TestNewRecordBatchCmd() {
 	}
 }
 
+//nolint:dupl
 func (s *CLITestSuite) TestNewCreateBridge() {
 	require := s.Require()
 	cmd := cli.NewCreateBridge(s.ac)
@@ -162,19 +163,21 @@ func (s *CLITestSuite) TestNewCreateBridge() {
 	require.NoError(err)
 	defer os.Remove(validConfig.Name())
 
-	invalidConfig.WriteString(`{}`)
-	validConfig.WriteString(`{
+	_, err = invalidConfig.WriteString(`{}`)
+	s.NoError(err)
+	_, err = validConfig.WriteString(`{
         "challengers": ["init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g"],
         "proposer": "init1k2svyvm60r8rhnzr9vemk5f6fksvm6tyeujp3c",
         "submission_interval": "100s",
         "finalization_period": "1000s",
-        "submission_start_time" : "2023-12-01T00:00:00Z",
+        "submission_start_height" : "1",
         "metadata": "channel-0",
 		"batch_info": {
 			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
-			"chain": "l1"
+			"chain_type": "CELESTIA"
 		}
     }`)
+	s.NoError(err)
 
 	testCases := []struct {
 		name         string
@@ -494,6 +497,7 @@ func (s *CLITestSuite) TestNewInitiateTokenDeposit() {
 	}
 }
 
+//nolint:dupl
 func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 	require := s.Require()
 	cmd := cli.NewFinalizeTokenWithdrawal(s.ac)
@@ -508,8 +512,9 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 	require.NoError(err)
 	defer os.Remove(validConfig.Name())
 
-	invalidConfig.WriteString(`{}`)
-	validConfig.WriteString(`{
+	_, err = invalidConfig.WriteString(`{}`)
+	s.NoError(err)
+	_, err = validConfig.WriteString(`{
 		"bridge_id": 1,
 		"output_index": 1180,
 		"withdrawal_proofs": [
@@ -522,6 +527,7 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
 		"latest_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
 		}`)
+	s.NoError(err)
 
 	testCases := []struct {
 		name         string

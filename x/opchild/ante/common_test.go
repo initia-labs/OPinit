@@ -80,22 +80,6 @@ var (
 		addrs[4].String(),
 	}
 
-	valAddrs = []sdk.ValAddress{
-		sdk.ValAddress(pubKeys[0].Address()),
-		sdk.ValAddress(pubKeys[1].Address()),
-		sdk.ValAddress(pubKeys[2].Address()),
-		sdk.ValAddress(pubKeys[3].Address()),
-		sdk.ValAddress(pubKeys[4].Address()),
-	}
-
-	valAddrsStr = []string{
-		valAddrs[0].String(),
-		valAddrs[1].String(),
-		valAddrs[2].String(),
-		valAddrs[3].String(),
-		valAddrs[4].String(),
-	}
-
 	testDenoms = []string{
 		"test1",
 		"test2",
@@ -210,11 +194,6 @@ type TestKeepers struct {
 	Faucet         *TestFaucet
 }
 
-// createDefaultTestInput common settings for createTestInput
-func createDefaultTestInput(t testing.TB) (context.Context, TestKeepers) {
-	return createTestInput(t, false)
-}
-
 // createTestInput encoders can be nil to accept the defaults, or set it to override some of the message handlers (like default)
 func createTestInput(t testing.TB, isCheckTx bool) (context.Context, TestKeepers) {
 	return _createTestInput(t, isCheckTx, dbm.NewMemDB())
@@ -295,7 +274,7 @@ func _createTestInput(
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		ctx.Logger(),
 	)
-	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	require.NoError(t, bankKeeper.SetParams(ctx, banktypes.DefaultParams()))
 
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)

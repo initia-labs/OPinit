@@ -1,20 +1,17 @@
 package cli
 
+import "github.com/initia-labs/OPinit/x/ophost/types"
+
 // BridgeConfig defines the set of bridge config.
 // NOTE: it is a modified BridgeConfig from x/ophost/types/types.go to make unmarshal easier
 type BridgeCliConfig struct {
-	Challengers         []string     `json:"challengers"`
-	Proposer            string       `json:"proposer"`
-	SubmissionInterval  string       `json:"submission_interval"`
-	FinalizationPeriod  string       `json:"finalization_period"`
-	SubmissionStartTime string       `json:"submission_start_time"`
-	Metadata            string       `json:"metadata"`
-	BatchInfo           BatchCliInfo `json:"batch_info"`
-}
-
-type BatchCliInfo struct {
-	Submitter string `json:"submitter"`
-	Chain     string `json:"chain"`
+	Challengers           []string        `json:"challengers"`
+	Proposer              string          `json:"proposer"`
+	SubmissionInterval    string          `json:"submission_interval"`
+	FinalizationPeriod    string          `json:"finalization_period"`
+	SubmissionStartHeight string          `json:"submission_start_height"`
+	Metadata              string          `json:"metadata"`
+	BatchInfo             types.BatchInfo `json:"batch_info"`
 }
 
 // MsgFinalizeTokenWithdrawal is a message to remove a validator from designated list

@@ -49,20 +49,29 @@ message BridgeConfig {
     (gogoproto.nullable)    = false,
     (amino.dont_omitempty)  = true
   ];
-  // The time of the first l2 block recorded.
-  // NOTE: this param is currently not used, but will be used for challenge in future.
-  google.protobuf.Timestamp submission_start_time = 6
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // The the first l2 block will be recorded on l1.
+  uint64 submission_start_height = 6;
   // Normally it is IBC channelID for permissioned IBC relayer.
   bytes metadata = 7;
 }
 
 // BatchInfo defines the set of batch information.
 message BatchInfo {
+  // ChainType defines the type of chain.
+  enum ChainType {
+    // Unspecified chain type.
+    CHAIN_TYPE_UNSPECIFIED = 0;
+    // The chain type of the initia chain.
+    CHAIN_TYPE_INITIA = 1;
+    // The chain type of the celestia chain.
+    CHAIN_TYPE_CELESTIA = 2;
+  }
+
   // The address of the batch submitter.
   string submitter = 1;
-  // The target chain
-  string chain = 2;
+
+  // The target chain type.
+  ChainType chain_type = 2;
 }
 
 // TokenPair defines l1 and l2 token pair
