@@ -116,7 +116,7 @@ type OpBridge struct {
 	OutputSubmissionStartHeight uint64         `json:"output_submission_start_height,omitempty"`
 
 	// batch submission setup
-	BatchSubmitTarget ophosttypes.BatchInfo_ChainType `json:"batch_submission_target"`
+	BatchSubmissionTarget ophosttypes.BatchInfo_ChainType `json:"batch_submission_target"`
 }
 
 func (opBridge *OpBridge) Finalize() error {
@@ -124,8 +124,8 @@ func (opBridge *OpBridge) Finalize() error {
 		opBridge.OutputSubmissionStartHeight = 1
 	}
 
-	if opBridge.BatchSubmitTarget == ophosttypes.BatchInfo_CHAIN_TYPE_UNSPECIFIED {
-		opBridge.BatchSubmitTarget = ophosttypes.BatchInfo_CHAIN_TYPE_INITIA
+	if opBridge.BatchSubmissionTarget == ophosttypes.BatchInfo_CHAIN_TYPE_UNSPECIFIED {
+		opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CHAIN_TYPE_INITIA
 	}
 
 	if opBridge.OutputSubmissionInterval == nil {
@@ -139,6 +139,64 @@ func (opBridge *OpBridge) Finalize() error {
 	}
 
 	return nil
+}
+
+func (opBridge *OpBridge) UnmarshalJSON(data []byte) error {
+	var tmp struct {
+		OutputSubmissionInterval    string                          `json:"output_submission_interval,omitempty"`
+		OutputFinalizationPeriod    string                          `json:"output_finalization_period,omitempty"`
+		OutputSubmissionStartHeight uint64                          `json:"output_submission_start_height,omitempty"`
+		BatchSubmissionTarget       ophosttypes.BatchInfo_ChainType `json:"batch_submission_target,omitempty"`
+	}
+
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	if tmp.OutputSubmissionInterval != "" {
+		d, err := time.ParseDuration(tmp.OutputSubmissionInterval)
+		if err != nil {
+			return err
+		}
+
+		opBridge.OutputSubmissionInterval = &d
+	}
+
+	if tmp.OutputFinalizationPeriod != "" {
+		d, err := time.ParseDuration(tmp.OutputFinalizationPeriod)
+		if err != nil {
+			return err
+		}
+
+		opBridge.OutputFinalizationPeriod = &d
+	}
+
+	opBridge.OutputSubmissionStartHeight = tmp.OutputSubmissionStartHeight
+	opBridge.BatchSubmissionTarget = tmp.BatchSubmissionTarget
+
+	return nil
+}
+
+func (opBridge OpBridge) MarshalJSON() ([]byte, error) {
+	tmp := struct {
+		OutputSubmissionInterval    string                          `json:"output_submission_interval,omitempty"`
+		OutputFinalizationPeriod    string                          `json:"output_finalization_period,omitempty"`
+		OutputSubmissionStartHeight uint64                          `json:"output_submission_start_height,omitempty"`
+		BatchSubmissionTarget       ophosttypes.BatchInfo_ChainType `json:"batch_submission_target,omitempty"`
+	}{
+		OutputSubmissionStartHeight: opBridge.OutputSubmissionStartHeight,
+		BatchSubmissionTarget:       opBridge.BatchSubmissionTarget,
+	}
+
+	if opBridge.OutputSubmissionInterval != nil {
+		tmp.OutputSubmissionInterval = opBridge.OutputSubmissionInterval.String()
+	}
+
+	if opBridge.OutputFinalizationPeriod != nil {
+		tmp.OutputFinalizationPeriod = opBridge.OutputFinalizationPeriod.String()
+	}
+
+	return json.Marshal(tmp)
 }
 
 type L1Config struct {
