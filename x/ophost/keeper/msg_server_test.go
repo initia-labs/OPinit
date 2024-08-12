@@ -85,6 +85,7 @@ func Test_ProposeOutput(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, types.Output{
 		OutputRoot:    []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		L1BlockNumber: uint64(ctx.BlockHeight()),
 		L1BlockTime:   blockTime,
 		L2BlockNumber: 100,
 	}, output)

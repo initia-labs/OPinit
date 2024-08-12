@@ -16,7 +16,7 @@ func (output Output) Validate() error {
 }
 
 func (output Output) IsEmpty() bool {
-	return len(output.OutputRoot) == 0 && output.L1BlockTime.IsZero() && output.L2BlockNumber == 0
+	return len(output.OutputRoot) == 0 && output.L1BlockNumber == 0 && output.L2BlockNumber == 0
 }
 
 func GenerateOutputRoot(version byte, storageRoot []byte, latestBlockHash []byte) [32]byte {

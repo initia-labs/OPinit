@@ -84,11 +84,13 @@ message TokenPair {
 message Output {
   // Hash of the l2 output.
   bytes output_root = 1;
+  // The l1 block number that the output root was submitted in.
+  uint64 l1_block_number = 2;
   // Timestamp of the l1 block that the output root was submitted in.
-  google.protobuf.Timestamp l1_block_time = 2
+  google.protobuf.Timestamp l1_block_time = 3
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // The l2 block number that the output root was submitted in.
-  uint64 l2_block_number = 3;
+  uint64 l2_block_number = 4;
 }
 
 // BatchInfoWithOutput defines the batch information with output.
