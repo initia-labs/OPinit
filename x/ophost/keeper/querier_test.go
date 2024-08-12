@@ -130,7 +130,7 @@ func Test_QueryOutputProposal(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	output := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
-		L1BlockTime:   time.Now().UTC(),
+		L1BlockNumber: 1,
 		L2BlockNumber: 100,
 	}
 	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output))
@@ -148,12 +148,14 @@ func Test_QueryOutputProposals(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
-		L1BlockTime:   time.Now().UTC(),
+		L1BlockNumber: 1,
+		L1BlockTime:   ctx.BlockTime(),
 		L2BlockNumber: 100,
 	}
 	output2 := types.Output{
 		OutputRoot:    []byte{3, 4, 5},
-		L1BlockTime:   time.Now().UTC(),
+		L1BlockNumber: 1,
+		L1BlockTime:   ctx.BlockTime(),
 		L2BlockNumber: 100,
 	}
 	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output1))
@@ -194,7 +196,8 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 	proposeTime := time.Now().UTC()
 	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
-		L1BlockTime:   proposeTime,
+		L1BlockNumber: 1,
+		L1BlockTime:   ctx.BlockTime(),
 		L2BlockNumber: 100,
 	})
 	require.NoError(t, err)
@@ -214,7 +217,8 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 	require.Equal(t, uint64(1), res.OutputIndex)
 	require.Equal(t, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
-		L1BlockTime:   proposeTime,
+		L1BlockNumber: 1,
+		L1BlockTime:   ctx.BlockTime(),
 		L2BlockNumber: 100,
 	}, res.OutputProposal)
 }
@@ -271,7 +275,7 @@ func Test_QueryBatchInfos(t *testing.T) {
 		},
 		Output: types.Output{
 			OutputRoot:    []byte{1, 2, 3},
-			L1BlockTime:   time.Now().UTC(),
+			L1BlockNumber: 100,
 			L2BlockNumber: 300,
 		},
 	}

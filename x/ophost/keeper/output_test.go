@@ -28,21 +28,25 @@ func Test_IterateOutputProposal(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 101,
 	}
 	output2 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},
+		L1BlockNumber: 2,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 102,
 	}
 	output3 := types.Output{
 		OutputRoot:    []byte{7, 8, 9},
+		L1BlockNumber: 3,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 103,
 	}
 	output4 := types.Output{
 		OutputRoot:    []byte{10, 11, 12},
+		L1BlockNumber: 4,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 104,
 	}
@@ -93,6 +97,7 @@ func Test_IsFinalized(t *testing.T) {
 	proposeTime := time.Now().UTC()
 	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   proposeTime,
 		L2BlockNumber: 100,
 	})
@@ -151,6 +156,7 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 	proposeTime := time.Now().UTC()
 	err = input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   proposeTime,
 		L2BlockNumber: 100,
 	})
@@ -166,6 +172,7 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 	require.Equal(t, uint64(1), index)
 	require.Equal(t, types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   proposeTime,
 		L2BlockNumber: 100,
 	}, output)
@@ -176,6 +183,7 @@ func Test_DeleteOutputProposal(t *testing.T) {
 
 	output := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   ctx.BlockTime(),
 		L2BlockNumber: 100,
 	}

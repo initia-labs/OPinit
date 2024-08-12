@@ -151,6 +151,7 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 	// store output proposal
 	if err := ms.SetOutputProposal(ctx, bridgeId, outputIndex, types.Output{
 		OutputRoot:    outputRoot,
+		L1BlockNumber: uint64(sdkCtx.BlockHeight()),
 		L1BlockTime:   sdkCtx.BlockTime(),
 		L2BlockNumber: l2BlockNumber,
 	}); err != nil {

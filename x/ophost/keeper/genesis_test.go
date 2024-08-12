@@ -42,16 +42,19 @@ func Test_GenesisExport(t *testing.T) {
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   time.Now().UTC(),
+		L1BlockNumber: 1,
 		L2BlockNumber: 100,
 	}
 	output2 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   time.Now().UTC(),
+		L1BlockNumber: 2,
 		L2BlockNumber: 200,
 	}
 	output3 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   time.Now().UTC(),
+		L1BlockNumber: 1,
 		L2BlockNumber: 100,
 	}
 	require.NoError(t, input.OPHostKeeper.SetOutputProposal(ctx, 1, 1, output1))
@@ -118,16 +121,19 @@ func Test_GenesisImportExport(t *testing.T) {
 	}
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 100,
 	}
 	output2 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 2,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 200,
 	}
 	output3 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
+		L1BlockNumber: 1,
 		L1BlockTime:   time.Now().UTC(),
 		L2BlockNumber: 100,
 	}
