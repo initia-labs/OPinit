@@ -519,6 +519,9 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 	bridgeInfo := types.BridgeInfo{
 		L1ChainId:  defaultHostChainId,
 		L1ClientId: defaultClientId,
+		BridgeConfig: ophosttypes.BridgeConfig{
+			OracleEnabled: true,
+		},
 	}
 	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 	require.NoError(t, err)
@@ -620,4 +623,25 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 
 	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[1], 11, extCommitBz))
 	require.Error(t, err)
+}
+
+func Test_MsgServer_UpdateOracleFail(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	opchildKeeper := input.OPChildKeeper
+
+	defaultHostChainId := "test-host-1"
+	defaultClientId := "test-client-id"
+	bridgeInfo := types.BridgeInfo{
+		L1ChainId:  defaultHostChainId,
+		L1ClientId: defaultClientId,
+		BridgeConfig: ophosttypes.BridgeConfig{
+			OracleEnabled: false,
+		},
+	}
+	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(opchildKeeper)
+	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[0], 11, []byte{}))
+	require.EqualError(t, err, types.ErrOracleDisabled.Error())
 }
