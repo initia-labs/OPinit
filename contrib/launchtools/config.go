@@ -47,7 +47,7 @@ func NewConfig(path string) (*Config, error) {
 	return ret, nil
 }
 
-func (i *Config) Finalize(targetNetwork string, buf *bufio.Reader) error {
+func (i *Config) Finalize(buf *bufio.Reader) error {
 	if i.L1Config == nil {
 		i.L1Config = &L1Config{}
 	}
@@ -65,19 +65,19 @@ func (i *Config) Finalize(targetNetwork string, buf *bufio.Reader) error {
 	}
 
 	// finalize all fields
-	if err := i.L1Config.Finalize(targetNetwork); err != nil {
+	if err := i.L1Config.Finalize(buf); err != nil {
 		return err
 	}
 	if err := i.L2Config.Finalize(); err != nil {
 		return err
 	}
-	if err := i.OpBridge.Finalize(); err != nil {
+	if err := i.OpBridge.Finalize(buf); err != nil {
 		return err
 	}
 	if err := i.SystemKeys.Finalize(buf); err != nil {
 		return err
 	}
-	if err := i.GenesisAccounts.Finalize(*i.SystemKeys); err != nil {
+	if err := i.GenesisAccounts.Finalize(i.SystemKeys); err != nil {
 		return err
 	}
 
@@ -117,9 +117,12 @@ type OpBridge struct {
 
 	// batch submission setup
 	BatchSubmissionTarget ophosttypes.BatchInfo_ChainType `json:"batch_submission_target"`
+
+	// oracle setup
+	EnableOracle bool `json:"enable_oracle,omitempty"`
 }
 
-func (opBridge *OpBridge) Finalize() error {
+func (opBridge *OpBridge) Finalize(buf *bufio.Reader) error {
 	if opBridge.OutputSubmissionStartHeight == 0 {
 		opBridge.OutputSubmissionStartHeight = 1
 	}
@@ -136,6 +139,15 @@ func (opBridge *OpBridge) Finalize() error {
 	if opBridge.OutputFinalizationPeriod == nil {
 		period := time.Hour
 		opBridge.OutputFinalizationPeriod = &period
+	}
+
+	if !opBridge.EnableOracle {
+		enableOracle, err := input.GetConfirmation("Enable oracle?", buf, os.Stderr)
+		if err != nil {
+			return err
+		}
+
+		opBridge.EnableOracle = enableOracle
 	}
 
 	return nil
@@ -205,13 +217,33 @@ type L1Config struct {
 	GasPrices string `json:"gas_prices,omitempty"`
 }
 
-func (l1config *L1Config) Finalize(targetNetwork string) error {
+func (l1config *L1Config) Finalize(buf *bufio.Reader) error {
 	if l1config.ChainID == "" {
-		l1config.ChainID = targetNetwork
+		chainID, err := input.GetString("Enter L1 chain id", buf)
+		if err != nil {
+			return err
+		}
+		l1config.ChainID = chainID
 	}
 
 	if l1config.RPC_URL == "" {
-		l1config.RPC_URL = fmt.Sprintf("https://rpc.%s.initia.xyz:443", targetNetwork)
+		defaultRPC := fmt.Sprintf("https://rpc.%s.initia.xyz:443", l1config.ChainID)
+		promt := fmt.Sprintf("Use default L1 rpc [%s]?", defaultRPC)
+		useDefault, err := input.GetConfirmation(promt, buf, os.Stderr)
+		if err != nil {
+			return err
+		}
+
+		if useDefault {
+			l1config.RPC_URL = fmt.Sprintf("https://rpc.%s.initia.xyz:443", l1config.ChainID)
+		} else {
+			rpcURL, err := input.GetString("Enter L1 rpc url", buf)
+			if err != nil {
+				return err
+			}
+
+			l1config.RPC_URL = rpcURL
+		}
 	}
 
 	if l1config.GasPrices == "" {
@@ -239,7 +271,7 @@ type GenesisAccount struct {
 
 type GenesisAccounts []GenesisAccount
 
-func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
+func (gas *GenesisAccounts) Finalize(systemKeys *SystemKeys) error {
 	keys := reflect.ValueOf(systemKeys)
 	for idx := 0; idx < keys.NumField(); idx++ {
 		k, ok := keys.Field(idx).Interface().(*SystemAccount)
