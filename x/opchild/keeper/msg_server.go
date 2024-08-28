@@ -600,7 +600,16 @@ func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle
 		return nil, err
 	}
 
-	err := ms.Keeper.ApplyOracleUpdate(ctx, req.Height, req.Data)
+	// config check
+	info, err := ms.Keeper.BridgeInfo.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !info.BridgeConfig.OracleEnabled {
+		return nil, types.ErrOracleDisabled
+	}
+
+	err = ms.Keeper.ApplyOracleUpdate(ctx, req.Height, req.Data)
 	if err != nil {
 		return nil, err
 	}

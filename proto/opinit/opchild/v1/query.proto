@@ -147,11 +147,11 @@ message QueryForceWithdrawalProofsRequest {
 // QueryForceWithdrawalProofsResponse is response type for the Query/ForceWithdrawalProofs RPC method.
 message QueryForceWithdrawalProofsResponse {
   // withdrawal commitments and proofs
-  .cometbft.crypto.v1.ProofOps commitment_proof = 3
+  cometbft.crypto.v1.ProofOps commitment_proof = 3
       [(gogoproto.moretags) = "yaml:\"commitment_proof\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // app hash and proof
-  bytes                     app_hash       = 4 [(gogoproto.moretags) = "yaml:\"app_hash\""];
-  .cometbft.crypto.v1.Proof app_hash_proof = 5
+  bytes                    app_hash       = 4 [(gogoproto.moretags) = "yaml:\"app_hash\""];
+  cometbft.crypto.v1.Proof app_hash_proof = 5
       [(gogoproto.moretags) = "yaml:\"app_hash_proof\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }

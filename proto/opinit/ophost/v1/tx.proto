@@ -212,12 +212,12 @@ message MsgForceTokenWithdrawal {
   string receiver    = 1 [(gogoproto.moretags) = "yaml:\"receiver\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   cosmos.base.v1beta1.Coin amount = 6
       [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-  .cometbft.crypto.v1.ProofOps commitment_proof = 7
+  cometbft.crypto.v1.ProofOps commitment_proof = 7
       [(gogoproto.moretags) = "yaml:\"commitment_proof\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // app hash and proof
-  bytes                     app_hash       = 8 [(gogoproto.moretags) = "yaml:\"app_hash\""];
-  .cometbft.crypto.v1.Proof app_hash_proof = 9
+  bytes                    app_hash       = 8 [(gogoproto.moretags) = "yaml:\"app_hash\""];
+  cometbft.crypto.v1.Proof app_hash_proof = 9
       [(gogoproto.moretags) = "yaml:\"app_hash_proof\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
   // output root proofs
@@ -282,7 +282,7 @@ message MsgUpdateBatchInfo {
   option (amino.name)           = "ophost/MsgUpdateBatchInfo";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
-  // or the current challenger address.
+  // or the current proposer address.
   string    authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64    bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   BatchInfo new_batch_info = 3
@@ -296,6 +296,21 @@ message MsgUpdateBatchInfoResponse {
   // last finalized l2 block number
   uint64 l2_block_number = 2;
 }
+
+// MsgUpdateOracleFlag is a message to change oracle config
+message MsgUpdateOracleConfig {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name)           = "ophost/MsgUpdateOracleConfig";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten)
+  // or the current proposer address.
+  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  bool   oracle_enabled = 3 [(gogoproto.moretags) = "yaml:\"oracle_enabled\""];
+}
+
+// MsgUpdateOracleFlagResponse returns a message handle result.
+message MsgUpdateOracleConfigResponse {}
 
 // MsgUpdateMetadata is a message to change metadata
 message MsgUpdateMetadata {

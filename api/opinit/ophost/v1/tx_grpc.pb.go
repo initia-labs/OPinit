@@ -25,6 +25,7 @@ const (
 	Msg_DeleteOutput_FullMethodName            = "/opinit.ophost.v1.Msg/DeleteOutput"
 	Msg_InitiateTokenDeposit_FullMethodName    = "/opinit.ophost.v1.Msg/InitiateTokenDeposit"
 	Msg_FinalizeTokenWithdrawal_FullMethodName = "/opinit.ophost.v1.Msg/FinalizeTokenWithdrawal"
+	Msg_ForceTokenWithdrwal_FullMethodName     = "/opinit.ophost.v1.Msg/ForceTokenWithdrwal"
 	Msg_UpdateProposer_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateProposer"
 	Msg_UpdateChallengers_FullMethodName       = "/opinit.ophost.v1.Msg/UpdateChallengers"
 	Msg_UpdateBatchInfo_FullMethodName         = "/opinit.ophost.v1.Msg/UpdateBatchInfo"
@@ -48,6 +49,8 @@ type MsgClient interface {
 	InitiateTokenDeposit(ctx context.Context, in *MsgInitiateTokenDeposit, opts ...grpc.CallOption) (*MsgInitiateTokenDepositResponse, error)
 	// FinalizeTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	FinalizeTokenWithdrawal(ctx context.Context, in *MsgFinalizeTokenWithdrawal, opts ...grpc.CallOption) (*MsgFinalizeTokenWithdrawalResponse, error)
+	// ForceTokenWithdrwal defines a force token withdrawal interface.
+	ForceTokenWithdrwal(ctx context.Context, in *MsgForceTokenWithdrawal, opts ...grpc.CallOption) (*MsgForceTokenWithdrawalResponse, error)
 	// UpdateProposer defines a rpc handler method for MsgUpdateProposer.
 	UpdateProposer(ctx context.Context, in *MsgUpdateProposer, opts ...grpc.CallOption) (*MsgUpdateProposerResponse, error)
 	// UpdateChallengers defines a rpc handler method for MsgUpdateChallengers.
@@ -123,6 +126,15 @@ func (c *msgClient) FinalizeTokenWithdrawal(ctx context.Context, in *MsgFinalize
 	return out, nil
 }
 
+func (c *msgClient) ForceTokenWithdrwal(ctx context.Context, in *MsgForceTokenWithdrawal, opts ...grpc.CallOption) (*MsgForceTokenWithdrawalResponse, error) {
+	out := new(MsgForceTokenWithdrawalResponse)
+	err := c.cc.Invoke(ctx, Msg_ForceTokenWithdrwal_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateProposer(ctx context.Context, in *MsgUpdateProposer, opts ...grpc.CallOption) (*MsgUpdateProposerResponse, error) {
 	out := new(MsgUpdateProposerResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateProposer_FullMethodName, in, out, opts...)
@@ -184,6 +196,8 @@ type MsgServer interface {
 	InitiateTokenDeposit(context.Context, *MsgInitiateTokenDeposit) (*MsgInitiateTokenDepositResponse, error)
 	// FinalizeTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	FinalizeTokenWithdrawal(context.Context, *MsgFinalizeTokenWithdrawal) (*MsgFinalizeTokenWithdrawalResponse, error)
+	// ForceTokenWithdrwal defines a force token withdrawal interface.
+	ForceTokenWithdrwal(context.Context, *MsgForceTokenWithdrawal) (*MsgForceTokenWithdrawalResponse, error)
 	// UpdateProposer defines a rpc handler method for MsgUpdateProposer.
 	UpdateProposer(context.Context, *MsgUpdateProposer) (*MsgUpdateProposerResponse, error)
 	// UpdateChallengers defines a rpc handler method for MsgUpdateChallengers.
@@ -219,6 +233,9 @@ func (UnimplementedMsgServer) InitiateTokenDeposit(context.Context, *MsgInitiate
 }
 func (UnimplementedMsgServer) FinalizeTokenWithdrawal(context.Context, *MsgFinalizeTokenWithdrawal) (*MsgFinalizeTokenWithdrawalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizeTokenWithdrawal not implemented")
+}
+func (UnimplementedMsgServer) ForceTokenWithdrwal(context.Context, *MsgForceTokenWithdrawal) (*MsgForceTokenWithdrawalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForceTokenWithdrwal not implemented")
 }
 func (UnimplementedMsgServer) UpdateProposer(context.Context, *MsgUpdateProposer) (*MsgUpdateProposerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProposer not implemented")
@@ -356,6 +373,24 @@ func _Msg_FinalizeTokenWithdrawal_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ForceTokenWithdrwal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgForceTokenWithdrawal)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ForceTokenWithdrwal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ForceTokenWithdrwal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ForceTokenWithdrwal(ctx, req.(*MsgForceTokenWithdrawal))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateProposer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateProposer)
 	if err := dec(in); err != nil {
@@ -476,6 +511,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FinalizeTokenWithdrawal",
 			Handler:    _Msg_FinalizeTokenWithdrawal_Handler,
+		},
+		{
+			MethodName: "ForceTokenWithdrwal",
+			Handler:    _Msg_ForceTokenWithdrwal_Handler,
 		},
 		{
 			MethodName: "UpdateProposer",

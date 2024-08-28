@@ -96,6 +96,7 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		sdk.NewAttribute(types.AttributeKeyBatchChainType, req.Config.BatchInfo.ChainType.StringWithoutPrefix()),
 		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyOracleEnabled, strconv.FormatBool(req.Config.OracleEnabled)),
 	))
 
 	if err := ms.bridgeHook.BridgeCreated(ctx, bridgeId, req.Config); err != nil {
@@ -566,6 +567,36 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 		OutputIndex:   finalizedOutputIndex,
 		L2BlockNumber: finalizedOutput.L2BlockNumber,
 	}, nil
+}
+
+func (ms MsgServer) UpdateOracleConfig(ctx context.Context, req *types.MsgUpdateOracleConfig) (*types.MsgUpdateOracleConfigResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	// gov or current proposer can update metadata.
+	if ms.authority != req.Authority && config.Proposer != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
+	}
+
+	config.OracleEnabled = req.OracleEnabled
+
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateBatchInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyOracleEnabled, strconv.FormatBool(config.OracleEnabled)),
+	))
+	return &types.MsgUpdateOracleConfigResponse{}, nil
 }
 
 func (ms MsgServer) UpdateMetadata(ctx context.Context, req *types.MsgUpdateMetadata) (*types.MsgUpdateMetadataResponse, error) {

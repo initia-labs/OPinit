@@ -472,6 +472,33 @@ func (msg MsgUpdateBatchInfo) Validate(ac address.Codec) error {
 	return nil
 }
 
+/* MsgUpdateOracleConfig */
+
+// NewMsgUpdateOracleConfig creates a new MsgUpdateOracleConfig instance.
+func NewMsgUpdateOracleConfig(
+	authority string,
+	bridgeId uint64,
+	oracleEnabled bool,
+) *MsgUpdateOracleConfig {
+	return &MsgUpdateOracleConfig{
+		Authority:     authority,
+		BridgeId:      bridgeId,
+		OracleEnabled: oracleEnabled,
+	}
+}
+
+// Validate performs basic MsgUpdateOracleConfig message validation.
+func (msg MsgUpdateOracleConfig) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+	return nil
+}
+
 /* MsgUpdateMetadata */
 
 // NewMsgUpdateMetadata creates a new MsgUpdateMetadata instance.
