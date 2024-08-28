@@ -49,7 +49,7 @@ func InitializeOpBridge(
 			*config.OpBridge.OutputSubmissionInterval,
 			*config.OpBridge.OutputFinalizationPeriod,
 			config.OpBridge.OutputSubmissionStartHeight,
-			config.OpBridge.EnableOracle,
+			*config.OpBridge.EnableOracle,
 		)
 
 		ctx.Logger().Info("creating op bridge...", "message", createOpBridgeMessage.String())

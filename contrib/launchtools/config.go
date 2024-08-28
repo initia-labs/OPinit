@@ -119,7 +119,7 @@ type OpBridge struct {
 	BatchSubmissionTarget ophosttypes.BatchInfo_ChainType `json:"batch_submission_target"`
 
 	// oracle setup
-	EnableOracle bool `json:"enable_oracle,omitempty"`
+	EnableOracle *bool `json:"enable_oracle,omitempty"`
 }
 
 func (opBridge *OpBridge) Finalize(buf *bufio.Reader) error {
@@ -128,7 +128,16 @@ func (opBridge *OpBridge) Finalize(buf *bufio.Reader) error {
 	}
 
 	if opBridge.BatchSubmissionTarget == ophosttypes.BatchInfo_CHAIN_TYPE_UNSPECIFIED {
-		opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CHAIN_TYPE_INITIA
+		useCelestia, err := input.GetConfirmation("Use Celestia as DA layer?", buf, os.Stderr)
+		if err != nil {
+			return err
+		}
+
+		if useCelestia {
+			opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CHAIN_TYPE_CELESTIA
+		} else {
+			opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CHAIN_TYPE_INITIA
+		}
 	}
 
 	if opBridge.OutputSubmissionInterval == nil {
@@ -141,13 +150,13 @@ func (opBridge *OpBridge) Finalize(buf *bufio.Reader) error {
 		opBridge.OutputFinalizationPeriod = &period
 	}
 
-	if !opBridge.EnableOracle {
+	if opBridge.EnableOracle == nil {
 		enableOracle, err := input.GetConfirmation("Enable oracle?", buf, os.Stderr)
 		if err != nil {
 			return err
 		}
 
-		opBridge.EnableOracle = enableOracle
+		opBridge.EnableOracle = &enableOracle
 	}
 
 	return nil
