@@ -19,8 +19,9 @@ var (
 	BridgeInfoKey     = []byte{0x13} // prefix for bridge_info
 	NextL1SequenceKey = []byte{0x14} // prefix for inbound deposit sequence number
 
-	HistoricalInfoPrefix       = []byte{0x21} // prefix for the historical info
-	WithdrawalCommitmentPrefix = []byte{0x22} // prefix for withdrawal commitments
+	HistoricalInfoPrefix = []byte{0x21} // prefix for the historical info
+	CommitmentTimePrefix = []byte{0x22} // prefix for withdrawal commitments creation time
+	CommitmentPrefix     = []byte{0x23} // prefix for withdrawal commitments
 
 	LastValidatorPowerPrefix   = []byte{0x31} // prefix for each key to a validator index, for bonded validators
 	ValidatorsPrefix           = []byte{0x32} // prefix for each key to a validator

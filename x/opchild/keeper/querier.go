@@ -121,7 +121,7 @@ func (q Querier) ForceWithdrawalProofs(ctx context.Context, req *types.QueryForc
 	}
 
 	sequence := req.L2Sequence
-	commitmentProof, err := types.QueryCommitmentProof(q.clientCtx, height, types.WithdrawalCommitmentKey(sequence))
+	commitmentProof, err := types.QueryCommitmentProof(q.baseAppQuerier, height-1, types.WithdrawalCommitmentKey(sequence))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

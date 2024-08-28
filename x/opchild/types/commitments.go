@@ -15,9 +15,9 @@ import (
 
 // the state key for withdrawal commitment
 func WithdrawalCommitmentKey(sequence uint64) []byte {
-	prefixLen := len(WithdrawalCommitmentPrefix)
+	prefixLen := len(CommitmentPrefix)
 	buf := make([]byte, prefixLen+8)
-	copy(buf, WithdrawalCommitmentPrefix)
+	copy(buf, CommitmentPrefix)
 	_, err := collections.Uint64Key.Encode(buf[prefixLen:], sequence)
 	if err != nil {
 		panic(err)

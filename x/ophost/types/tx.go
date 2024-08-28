@@ -282,14 +282,14 @@ func (msg MsgFinalizeTokenWithdrawal) Validate(ac address.Codec) error {
 func NewMsgForceTokenWithdrawal(
 	bridgeId uint64,
 	outputIndex uint64,
-	l2Sequence uint64,
+	sequence uint64,
 	sender string,
 	receiver string,
 	amount sdk.Coin,
 	commitmentProof v1.ProofOps,
 	appHash []byte,
 	appHashProof v1.Proof,
-	version byte,
+	version []byte,
 	storageRoot []byte,
 	lastBlockHash []byte,
 ) *MsgForceTokenWithdrawal {
@@ -297,7 +297,7 @@ func NewMsgForceTokenWithdrawal(
 		BridgeId:    bridgeId,
 		OutputIndex: outputIndex,
 
-		L2Sequence:      l2Sequence,
+		Sequence:        sequence,
 		Sender:          sender,
 		Receiver:        receiver,
 		Amount:          amount,
@@ -306,7 +306,7 @@ func NewMsgForceTokenWithdrawal(
 		AppHash:      appHash,
 		AppHashProof: appHashProof,
 
-		Version:       []byte{version},
+		Version:       version,
 		StorageRoot:   storageRoot,
 		LastBlockHash: lastBlockHash,
 	}
@@ -322,7 +322,7 @@ func (msg MsgForceTokenWithdrawal) Validate(ac address.Codec) error {
 		return ErrInvalidOutputIndex
 	}
 
-	if msg.L2Sequence == 0 {
+	if msg.Sequence == 0 {
 		return ErrInvalidSequence
 	}
 

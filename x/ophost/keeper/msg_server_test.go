@@ -635,7 +635,7 @@ func Test_MsgServer_ForceWithdrawal(t *testing.T) {
 
 	// force withdraw 1
 	_, err = ms.ForceTokenWithdrwal(ctx, types.NewMsgForceTokenWithdrawal(
-		1, 1, 1, sender, receiver, amount, *commitmentProofs[0], appHash, *appHashProof, version, storageRoot[:], blockHash,
+		1, 1, 1, sender, receiver, amount, *commitmentProofs[0], appHash, *appHashProof, []byte{version}, storageRoot[:], blockHash,
 	))
 	require.NoError(t, err)
 
@@ -666,13 +666,13 @@ func Test_MsgServer_ForceWithdrawal(t *testing.T) {
 
 	// cannot force withdraw 2 again
 	_, err = ms.ForceTokenWithdrwal(ctx, types.NewMsgForceTokenWithdrawal(
-		1, 1, 2, sender, receiver, amount, *commitmentProofs[1], appHash, *appHashProof, version, storageRoot[:], blockHash,
+		1, 1, 2, sender, receiver, amount, *commitmentProofs[1], appHash, *appHashProof, []byte{version}, storageRoot[:], blockHash,
 	))
 	require.Error(t, err)
 
 	// can force withdrawal 3
 	_, err = ms.ForceTokenWithdrwal(ctx, types.NewMsgForceTokenWithdrawal(
-		1, 1, 3, sender, receiver, amount, *commitmentProofs[2], appHash, *appHashProof, version, storageRoot[:], blockHash,
+		1, 1, 3, sender, receiver, amount, *commitmentProofs[2], appHash, *appHashProof, []byte{version}, storageRoot[:], blockHash,
 	))
 	require.NoError(t, err)
 	require.Equal(t, amount.Add(amount).Add(amount), input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))

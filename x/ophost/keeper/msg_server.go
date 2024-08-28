@@ -355,7 +355,7 @@ func (ms MsgServer) ForceTokenWithdrwal(ctx context.Context, req *types.MsgForce
 
 	bridgeId := req.BridgeId
 	outputIndex := req.OutputIndex
-	l2Sequence := req.L2Sequence
+	sequence := req.Sequence
 	appHash := req.AppHash
 	receiver := req.Receiver
 	amount := req.Amount
@@ -367,7 +367,7 @@ func (ms MsgServer) ForceTokenWithdrwal(ctx context.Context, req *types.MsgForce
 	}
 
 	// check if the withdrawal is already claimed
-	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, l2Sequence, req.Sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, sequence, req.Sender, receiver, amount.Denom, amount.Amount.Uint64())
 	if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
 		return nil, err
 	} else if ok {
@@ -391,7 +391,7 @@ func (ms MsgServer) ForceTokenWithdrwal(ctx context.Context, req *types.MsgForce
 	}
 
 	// failed to verify commitment
-	if err := opchildtypes.VerifyCommitment(appHash, l2Sequence, receiver, amount, &req.CommitmentProof); err != nil {
+	if err := opchildtypes.VerifyCommitment(appHash, sequence, receiver, amount, &req.CommitmentProof); err != nil {
 		return nil, types.ErrFailedToVerifyWithdrawal.Wrap(err.Error())
 	}
 

@@ -525,7 +525,7 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 		"amount": "100uinit",
 		"version": "AQ==",
 		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
-		"latest_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
+		"last_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
 		}`)
 	s.NoError(err)
 

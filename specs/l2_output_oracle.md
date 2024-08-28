@@ -15,7 +15,7 @@ The followings are the components of `output_root`.
 - `version`: the version of output root
 - `state_root`: l2 state root
 - `storage_root`: withdrawal storage root
-- `latest_block_hash`: l2 latest block hash
+- `last_block_hash`: l2 latest block hash
 
 To build the `output_root`, concatenate all the components in sequence and apply `sha3_256`.
 

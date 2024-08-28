@@ -38,6 +38,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewDeleteOutput(ac),
 		NewInitiateTokenDeposit(ac),
 		NewFinalizeTokenWithdrawal(ac),
+		NewForceTokenWithdrawal(ac),
 	)
 
 	return ophostTxCmd
@@ -342,7 +343,7 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 					"amount": "10000000uinit",
 					"version": "base64-encoded version",
 					"storage_root": "base64-encoded storage-root",
-					"latest_block_hash": "base64-encoded latest-block-hash"
+					"last_block_hash": "base64-encoded latest-block-hash"
 				}`, version.AppName,
 			),
 		),
@@ -389,7 +390,88 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				amount,
 				withdrawalInfo.Version,
 				withdrawalInfo.StorageRoot,
-				withdrawalInfo.LatestBlockHash,
+				withdrawalInfo.LastBlockHash,
+			)
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewForceTokenWithdrawal(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "force-token-withdrawal [path/to/withdrawal-info.json]",
+		Short: "send a tx to force withdraw",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`send a tx to finalize token withdrawal with withdrawal info json.
+				Example:
+				$ %s tx ophost finalize-token-withdrawal path/to/withdrawal-info.json
+				
+				Where withrawal-info.json contains:
+				{
+					"bridge_id": "1",
+					"output_index": "1",
+					"sequence": "1",
+					"sender" : "bech32-address",
+					"amount": "10000000uinit",
+					"commitment_proof": {"ops":[{"type":"ics23:iavl","key":"","data":""}, ...]},
+					"app_hash": "base64-encoded app-hash",
+					"app_hash_proof": {"total": 1, "index": 1, "leaf_hash": "base64-encoded leaf-hash", "aunts": ["base64-encoded aunts"]},
+					"version": "base64-encoded version",
+					"storage_root": "base64-encoded storage-root",
+					"last_block_hash": "base64-encoded latest-block-hash"
+				}`, version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			withdrawalBytes, err := os.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+			withdrawalInfo := types.MsgForceTokenWithdrawal{}
+			err = clientCtx.Codec.UnmarshalJSON(withdrawalBytes, &withdrawalInfo)
+			if err != nil {
+				return err
+			}
+
+			// cannot validate sender address here because it is l2 address.
+			sender := withdrawalInfo.Sender
+			if len(sender) == 0 {
+				return fmt.Errorf("sender address is required")
+			}
+
+			receiver, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgForceTokenWithdrawal(
+				withdrawalInfo.BridgeId,
+				withdrawalInfo.OutputIndex,
+				withdrawalInfo.Sequence,
+				sender,
+				receiver,
+				withdrawalInfo.Amount,
+				withdrawalInfo.CommitmentProof,
+				withdrawalInfo.AppHash,
+				withdrawalInfo.AppHashProof,
+				withdrawalInfo.Version,
+				withdrawalInfo.StorageRoot,
+				withdrawalInfo.LastBlockHash,
 			)
 			if err = msg.Validate(ac); err != nil {
 				return err

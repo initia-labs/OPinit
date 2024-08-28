@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"cosmossdk.io/collections"
+	collcodec "cosmossdk.io/collections/codec"
 	"cosmossdk.io/core/address"
 	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -42,18 +44,19 @@ type Keeper struct {
 	validatorAddressCodec address.Codec
 	consensusAddressCodec address.Codec
 
-	Schema                collections.Schema
-	NextL1Sequence        collections.Sequence
-	NextL2Sequence        collections.Sequence
-	Params                collections.Item[types.Params]
-	BridgeInfo            collections.Item[types.BridgeInfo]
-	LastValidatorPowers   collections.Map[[]byte, int64]
-	Validators            collections.Map[[]byte, types.Validator]
-	ValidatorsByConsAddr  collections.Map[[]byte, []byte]
-	HistoricalInfos       collections.Map[int64, cosmostypes.HistoricalInfo]
-	DenomPairs            collections.Map[string, string]
-	PendingDeposits       collections.Map[[]byte, types.CoinsWrapper]
-	WithdrawalCommitments collections.Map[uint64, types.WithdrawalCommitment]
+	Schema               collections.Schema
+	NextL1Sequence       collections.Sequence
+	NextL2Sequence       collections.Sequence
+	Params               collections.Item[types.Params]
+	BridgeInfo           collections.Item[types.BridgeInfo]
+	LastValidatorPowers  collections.Map[[]byte, int64]
+	Validators           collections.Map[[]byte, types.Validator]
+	ValidatorsByConsAddr collections.Map[[]byte, []byte]
+	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
+	DenomPairs           collections.Map[string, string]
+	PendingDeposits      collections.Map[[]byte, types.CoinsWrapper]
+	Commitments          collections.Map[uint64, []byte]
+	CommitmentTimes      collections.Map[uint64, time.Time]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -61,7 +64,8 @@ type Keeper struct {
 	HostValidatorStore *HostValidatorStore
 
 	// for querier
-	clientCtx *client.Context
+	clientCtx      *client.Context
+	baseAppQuerier types.BaseAppQuerier
 }
 
 func NewKeeper(
@@ -72,6 +76,7 @@ func NewKeeper(
 	bh types.BridgeHook,
 	ok types.OracleKeeper,
 	router *baseapp.MsgServiceRouter,
+	querier types.BaseAppQuerier,
 	authority string,
 	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
@@ -116,10 +121,14 @@ func NewKeeper(
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
 		PendingDeposits:       collections.NewMap(sb, types.PendingDepositsKey, "pending_deposits", collections.BytesKey, codec.CollValue[types.CoinsWrapper](cdc)),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
-		WithdrawalCommitments: collections.NewMap(sb, types.WithdrawalCommitmentPrefix, "withdrawal_commitments", collections.Uint64Key, codec.CollValue[types.WithdrawalCommitment](cdc)),
+		Commitments:           collections.NewMap(sb, types.CommitmentPrefix, "commitments", collections.Uint64Key, collections.BytesValue),
+		CommitmentTimes:       collections.NewMap(sb, types.CommitmentTimePrefix, "commitment_times", collections.Uint64Key, collcodec.KeyToValueCodec(sdk.TimeKey)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,
+
+		// for querier
+		baseAppQuerier: querier,
 	}
 
 	schema, err := sb.Build()

@@ -10,19 +10,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
-func QueryCommitmentProof(clientCtx *client.Context, height int64, key []byte) (*v1.ProofOps, error) {
-	if clientCtx == nil {
-		return nil, fmt.Errorf("clientCtx cannot be nil")
-	}
+type BaseAppQuerier func(_ context.Context, req *abci.RequestQuery) (resp *abci.ResponseQuery, err error)
 
-	req := abci.RequestQuery{
-		Path:   fmt.Sprintf("store/%s/key", StoreKey),
+func QueryCommitmentProof(baseAppQuerier BaseAppQuerier, height int64, commitmentKey []byte) (*v1.ProofOps, error) {
+	res, err := baseAppQuerier(context.Background(), &abci.RequestQuery{
+		Path:   fmt.Sprintf("/store/%s/key", StoreKey),
+		Data:   commitmentKey,
 		Height: height,
-		Data:   key,
 		Prove:  true,
-	}
-
-	res, err := clientCtx.QueryABCI(req)
+	})
 	if err != nil {
 		return nil, err
 	}

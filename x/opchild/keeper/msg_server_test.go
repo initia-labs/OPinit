@@ -326,7 +326,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	require.NoError(t, err)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	wc, err := input.OPChildKeeper.WithdrawalCommitments.Get(ctx, uint64(1))
+	wc, err := input.OPChildKeeper.GetWithdrawalCommitment(sdkCtx, uint64(1))
 	require.NoError(t, err)
 	require.Equal(t, types.CommitWithdrawal(res.Sequence, addrsStr[1], sdk.NewInt64Coin("test/token", 100)), wc.Commitment)
 	require.Equal(t, sdkCtx.BlockTime(), wc.SubmitTime)

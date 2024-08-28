@@ -317,6 +317,7 @@ func _createTestInput(
 		bridgeHook.Hook,
 		&oracleKeeper,
 		msgRouter,
+		nil,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),

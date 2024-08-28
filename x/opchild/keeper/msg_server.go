@@ -576,8 +576,8 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
 	))
 
-	// record historical withdrawal
-	err = ms.WithdrawalCommitments.Set(ctx, l2Sequence, types.WithdrawalCommitment{
+	// record withdrawal commitment
+	err = ms.SetWithdrawalCommitment(ctx, l2Sequence, types.WithdrawalCommitment{
 		Commitment: types.CommitWithdrawal(l2Sequence, req.To, sdk.NewCoin(baseDenom, coin.Amount)),
 		SubmitTime: sdkCtx.BlockTime().UTC(),
 	})
