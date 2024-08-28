@@ -3,22 +3,24 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 type Querier struct {
-	Keeper
+	*Keeper
 }
 
 var _ types.QueryServer = &Querier{}
 
 // NewQuerier return new Querier instance
-func NewQuerier(k Keeper) Querier {
-	return Querier{k}
+func NewQuerier(k *Keeper) types.QueryServer {
+	return &Querier{k}
 }
 
 func (q Querier) Validator(ctx context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {
@@ -101,4 +103,32 @@ func (q Querier) BaseDenom(ctx context.Context, req *types.QueryBaseDenomRequest
 	}
 
 	return &types.QueryBaseDenomResponse{BaseDenom: baseDenom}, nil
+}
+
+// ForceWithdrawalProofs returns the force withdrawal proofs
+//
+// @dev: This query is not deterministic and should only be used for off-chain.
+func (q Querier) ForceWithdrawalProofs(ctx context.Context, req *types.QueryForceWithdrawalProofsRequest) (*types.QueryForceWithdrawalProofsResponse, error) {
+	if q.clientCtx == nil {
+		return nil, status.Error(codes.Internal, "client context is not set")
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	height := sdkCtx.BlockHeight()
+	appHash, appHashProof, err := types.QueryAppHashWithProof(q.clientCtx, height)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	sequence := req.L2Sequence
+	commitmentProof, err := types.QueryCommitmentProof(q.clientCtx, height, types.WithdrawalCommitmentKey(sequence))
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryForceWithdrawalProofsResponse{
+		CommitmentProof: *commitmentProof,
+		AppHashProof:    *appHashProof,
+		AppHash:         appHash,
+	}, nil
 }

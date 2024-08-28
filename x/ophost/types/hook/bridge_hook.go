@@ -45,11 +45,6 @@ func (h BridgeHook) BridgeCreated(
 		return nil
 	}
 
-	// TODO (reviewer): This is a temporary solution to allow only one challenger on bridge creation.
-	if len(bridgeConfig.Challengers) != 1 {
-		return errors.New("bridge must have exactly one challenger on creation")
-	}
-
 	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
 	for i, challenger := range bridgeConfig.Challengers {
 		challengerAddr, err := h.ac.StringToBytes(challenger)

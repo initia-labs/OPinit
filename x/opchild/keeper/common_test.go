@@ -201,6 +201,7 @@ func (f *TestFaucet) NewFundedAccount(ctx context.Context, amounts ...sdk.Coin) 
 }
 
 type TestKeepers struct {
+	Cdc            codec.Codec
 	AccountKeeper  authkeeper.AccountKeeper
 	BankKeeper     bankkeeper.Keeper
 	OPChildKeeper  opchildkeeper.Keeper
@@ -329,11 +330,12 @@ func _createTestInput(
 	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
-	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(*opchildKeeper))
+	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(opchildKeeper))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
 	keepers := TestKeepers{
+		Cdc:            appCodec,
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     bankKeeper,
 		OPChildKeeper:  *opchildKeeper,

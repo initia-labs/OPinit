@@ -2,7 +2,9 @@ syntax = "proto3";
 package opinit.opchild.v1;
 
 import "amino/amino.proto";
+import "cometbft/crypto/v1/proof.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/query/v1/query.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -55,6 +57,11 @@ service Query {
   rpc BaseDenom(QueryBaseDenomRequest) returns (QueryBaseDenomResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/opinit/opchild/v1/base_denom/{denom}";
+  }
+
+  rpc ForceWithdrawalProofs(QueryForceWithdrawalProofsRequest) returns (QueryForceWithdrawalProofsResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/opinit/opchild/v1/withdrawals/{l2_sequence}/proofs";
   }
 }
 
@@ -129,4 +136,22 @@ message QueryBaseDenomRequest {
 // QueryBaseDenomResponse is response type for the Query/BaseDenom RPC method.
 message QueryBaseDenomResponse {
   string base_denom = 1;
+}
+
+// QueryForceWithdrawalProofsRequest is request type for the Query/ForceWithdrawalProofs RPC method.
+message QueryForceWithdrawalProofsRequest {
+  // l2_sequence is the sequence number of the l2 block.
+  uint64 l2_sequence = 1;
+}
+
+// QueryForceWithdrawalProofsResponse is response type for the Query/ForceWithdrawalProofs RPC method.
+message QueryForceWithdrawalProofsResponse {
+  // withdrawal commitments and proofs
+  .cometbft.crypto.v1.ProofOps commitment_proof = 3
+      [(gogoproto.moretags) = "yaml:\"commitment_proof\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  // app hash and proof
+  bytes                     app_hash       = 4 [(gogoproto.moretags) = "yaml:\"app_hash\""];
+  .cometbft.crypto.v1.Proof app_hash_proof = 5
+      [(gogoproto.moretags) = "yaml:\"app_hash_proof\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }

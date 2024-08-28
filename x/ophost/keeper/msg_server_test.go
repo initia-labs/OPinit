@@ -1,17 +1,31 @@
 package keeper_test
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"testing"
 	"time"
 
+	v1 "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	comettypes "github.com/cometbft/cometbft/types"
+
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
+	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
 
+	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
-	types "github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_RecordBatch(t *testing.T) {
@@ -229,7 +243,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	))
 	require.NoError(t, err)
 
-	receiverAddr, err := sdk.AccAddressFromBech32("cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg")
+	receiverAddr, err := sdk.AccAddressFromBech32(receiver)
 	require.NoError(t, err)
 	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
 }
@@ -517,4 +531,196 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 		msg,
 	)
 	require.Error(t, err)
+}
+
+func Test_MsgServer_ForceWithdrawal(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	config := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+	}
+
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	// fund amount
+	amount := sdk.NewCoin("uinit", math.NewInt(1_000_000))
+	input.Faucet.Fund(ctx, types.BridgeAddress(1), amount.Add(amount).Add(amount))
+
+	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
+	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
+
+	version := byte(1)
+
+	leaf1 := types.GenerateWithdrawalHash(1, 1, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	leaf2 := types.GenerateWithdrawalHash(1, 2, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	leaf3 := types.GenerateWithdrawalHash(1, 3, sender, receiver, amount.Denom, amount.Amount.Uint64())
+
+	node33 := types.GenerateNodeHash(leaf3[:], leaf3[:])
+	node12 := types.GenerateNodeHash(leaf1[:], leaf2[:])
+
+	storageRoot := types.GenerateNodeHash(node12[:], node33[:])
+	appHash, commitmentProofs := makeAppHashWithCommitmentProof(t, []testInput{
+		{recipient: receiver, amount: amount, l2Sequence: 1},
+		{recipient: receiver, amount: amount, l2Sequence: 2},
+		{recipient: receiver, amount: amount, l2Sequence: 3},
+	})
+
+	block := makeRandBlock(t, appHash)
+	header := block.Header
+	blockHash := block.Hash()
+	appHashProof := opchildtypes.NewAppHashProof(&header)
+	err = opchildtypes.VerifyAppHash(blockHash, header.AppHash, appHashProof)
+	require.NoError(t, err)
+	outputRoot := types.GenerateOutputRoot(version, storageRoot[:], blockHash)
+
+	now := time.Now().UTC()
+	ctx = ctx.WithBlockTime(now)
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, outputRoot[:]))
+	require.NoError(t, err)
+
+	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
+
+	// force withdraw 1
+	_, err = ms.ForceTokenWithdrwal(ctx, types.NewMsgForceTokenWithdrawal(
+		1, 1, 1, sender, receiver, amount, *commitmentProofs[0], appHash, *appHashProof, version, storageRoot[:], blockHash,
+	))
+	require.NoError(t, err)
+
+	receiverAddr, err := sdk.AccAddressFromBech32(receiver)
+	require.NoError(t, err)
+	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
+
+	// cannot finalize 1 again
+	proofs := [][]byte{leaf2[:], node33[:]}
+	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(1, 1, 1, proofs,
+		sender,
+		receiver,
+		amount,
+		[]byte{version}, storageRoot[:], blockHash,
+	))
+	require.Error(t, err)
+
+	// can finalize withdrawal 2
+	proofs = [][]byte{leaf1[:], node33[:]}
+	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(1, 1, 2, proofs,
+		sender,
+		receiver,
+		amount,
+		[]byte{version}, storageRoot[:], blockHash,
+	))
+	require.NoError(t, err)
+	require.Equal(t, amount.Add(amount), input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
+
+	// cannot force withdraw 2 again
+	_, err = ms.ForceTokenWithdrwal(ctx, types.NewMsgForceTokenWithdrawal(
+		1, 1, 2, sender, receiver, amount, *commitmentProofs[1], appHash, *appHashProof, version, storageRoot[:], blockHash,
+	))
+	require.Error(t, err)
+
+	// can force withdrawal 3
+	_, err = ms.ForceTokenWithdrwal(ctx, types.NewMsgForceTokenWithdrawal(
+		1, 1, 3, sender, receiver, amount, *commitmentProofs[2], appHash, *appHashProof, version, storageRoot[:], blockHash,
+	))
+	require.NoError(t, err)
+	require.Equal(t, amount.Add(amount).Add(amount), input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
+}
+
+type testInput struct {
+	recipient  string
+	amount     sdk.Coin
+	l2Sequence uint64
+}
+
+func makeAppHashWithCommitmentProof(t *testing.T, inputs []testInput) ([]byte, []*v1.ProofOps) {
+	db := dbm.NewMemDB()
+	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	iavlStoreKey := storetypes.NewKVStoreKey(opchildtypes.StoreKey)
+
+	store.MountStoreWithDB(iavlStoreKey, storetypes.StoreTypeIAVL, nil)
+	require.NoError(t, store.LoadVersion(0))
+
+	iavlStore := store.GetCommitStore(iavlStoreKey).(*iavl.Store)
+
+	commitmentKeys := make([][]byte, len(inputs))
+	for i, input := range inputs {
+		commitment := opchildtypes.CommitWithdrawal(input.l2Sequence, input.recipient, input.amount)
+		commitmentKeys[i] = opchildtypes.WithdrawalCommitmentKey(input.l2Sequence)
+
+		iavlStore.Set(commitmentKeys[i], commitment)
+	}
+
+	cid := store.Commit()
+
+	// Get Proof
+	proofs := make([]*v1.ProofOps, len(commitmentKeys))
+	for i, commitmentKey := range commitmentKeys {
+		// same with curl https://rpc.initia.xyz/abci_query\?path\="\"store/opchild/key\""\&data=0xcommitmentkey\&prove=true
+		res, err := store.Query(&storetypes.RequestQuery{
+			Path:  fmt.Sprintf("/%s/key", opchildtypes.StoreKey), // required path to get key/value+proof
+			Data:  commitmentKey,
+			Prove: true,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res.ProofOps)
+
+		proofs[i] = opchildtypes.NewProtoFromProofOps(res.ProofOps)
+	}
+
+	return cid.GetHash(), proofs
+}
+
+func makeRandBlock(t *testing.T, appHash []byte) *comettypes.Block {
+	txs := []comettypes.Tx{comettypes.Tx("foo"), comettypes.Tx("bar")}
+	lastID := makeBlockIDRandom()
+	h := int64(3)
+	voteSet, valSet, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1, false)
+	extCommit, err := comettypes.MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now().UTC(), false)
+	require.NoError(t, err)
+
+	ev, err := comettypes.NewMockDuplicateVoteEvidenceWithValidator(h, time.Now().UTC(), vals[0], "block-test-chain")
+	require.NoError(t, err)
+	evList := []comettypes.Evidence{ev}
+
+	block := comettypes.MakeBlock(h, txs, extCommit.ToCommit(), evList)
+	block.ValidatorsHash = valSet.Hash()
+	block.AppHash = appHash
+
+	return block
+}
+
+func makeBlockIDRandom() comettypes.BlockID {
+	var (
+		blockHash   = make([]byte, tmhash.Size)
+		partSetHash = make([]byte, tmhash.Size)
+	)
+	rand.Read(blockHash)   //nolint: errcheck // ignore errcheck for read
+	rand.Read(partSetHash) //nolint: errcheck // ignore errcheck for read
+	return comettypes.BlockID{Hash: blockHash, PartSetHeader: comettypes.PartSetHeader{Total: 123, Hash: partSetHash}}
+}
+
+// NOTE: privValidators are in order
+func randVoteSet(
+	height int64,
+	round int32,
+	signedMsgType cmtproto.SignedMsgType,
+	numValidators int,
+	votingPower int64,
+	extEnabled bool,
+) (*comettypes.VoteSet, *comettypes.ValidatorSet, []comettypes.PrivValidator) {
+	valSet, privValidators := comettypes.RandValidatorSet(numValidators, votingPower)
+	if extEnabled {
+		if signedMsgType != cmtproto.PrecommitType {
+			return nil, nil, nil
+		}
+		return comettypes.NewExtendedVoteSet("test_chain_id", height, round, signedMsgType, valSet), valSet, privValidators
+	}
+	return comettypes.NewVoteSet("test_chain_id", height, round, signedMsgType, valSet), valSet, privValidators
 }

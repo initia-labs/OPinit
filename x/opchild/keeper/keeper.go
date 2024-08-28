@@ -12,6 +12,7 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -41,22 +42,26 @@ type Keeper struct {
 	validatorAddressCodec address.Codec
 	consensusAddressCodec address.Codec
 
-	Schema               collections.Schema
-	NextL1Sequence       collections.Sequence
-	NextL2Sequence       collections.Sequence
-	Params               collections.Item[types.Params]
-	BridgeInfo           collections.Item[types.BridgeInfo]
-	LastValidatorPowers  collections.Map[[]byte, int64]
-	Validators           collections.Map[[]byte, types.Validator]
-	ValidatorsByConsAddr collections.Map[[]byte, []byte]
-	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
-	DenomPairs           collections.Map[string, string]
-	PendingDeposits      collections.Map[[]byte, types.CoinsWrapper]
+	Schema                collections.Schema
+	NextL1Sequence        collections.Sequence
+	NextL2Sequence        collections.Sequence
+	Params                collections.Item[types.Params]
+	BridgeInfo            collections.Item[types.BridgeInfo]
+	LastValidatorPowers   collections.Map[[]byte, int64]
+	Validators            collections.Map[[]byte, types.Validator]
+	ValidatorsByConsAddr  collections.Map[[]byte, []byte]
+	HistoricalInfos       collections.Map[int64, cosmostypes.HistoricalInfo]
+	DenomPairs            collections.Map[string, string]
+	PendingDeposits       collections.Map[[]byte, types.CoinsWrapper]
+	WithdrawalCommitments collections.Map[uint64, types.WithdrawalCommitment]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
 	l2OracleHandler    *L2OracleHandler
 	HostValidatorStore *HostValidatorStore
+
+	// for querier
+	clientCtx *client.Context
 }
 
 func NewKeeper(
@@ -108,9 +113,10 @@ func NewKeeper(
 		LastValidatorPowers:   collections.NewMap(sb, types.LastValidatorPowerPrefix, "last_validator_powers", collections.BytesKey, collections.Int64Value),
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
-		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
 		PendingDeposits:       collections.NewMap(sb, types.PendingDepositsKey, "pending_deposits", collections.BytesKey, codec.CollValue[types.CoinsWrapper](cdc)),
+		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
+		WithdrawalCommitments: collections.NewMap(sb, types.WithdrawalCommitmentPrefix, "withdrawal_commitments", collections.Uint64Key, codec.CollValue[types.WithdrawalCommitment](cdc)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,
@@ -124,6 +130,10 @@ func NewKeeper(
 	k.l2OracleHandler = NewL2OracleHandler(k, ok, logger)
 
 	return k
+}
+
+func (k *Keeper) SetClientContext(ctx *client.Context) {
+	k.clientCtx = ctx
 }
 
 // GetAuthority returns the x/move module's authority.
@@ -140,6 +150,11 @@ func (k Keeper) Logger(ctx context.Context) log.Logger {
 // Router returns the gov keeper's router
 func (k Keeper) Router() *baseapp.MsgServiceRouter {
 	return k.router
+}
+
+// StoreService returns the KVStoreService
+func (k Keeper) StoreService() corestoretypes.KVStoreService {
+	return k.storeService
 }
 
 // setDenomMetadata sets an OPinit token's denomination metadata

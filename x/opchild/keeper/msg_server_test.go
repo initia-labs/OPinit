@@ -39,7 +39,7 @@ import (
 func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	params, err := ms.GetParams(ctx)
 	require.NoError(t, err)
@@ -115,7 +115,7 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 func Test_MsgServer_AddValidator(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
@@ -173,7 +173,7 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 
 func Test_MsgServer_RemoveValidator(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
 
@@ -220,7 +220,7 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 
 func Test_MsgServer_UpdateParams(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	params, err := ms.GetParams(ctx)
 	require.NoError(t, err)
@@ -254,7 +254,7 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 
 func Test_MsgServer_SpendFeePool(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	// fund fee pool
 	collectedFees := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100)))
@@ -279,7 +279,7 @@ func Test_MsgServer_SpendFeePool(t *testing.T) {
 
 func Test_MsgServer_Withdraw(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	info := types.BridgeInfo{
 		BridgeId:   1,
@@ -306,7 +306,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	baseDenom := "test_token"
 	denom := ophosttypes.L2Denom(1, baseDenom)
 
-	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], "anyformataddr", addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil))
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], "anyformataddr", addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test/token", nil))
 	require.NoError(t, err)
 
 	coins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(1_000_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
@@ -322,8 +322,14 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 
 	// valid
 	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
-	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
+	res, err := ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	wc, err := input.OPChildKeeper.WithdrawalCommitments.Get(ctx, uint64(1))
+	require.NoError(t, err)
+	require.Equal(t, types.CommitWithdrawal(res.Sequence, addrsStr[1], sdk.NewInt64Coin("test/token", 100)), wc.Commitment)
+	require.Equal(t, sdkCtx.BlockTime(), wc.SubmitTime)
 }
 
 /////////////////////////////////////////
@@ -331,7 +337,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 
 func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	info := types.BridgeInfo{
 		BridgeId:   1,
@@ -395,7 +401,7 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 
 func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
@@ -427,7 +433,7 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
@@ -451,7 +457,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 
 func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
@@ -484,7 +490,7 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 
 func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
@@ -614,7 +620,7 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 	extCommitBz, err := extendedCommitCodec.Encode(eci)
 	require.NoError(t, err)
 
-	ms := keeper.NewMsgServerImpl(opchildKeeper)
+	ms := keeper.NewMsgServerImpl(&opchildKeeper)
 	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[0], 11, extCommitBz))
 	require.NoError(t, err)
 

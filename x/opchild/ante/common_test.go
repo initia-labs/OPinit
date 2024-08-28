@@ -308,7 +308,7 @@ func _createTestInput(
 	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
-	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(*opchildKeeper))
+	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(opchildKeeper))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 

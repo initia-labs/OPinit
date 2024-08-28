@@ -23,10 +23,14 @@ message GenesisState {
   // the pending deposits that are not failed to be deposited.
   repeated PendingDeposits pending_deposits = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
-  uint64     next_l2_sequence = 5;
-  uint64     next_l1_sequence = 6;
-  BridgeInfo bridge_info      = 7;
-  bool       exported         = 8;
+  // the withdrawal commitments for force withdrawal.
+  repeated WithdrawalCommitment withdrawal_commitments = 5
+      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  uint64     next_l2_sequence = 6;
+  uint64     next_l1_sequence = 7;
+  BridgeInfo bridge_info      = 8;
+  bool       exported         = 9;
 }
 
 // LastValidatorPower required for validator set update logic.

@@ -6,8 +6,9 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
-import "tendermint/abci/types.proto";
+import "google/protobuf/timestamp.proto";
 import "opinit/ophost/v1/types.proto";
+import "tendermint/abci/types.proto";
 
 option go_package                      = "github.com/initia-labs/OPinit/x/opchild/types";
 option (gogoproto.equal_all)           = true;
@@ -133,4 +134,10 @@ enum ResponseResultType {
   RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
   // The message was executed successfully
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+}
+
+message WithdrawalCommitment {
+  bytes                     commitment  = 1;
+  google.protobuf.Timestamp submit_time = 5
+      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true, (gogoproto.stdtime) = true];
 }

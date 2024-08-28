@@ -24,7 +24,7 @@ func Test_QueryValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val))
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 
 	res, err := q.Validator(ctx, &types.QueryValidatorRequest{ValidatorAddr: val.OperatorAddress})
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func Test_QueryValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 
 	res, err := q.Validators(ctx, &types.QueryValidatorsRequest{})
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func Test_QuerySetBridgeInfo(t *testing.T) {
 	err := input.OPChildKeeper.BridgeInfo.Set(ctx, info)
 	require.NoError(t, err)
 
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 	res, err := q.BridgeInfo(ctx, &types.QueryBridgeInfoRequest{})
 	require.NoError(t, err)
 	require.Equal(t, info, res.BridgeInfo)
@@ -85,7 +85,7 @@ func Test_QueryParams(t *testing.T) {
 	params.MinGasPrices = sdk.NewDecCoins(sdk.NewInt64DecCoin("stake", 1))
 	require.NoError(t, input.OPChildKeeper.SetParams(ctx, params))
 
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 	res, err := q.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, params, res.Params)
@@ -97,7 +97,7 @@ func Test_QueryNextL1Sequence(t *testing.T) {
 	// update the next L1 sequence
 	require.NoError(t, input.OPChildKeeper.NextL1Sequence.Set(ctx, 100))
 
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 	res, err := q.NextL1Sequence(ctx, &types.QueryNextL1SequenceRequest{})
 	require.NoError(t, err)
 	require.Equal(t, types.QueryNextL1SequenceResponse{NextL1Sequence: 100}, *res)
@@ -109,7 +109,7 @@ func Test_QueryNextL2Sequence(t *testing.T) {
 	// update the next L2 sequence
 	require.NoError(t, input.OPChildKeeper.NextL2Sequence.Set(ctx, 100))
 
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 	res, err := q.NextL2Sequence(ctx, &types.QueryNextL2SequenceRequest{})
 	require.NoError(t, err)
 	require.Equal(t, types.QueryNextL2SequenceResponse{NextL2Sequence: 100}, *res)
@@ -121,7 +121,7 @@ func Test_QueryBaseDenom(t *testing.T) {
 	bz := sha3.Sum256([]byte("base_denom"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	ms := keeper.NewMsgServerImpl(input.OPChildKeeper)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 	_, err := ms.FinalizeTokenDeposit(ctx, &types.MsgFinalizeTokenDeposit{
 		Sender:    addrsStr[0],
 		Amount:    sdk.NewInt64Coin(denom, 100),
@@ -133,7 +133,7 @@ func Test_QueryBaseDenom(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	q := keeper.NewQuerier(input.OPChildKeeper)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
 	res, err := q.BaseDenom(ctx, &types.QueryBaseDenomRequest{Denom: denom})
 	require.NoError(t, err)
 

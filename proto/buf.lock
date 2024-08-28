@@ -2,6 +2,11 @@
 version: v1
 deps:
   - remote: buf.build
+    owner: cometbft
+    repository: cometbft
+    commit: fedbb9acfd2f494b9755949cbb41dfca
+    digest: shake256:c1881013cf98a4833923d74638c3623ac32890fa066eef961986b40e5e86d646fee02f05a5c7fabe596cc81f01108ffb1ae28db39db73a797e7f72e26c289628
+  - remote: buf.build
     owner: cosmos
     repository: cosmos-proto
     commit: 1935555c206d4afb9e94615dfd0fad31

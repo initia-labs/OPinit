@@ -147,7 +147,7 @@ func (t testTx) GetMsgs() []sdk.Msg {
 
 func TestRedundantTx(t *testing.T) {
 	ctx, input := createTestInput(t, true)
-	rbd := ante.NewRedundantBridgeDecorator(input.OPChildKeeper)
+	rbd := ante.NewRedundantBridgeDecorator(&input.OPChildKeeper)
 
 	// input.Faucet.Mint(ctx, addrs[0], sdk.NewCoin(testDenoms[0], math.NewInt(100000)))
 

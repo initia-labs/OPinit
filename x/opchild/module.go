@@ -40,6 +40,7 @@ var (
 // AppModuleBasic defines the basic application module used by the opchild module.
 type AppModuleBasic struct {
 	cdc codec.Codec
+	k   *keeper.Keeper
 }
 
 func (b AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
@@ -47,6 +48,9 @@ func (b AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
 }
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, serveMux *runtime.ServeMux) {
+	// for commitment queries
+	b.k.SetClientContext(&clientCtx)
+
 	err := types.RegisterQueryHandlerClient(context.Background(), serveMux, types.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -94,7 +98,7 @@ func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) 
 // AppModule implements an application module for the move module.
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the
@@ -106,10 +110,10 @@ func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 // NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec,
-	k keeper.Keeper,
+	k *keeper.Keeper,
 ) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{cdc},
+		AppModuleBasic: AppModuleBasic{cdc, k},
 		keeper:         k,
 	}
 }

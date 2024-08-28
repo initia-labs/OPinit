@@ -327,6 +327,7 @@ var xxx_messageInfo_MsgInitiateTokenWithdrawal proto.InternalMessageInfo
 
 // MsgInitiateTokenWithdrawalResponse returns create token result data
 type MsgInitiateTokenWithdrawalResponse struct {
+	// l2 sequence number
 	Sequence uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 

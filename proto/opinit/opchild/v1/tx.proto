@@ -148,6 +148,7 @@ message MsgInitiateTokenWithdrawal {
 
 // MsgInitiateTokenWithdrawalResponse returns create token result data
 message MsgInitiateTokenWithdrawalResponse {
+  // l2 sequence number
   uint64 sequence = 1;
 }
 

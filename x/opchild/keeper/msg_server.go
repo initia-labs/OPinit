@@ -19,14 +19,14 @@ import (
 )
 
 type MsgServer struct {
-	Keeper
+	*Keeper
 }
 
 var _ types.MsgServer = MsgServer{}
 
 // NewMsgServerImpl return MsgServer instance
-func NewMsgServerImpl(k Keeper) MsgServer {
-	return MsgServer{k}
+func NewMsgServerImpl(k *Keeper) *MsgServer {
+	return &MsgServer{k}
 }
 
 // checkAdminPermission checks if the sender is the admin
@@ -576,7 +576,18 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
 	))
 
-	return &types.MsgInitiateTokenWithdrawalResponse{}, nil
+	// record historical withdrawal
+	err = ms.WithdrawalCommitments.Set(ctx, l2Sequence, types.WithdrawalCommitment{
+		Commitment: types.CommitWithdrawal(l2Sequence, req.To, sdk.NewCoin(baseDenom, coin.Amount)),
+		SubmitTime: sdkCtx.BlockTime().UTC(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgInitiateTokenWithdrawalResponse{
+		Sequence: l2Sequence,
+	}, nil
 }
 
 func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle) (*types.MsgUpdateOracleResponse, error) {

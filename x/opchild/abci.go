@@ -16,13 +16,18 @@ import (
 
 // BeginBlocker will persist the current header and validator set as a historical entry
 // and prune the oldest entry based on the HistoricalEntries parameter
-func BeginBlocker(ctx context.Context, k keeper.Keeper) error {
+func BeginBlocker(ctx context.Context, k *keeper.Keeper) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
+	err := k.TrackWithdrawalCommitments(ctx)
+	if err != nil {
+		return err
+	}
+
 	return k.TrackHistoricalInfo(ctx)
 }
 
 // Called every block, update validator set
-func EndBlocker(ctx context.Context, k keeper.Keeper) ([]abci.ValidatorUpdate, error) {
+func EndBlocker(ctx context.Context, k *keeper.Keeper) ([]abci.ValidatorUpdate, error) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)

@@ -19,14 +19,17 @@ var (
 	BridgeInfoKey     = []byte{0x13} // prefix for bridge_info
 	NextL1SequenceKey = []byte{0x14} // prefix for inbound deposit sequence number
 
-	LastValidatorPowerPrefix   = []byte{0x21} // prefix for each key to a validator index, for bonded validators
-	ValidatorsPrefix           = []byte{0x31} // prefix for each key to a validator
-	ValidatorsByConsAddrPrefix = []byte{0x41} // prefix for each key to a validator index, by pubkey
-	HistoricalInfoPrefix       = []byte{0x51} // prefix for the historical info
-	DenomPairPrefix            = []byte{0x61} // prefix for the denom pair
-	PendingDepositsKey         = []byte{0x62} // prefix for pending deposits
+	HistoricalInfoPrefix       = []byte{0x21} // prefix for the historical info
+	WithdrawalCommitmentPrefix = []byte{0x22} // prefix for withdrawal commitments
+
+	LastValidatorPowerPrefix   = []byte{0x31} // prefix for each key to a validator index, for bonded validators
+	ValidatorsPrefix           = []byte{0x32} // prefix for each key to a validator
+	ValidatorsByConsAddrPrefix = []byte{0x33} // prefix for each key to a validator index, by pubkey
+
+	DenomPairPrefix    = []byte{0x41} // prefix for the denom pair
+	PendingDepositsKey = []byte{0x42} // prefix for pending deposits
 
 	// HostValidatorStore keys
-	HostHeightKey        = []byte{0x71}
-	HostValidatorsPrefix = []byte{0x72}
+	HostHeightKey        = []byte{0x51}
+	HostValidatorsPrefix = []byte{0x52}
 )

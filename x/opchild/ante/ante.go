@@ -7,10 +7,10 @@ import (
 )
 
 type RedundantBridgeDecorator struct {
-	ms keeper.MsgServer
+	ms *keeper.MsgServer
 }
 
-func NewRedundantBridgeDecorator(k keeper.Keeper) RedundantBridgeDecorator {
+func NewRedundantBridgeDecorator(k *keeper.Keeper) RedundantBridgeDecorator {
 	return RedundantBridgeDecorator{
 		ms: keeper.NewMsgServerImpl(k),
 	}
