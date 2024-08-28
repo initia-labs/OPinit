@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -70,10 +69,10 @@ func (h BridgeHook) BridgeCreated(
 		}
 
 		// check if the channel has a permissioned relayer
-		if _, err := h.IBCPermKeeper.GetPermissionedRelayers(ctx, portID, channelID); err == nil {
-			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayers for the channel in use")
-		} else if !errors.Is(err, collections.ErrNotFound) {
+		if relayers, err := h.IBCPermKeeper.GetPermissionedRelayers(ctx, portID, channelID); err != nil {
 			return err
+		} else if len(relayers) > 0 {
+			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayers for the channel in use")
 		}
 
 		// register challengers as channel relayer

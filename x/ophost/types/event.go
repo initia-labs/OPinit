@@ -31,4 +31,5 @@ const (
 	AttributeKeyL2Sequence             = "l2_sequence"
 	AttributeKeyFinalizedOutputIndex   = "finalized_output_index"
 	AttributeKeyFinalizedL2BlockNumber = "finalized_l2_block_number"
+	AttributeKeyOracleEnabled          = "oracle_enabled"
 )

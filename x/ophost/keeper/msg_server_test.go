@@ -441,6 +441,51 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	require.Error(t, err)
 }
 
+func Test_UpdateOracleConfig(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	config := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challengers:           []string{addrsStr[1]},
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		OracleEnabled:         true,
+	}
+
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	// gov signer
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgUpdateOracleConfig(govAddr, 1, false)
+	_, err = ms.UpdateOracleConfig(ctx, msg)
+	require.NoError(t, err)
+	_config, err := ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, false, _config.OracleEnabled)
+
+	// current proposer signer
+	msg = types.NewMsgUpdateOracleConfig(addrsStr[0], 1, true)
+	_, err = ms.UpdateOracleConfig(ctx, msg)
+	require.NoError(t, err)
+	_config, err = ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, true, _config.OracleEnabled)
+
+	// invalid signer
+	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+	msg = types.NewMsgUpdateOracleConfig(invalidAddr, 1, false)
+	require.NoError(t, err)
+
+	_, err = ms.UpdateOracleConfig(ctx, msg)
+	require.Error(t, err)
+}
 func Test_UpdateMetadata(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
@@ -469,7 +514,7 @@ func Test_UpdateMetadata(t *testing.T) {
 	require.Equal(t, []byte{4, 5, 6}, _config.Metadata)
 	require.Equal(t, []byte{4, 5, 6}, input.BridgeHook.metadata)
 
-	// current challenger
+	// current proposer
 	msg = types.NewMsgUpdateMetadata(addrsStr[0], 1, []byte{7, 8, 9})
 	_, err = ms.UpdateMetadata(ctx, msg)
 	require.NoError(t, err)

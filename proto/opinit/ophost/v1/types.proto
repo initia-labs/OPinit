@@ -51,8 +51,12 @@ message BridgeConfig {
   ];
   // The the first l2 block will be recorded on l1.
   uint64 submission_start_height = 6;
+
+  // oracle_enabled is a flag to enable oracle.
+  bool oracle_enabled = 7;
+
   // Normally it is IBC channelID for permissioned IBC relayer.
-  bytes metadata = 7;
+  bytes metadata = 8;
 }
 
 // BatchInfo defines the set of batch information.

@@ -49,6 +49,7 @@ func InitializeOpBridge(
 			*config.OpBridge.OutputSubmissionInterval,
 			*config.OpBridge.OutputFinalizationPeriod,
 			config.OpBridge.OutputSubmissionStartHeight,
+			*config.OpBridge.EnableOracle,
 		)
 
 		ctx.Logger().Info("creating op bridge...", "message", createOpBridgeMessage.String())
@@ -112,6 +113,7 @@ func createOpBridge(
 	submissionInterval time.Duration,
 	finalizationPeriod time.Duration,
 	submissionStartHeight uint64,
+	enableOracle bool,
 ) (*ophosttypes.MsgCreateBridge, error) {
 	// generate ophosthooktypes.PermsMetadata
 	// assume that all channels in IBC keeper need to be permitted on OPChild
@@ -144,6 +146,7 @@ func createOpBridge(
 			FinalizationPeriod:    finalizationPeriod,
 			SubmissionStartHeight: submissionStartHeight,
 			Metadata:              permsMetadataJSON,
+			OracleEnabled:         enableOracle,
 		},
 	), nil
 }

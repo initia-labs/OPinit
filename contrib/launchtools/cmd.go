@@ -25,27 +25,22 @@ func LaunchCmd(
 	steps []LauncherStepFuncFactory[*Config],
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "launch [target-chain-id]",
+		Use:   "launch",
 		Short: "Launch a new instance of the app",
 		Long: `Launch a new instance of the app. This command will execute a series of steps to
 initialize the app and generate the necessary configuration files. The artifacts will be stored in the
 specified directory. The command will output the artifacts to stdout too.
 
 Example:
-$ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
+$ launchtools launch --artifacts-dir ./ --with-config ./config.json
 `,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			sdk.SetAddrCacheEnabled(false)
 			defer sdk.SetAddrCacheEnabled(true)
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			serverCtx := server.GetServerContextFromCmd(cmd)
-
-			targetNetwork := args[0]
-			if targetNetwork == "" {
-				return errors.New("target chain id is required")
-			}
 
 			artifactsDir, err := cmd.Flags().GetString(flagArtifactsDir)
 			if err != nil {
@@ -62,7 +57,7 @@ $ launchtools launch mahalo-3 --artifacts-dir ./ --with-config ./config.json
 				return err
 			}
 
-			if err := config.Finalize(targetNetwork, bufio.NewReader(clientCtx.Input)); err != nil {
+			if err := config.Finalize(bufio.NewReader(clientCtx.Input)); err != nil {
 				return errors.Wrap(err, "failed to finalize config")
 			}
 
