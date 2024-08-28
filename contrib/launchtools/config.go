@@ -77,7 +77,7 @@ func (i *Config) Finalize(buf *bufio.Reader) error {
 	if err := i.SystemKeys.Finalize(buf); err != nil {
 		return err
 	}
-	if err := i.GenesisAccounts.Finalize(i.SystemKeys); err != nil {
+	if err := i.GenesisAccounts.Finalize(*i.SystemKeys); err != nil {
 		return err
 	}
 
@@ -271,7 +271,7 @@ type GenesisAccount struct {
 
 type GenesisAccounts []GenesisAccount
 
-func (gas *GenesisAccounts) Finalize(systemKeys *SystemKeys) error {
+func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
 	keys := reflect.ValueOf(systemKeys)
 	for idx := 0; idx < keys.NumField(); idx++ {
 		k, ok := keys.Field(idx).Interface().(*SystemAccount)
