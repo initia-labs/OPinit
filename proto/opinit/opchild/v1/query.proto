@@ -61,7 +61,7 @@ service Query {
 
   rpc ForceWithdrawalProofs(QueryForceWithdrawalProofsRequest) returns (QueryForceWithdrawalProofsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/withdrawals/{l2_sequence}/proofs";
+    option (google.api.http).get               = "/opinit/opchild/v1/withdrawals/{sequence}/proofs";
   }
 }
 
@@ -140,8 +140,8 @@ message QueryBaseDenomResponse {
 
 // QueryForceWithdrawalProofsRequest is request type for the Query/ForceWithdrawalProofs RPC method.
 message QueryForceWithdrawalProofsRequest {
-  // l2_sequence is the sequence number of the l2 block.
-  uint64 l2_sequence = 1;
+  // sequence is the sequence number of the withdrawal.
+  uint64 sequence = 1;
 }
 
 // QueryForceWithdrawalProofsResponse is response type for the Query/ForceWithdrawalProofs RPC method.

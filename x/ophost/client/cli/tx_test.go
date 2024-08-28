@@ -175,7 +175,8 @@ func (s *CLITestSuite) TestNewCreateBridge() {
 		"batch_info": {
 			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 			"chain_type": "CELESTIA"
-		}
+		},
+		"oracle_enabled": true
     }`)
 	s.NoError(err)
 
@@ -515,14 +516,14 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 	_, err = invalidConfig.WriteString(`{}`)
 	s.NoError(err)
 	_, err = validConfig.WriteString(`{
-		"bridge_id": 1,
-		"output_index": 1180,
+		"bridge_id": "1",
+		"output_index": "1180",
 		"withdrawal_proofs": [
 			"q6T8JJm7AdbD4rgZ3BjanRHdE1x7aLZwp36pPrOOey4="
 		],
 		"sender": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
-		"sequence": 5,
-		"amount": "100uinit",
+		"sequence": "5",
+		"amount": {"amount": "100", "denom": "uinit"},
 		"version": "AQ==",
 		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
 		"last_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
@@ -538,6 +539,109 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 	}{
 		{
 			"invalid transaction (invalid withdrawal info)",
+			[]string{
+				invalidConfig.Name(),
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true, 0, &sdk.TxResponse{},
+		},
+		{
+			"valid transaction",
+			[]string{
+				validConfig.Name(),
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false, 0, &sdk.TxResponse{},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
+			if tc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err, "test: %s\noutput: %s", tc.name, out.String())
+				err = s.clientCtx.Codec.UnmarshalJSON(out.Bytes(), tc.respType)
+				require.NoError(err, out.String(), "test: %s, output\n:", tc.name, out.String())
+
+				txResp := tc.respType.(*sdk.TxResponse)
+				require.Equal(tc.expectedCode, txResp.Code,
+					"test: %s, output\n:", tc.name, out.String())
+			}
+		})
+	}
+}
+
+//nolint:dupl
+func (s *CLITestSuite) TestNewForceWithdrawal() {
+	require := s.Require()
+	cmd := cli.NewForceTokenWithdrawal(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	s.NoError(err)
+
+	invalidConfig, err := os.CreateTemp("/tmp", "force_withdrawal_info")
+	require.NoError(err)
+	defer os.Remove(invalidConfig.Name())
+	validConfig, err := os.CreateTemp("/tmp", "force_withdrawal_info")
+	require.NoError(err)
+	defer os.Remove(validConfig.Name())
+
+	_, err = invalidConfig.WriteString(`{}`)
+	s.NoError(err)
+	_, err = validConfig.WriteString(`{
+		"bridge_id": "1",
+		"output_index": "1180",
+		"sequence": "5",
+		"sender": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+		"amount": {"amount": "100", "denom": "uinit"},
+		"commitment_proof": {"ops": [{
+					"type": "ics23:iavl",
+					"key": "IwAAAAAAAAAB",
+					"data": "CpMCCgkjAAAAAAAAAAESIMtX9/DuZvK6Ly5Ofai5mysOIMcc1smtkWGcJ9oE5Of6GgsIARgBIAEqAwACPCIpCAESJQIEPCDkbki1CAPOMl4Ctcyzudf7s8Zp4r+XHyHcj4hiCi1L5yAiKQgBEiUGCkAgAH/09hE0xKNYZmvloM+7ctsEYu/HQrlxV5ZxN4ImjHIgIikIARIlCBpAIJ0yvyT/hmehmQlXWKgYi417k187zU3n7lrVfUs5rDtuICIrCAESBAomQCAaISB6C9R6RalaXaXNuZGvXREt/d2Q5+TOzKlOdaamN42TPyIpCAESJQxYQCCQjCpw17bW9Bs834jmy4Vzo+UgMtoKUHzkMOhLUgyFnCA="
+				},
+				{
+					"type": "ics23:simple",
+					"key": "b3BjaGlsZA==",
+					"data": "Cv0BCgdvcGNoaWxkEiA5Hk4w8gqHwNcz/a+Fwx6e6b3Y5ZJ8/3NWw221YiLm/RoJCAEYASABKgEAIiUIARIhAUHASkLkeZTU28swYO7deS17Yj8b9h9PdJi9Xj4RGWZqIiUIARIhAV+QXBx9gArOP6US8yedcqldayaUyBfSAuixPNGd9nQxIicIARIBARogFhYnngyIgDM5RQ7IZQ35ljkp499OXrHC/5ZW2Z+2I+kiJwgBEgEBGiBOU4xO6+ZWJUItAU20nVBj3BQqfUH+BCSkmuHMEAQzqCIlCAESIQG33+cAibPmm9NGEZ6REEzPVaua/bAJQBspD5drk5UDjQ=="
+				}
+			]
+		},
+		"app_hash": "YokP3+yupFP2knNBqfJVFMa64FusQ4a3/B27UbfAX+c=",
+		"app_hash_proof": {
+			"total": "14",
+			"index": "10",
+			"leaf_hash": "62Ov0/tOgXUg7KHKcVwOc0GYCIWoftO7jjaSOgcLBPU=",
+			"aunts": [
+				"n7nHUzyvHSGNo69tJ39rEBxC48O3XXhCQtpmNgTdU8I=",
+				"u32kdXs9V+sV711i+qWhv8/ouUNED+IcloCESsG2tXY=",
+				"zW9k0LARqw0as3I22ood9j21lGzEJAuQVrEZ741bzJU=",
+				"LSh6zkBwp78gIuPh2qWg05Thz1UihCkIdMCV1hhguOA="
+			]
+		},
+		"version": "AQ==",
+		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
+		"last_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
+		}`)
+	s.NoError(err)
+
+	testCases := []struct {
+		name         string
+		args         []string
+		expectErr    bool
+		expectedCode uint32
+		respType     proto.Message
+	}{
+		{
+			"invalid transaction (invalid force withdrawal info)",
 			[]string{
 				invalidConfig.Name(),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),

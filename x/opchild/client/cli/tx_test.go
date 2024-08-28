@@ -439,7 +439,8 @@ func (s *CLITestSuite) TestNewSetBridgeInfo() {
 		"batch_info": {
 			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 			"chain_type": "INITIA"
-		}
+		},
+		"oracle_enabled": true
     }`)
 	s.NoError(err)
 

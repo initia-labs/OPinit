@@ -299,7 +299,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			origConfig := ophostcli.BridgeCliConfig{}
+			var origConfig ophostcli.BridgeCliConfig
 			err = json.Unmarshal(configBytes, &origConfig)
 			if err != nil {
 				return err
@@ -328,6 +328,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				SubmissionStartHeight: submissionStartHeight,
 				Metadata:              []byte(origConfig.Metadata),
 				BatchInfo:             origConfig.BatchInfo,
+				OracleEnabled:         origConfig.OracleEnabled,
 			}
 
 			if err = bridgeConfig.ValidateWithNoAddrValidation(); err != nil {

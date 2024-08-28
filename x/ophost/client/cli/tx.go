@@ -120,7 +120,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			origConfig := BridgeCliConfig{}
+			var origConfig BridgeCliConfig
 			err = json.Unmarshal(configBytes, &origConfig)
 			if err != nil {
 
@@ -150,6 +150,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				SubmissionStartHeight: submissionStartHeight,
 				Metadata:              []byte(origConfig.Metadata),
 				BatchInfo:             origConfig.BatchInfo,
+				OracleEnabled:         origConfig.OracleEnabled,
 			}
 
 			if err = config.Validate(ac); err != nil {
@@ -335,12 +336,12 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				
 				Where withrawal-info.json contains:
 				{
-					"bridge_id": 1,
-					"output_index": 0,
-					"withdrawal_proofs": [ "base64-encoded proof1", "proof2", ... ],
+					"bridge_id": "1",
+					"output_index": "1",
+					"sequence": "1",
 					"sender" : "bech32-address",
-					"sequence": 0,
-					"amount": "10000000uinit",
+					"amount": {"amount": "10000000", "denom": "uinit"},
+					"withdrawal_proofs": [ "base64-encoded proof1", "proof2", ... ],
 					"version": "base64-encoded version",
 					"storage_root": "base64-encoded storage-root",
 					"last_block_hash": "base64-encoded latest-block-hash"
@@ -358,8 +359,8 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			withdrawalInfo := MsgFinalizeTokenWithdrawal{}
-			err = json.Unmarshal(withdrawalBytes, &withdrawalInfo)
+			var withdrawalInfo types.MsgFinalizeTokenWithdrawal
+			err = clientCtx.Codec.UnmarshalJSON(withdrawalBytes, &withdrawalInfo)
 			if err != nil {
 				return err
 			}
@@ -368,11 +369,6 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 			sender := withdrawalInfo.Sender
 			if len(sender) == 0 {
 				return fmt.Errorf("sender address is required")
-			}
-
-			amount, err := sdk.ParseCoinNormalized(withdrawalInfo.Amount)
-			if err != nil {
-				return err
 			}
 
 			receiver, err := ac.BytesToString(clientCtx.GetFromAddress())
@@ -387,7 +383,7 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				withdrawalInfo.WithdrawalProofs,
 				sender,
 				receiver,
-				amount,
+				withdrawalInfo.Amount,
 				withdrawalInfo.Version,
 				withdrawalInfo.StorageRoot,
 				withdrawalInfo.LastBlockHash,
@@ -421,7 +417,7 @@ func NewForceTokenWithdrawal(ac address.Codec) *cobra.Command {
 					"output_index": "1",
 					"sequence": "1",
 					"sender" : "bech32-address",
-					"amount": "10000000uinit",
+					"amount": {"amount": "10000000", "denom": "uinit"},
 					"commitment_proof": {"ops":[{"type":"ics23:iavl","key":"","data":""}, ...]},
 					"app_hash": "base64-encoded app-hash",
 					"app_hash_proof": {"total": 1, "index": 1, "leaf_hash": "base64-encoded leaf-hash", "aunts": ["base64-encoded aunts"]},
