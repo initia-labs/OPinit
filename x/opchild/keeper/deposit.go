@@ -8,7 +8,7 @@ import (
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
-func (k Keeper) handleBridgeHook(ctx sdk.Context, sender sdk.AccAddress, data []byte) (success bool, reason string) {
+func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte) (success bool, reason string) {
 	defer func() {
 		if r := recover(); r != nil {
 			reason = fmt.Sprintf("panic: %v", r)
