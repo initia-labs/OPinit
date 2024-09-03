@@ -65,7 +65,9 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	if hostStoreLastHeight > int64(height) {
+	//nolint:gosec
+	h := int64(height)
+	if hostStoreLastHeight > h {
 		return types.ErrInvalidOracleHeight
 	}
 
@@ -83,7 +85,7 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	err = l2slinky.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, int64(height-1), hostChainID, extendedCommitInfo)
+	err = l2slinky.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, h-1, hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
 	}

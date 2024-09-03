@@ -109,7 +109,12 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 
 		// assert that the opchild module account is the only signer for ExecuteMessages message
 		if !bytes.Equal(signers[0], authority) {
-			return nil, errorsmod.Wrapf(types.ErrInvalidSigner, sdk.AccAddress(signers[0]).String())
+			signer, err := ms.addressCodec.BytesToString(signers[0])
+			if err != nil {
+				return nil, err
+			}
+
+			return nil, errorsmod.Wrap(types.ErrInvalidSigner, signer)
 		}
 
 		handler := ms.Router().Handler(msg)

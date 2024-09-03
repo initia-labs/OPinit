@@ -1,6 +1,7 @@
 package ante
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -26,7 +27,7 @@ func computeRequiredFees(gas uint64, minGasPrices sdk.DecCoins) sdk.Coins {
 		// Determine the required fees by multiplying each required minimum gas
 		// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
 		for i, gp := range minGasPrices {
-			fee := gp.Amount.MulInt64(int64(gas))
+			fee := gp.Amount.MulInt(math.NewIntFromUint64(gas))
 			requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
 	}
