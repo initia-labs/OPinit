@@ -32,6 +32,7 @@ func (k Keeper) handleBridgeHook(ctx sdk.Context, sender sdk.AccAddress, data []
 		return
 	}
 
+	// use cache context from here to avoid resetting sequencer number on failure
 	cacheCtx, commit := ctx.CacheContext()
 	for _, msg := range tx.GetMsgs() {
 		handler := k.router.Handler(msg)
