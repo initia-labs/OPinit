@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
@@ -239,10 +238,13 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 		return nil, err
 	}
 
-	// send the funds to bridge address
-	bridgeAddr := types.BridgeAddress(bridgeId)
-	if err := ms.bankKeeper.SendCoins(ctx, sender, bridgeAddr, sdk.NewCoins(coin)); err != nil {
-		return nil, err
+	// transfer only positive amount
+	if coin.IsPositive() {
+		// send the funds to bridge address
+		bridgeAddr := types.BridgeAddress(bridgeId)
+		if err := ms.bankKeeper.SendCoins(ctx, sender, bridgeAddr, sdk.NewCoins(coin)); err != nil {
+			return nil, err
+		}
 	}
 
 	// record token pairs
@@ -345,74 +347,6 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	))
 
 	return &types.MsgFinalizeTokenWithdrawalResponse{}, nil
-}
-
-// ForceTokenWithdrwal implements types.MsgServer.
-func (ms MsgServer) ForceTokenWithdrwal(ctx context.Context, req *types.MsgForceTokenWithdrawal) (*types.MsgForceTokenWithdrawalResponse, error) {
-	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
-		return nil, err
-	}
-
-	bridgeId := req.BridgeId
-	outputIndex := req.OutputIndex
-	sequence := req.Sequence
-	appHash := req.AppHash
-	receiver := req.Receiver
-	amount := req.Amount
-
-	if ok, err := ms.IsFinalized(ctx, bridgeId, outputIndex); err != nil {
-		return nil, err
-	} else if !ok {
-		return nil, types.ErrNotFinalized
-	}
-
-	// check if the withdrawal is already claimed
-	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, sequence, req.Sender, receiver, amount.Denom, amount.Amount.Uint64())
-	if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
-		return nil, err
-	} else if ok {
-		return nil, types.ErrWithdrawalAlreadyFinalized
-	}
-
-	outputProposal, err := ms.GetOutputProposal(ctx, bridgeId, outputIndex)
-	if err != nil {
-		return nil, err
-	}
-
-	// validate output root generation
-	outputRoot := types.GenerateOutputRoot(req.Version[0], req.StorageRoot, req.LastBlockHash)
-	if !bytes.Equal(outputProposal.OutputRoot, outputRoot[:]) {
-		return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid output root")
-	}
-
-	// verify app hash
-	if err := opchildtypes.VerifyAppHash(req.LastBlockHash, appHash, &req.AppHashProof); err != nil {
-		return nil, types.ErrFailedToVerifyWithdrawal.Wrap(err.Error())
-	}
-
-	// failed to verify commitment
-	if err := opchildtypes.VerifyCommitment(appHash, sequence, receiver, amount, &req.CommitmentProof); err != nil {
-		return nil, types.ErrFailedToVerifyWithdrawal.Wrap(err.Error())
-	}
-
-	// record proven withdrawal
-	if err := ms.RecordProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
-		return nil, err
-	}
-
-	// transfer asset to a user from the bridge account
-	bridgeAddr := types.BridgeAddress(bridgeId)
-	receiverAccAddr, err := ms.authKeeper.AddressCodec().StringToBytes(receiver)
-	if err != nil {
-		return nil, err
-	}
-
-	// transfer asset to a user from the bridge account
-	if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, receiverAccAddr, sdk.NewCoins(amount)); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgForceTokenWithdrawalResponse{}, nil
 }
 
 func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProposer) (*types.MsgUpdateProposerResponse, error) {

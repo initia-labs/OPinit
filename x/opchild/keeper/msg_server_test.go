@@ -3,17 +3,17 @@ package keeper_test
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/json"
-	"errors"
 	"math/big"
 	"slices"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	protoio "github.com/cosmos/gogoproto/io"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -322,14 +322,8 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 
 	// valid
 	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
-	res, err := ms.InitiateTokenWithdrawal(ctx, msg)
+	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	wc, err := input.OPChildKeeper.GetWithdrawalCommitment(sdkCtx, uint64(1))
-	require.NoError(t, err)
-	require.Equal(t, types.CommitWithdrawal(res.Sequence, addrsStr[1], sdk.NewInt64Coin("test/token", 100)), wc.Commitment)
-	require.Equal(t, sdkCtx.BlockTime(), wc.SubmitTime)
 }
 
 /////////////////////////////////////////
@@ -423,12 +417,20 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	require.Equal(t, math.ZeroInt(), afterToBalance.Amount)
 
 	afterModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
-	require.Equal(t, math.NewInt(100), afterModuleBalance.Amount)
+	require.True(t, afterModuleBalance.Amount.IsZero())
 
-	// pending deposits
-	deposits, err := input.OPChildKeeper.PendingDeposits.Get(ctx, opchildModuleAddress)
-	require.NoError(t, err)
-	require.Equal(t, deposits.Coins[0].Amount, math.NewInt(100))
+	// token withdrawal inititated
+	events := sdk.UnwrapSDKContext(ctx).EventManager().Events()
+	lastEvent := events[len(events)-1]
+	require.Equal(t, sdk.NewEvent(
+		types.EventTypeInitiateTokenWithdrawal,
+		sdk.NewAttribute(types.AttributeKeyFrom, opchildModuleAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyTo, addrsStr[1]),
+		sdk.NewAttribute(types.AttributeKeyDenom, denom),
+		sdk.NewAttribute(types.AttributeKeyBaseDenom, "test_token"),
+		sdk.NewAttribute(types.AttributeKeyAmount, "100"),
+		sdk.NewAttribute(types.AttributeKeyL2Sequence, "1"),
+	), lastEvent)
 }
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
@@ -464,17 +466,28 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 
 	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
 
-	hookMsgBytes, err := json.Marshal("message bytes")
+	// empty deposit to create account
+	priv, _, addr := keyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
+	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
-	input.BridgeHook.msgBytes = hookMsgBytes
-	input.BridgeHook.err = nil
+	// create hook data
+	acc := input.AccountKeeper.GetAccount(ctx, addr)
+	require.NotNil(t, acc)
+	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+		t, input,
+		[]sdk.Msg{banktypes.NewMsgSend(addr, addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(50))))}, // send half tokens to addrs[2]
+		privs, accNums, accSeqs, sdk.UnwrapSDKContext(ctx).ChainID(),
+	))
+	require.NoError(t, err)
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], "hook", sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", hookMsgBytes)
+	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager())
+	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
-	require.Equal(t, hookMsgBytes, input.BridgeHook.msgBytes)
 
 	for _, event := range sdk.UnwrapSDKContext(ctx).EventManager().Events() {
 		if event.Type == types.EventTypeFinalizeTokenDeposit {
@@ -482,10 +495,9 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 		}
 	}
 
-	// intermediate sender balance
-	intermediateSender := types.DeriveIntermediateSender(addrsStr[1])
-	afterBalance := input.BankKeeper.GetBalance(ctx, intermediateSender, denom)
-	require.Equal(t, math.NewInt(100), afterBalance.Amount)
+	// check addrs[2] balance
+	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	require.Equal(t, math.NewInt(50), afterBalance.Amount)
 }
 
 func Test_MsgServer_Deposit_HookFail(t *testing.T) {
@@ -495,24 +507,40 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	input.BridgeHook.err = errors.New("should be failed")
+	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
 
-	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", []byte("invalid_message"))
+	// empty deposit to create account
+	priv, _, addr := keyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
-	require.Empty(t, input.BridgeHook.msgBytes)
+
+	// create hook data
+	acc := input.AccountKeeper.GetAccount(ctx, addr)
+	require.NotNil(t, acc)
+	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+		t, input,
+		[]sdk.Msg{banktypes.NewMsgSend(addr, addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(101))))}, // send more than deposited tokens
+		privs, accNums, accSeqs, sdk.UnwrapSDKContext(ctx).ChainID(),
+	))
+	require.NoError(t, err)
+
+	// valid deposit
+	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager())
+	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
+	_, err = ms.FinalizeTokenDeposit(ctx, msg)
+	require.NoError(t, err)
 
 	for _, event := range sdk.UnwrapSDKContext(ctx).EventManager().Events() {
 		if event.Type == types.EventTypeFinalizeTokenDeposit {
-			for _, attr := range event.Attributes {
-				if attr.Key == types.AttributeKeyHookSuccess {
-					require.Equal(t, "false", attr.Value)
-				}
-			}
+			require.True(t, slices.Contains(event.Attributes, sdk.NewAttribute(types.AttributeKeyHookSuccess, "false").ToKVPair()))
 		}
 	}
 
+	// check addrs[2] balance
+	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	require.Equal(t, math.NewInt(0), afterBalance.Amount)
 }
 
 func Test_MsgServer_UpdateOracle(t *testing.T) {

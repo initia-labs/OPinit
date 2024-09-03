@@ -103,9 +103,9 @@ message MsgFinalizeTokenDeposit {
   string sender = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // from is l1 sender address
-  string from = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string from = 2;
 
-  // to is l2 recipient address
+  // to is l2 recipient address or "hook"
   string to = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // amount is the coin amount to deposit.
@@ -139,7 +139,7 @@ message MsgInitiateTokenWithdrawal {
   string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // to is l1 recipient address
-  string to = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string to = 2;
 
   // amount is the coin amount to withdraw.
   cosmos.base.v1beta1.Coin amount = 4

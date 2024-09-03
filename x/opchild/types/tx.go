@@ -258,7 +258,7 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 		}
 	}
 
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+	if !msg.Amount.IsValid() {
 		return ErrInvalidAmount
 	}
 

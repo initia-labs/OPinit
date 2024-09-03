@@ -31,6 +31,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -241,6 +242,8 @@ func _createTestInput(
 
 	encodingConfig := MakeEncodingConfig(t)
 	appCodec := encodingConfig.Marshaler
+	txDecoder := encodingConfig.TxConfig.TxDecoder()
+	signModeHandler := encodingConfig.TxConfig.SignModeHandler()
 
 	maccPerms := map[string][]string{ // module account permissions
 		authtypes.FeeCollectorName:     nil,
@@ -292,10 +295,16 @@ func _createTestInput(
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
 		accountKeeper,
 		bankKeeper,
-		bridgeHook.Hook,
 		&oracleKeeper,
+		sdk.ChainAnteDecorators(
+			authante.NewSetPubKeyDecorator(accountKeeper),
+			authante.NewValidateSigCountDecorator(accountKeeper),
+			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
+			authante.NewSigVerificationDecorator(accountKeeper, signModeHandler),
+			authante.NewIncrementSequenceDecorator(accountKeeper),
+		),
+		txDecoder,
 		msgRouter,
-		nil,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),

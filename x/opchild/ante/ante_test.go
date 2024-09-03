@@ -154,10 +154,10 @@ func TestRedundantTx(t *testing.T) {
 	tx := testTx{
 		msgs: []sdk.Msg{
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 1, 1, "l1_test0", []byte(""),
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 1, 1, "l1_test0", nil,
 			),
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", []byte(""),
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", nil,
 			),
 		},
 	}
@@ -172,10 +172,10 @@ func TestRedundantTx(t *testing.T) {
 	tx = testTx{
 		msgs: []sdk.Msg{
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", []byte(""),
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", nil,
 			),
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 3, 1, "l1_test0", []byte(""),
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 3, 1, "l1_test0", nil,
 			),
 		},
 	}
@@ -186,7 +186,7 @@ func TestRedundantTx(t *testing.T) {
 	tx = testTx{
 		msgs: []sdk.Msg{
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 4, 1, "l1_test0", []byte(""),
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 4, 1, "l1_test0", nil,
 			),
 		},
 	}

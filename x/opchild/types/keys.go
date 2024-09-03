@@ -27,8 +27,7 @@ var (
 	ValidatorsPrefix           = []byte{0x32} // prefix for each key to a validator
 	ValidatorsByConsAddrPrefix = []byte{0x33} // prefix for each key to a validator index, by pubkey
 
-	DenomPairPrefix    = []byte{0x41} // prefix for the denom pair
-	PendingDepositsKey = []byte{0x42} // prefix for pending deposits
+	DenomPairPrefix = []byte{0x41} // prefix for the denom pair
 
 	// HostValidatorStore keys
 	HostHeightKey        = []byte{0x51}

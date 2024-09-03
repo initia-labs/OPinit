@@ -20,13 +20,6 @@ message GenesisState {
   // delegations defines the validator set at genesis.
   repeated Validator validators = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 
-  // the pending deposits that are not failed to be deposited.
-  repeated PendingDeposits pending_deposits = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-
-  // the withdrawal commitments for force withdrawal.
-  repeated WithdrawalCommitment withdrawal_commitments = 5
-      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-
   uint64     next_l2_sequence = 6;
   uint64     next_l1_sequence = 7;
   BridgeInfo bridge_info      = 8;

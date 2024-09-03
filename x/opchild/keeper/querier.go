@@ -6,7 +6,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -103,46 +102,4 @@ func (q Querier) BaseDenom(ctx context.Context, req *types.QueryBaseDenomRequest
 	}
 
 	return &types.QueryBaseDenomResponse{BaseDenom: baseDenom}, nil
-}
-
-// ForceWithdrawalProofs returns the force withdrawal proofs.
-//
-// @dev: This query is not deterministic and should only be used for off-chain.
-// @dev: The caller must use the height query to get the app hash and commitment proof at the specific height.
-// The height should be the L2 block number contained in the output submitted to L1, and this height should be higher than the block where the withdrawal occurred.
-func (q Querier) ForceWithdrawalProofs(ctx context.Context, req *types.QueryForceWithdrawalProofsRequest) (*types.QueryForceWithdrawalProofsResponse, error) {
-	if q.clientCtx == nil {
-		return nil, status.Error(codes.Internal, "client context is not set")
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	height := sdkCtx.BlockHeight()
-	appHash, appHashProof, err := types.QueryAppHashWithProof(q.clientCtx, height)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	sequence := req.Sequence
-	if ok, err := q.Commitments.Has(ctx, sequence); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	} else if !ok {
-		return nil, status.Errorf(codes.NotFound, "withdrawal commitment %d not found at height %d", sequence, height)
-	}
-
-	commitmentProof, err := types.QueryCommitmentProof(
-		q.baseAppQuerier,
-		// we should compute the `height-1` here because the app hash of a block is
-		// the one that is committed in the previous block.
-		height-1,
-		types.WithdrawalCommitmentKey(sequence),
-	)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &types.QueryForceWithdrawalProofsResponse{
-		CommitmentProof: *commitmentProof,
-		AppHashProof:    *appHashProof,
-		AppHash:         appHash,
-	}, nil
 }

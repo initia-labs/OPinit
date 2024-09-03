@@ -2,7 +2,6 @@ package types
 
 import (
 	"cosmossdk.io/core/address"
-	v1 "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -14,7 +13,6 @@ var (
 	_ sdk.Msg = &MsgDeleteOutput{}
 	_ sdk.Msg = &MsgFinalizeTokenWithdrawal{}
 	_ sdk.Msg = &MsgInitiateTokenDeposit{}
-	_ sdk.Msg = &MsgForceTokenWithdrawal{}
 	_ sdk.Msg = &MsgUpdateProposer{}
 	_ sdk.Msg = &MsgUpdateChallengers{}
 	_ sdk.Msg = &MsgUpdateBatchInfo{}
@@ -188,7 +186,8 @@ func (msg MsgInitiateTokenDeposit) Validate(ac address.Codec) error {
 		return sdkerrors.ErrInvalidAddress.Wrap("to address cannot be empty")
 	}
 
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+	// allow zero amount for creating account
+	if !msg.Amount.IsValid() {
 		return ErrInvalidAmount
 	}
 
@@ -259,92 +258,6 @@ func (msg MsgFinalizeTokenWithdrawal) Validate(ac address.Codec) error {
 		if len(proof) != 32 {
 			return ErrInvalidHashLength.Wrap("withdrawal_proofs")
 		}
-	}
-
-	if len(msg.Version) != 1 {
-		return ErrInvalidHashLength.Wrap("version")
-	}
-
-	if len(msg.StorageRoot) != 32 {
-		return ErrInvalidHashLength.Wrap("storage_root")
-	}
-
-	if len(msg.LastBlockHash) != 32 {
-		return ErrInvalidHashLength.Wrap("last_block_hash")
-	}
-
-	return nil
-}
-
-/* MsgForceTokenWithdrawal */
-
-// NewMsgForceTokenWithdrawal creates a new MsgForceTokenWithdrawal instance.
-func NewMsgForceTokenWithdrawal(
-	bridgeId uint64,
-	outputIndex uint64,
-	sequence uint64,
-	sender string,
-	receiver string,
-	amount sdk.Coin,
-	commitmentProof v1.ProofOps,
-	appHash []byte,
-	appHashProof v1.Proof,
-	version []byte,
-	storageRoot []byte,
-	lastBlockHash []byte,
-) *MsgForceTokenWithdrawal {
-	return &MsgForceTokenWithdrawal{
-		BridgeId:    bridgeId,
-		OutputIndex: outputIndex,
-
-		Sequence:        sequence,
-		Sender:          sender,
-		Receiver:        receiver,
-		Amount:          amount,
-		CommitmentProof: commitmentProof,
-
-		AppHash:      appHash,
-		AppHashProof: appHashProof,
-
-		Version:       version,
-		StorageRoot:   storageRoot,
-		LastBlockHash: lastBlockHash,
-	}
-}
-
-// Validate performs basic MsgForceTokenWithdrawal message validation.
-func (msg MsgForceTokenWithdrawal) Validate(ac address.Codec) error {
-	if msg.BridgeId == 0 {
-		return ErrInvalidBridgeId
-	}
-
-	if msg.OutputIndex == 0 {
-		return ErrInvalidOutputIndex
-	}
-
-	if msg.Sequence == 0 {
-		return ErrInvalidSequence
-	}
-
-	// cannot validate sender address as it can be any format of address based on the chain.
-	if len(msg.Sender) == 0 {
-		return sdkerrors.ErrInvalidAddress.Wrap("sender address cannot be empty")
-	}
-
-	if _, err := ac.StringToBytes(msg.Receiver); err != nil {
-		return err
-	}
-
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return ErrInvalidAmount
-	}
-
-	if len(msg.CommitmentProof.Ops) == 0 {
-		return ErrEmptyCommitmentProof
-	}
-
-	if len(msg.AppHash) != 32 {
-		return ErrInvalidHashLength.Wrap("data_hash")
 	}
 
 	if len(msg.Version) != 1 {

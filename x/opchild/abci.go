@@ -18,11 +18,6 @@ import (
 // and prune the oldest entry based on the HistoricalEntries parameter
 func BeginBlocker(ctx context.Context, k *keeper.Keeper) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
-	err := k.TrackWithdrawalCommitments(ctx)
-	if err != nil {
-		return err
-	}
-
 	return k.TrackHistoricalInfo(ctx)
 }
 

@@ -14,7 +14,6 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -31,10 +30,11 @@ type Keeper struct {
 
 	authKeeper types.AccountKeeper
 	bankKeeper types.BankKeeper
-	bridgeHook types.BridgeHook
 
-	// Msg server router
-	router *baseapp.MsgServiceRouter
+	// sig verify and sequence increment decorators
+	decorators sdk.AnteHandler
+	txDecoder  sdk.TxDecoder
+	router     *baseapp.MsgServiceRouter
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/opchild module account.
@@ -54,7 +54,6 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 	DenomPairs           collections.Map[string, string]
-	PendingDeposits      collections.Map[[]byte, types.CoinsWrapper]
 	Commitments          collections.Map[uint64, []byte]
 	CommitmentTimes      collections.Map[uint64, time.Time]
 
@@ -62,10 +61,6 @@ type Keeper struct {
 
 	l2OracleHandler    *L2OracleHandler
 	HostValidatorStore *HostValidatorStore
-
-	// for querier
-	clientCtx      *client.Context
-	baseAppQuerier types.BaseAppQuerier
 }
 
 func NewKeeper(
@@ -73,10 +68,20 @@ func NewKeeper(
 	storeService corestoretypes.KVStoreService,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
-	bh types.BridgeHook,
 	ok types.OracleKeeper,
+	/*
+		Should provide the following decorators
+		sdk.ChainAnteDecorators(
+			authante.NewSetPubKeyDecorator(accountKeeper),
+			authante.NewValidateSigCountDecorator(accountKeeper),
+			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
+			authante.NewSigVerificationDecorator(accountKeeper, signModeHandler),
+			authante.NewIncrementSequenceDecorator(accountKeeper),
+		),
+	*/
+	decorators sdk.AnteHandler,
+	txDecoder sdk.TxDecoder,
 	router *baseapp.MsgServiceRouter,
-	querier types.BaseAppQuerier,
 	authority string,
 	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
@@ -105,7 +110,8 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
-		bridgeHook:            bh,
+		decorators:            decorators,
+		txDecoder:             txDecoder,
 		router:                router,
 		authority:             authority,
 		addressCodec:          addressCodec,
@@ -119,16 +125,12 @@ func NewKeeper(
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
-		PendingDeposits:       collections.NewMap(sb, types.PendingDepositsKey, "pending_deposits", collections.BytesKey, codec.CollValue[types.CoinsWrapper](cdc)),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		Commitments:           collections.NewMap(sb, types.CommitmentPrefix, "commitments", collections.Uint64Key, collections.BytesValue),
 		CommitmentTimes:       collections.NewMap(sb, types.CommitmentTimePrefix, "commitment_times", collections.Uint64Key, collcodec.KeyToValueCodec(sdk.TimeKey)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,
-
-		// for querier
-		baseAppQuerier: querier,
 	}
 
 	schema, err := sb.Build()
@@ -139,10 +141,6 @@ func NewKeeper(
 	k.l2OracleHandler = NewL2OracleHandler(k, ok, logger)
 
 	return k
-}
-
-func (k *Keeper) SetClientContext(ctx *client.Context) {
-	k.clientCtx = ctx
 }
 
 // GetAuthority returns the x/move module's authority.

@@ -3,12 +3,10 @@ package keeper
 import (
 	"bytes"
 	"context"
-	"errors"
+	"fmt"
 	"strconv"
 
-	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -391,30 +389,19 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return nil, types.ErrInvalidSequence
 	}
 
-	coins := sdk.NewCoins(coin)
-	if err := ms.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
-		return nil, err
-	}
-
-	// handle hook - if the recipient is "hook"
-	executeHook := len(req.Data) > 0 && req.To == "hook"
-
-	var toAddr sdk.AccAddress
-	if executeHook {
-		// intermediate address
-		toAddr = types.DeriveIntermediateSender(req.From)
-	} else {
-		toAddr, err = ms.authKeeper.AddressCodec().StringToBytes(req.To)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	success, err := ms.safeDepositToken(ctx, toAddr, coins)
+	// deposit token
+	var success bool
+	var reason string
+	toAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
 	if err != nil {
-		return nil, err
+		success = false
+		reason = fmt.Sprintf("failed to convert recipient address: %s", err)
+	} else {
+		// rollback if the deposit is failed
+		success, reason = ms.safeDepositToken(ctx, toAddr, sdk.NewCoins(coin))
 	}
 
+	// updae l1 sequence
 	if _, err := ms.IncreaseNextL1Sequence(ctx); err != nil {
 		return nil, err
 	}
@@ -442,57 +429,34 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, req.BaseDenom),
 		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
+		sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(success)),
+		sdk.NewAttribute(types.AttributeKeyReason, reason),
 	)
 
-	if success && executeHook {
-		cacheCtx, commit := sdkCtx.CacheContext()
-
-		// in this case, the recipient is "hook" and the toAddr is the intermediate address
-		if err := ms.bridgeHook(cacheCtx, toAddr, req.Data); err == nil {
-			commit()
-		}
-
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, strconv.FormatBool(err == nil)))
+	// if the deposit is successful and the data is not empty, execute the hook
+	if success && len(req.Data) > 0 {
+		success, reason := ms.HandleBridgeHook(sdkCtx, toAddr, req.Data)
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, strconv.FormatBool(success)))
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookReason, reason))
 	}
 
+	// emit deposit event
 	sdkCtx.EventManager().EmitEvent(event)
-	return &types.MsgFinalizeTokenDepositResponse{Result: types.SUCCESS}, nil
-}
 
-// safeDepositToken deposits the token to the recipient address
-// - if the deposit is failed, it records the pending deposit
-// - if the deposit is successful, it returns true and writes the changes
-func (ms MsgServer) safeDepositToken(ctx context.Context, toAddr sdk.AccAddress, coins sdk.Coins) (success bool, err error) {
-	// use cache context to avoid relaying failure
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	cacheCtx, commit := sdkCtx.CacheContext()
-
-	// transfer can be failed due to contract logics
-	if err = ms.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, toAddr, coins); err != nil {
-		ms.Logger(ctx).Error("failed to finalize token deposit", "error", err)
-
-		// records pending deposits
-		pendingDeposits, err := ms.PendingDeposits.Get(ctx, toAddr)
-		if err != nil && errors.Is(err, collections.ErrNotFound) {
-			pendingDeposits = types.CoinsWrapper{
-				Coins: sdk.NewCoins(),
-			}
-		} else if err != nil {
-			return false, err
+	// if the deposit is failed, initate a withdrawal
+	if !success {
+		l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
+		if err != nil {
+			return nil, err
 		}
 
-		pendingDeposits.Coins = pendingDeposits.Coins.Add(coins...)
-		if err := ms.PendingDeposits.Set(ctx, toAddr, pendingDeposits); err != nil {
-			return false, err
+		err = ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
+		if err != nil {
+			return nil, err
 		}
-
-		return false, nil
 	}
 
-	// write the changes only if the transfer is successful
-	commit()
-
-	return true, nil
+	return &types.MsgFinalizeTokenDepositResponse{Result: types.SUCCESS}, nil
 }
 
 /////////////////////////////////////////////////////
@@ -507,47 +471,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	coin := req.Amount
 	burnCoins := sdk.NewCoins(coin)
 
-	baseDenom, err := ms.GetBaseDenom(ctx, coin.Denom)
-	if err != nil {
-		return nil, err
-	}
-
 	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
-	if err != nil {
-		return nil, err
-	}
-
-	// check pending deposits and withdraw from them if necessary
-	pendingDeposits, err := ms.PendingDeposits.Get(ctx, senderAddr)
-	if err == nil {
-		pendingAmount := pendingDeposits.Coins.AmountOf(coin.Denom)
-		if pendingAmount.IsPositive() {
-			var pendingWithdrawAmount math.Int
-			if coin.Amount.GT(pendingAmount) {
-				pendingWithdrawAmount = pendingAmount
-			} else {
-				pendingWithdrawAmount = coin.Amount
-			}
-
-			// withdraw from the pending deposits
-			withdrawnCoinFromPendingDeposits := sdk.NewCoin(coin.Denom, pendingWithdrawAmount)
-			coin = coin.Sub(withdrawnCoinFromPendingDeposits)
-
-			// update pending deposits
-			pendingDeposits.Coins = pendingDeposits.Coins.Sub(withdrawnCoinFromPendingDeposits)
-			if pendingDeposits.Coins.IsZero() {
-				if err := ms.PendingDeposits.Remove(ctx, senderAddr); err != nil {
-					return nil, err
-				}
-			} else {
-				if err := ms.PendingDeposits.Set(ctx, senderAddr, pendingDeposits); err != nil {
-					return nil, err
-				}
-			}
-		}
-	}
-
-	l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -565,6 +489,28 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		return nil, err
 	}
 
+	l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ms.emitWithdrawEvents(ctx, req, l2Sequence)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgInitiateTokenWithdrawalResponse{
+		Sequence: l2Sequence,
+	}, nil
+}
+
+func (ms MsgServer) emitWithdrawEvents(ctx context.Context, req *types.MsgInitiateTokenWithdrawal, l2Sequence uint64) error {
+	coin := req.Amount
+	baseDenom, err := ms.GetBaseDenom(ctx, coin.Denom)
+	if err != nil {
+		return err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
@@ -576,18 +522,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
 	))
 
-	// record withdrawal commitment
-	err = ms.SetWithdrawalCommitment(ctx, l2Sequence, types.WithdrawalCommitment{
-		Commitment: types.CommitWithdrawal(l2Sequence, req.To, sdk.NewCoin(baseDenom, coin.Amount)),
-		SubmitTime: sdkCtx.BlockTime().UTC(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgInitiateTokenWithdrawalResponse{
-		Sequence: l2Sequence,
-	}, nil
+	return nil
 }
 
 func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle) (*types.MsgUpdateOracleResponse, error) {

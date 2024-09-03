@@ -10,7 +10,6 @@ managed:
       - buf.build/cosmos/ibc
     override:
       buf.build/cosmos/cosmos-sdk: cosmossdk.io/api
-      buf.build/cometbft/cometbft: buf.build/gen/go/cometbft/cometbft/protocolbuffers/go
 plugins:
   - name: go-pulsar
     out: ../api

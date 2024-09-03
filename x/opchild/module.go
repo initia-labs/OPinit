@@ -40,7 +40,6 @@ var (
 // AppModuleBasic defines the basic application module used by the opchild module.
 type AppModuleBasic struct {
 	cdc codec.Codec
-	k   *keeper.Keeper
 }
 
 func (b AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
@@ -48,9 +47,6 @@ func (b AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
 }
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, serveMux *runtime.ServeMux) {
-	// for commitment queries
-	b.k.SetClientContext(&clientCtx)
-
 	err := types.RegisterQueryHandlerClient(context.Background(), serveMux, types.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -113,7 +109,7 @@ func NewAppModule(
 	k *keeper.Keeper,
 ) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{cdc, k},
+		AppModuleBasic: AppModuleBasic{cdc},
 		keeper:         k,
 	}
 }

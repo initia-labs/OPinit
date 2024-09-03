@@ -1,0 +1,99 @@
+package keeper
+
+import (
+	"context"
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/initia-labs/OPinit/x/opchild/types"
+)
+
+func (k Keeper) HandleBridgeHook(ctx sdk.Context, sender sdk.AccAddress, data []byte) (success bool, reason string) {
+	defer func() {
+		if r := recover(); r != nil {
+			reason = fmt.Sprintf("panic: %v", r)
+		}
+
+		const maxReasonLength = 128
+		if len(reason) > maxReasonLength {
+			reason = reason[:maxReasonLength] + "..."
+		}
+	}()
+
+	tx, err := k.txDecoder(data)
+	if err != nil {
+		reason = fmt.Sprintf("Failed to decode tx: %s", err)
+		return
+	}
+
+	ctx, err = k.decorators(ctx, tx, false)
+	if err != nil {
+		reason = fmt.Sprintf("Failed to run AnteHandler: %s", err)
+		return
+	}
+
+	cacheCtx, commit := ctx.CacheContext()
+	for _, msg := range tx.GetMsgs() {
+		handler := k.router.Handler(msg)
+		if handler == nil {
+			reason = fmt.Sprintf("Unrecognized Msg type: %s", sdk.MsgTypeURL(msg))
+			return
+		}
+
+		_, err = handler(cacheCtx, msg)
+		if err != nil {
+			reason = fmt.Sprintf("Failed to execute Msg: %s", err)
+			return
+		}
+	}
+
+	commit()
+	success = true
+
+	return
+}
+
+// safeDepositToken mint and send coins to the recipient. Rollback all state changes
+// if the deposit is failed.
+func (ms MsgServer) safeDepositToken(ctx context.Context, toAddr sdk.AccAddress, coins sdk.Coins) (success bool, reason string) {
+	// if coin is zero, just create an account
+	if coins.IsZero() {
+		newAcc := ms.authKeeper.NewAccountWithAddress(ctx, toAddr)
+		ms.authKeeper.SetAccount(ctx, newAcc)
+		return true, ""
+	}
+
+	var err error
+	defer func() {
+		if r := recover(); r != nil {
+			reason = fmt.Sprintf("panic: %v", r)
+		}
+
+		const maxReasonLength = 128
+		if len(reason) > maxReasonLength {
+			reason = reason[:maxReasonLength] + "..."
+		}
+	}()
+
+	// use cache context to avoid relaying failure
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	cacheCtx, commit := sdkCtx.CacheContext()
+
+	// mint coins to the module account
+	if err = ms.bankKeeper.MintCoins(cacheCtx, types.ModuleName, coins); err != nil {
+		reason = fmt.Sprintf("failed to mint coins: %s", err)
+		return
+	}
+
+	// transfer can be failed due to contract logics
+	if err = ms.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, toAddr, coins); err != nil {
+		reason = fmt.Sprintf("failed to send coins: %s", err)
+		return
+	}
+
+	// write the changes only if the transfer is successful
+	commit()
+	success = true
+
+	return
+}

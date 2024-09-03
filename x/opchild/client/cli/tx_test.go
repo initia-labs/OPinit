@@ -116,7 +116,7 @@ func (s *CLITestSuite) TestNewWithdrawCmd() {
 			"invalid transaction (invalid amount)",
 			[]string{
 				s.addrs[0].String(),
-				"0umin",
+				"-1umin",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -221,7 +221,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				"1",
 				s.addrs[0].String(),
 				s.addrs[1].String(),
-				"0umin",
+				"-1umin",
 				"test_token",
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
