@@ -105,7 +105,7 @@ message MsgFinalizeTokenDeposit {
   // from is l1 sender address
   string from = 2;
 
-  // to is l2 recipient address or "hook"
+  // to is l2 recipient address
   string to = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // amount is the coin amount to deposit.

@@ -8727,7 +8727,7 @@ type MsgFinalizeTokenDeposit struct {
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	// from is l1 sender address
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	// to is l2 recipient address or "hook"
+	// to is l2 recipient address
 	To string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
 	// amount is the coin amount to deposit.
 	Amount *v1beta1.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`

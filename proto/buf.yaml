@@ -2,7 +2,6 @@
 version: v1
 name: buf.build/initia-labs/OPinit
 deps:
-  - buf.build/cometbft/cometbft:fedbb9acfd2f494b9755949cbb41dfca 
   - buf.build/cosmos/cosmos-sdk:v0.50.0
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
   - buf.build/cosmos/gogo-proto:5e5b9fdd01804356895f8f79a6f1ddc1

@@ -20,6 +20,5 @@ var (
 	ErrInvalidBridgeMetadata      = errorsmod.Register(ModuleName, 13, "invalid bridge metadata")
 	ErrInvalidBatchInfo           = errorsmod.Register(ModuleName, 14, "invalid batch info")
 	ErrInvalidChallengerUpdate    = errorsmod.Register(ModuleName, 15, "invalid challenger update")
-	ErrEmptyCommitmentProof       = errorsmod.Register(ModuleName, 16, "empty commitment proof")
-	ErrEmptyBatchBytes            = errorsmod.Register(ModuleName, 17, "empty batch bytes")
+	ErrEmptyBatchBytes            = errorsmod.Register(ModuleName, 16, "empty batch bytes")
 )

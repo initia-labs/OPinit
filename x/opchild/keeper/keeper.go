@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"cosmossdk.io/collections"
-	collcodec "cosmossdk.io/collections/codec"
 	"cosmossdk.io/core/address"
 	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -54,8 +52,6 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 	DenomPairs           collections.Map[string, string]
-	Commitments          collections.Map[uint64, []byte]
-	CommitmentTimes      collections.Map[uint64, time.Time]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -126,8 +122,6 @@ func NewKeeper(
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
-		Commitments:           collections.NewMap(sb, types.CommitmentPrefix, "commitments", collections.Uint64Key, collections.BytesValue),
-		CommitmentTimes:       collections.NewMap(sb, types.CommitmentTimePrefix, "commitment_times", collections.Uint64Key, collcodec.KeyToValueCodec(sdk.TimeKey)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,
@@ -157,11 +151,6 @@ func (k Keeper) Logger(ctx context.Context) log.Logger {
 // Router returns the gov keeper's router
 func (k Keeper) Router() *baseapp.MsgServiceRouter {
 	return k.router
-}
-
-// StoreService returns the KVStoreService
-func (k Keeper) StoreService() corestoretypes.KVStoreService {
-	return k.storeService
 }
 
 // setDenomMetadata sets an OPinit token's denomination metadata
