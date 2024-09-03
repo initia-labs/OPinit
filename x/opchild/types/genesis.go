@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/core/address"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -22,6 +23,7 @@ func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeIn
 		Validators:          validators,
 		Exported:            false,
 		BridgeInfo:          bridgeInfo,
+		DenomPairs:          []DenomPair{},
 	}
 }
 
@@ -35,6 +37,7 @@ func DefaultGenesisState() *GenesisState {
 		NextL2Sequence:      DefaultL2SequenceStart,
 		BridgeInfo:          nil,
 		Exported:            false,
+		DenomPairs:          []DenomPair{},
 	}
 }
 
@@ -51,6 +54,12 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 
 	if data.BridgeInfo != nil {
 		if err := data.BridgeInfo.Validate(ac); err != nil {
+			return err
+		}
+	}
+
+	for _, denomPair := range data.DenomPairs {
+		if err := sdk.ValidateDenom(denomPair.Denom); err != nil {
 			return err
 		}
 	}

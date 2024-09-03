@@ -26,6 +26,9 @@ func Test_GenesisImportExport(t *testing.T) {
 	_, err = input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 3
 	require.NoError(t, err)
 
+	err = input.OPChildKeeper.DenomPairs.Set(ctx, "foo", "bar")
+	require.NoError(t, err)
+
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
 	require.Nil(t, genState.BridgeInfo)
 

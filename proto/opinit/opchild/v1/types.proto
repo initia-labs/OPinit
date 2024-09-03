@@ -121,3 +121,8 @@ enum ResponseResultType {
   // The message was executed successfully
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
 }
+
+message DenomPair {
+  string denom      = 1;
+  string base_denom = 2;
+}

@@ -24,6 +24,8 @@ message GenesisState {
   uint64     next_l1_sequence = 5;
   BridgeInfo bridge_info      = 6;
   bool       exported         = 7;
+
+  repeated DenomPair denom_pairs = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // LastValidatorPower required for validator set update logic.

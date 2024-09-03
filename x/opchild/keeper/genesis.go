@@ -89,6 +89,12 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		}
 	}
 
+	for _, denomPair := range data.DenomPairs {
+		if err := k.DenomPairs.Set(ctx, denomPair.Denom, denomPair.BaseDenom); err != nil {
+			panic(err)
+		}
+	}
+
 	return res
 }
 
@@ -137,6 +143,15 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		bridgeInfo = &bridgeInfo_
 	}
 
+	var denomPairs []types.DenomPair
+	err = k.DenomPairs.Walk(ctx, nil, func(denom, baseDenom string) (stop bool, err error) {
+		denomPairs = append(denomPairs, types.DenomPair{Denom: denom, BaseDenom: baseDenom})
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	return &types.GenesisState{
 		Params:              params,
 		LastValidatorPowers: lastValidatorPowers,
@@ -145,5 +160,6 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		NextL1Sequence:      finalizedL1Sequence,
 		NextL2Sequence:      nextL2Sequence,
 		BridgeInfo:          bridgeInfo,
+		DenomPairs:          denomPairs,
 	}
 }
