@@ -175,7 +175,8 @@ func (s *CLITestSuite) TestNewCreateBridge() {
 		"batch_info": {
 			"submitter": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 			"chain_type": "CELESTIA"
-		}
+		},
+		"oracle_enabled": true
     }`)
 	s.NoError(err)
 
@@ -515,17 +516,18 @@ func (s *CLITestSuite) TestNewFinalizeTokenWithdrawal() {
 	_, err = invalidConfig.WriteString(`{}`)
 	s.NoError(err)
 	_, err = validConfig.WriteString(`{
-		"bridge_id": 1,
-		"output_index": 1180,
+		"bridge_id": "1",
+		"output_index": "1180",
 		"withdrawal_proofs": [
 			"q6T8JJm7AdbD4rgZ3BjanRHdE1x7aLZwp36pPrOOey4="
 		],
-		"sender": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
-		"sequence": 5,
-		"amount": "100uinit",
+		"from": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+		"to": "init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
+		"sequence": "5",
+		"amount": {"amount": "100", "denom": "uinit"},
 		"version": "AQ==",
 		"storage_root": "KGlalV+mBHC7YFOLNX3g9LLzmyvP7QCm42HKo9N3Lu8=",
-		"latest_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
+		"last_block_hash": "6oFdc+PEkXVJAo5IpXJ91vbCT9FNuKCz5VSlaFmxG+Y="
 		}`)
 	s.NoError(err)
 

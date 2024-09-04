@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -26,6 +24,9 @@ func Test_GenesisImportExport(t *testing.T) {
 	_, err = input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 2
 	require.NoError(t, err)
 	_, err = input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 3
+	require.NoError(t, err)
+
+	err = input.OPChildKeeper.DenomPairs.Set(ctx, "foo", "bar")
 	require.NoError(t, err)
 
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
@@ -48,11 +49,6 @@ func Test_GenesisImportExport(t *testing.T) {
 			Metadata:              []byte("metadata"),
 		},
 	}
-
-	genState.PendingDeposits = append(
-		genState.PendingDeposits,
-		types.PendingDeposits{Recipient: addrsStr[0], Coins: sdk.NewCoins(sdk.NewInt64Coin("eth", 100))},
-	)
 
 	input.OPChildKeeper.InitGenesis(ctx, genState)
 	genState_ := input.OPChildKeeper.ExportGenesis(ctx)

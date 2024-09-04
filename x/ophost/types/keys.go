@@ -24,6 +24,4 @@ var (
 	NextOutputIndexPrefix  = []byte{0x61}
 	ProvenWithdrawalPrefix = []byte{0x71}
 	BatchInfoPrefix        = []byte{0x81}
-
-	Splitter = byte('|')
 )

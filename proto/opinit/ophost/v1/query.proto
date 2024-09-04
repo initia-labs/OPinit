@@ -70,7 +70,7 @@ service Query {
   // Claimed queries whether the output is claimed.
   rpc Claimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/claimed/by_hash";
+    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/claimed/by_hash";
   }
 
   // NextL1Sequence queries the next l1 sequence.
@@ -225,16 +225,15 @@ message QueryNextL1SequenceResponse {
   uint64 next_l1_sequence = 1;
 }
 
-// QueryBatchInfosRequest is request type for Query/BatchInfos RPC method. 
+// QueryBatchInfosRequest is request type for Query/BatchInfos RPC method.
 message QueryBatchInfosRequest {
-  uint64 bridge_id = 1;
+  uint64                                bridge_id  = 1;
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-// QueryBatchInfosResponse is response type for Query/BatchInfos RPC method. 
+// QueryBatchInfosResponse is response type for Query/BatchInfos RPC method.
 message QueryBatchInfosResponse {
-  repeated BatchInfoWithOutput batch_infos = 1
-      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated BatchInfoWithOutput batch_infos = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

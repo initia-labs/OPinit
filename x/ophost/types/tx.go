@@ -40,13 +40,17 @@ func NewMsgRecordBatch(
 }
 
 // Validate performs basic MsgRecordBatch message validation.
-func (msg MsgRecordBatch) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Submitter); err != nil {
+func (msg MsgRecordBatch) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Submitter); err != nil {
 		return err
 	}
 
 	if msg.BridgeId == 0 {
 		return ErrInvalidBridgeId
+	}
+
+	if len(msg.BatchBytes) == 0 {
+		return ErrEmptyBatchBytes
 	}
 
 	return nil
@@ -103,8 +107,8 @@ func NewMsgProposeOutput(
 }
 
 // Validate performs basic MsgProposeOutput message validation.
-func (msg MsgProposeOutput) Validate(accAddressCodec address.Codec) error {
-	_, err := accAddressCodec.StringToBytes(msg.Proposer)
+func (msg MsgProposeOutput) Validate(ac address.Codec) error {
+	_, err := ac.StringToBytes(msg.Proposer)
 	if err != nil {
 		return err
 	}
@@ -136,8 +140,8 @@ func NewMsgDeleteOutput(
 }
 
 // Validate performs basic MsgDeleteOutput message validation.
-func (msg MsgDeleteOutput) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Challenger); err != nil {
+func (msg MsgDeleteOutput) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Challenger); err != nil {
 		return err
 	}
 
@@ -172,8 +176,8 @@ func NewMsgInitiateTokenDeposit(
 }
 
 // Validate performs basic MsgInitiateTokenDeposit message validation.
-func (msg MsgInitiateTokenDeposit) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Sender); err != nil {
+func (msg MsgInitiateTokenDeposit) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
 		return err
 	}
 
@@ -182,7 +186,8 @@ func (msg MsgInitiateTokenDeposit) Validate(accAddressCodec address.Codec) error
 		return sdkerrors.ErrInvalidAddress.Wrap("to address cannot be empty")
 	}
 
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+	// allow zero amount for creating account
+	if !msg.Amount.IsValid() {
 		return ErrInvalidAmount
 	}
 
@@ -197,39 +202,45 @@ func (msg MsgInitiateTokenDeposit) Validate(accAddressCodec address.Codec) error
 
 // NewMsgFinalizeTokenWithdrawal creates a new MsgFinalizeTokenWithdrawal
 func NewMsgFinalizeTokenWithdrawal(
+	sender string,
 	bridgeId uint64,
 	outputIndex uint64,
 	sequence uint64,
 	withdrawalProofs [][]byte,
-	sender string,
-	receiver string,
+	from string,
+	to string,
 	amount sdk.Coin,
 	version []byte,
 	storageRoot []byte,
-	latestBlockHash []byte,
+	lastBlockHash []byte,
 ) *MsgFinalizeTokenWithdrawal {
 	return &MsgFinalizeTokenWithdrawal{
+		Sender:           sender,
 		BridgeId:         bridgeId,
 		OutputIndex:      outputIndex,
 		WithdrawalProofs: withdrawalProofs,
-		Sender:           sender,
-		Receiver:         receiver,
+		From:             from,
+		To:               to,
 		Sequence:         sequence,
 		Amount:           amount,
 		Version:          version,
 		StorageRoot:      storageRoot,
-		LatestBlockHash:  latestBlockHash,
+		LastBlockHash:    lastBlockHash,
 	}
 }
 
 // Validate performs basic MsgFinalizeTokenWithdrawal message validation.
-func (msg MsgFinalizeTokenWithdrawal) Validate(accAddressCodec address.Codec) error {
-	// cannot validate sender address as it can be any format of address based on the chain.
-	if len(msg.Sender) == 0 {
-		return sdkerrors.ErrInvalidAddress.Wrap("sender address cannot be empty")
+func (msg MsgFinalizeTokenWithdrawal) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
 	}
 
-	if _, err := accAddressCodec.StringToBytes(msg.Receiver); err != nil {
+	// cannot validate from address as it can be any format of address based on the chain.
+	if len(msg.From) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("from address cannot be empty")
+	}
+
+	if _, err := ac.StringToBytes(msg.To); err != nil {
 		return err
 	}
 
@@ -263,8 +274,8 @@ func (msg MsgFinalizeTokenWithdrawal) Validate(accAddressCodec address.Codec) er
 		return ErrInvalidHashLength.Wrap("storage_root")
 	}
 
-	if len(msg.LatestBlockHash) != 32 {
-		return ErrInvalidHashLength.Wrap("latest_block_hash")
+	if len(msg.LastBlockHash) != 32 {
+		return ErrInvalidHashLength.Wrap("last_block_hash")
 	}
 
 	return nil
@@ -286,8 +297,8 @@ func NewMsgUpdateProposer(
 }
 
 // Validate performs basic MsgUpdateProposer message validation.
-func (msg MsgUpdateProposer) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+func (msg MsgUpdateProposer) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -295,7 +306,7 @@ func (msg MsgUpdateProposer) Validate(accAddressCodec address.Codec) error {
 		return ErrInvalidBridgeId
 	}
 
-	if _, err := accAddressCodec.StringToBytes(msg.NewProposer); err != nil {
+	if _, err := ac.StringToBytes(msg.NewProposer); err != nil {
 		return err
 	}
 
@@ -318,8 +329,8 @@ func NewMsgUpdateChallengers(
 }
 
 // Validate performs basic MsgUpdateChallengers message validation.
-func (msg MsgUpdateChallengers) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+func (msg MsgUpdateChallengers) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -329,7 +340,7 @@ func (msg MsgUpdateChallengers) Validate(accAddressCodec address.Codec) error {
 
 	dupCheckMap := make(map[string]bool)
 	for _, challenger := range msg.NewChallengers {
-		_, err := accAddressCodec.StringToBytes(challenger)
+		_, err := ac.StringToBytes(challenger)
 		if err != nil {
 			return err
 		}
@@ -364,8 +375,8 @@ func NewMsgUpdateBatchInfo(
 }
 
 // Validate performs basic MsgUpdateChallenger message validation.
-func (msg MsgUpdateBatchInfo) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+func (msg MsgUpdateBatchInfo) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -423,8 +434,8 @@ func NewMsgUpdateMetadata(
 }
 
 // Validate performs basic MsgUpdateMetadata message validation.
-func (msg MsgUpdateMetadata) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+func (msg MsgUpdateMetadata) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 
@@ -450,8 +461,8 @@ func NewMsgUpdateParams(authority string, params *Params) *MsgUpdateParams {
 }
 
 // Validate performs basic MsgUpdateParams message validation.
-func (msg MsgUpdateParams) Validate(accAddressCodec address.Codec) error {
-	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+func (msg MsgUpdateParams) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
 

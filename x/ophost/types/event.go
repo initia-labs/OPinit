@@ -10,6 +10,7 @@ const (
 	EventTypeUpdateProposer          = "update_proposer"
 	EventTypeUpdateChallenger        = "update_challenger"
 	EventTypeUpdateBatchInfo         = "update_batch_info"
+	EventTypeUpdateMetadata          = "update_metadata"
 
 	AttributeKeySubmitter              = "submitter"
 	AttributeKeyCreator                = "creator"

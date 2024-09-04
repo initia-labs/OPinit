@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
@@ -76,7 +75,7 @@ func (k MockPermKeeper) SetPermissionedRelayers(ctx context.Context, portID, cha
 
 func (k MockPermKeeper) GetPermissionedRelayers(ctx context.Context, portID, channelID string) ([]sdk.AccAddress, error) {
 	if _, ok := k.perms[portID+"/"+channelID]; !ok {
-		return nil, collections.ErrNotFound
+		return []sdk.AccAddress{}, nil
 	}
 	return k.perms[portID+"/"+channelID].Relayers, nil
 }

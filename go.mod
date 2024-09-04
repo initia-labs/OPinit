@@ -7,17 +7,17 @@ toolchain go1.22.2
 require (
 	cosmossdk.io/api v0.7.5
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v0.11.0
+	cosmossdk.io/core v0.11.1
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/simapp v0.0.0-20231211060251-d8fb76d4c267
 	cosmossdk.io/store v1.1.0
-	cosmossdk.io/x/tx v0.13.3
+	cosmossdk.io/x/tx v0.13.4
 	github.com/cometbft/cometbft v0.38.10
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.50.8
+	github.com/cosmos/cosmos-sdk v0.50.9
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/ibc-go/v8 v8.2.0

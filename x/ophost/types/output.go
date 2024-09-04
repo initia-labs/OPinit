@@ -32,15 +32,16 @@ func GenerateWithdrawalHash(bridgeId uint64, l2Sequence uint64, sender string, r
 	seed := []byte{}
 	seed = binary.BigEndian.AppendUint64(seed, bridgeId)
 	seed = binary.BigEndian.AppendUint64(seed, l2Sequence)
+
 	// variable length
-	seed = append(seed, sender...) // put utf8 encoded address
-	seed = append(seed, Splitter)
+	senderDigest := sha3.Sum256([]byte(sender))
+	seed = append(seed, senderDigest[:]...) // put utf8 encoded address
 	// variable length
-	seed = append(seed, receiver...) // put utf8 encoded address
-	seed = append(seed, Splitter)
+	receiverDigest := sha3.Sum256([]byte(receiver))
+	seed = append(seed, receiverDigest[:]...) // put utf8 encoded address
 	// variable length
-	seed = append(seed, denom...)
-	seed = append(seed, Splitter)
+	denomDigest := sha3.Sum256([]byte(denom))
+	seed = append(seed, denomDigest[:]...)
 	seed = binary.BigEndian.AppendUint64(seed, amount)
 
 	// double hash the leaf node

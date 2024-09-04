@@ -2,7 +2,6 @@ package hook
 
 import (
 	"context"
-	"errors"
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,11 +41,6 @@ func (h BridgeHook) BridgeCreated(
 	hasPermChannels, metadata := hasPermChannels(bridgeConfig.Metadata)
 	if !hasPermChannels {
 		return nil
-	}
-
-	// TODO (reviewer): This is a temporary solution to allow only one challenger on bridge creation.
-	if len(bridgeConfig.Challengers) != 1 {
-		return errors.New("bridge must have exactly one challenger on creation")
 	}
 
 	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))

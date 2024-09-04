@@ -8,9 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cometbft/cometbft/crypto"
-	"github.com/cometbft/cometbft/crypto/ed25519"
-	"github.com/cometbft/cometbft/crypto/secp256k1"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"cosmossdk.io/log"
@@ -18,22 +15,28 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/tx/signing"
+	signingmod "cosmossdk.io/x/tx/signing"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -56,7 +59,7 @@ var ModuleBasics = module.NewBasicManager(
 )
 
 var (
-	pubKeys = []crypto.PubKey{
+	pubKeys = []cryptotypes.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
@@ -121,14 +124,14 @@ func MakeTestCodec(t testing.TB) codec.Codec {
 func MakeEncodingConfig(_ testing.TB) EncodingConfig {
 	interfaceRegistry, _ := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
 		ProtoFiles: proto.HybridResolver,
-		SigningOptions: signing.Options{
+		SigningOptions: signingmod.Options{
 			AddressCodec:          codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 			ValidatorAddressCodec: codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		},
 	})
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 	legacyAmino := codec.NewLegacyAmino()
-	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
+	txConfig := authtx.NewTxConfig(appCodec, authtx.DefaultSignModes)
 
 	std.RegisterInterfaces(interfaceRegistry)
 	std.RegisterLegacyAminoCodec(legacyAmino)
@@ -201,11 +204,11 @@ func (f *TestFaucet) NewFundedAccount(ctx context.Context, amounts ...sdk.Coin) 
 }
 
 type TestKeepers struct {
+	Cdc            codec.Codec
 	AccountKeeper  authkeeper.AccountKeeper
 	BankKeeper     bankkeeper.Keeper
 	OPChildKeeper  opchildkeeper.Keeper
 	OracleKeeper   *oraclekeeper.Keeper
-	BridgeHook     *bridgeHook
 	EncodingConfig EncodingConfig
 	Faucet         *TestFaucet
 }
@@ -224,12 +227,12 @@ var keyCounter uint64
 
 // we need to make this deterministic (same every test run), as encoded address size and thus gas cost,
 // depends on the actual bytes (due to ugly CanonicalAddress encoding)
-func keyPubAddr() (crypto.PrivKey, crypto.PubKey, sdk.AccAddress) {
+func keyPubAddr() (cryptotypes.PrivKey, cryptotypes.PubKey, sdk.AccAddress) {
 	keyCounter++
 	seed := make([]byte, 8)
 	binary.BigEndian.PutUint64(seed, keyCounter)
 
-	key := ed25519.GenPrivKeyFromSecret(seed)
+	key := secp256k1.GenPrivKeyFromSecret(seed)
 	pub := key.PubKey()
 	addr := sdk.AccAddress(pub.Address())
 	return key, pub, addr
@@ -262,6 +265,8 @@ func _createTestInput(
 
 	encodingConfig := MakeEncodingConfig(t)
 	appCodec := encodingConfig.Marshaler
+	txDecoder := encodingConfig.TxConfig.TxDecoder()
+	signModeHandler := encodingConfig.TxConfig.SignModeHandler()
 
 	maccPerms := map[string][]string{ // module account permissions
 		authtypes.FeeCollectorName:     nil,
@@ -282,6 +287,7 @@ func _createTestInput(
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 	)
+	require.NoError(t, accountKeeper.Params.Set(ctx, authtypes.DefaultParams()))
 	blockedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		blockedAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -300,6 +306,9 @@ func _createTestInput(
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
+	// register bank message service to the router
+	banktypes.RegisterMsgServer(msgRouter, bankkeeper.NewMsgServerImpl(bankKeeper))
+
 	oracleKeeper := oraclekeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
 		appCodec,
@@ -307,14 +316,20 @@ func _createTestInput(
 		authtypes.NewModuleAddress(opchildtypes.ModuleName),
 	)
 
-	bridgeHook := &bridgeHook{}
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
 		accountKeeper,
 		bankKeeper,
-		bridgeHook.Hook,
 		&oracleKeeper,
+		sdk.ChainAnteDecorators(
+			authante.NewSetPubKeyDecorator(accountKeeper),
+			authante.NewValidateSigCountDecorator(accountKeeper),
+			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
+			authante.NewSigVerificationDecorator(accountKeeper, signModeHandler),
+			authante.NewIncrementSequenceDecorator(accountKeeper),
+		),
+		txDecoder,
 		msgRouter,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
@@ -329,31 +344,73 @@ func _createTestInput(
 	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
-	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(*opchildKeeper))
+	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(opchildKeeper))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
 	keepers := TestKeepers{
+		Cdc:            appCodec,
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     bankKeeper,
 		OPChildKeeper:  *opchildKeeper,
 		OracleKeeper:   &oracleKeeper,
-		BridgeHook:     bridgeHook,
 		EncodingConfig: encodingConfig,
 		Faucet:         faucet,
 	}
 	return ctx, keepers
 }
 
-type bridgeHook struct {
-	msgBytes []byte
-	err      error
-}
+func generateTestTx(
+	t *testing.T, input TestKeepers, msgs []sdk.Msg,
+	privs []cryptotypes.PrivKey, accNums []uint64,
+	accSeqs []uint64, chainID string,
+) authsign.Tx {
+	txConfig := input.EncodingConfig.TxConfig
+	txBuilder := txConfig.NewTxBuilder()
 
-func (h *bridgeHook) Hook(ctx context.Context, sender sdk.AccAddress, msgBytes []byte) error {
-	if h.err == nil {
-		h.msgBytes = msgBytes
+	defaultSignMode, err := authsign.APISignModeToInternal(txConfig.SignModeHandler().DefaultMode())
+	require.NoError(t, err)
+
+	// set msgs
+	txBuilder.SetMsgs(msgs...)
+
+	// First round: we gather all the signer infos. We use the "set empty
+	// signature" hack to do that.
+	var sigsV2 []signing.SignatureV2
+	for i, priv := range privs {
+		sigV2 := signing.SignatureV2{
+			PubKey: priv.PubKey(),
+			Data: &signing.SingleSignatureData{
+				SignMode:  defaultSignMode,
+				Signature: nil,
+			},
+			Sequence: accSeqs[i],
+		}
+
+		sigsV2 = append(sigsV2, sigV2)
 	}
+	err = txBuilder.SetSignatures(sigsV2...)
+	require.NoError(t, err)
 
-	return h.err
+	// Second round: all signer infos are set, so each signer can sign.
+	sigsV2 = []signing.SignatureV2{}
+	for i, priv := range privs {
+		signerData := authsign.SignerData{
+			Address:       sdk.AccAddress(priv.PubKey().Address()).String(),
+			ChainID:       chainID,
+			AccountNumber: accNums[i],
+			Sequence:      accSeqs[i],
+			PubKey:        priv.PubKey(),
+		}
+		sigV2, err := tx.SignWithPrivKey(
+			context.TODO(), defaultSignMode, signerData,
+			txBuilder, priv, txConfig, accSeqs[i])
+		require.NoError(t, err)
+
+		sigsV2 = append(sigsV2, sigV2)
+	}
+	err = txBuilder.SetSignatures(sigsV2...)
+	require.NoError(t, err)
+
+	return txBuilder.GetTx()
 }

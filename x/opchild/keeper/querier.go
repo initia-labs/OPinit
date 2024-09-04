@@ -3,22 +3,23 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 type Querier struct {
-	Keeper
+	*Keeper
 }
 
 var _ types.QueryServer = &Querier{}
 
 // NewQuerier return new Querier instance
-func NewQuerier(k Keeper) Querier {
-	return Querier{k}
+func NewQuerier(k *Keeper) types.QueryServer {
+	return &Querier{k}
 }
 
 func (q Querier) Validator(ctx context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {

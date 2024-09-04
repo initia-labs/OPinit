@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
-	types "github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_RecordBatch(t *testing.T) {
@@ -221,6 +221,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	require.NoError(t, err)
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[3], // any address can execute this
 		1, 1, 1, proofs,
 		sender,
 		receiver,
@@ -229,7 +230,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	))
 	require.NoError(t, err)
 
-	receiverAddr, err := sdk.AccAddressFromBech32("cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg")
+	receiverAddr, err := sdk.AccAddressFromBech32(receiver)
 	require.NoError(t, err)
 	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
 }
@@ -356,6 +357,11 @@ func Test_UpdateChallengers(t *testing.T) {
 
 	// case 5. try to add more challenger with replace
 	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[2], addrsStr[3]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.Error(t, err)
+
+	// case 6. remove all challengers
+	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{})
 	_, err = ms.UpdateChallengers(ctx, msg)
 	require.Error(t, err)
 

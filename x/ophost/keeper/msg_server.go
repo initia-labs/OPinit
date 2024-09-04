@@ -238,10 +238,13 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 		return nil, err
 	}
 
-	// send the funds to bridge address
-	bridgeAddr := types.BridgeAddress(bridgeId)
-	if err := ms.bankKeeper.SendCoins(ctx, sender, bridgeAddr, sdk.NewCoins(coin)); err != nil {
-		return nil, err
+	// transfer only positive amount
+	if coin.IsPositive() {
+		// send the funds to bridge address
+		bridgeAddr := types.BridgeAddress(bridgeId)
+		if err := ms.bankKeeper.SendCoins(ctx, sender, bridgeAddr, sdk.NewCoins(coin)); err != nil {
+			return nil, err
+		}
 	}
 
 	// record token pairs
@@ -267,7 +270,9 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 		sdk.NewAttribute(types.AttributeKeyData, hex.EncodeToString(req.Data)),
 	))
 
-	return &types.MsgInitiateTokenDepositResponse{}, nil
+	return &types.MsgInitiateTokenDepositResponse{
+		Sequence: l1Sequence,
+	}, nil
 }
 
 func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgFinalizeTokenWithdrawal) (*types.MsgFinalizeTokenWithdrawalResponse, error) {
@@ -275,7 +280,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		return nil, err
 	}
 
-	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.Receiver)
+	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
 	if err != nil {
 		return nil, err
 	}
@@ -298,14 +303,14 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	}
 
 	// validate output root generation
-	outputRoot := types.GenerateOutputRoot(req.Version[0], req.StorageRoot, req.LatestBlockHash)
+	outputRoot := types.GenerateOutputRoot(req.Version[0], req.StorageRoot, req.LastBlockHash)
 	if !bytes.Equal(outputProposal.OutputRoot, outputRoot[:]) {
 		return nil, types.ErrFailedToVerifyWithdrawal.Wrap("invalid output root")
 	}
 
 	// verify storage root can be generated from
 	// withdrawal proofs and withdrawal tx data.
-	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, l2Sequence, req.Sender, req.Receiver, denom, amount.Uint64())
+	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, l2Sequence, req.From, req.To, denom, amount.Uint64())
 	if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
 		return nil, err
 	} else if ok {
@@ -334,8 +339,8 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyOutputIndex, strconv.FormatUint(outputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
-		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
-		sdk.NewAttribute(types.AttributeKeyTo, req.Receiver),
+		sdk.NewAttribute(types.AttributeKeyFrom, req.From),
+		sdk.NewAttribute(types.AttributeKeyTo, req.To),
 		sdk.NewAttribute(types.AttributeKeyL1Denom, denom),
 		sdk.NewAttribute(types.AttributeKeyL2Denom, types.L2Denom(bridgeId, denom)),
 		sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
@@ -559,7 +564,7 @@ func (ms MsgServer) UpdateMetadata(ctx context.Context, req *types.MsgUpdateMeta
 	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeUpdateBatchInfo,
+		types.EventTypeUpdateMetadata,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),

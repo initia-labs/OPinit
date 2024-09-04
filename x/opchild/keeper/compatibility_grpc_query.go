@@ -20,7 +20,7 @@ const (
 
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
 type CompatibilityQuerier struct {
-	Keeper
+	*Keeper
 }
 
 var _ cosmostypes.QueryServer = CompatibilityQuerier{}

@@ -119,7 +119,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			origConfig := BridgeCliConfig{}
+			var origConfig BridgeCliConfig
 			err = json.Unmarshal(configBytes, &origConfig)
 			if err != nil {
 
@@ -149,6 +149,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				SubmissionStartHeight: submissionStartHeight,
 				Metadata:              []byte(origConfig.Metadata),
 				BatchInfo:             origConfig.BatchInfo,
+				OracleEnabled:         origConfig.OracleEnabled,
 			}
 
 			if err = config.Validate(ac); err != nil {
@@ -334,15 +335,16 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 				
 				Where withrawal-info.json contains:
 				{
-					"bridge_id": 1,
-					"output_index": 0,
+					"bridge_id": "1",
+					"output_index": "1",
+					"sequence": "1",
+					"from" : "l2-bech32-address",
+					"to" : "l1-bech32-address",
+					"amount": {"amount": "10000000", "denom": "uinit"},
 					"withdrawal_proofs": [ "base64-encoded proof1", "proof2", ... ],
-					"sender" : "bech32-address",
-					"sequence": 0,
-					"amount": "10000000uinit",
 					"version": "base64-encoded version",
 					"storage_root": "base64-encoded storage-root",
-					"latest_block_hash": "base64-encoded latest-block-hash"
+					"last_block_hash": "base64-encoded latest-block-hash"
 				}`, version.AppName,
 			),
 		),
@@ -357,45 +359,24 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			withdrawalInfo := MsgFinalizeTokenWithdrawal{}
-			err = json.Unmarshal(withdrawalBytes, &withdrawalInfo)
+
+			var msg types.MsgFinalizeTokenWithdrawal
+			err = clientCtx.Codec.UnmarshalJSON(withdrawalBytes, &msg)
 			if err != nil {
 				return err
 			}
 
-			// cannot validate sender address here because it is l2 address.
-			sender := withdrawalInfo.Sender
-			if len(sender) == 0 {
-				return fmt.Errorf("sender address is required")
-			}
-
-			amount, err := sdk.ParseCoinNormalized(withdrawalInfo.Amount)
+			sender, err := ac.BytesToString(clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
 
-			receiver, err := ac.BytesToString(clientCtx.GetFromAddress())
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgFinalizeTokenWithdrawal(
-				withdrawalInfo.BridgeId,
-				withdrawalInfo.OutputIndex,
-				withdrawalInfo.Sequence,
-				withdrawalInfo.WithdrawalProofs,
-				sender,
-				receiver,
-				amount,
-				withdrawalInfo.Version,
-				withdrawalInfo.StorageRoot,
-				withdrawalInfo.LatestBlockHash,
-			)
+			msg.Sender = sender
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 

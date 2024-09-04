@@ -168,6 +168,7 @@ func (opBridge *OpBridge) UnmarshalJSON(data []byte) error {
 		OutputFinalizationPeriod    string                          `json:"output_finalization_period,omitempty"`
 		OutputSubmissionStartHeight uint64                          `json:"output_submission_start_height,omitempty"`
 		BatchSubmissionTarget       ophosttypes.BatchInfo_ChainType `json:"batch_submission_target,omitempty"`
+		EnableOracle                *bool                           `json:"enable_oracle,omitempty"`
 	}
 
 	if err := json.Unmarshal(data, &tmp); err != nil {
@@ -194,6 +195,7 @@ func (opBridge *OpBridge) UnmarshalJSON(data []byte) error {
 
 	opBridge.OutputSubmissionStartHeight = tmp.OutputSubmissionStartHeight
 	opBridge.BatchSubmissionTarget = tmp.BatchSubmissionTarget
+	opBridge.EnableOracle = tmp.EnableOracle
 
 	return nil
 }
@@ -204,9 +206,11 @@ func (opBridge OpBridge) MarshalJSON() ([]byte, error) {
 		OutputFinalizationPeriod    string                          `json:"output_finalization_period,omitempty"`
 		OutputSubmissionStartHeight uint64                          `json:"output_submission_start_height,omitempty"`
 		BatchSubmissionTarget       ophosttypes.BatchInfo_ChainType `json:"batch_submission_target,omitempty"`
+		EnableOracle                *bool                           `json:"enable_oracle,omitempty"`
 	}{
 		OutputSubmissionStartHeight: opBridge.OutputSubmissionStartHeight,
 		BatchSubmissionTarget:       opBridge.BatchSubmissionTarget,
+		EnableOracle:                opBridge.EnableOracle,
 	}
 
 	if opBridge.OutputSubmissionInterval != nil {

@@ -28,10 +28,11 @@ type Keeper struct {
 
 	authKeeper types.AccountKeeper
 	bankKeeper types.BankKeeper
-	bridgeHook types.BridgeHook
 
-	// Msg server router
-	router *baseapp.MsgServiceRouter
+	// sig verify and sequence increment decorators
+	decorators sdk.AnteHandler
+	txDecoder  sdk.TxDecoder
+	router     *baseapp.MsgServiceRouter
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/opchild module account.
@@ -51,7 +52,6 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 	DenomPairs           collections.Map[string, string]
-	PendingDeposits      collections.Map[[]byte, types.CoinsWrapper]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -64,8 +64,19 @@ func NewKeeper(
 	storeService corestoretypes.KVStoreService,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
-	bh types.BridgeHook,
 	ok types.OracleKeeper,
+	/*
+		Should provide the following decorators
+		sdk.ChainAnteDecorators(
+			authante.NewSetPubKeyDecorator(accountKeeper),
+			authante.NewValidateSigCountDecorator(accountKeeper),
+			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
+			authante.NewSigVerificationDecorator(accountKeeper, signModeHandler),
+			authante.NewIncrementSequenceDecorator(accountKeeper),
+		),
+	*/
+	decorators sdk.AnteHandler,
+	txDecoder sdk.TxDecoder,
 	router *baseapp.MsgServiceRouter,
 	authority string,
 	addressCodec address.Codec,
@@ -95,7 +106,8 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
-		bridgeHook:            bh,
+		decorators:            decorators,
+		txDecoder:             txDecoder,
 		router:                router,
 		authority:             authority,
 		addressCodec:          addressCodec,
@@ -108,9 +120,8 @@ func NewKeeper(
 		LastValidatorPowers:   collections.NewMap(sb, types.LastValidatorPowerPrefix, "last_validator_powers", collections.BytesKey, collections.Int64Value),
 		Validators:            collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.BytesKey, codec.CollValue[types.Validator](cdc)),
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
-		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
-		PendingDeposits:       collections.NewMap(sb, types.PendingDepositsKey, "pending_deposits", collections.BytesKey, codec.CollValue[types.CoinsWrapper](cdc)),
+		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 
 		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:  hostValidatorStore,

@@ -94,7 +94,7 @@ func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) 
 // AppModule implements an application module for the move module.
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the
@@ -106,7 +106,7 @@ func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 // NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec,
-	k keeper.Keeper,
+	k *keeper.Keeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc},
