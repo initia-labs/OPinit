@@ -338,7 +338,8 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 					"bridge_id": "1",
 					"output_index": "1",
 					"sequence": "1",
-					"sender" : "bech32-address",
+					"from" : "l2-bech32-address",
+					"to" : "l1-bech32-address",
 					"amount": {"amount": "10000000", "denom": "uinit"},
 					"withdrawal_proofs": [ "base64-encoded proof1", "proof2", ... ],
 					"version": "base64-encoded version",
@@ -358,40 +359,24 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var withdrawalInfo types.MsgFinalizeTokenWithdrawal
-			err = clientCtx.Codec.UnmarshalJSON(withdrawalBytes, &withdrawalInfo)
+
+			var msg types.MsgFinalizeTokenWithdrawal
+			err = clientCtx.Codec.UnmarshalJSON(withdrawalBytes, &msg)
 			if err != nil {
 				return err
 			}
 
-			// cannot validate sender address here because it is l2 address.
-			sender := withdrawalInfo.Sender
-			if len(sender) == 0 {
-				return fmt.Errorf("sender address is required")
-			}
-
-			receiver, err := ac.BytesToString(clientCtx.GetFromAddress())
+			sender, err := ac.BytesToString(clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgFinalizeTokenWithdrawal(
-				withdrawalInfo.BridgeId,
-				withdrawalInfo.OutputIndex,
-				withdrawalInfo.Sequence,
-				withdrawalInfo.WithdrawalProofs,
-				sender,
-				receiver,
-				withdrawalInfo.Amount,
-				withdrawalInfo.Version,
-				withdrawalInfo.StorageRoot,
-				withdrawalInfo.LastBlockHash,
-			)
+			msg.Sender = sender
 			if err = msg.Validate(ac); err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 

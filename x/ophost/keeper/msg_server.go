@@ -280,7 +280,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		return nil, err
 	}
 
-	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.Receiver)
+	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 
 	// verify storage root can be generated from
 	// withdrawal proofs and withdrawal tx data.
-	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, l2Sequence, req.Sender, req.Receiver, denom, amount.Uint64())
+	withdrawalHash := types.GenerateWithdrawalHash(bridgeId, l2Sequence, req.From, req.To, denom, amount.Uint64())
 	if ok, err := ms.HasProvenWithdrawal(ctx, bridgeId, withdrawalHash); err != nil {
 		return nil, err
 	} else if ok {
@@ -339,8 +339,8 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyOutputIndex, strconv.FormatUint(outputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
-		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
-		sdk.NewAttribute(types.AttributeKeyTo, req.Receiver),
+		sdk.NewAttribute(types.AttributeKeyFrom, req.From),
+		sdk.NewAttribute(types.AttributeKeyTo, req.To),
 		sdk.NewAttribute(types.AttributeKeyL1Denom, denom),
 		sdk.NewAttribute(types.AttributeKeyL2Denom, types.L2Denom(bridgeId, denom)),
 		sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),

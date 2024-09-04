@@ -221,6 +221,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	require.NoError(t, err)
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[3], // any address can execute this
 		1, 1, 1, proofs,
 		sender,
 		receiver,
@@ -356,6 +357,11 @@ func Test_UpdateChallengers(t *testing.T) {
 
 	// case 5. try to add more challenger with replace
 	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[2], addrsStr[3]})
+	_, err = ms.UpdateChallengers(ctx, msg)
+	require.Error(t, err)
+
+	// case 6. remove all challengers
+	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{})
 	_, err = ms.UpdateChallengers(ctx, msg)
 	require.Error(t, err)
 

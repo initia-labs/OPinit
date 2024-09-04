@@ -202,23 +202,25 @@ func (msg MsgInitiateTokenDeposit) Validate(ac address.Codec) error {
 
 // NewMsgFinalizeTokenWithdrawal creates a new MsgFinalizeTokenWithdrawal
 func NewMsgFinalizeTokenWithdrawal(
+	sender string,
 	bridgeId uint64,
 	outputIndex uint64,
 	sequence uint64,
 	withdrawalProofs [][]byte,
-	sender string,
-	receiver string,
+	from string,
+	to string,
 	amount sdk.Coin,
 	version []byte,
 	storageRoot []byte,
 	lastBlockHash []byte,
 ) *MsgFinalizeTokenWithdrawal {
 	return &MsgFinalizeTokenWithdrawal{
+		Sender:           sender,
 		BridgeId:         bridgeId,
 		OutputIndex:      outputIndex,
 		WithdrawalProofs: withdrawalProofs,
-		Sender:           sender,
-		Receiver:         receiver,
+		From:             from,
+		To:               to,
 		Sequence:         sequence,
 		Amount:           amount,
 		Version:          version,
@@ -229,12 +231,16 @@ func NewMsgFinalizeTokenWithdrawal(
 
 // Validate performs basic MsgFinalizeTokenWithdrawal message validation.
 func (msg MsgFinalizeTokenWithdrawal) Validate(ac address.Codec) error {
-	// cannot validate sender address as it can be any format of address based on the chain.
-	if len(msg.Sender) == 0 {
-		return sdkerrors.ErrInvalidAddress.Wrap("sender address cannot be empty")
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
 	}
 
-	if _, err := ac.StringToBytes(msg.Receiver); err != nil {
+	// cannot validate from address as it can be any format of address based on the chain.
+	if len(msg.From) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("from address cannot be empty")
+	}
+
+	if _, err := ac.StringToBytes(msg.To); err != nil {
 		return err
 	}
 
