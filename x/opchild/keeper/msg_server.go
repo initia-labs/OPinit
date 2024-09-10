@@ -395,15 +395,15 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	}
 
 	// deposit token
-	var success bool
+	var depositSuccess bool
 	var reason string
 	toAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
 	if err != nil {
-		success = false
+		depositSuccess = false
 		reason = fmt.Sprintf("failed to convert recipient address: %s", err)
 	} else {
 		// rollback if the deposit is failed
-		success, reason = ms.safeDepositToken(ctx, toAddr, sdk.NewCoins(coin))
+		depositSuccess, reason = ms.safeDepositToken(ctx, toAddr, sdk.NewCoins(coin))
 	}
 
 	// updae l1 sequence
@@ -434,22 +434,35 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, req.BaseDenom),
 		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
-		sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(success)),
-		sdk.NewAttribute(types.AttributeKeyReason, reason),
 	)
 
 	// if the deposit is successful and the data is not empty, execute the hook
-	if success && len(req.Data) > 0 {
-		success, reason := ms.handleBridgeHook(sdkCtx, req.Data)
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookSuccess, strconv.FormatBool(success)))
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyHookReason, reason))
+	hookSuccess := true
+	if depositSuccess && len(req.Data) > 0 {
+		hookSuccess, reason = ms.handleBridgeHook(sdkCtx, req.Data)
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(hookSuccess)))
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))
+	} else {
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(depositSuccess)))
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, reason))
 	}
 
 	// emit deposit event
 	sdkCtx.EventManager().EmitEvent(event)
 
 	// if the deposit is failed, initate a withdrawal
-	if !success {
+	if !depositSuccess || !hookSuccess {
+		if depositSuccess {
+			// reclaim and burn coins
+			burnCoins := sdk.NewCoins(coin)
+			if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, toAddr, types.ModuleName, burnCoins); err != nil {
+				return nil, err
+			}
+			if err := ms.bankKeeper.BurnCoins(ctx, types.ModuleName, burnCoins); err != nil {
+				return nil, err
+			}
+		}
+
 		l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
 		if err != nil {
 			return nil, err
@@ -482,11 +495,8 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	}
 
 	// send coins to the module account only if the amount is positive
-	// - pending deposits are already accounted for
-	if coin.IsPositive() {
-		if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-			return nil, err
-		}
+	if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, burnCoins); err != nil {
+		return nil, err
 	}
 
 	// burn withdrawn coins from the module account

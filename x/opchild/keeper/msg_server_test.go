@@ -491,7 +491,7 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 
 	for _, event := range sdk.UnwrapSDKContext(ctx).EventManager().Events() {
 		if event.Type == types.EventTypeFinalizeTokenDeposit {
-			require.True(t, slices.Contains(event.Attributes, sdk.NewAttribute(types.AttributeKeyHookSuccess, "true").ToKVPair()))
+			require.True(t, slices.Contains(event.Attributes, sdk.NewAttribute(types.AttributeKeySuccess, "true").ToKVPair()))
 		}
 	}
 
@@ -534,12 +534,19 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 
 	for _, event := range sdk.UnwrapSDKContext(ctx).EventManager().Events() {
 		if event.Type == types.EventTypeFinalizeTokenDeposit {
-			require.True(t, slices.Contains(event.Attributes, sdk.NewAttribute(types.AttributeKeyHookSuccess, "false").ToKVPair()))
+			attrIdx := slices.Index(event.Attributes, sdk.NewAttribute(types.AttributeKeySuccess, "false").ToKVPair())
+			require.Positive(t, attrIdx)
+			require.Equal(t, event.Attributes[attrIdx+1].Key, types.AttributeKeyReason)
+			require.Contains(t, event.Attributes[attrIdx+1].Value, "hook failed;")
 		}
 	}
 
 	// check addrs[2] balance
 	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	require.Equal(t, math.NewInt(0), afterBalance.Amount)
+
+	// check receiver has no balance
+	afterBalance = input.BankKeeper.GetBalance(ctx, addr, denom)
 	require.Equal(t, math.NewInt(0), afterBalance.Amount)
 }
 

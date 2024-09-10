@@ -171,7 +171,7 @@ func (msg MsgInitiateTokenWithdrawal) Validate(ac address.Codec) error {
 		return sdkerrors.ErrInvalidAddress.Wrap("to address cannot be empty")
 	}
 
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+	if !msg.Amount.IsValid() || !msg.Amount.IsPositive() {
 		return ErrInvalidAmount
 	}
 
