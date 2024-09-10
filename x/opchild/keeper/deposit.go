@@ -59,8 +59,11 @@ func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte) (success bool, re
 func (ms MsgServer) safeDepositToken(ctx context.Context, toAddr sdk.AccAddress, coins sdk.Coins) (success bool, reason string) {
 	// if coin is zero, just create an account
 	if coins.IsZero() {
-		newAcc := ms.authKeeper.NewAccountWithAddress(ctx, toAddr)
-		ms.authKeeper.SetAccount(ctx, newAcc)
+		if !ms.authKeeper.HasAccount(ctx, toAddr) {
+			newAcc := ms.authKeeper.NewAccountWithAddress(ctx, toAddr)
+			ms.authKeeper.SetAccount(ctx, newAcc)
+		}
+
 		return true, ""
 	}
 
