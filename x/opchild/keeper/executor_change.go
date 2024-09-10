@@ -71,6 +71,9 @@ func (k Keeper) ChangeExecutor(ctx context.Context, plan types.ExecutorChangePla
 	if err := k.SetValidator(ctx, plan.NextValidator); err != nil {
 		return err
 	}
+	if err = k.SetValidatorByConsAddr(ctx, plan.NextValidator); err != nil {
+		return err
+	}
 
 	params, err := k.GetParams(ctx)
 	if err != nil {
