@@ -413,13 +413,22 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
+	for _, event := range sdk.UnwrapSDKContext(ctx).EventManager().Events() {
+		if event.Type == types.EventTypeFinalizeTokenDeposit {
+			attrIdx := slices.Index(event.Attributes, sdk.NewAttribute(types.AttributeKeySuccess, "false").ToKVPair())
+			require.Positive(t, attrIdx)
+			require.Equal(t, event.Attributes[attrIdx+1].Key, types.AttributeKeyReason)
+			require.Contains(t, event.Attributes[attrIdx+1].Value, "deposit failed;")
+		}
+	}
+
 	afterToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), afterToBalance.Amount)
 
 	afterModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
 	require.True(t, afterModuleBalance.Amount.IsZero())
 
-	// token withdrawal inititated
+	// token withdrawal initiated
 	events := sdk.UnwrapSDKContext(ctx).EventManager().Events()
 	lastEvent := events[len(events)-1]
 	require.Equal(t, sdk.NewEvent(

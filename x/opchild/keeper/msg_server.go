@@ -441,10 +441,14 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	if depositSuccess && len(req.Data) > 0 {
 		hookSuccess, reason = ms.handleBridgeHook(sdkCtx, req.Data)
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(hookSuccess)))
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))
+		if !hookSuccess {
+			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))
+		}
 	} else {
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(depositSuccess)))
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, reason))
+		if !depositSuccess {
+			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "deposit failed; "+reason))
+		}
 	}
 
 	// emit deposit event
