@@ -29,6 +29,7 @@ const (
 	Msg_UpdateChallengers_FullMethodName       = "/opinit.ophost.v1.Msg/UpdateChallengers"
 	Msg_UpdateBatchInfo_FullMethodName         = "/opinit.ophost.v1.Msg/UpdateBatchInfo"
 	Msg_UpdateMetadata_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateMetadata"
+	Msg_UpdateOracleConfig_FullMethodName      = "/opinit.ophost.v1.Msg/UpdateOracleConfig"
 	Msg_UpdateParams_FullMethodName            = "/opinit.ophost.v1.Msg/UpdateParams"
 )
 
@@ -56,6 +57,8 @@ type MsgClient interface {
 	UpdateBatchInfo(ctx context.Context, in *MsgUpdateBatchInfo, opts ...grpc.CallOption) (*MsgUpdateBatchInfoResponse, error)
 	// UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
 	UpdateMetadata(ctx context.Context, in *MsgUpdateMetadata, opts ...grpc.CallOption) (*MsgUpdateMetadataResponse, error)
+	// UpdateOracleConfig defines a rpc handler method for MsgUpdateOracleConfig.
+	UpdateOracleConfig(ctx context.Context, in *MsgUpdateOracleConfig, opts ...grpc.CallOption) (*MsgUpdateOracleConfigResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -159,6 +162,15 @@ func (c *msgClient) UpdateMetadata(ctx context.Context, in *MsgUpdateMetadata, o
 	return out, nil
 }
 
+func (c *msgClient) UpdateOracleConfig(ctx context.Context, in *MsgUpdateOracleConfig, opts ...grpc.CallOption) (*MsgUpdateOracleConfigResponse, error) {
+	out := new(MsgUpdateOracleConfigResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateOracleConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, opts...)
@@ -192,6 +204,8 @@ type MsgServer interface {
 	UpdateBatchInfo(context.Context, *MsgUpdateBatchInfo) (*MsgUpdateBatchInfoResponse, error)
 	// UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
 	UpdateMetadata(context.Context, *MsgUpdateMetadata) (*MsgUpdateMetadataResponse, error)
+	// UpdateOracleConfig defines a rpc handler method for MsgUpdateOracleConfig.
+	UpdateOracleConfig(context.Context, *MsgUpdateOracleConfig) (*MsgUpdateOracleConfigResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -231,6 +245,9 @@ func (UnimplementedMsgServer) UpdateBatchInfo(context.Context, *MsgUpdateBatchIn
 }
 func (UnimplementedMsgServer) UpdateMetadata(context.Context, *MsgUpdateMetadata) (*MsgUpdateMetadataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetadata not implemented")
+}
+func (UnimplementedMsgServer) UpdateOracleConfig(context.Context, *MsgUpdateOracleConfig) (*MsgUpdateOracleConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOracleConfig not implemented")
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -428,6 +445,24 @@ func _Msg_UpdateMetadata_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateOracleConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateOracleConfig)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateOracleConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateOracleConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateOracleConfig(ctx, req.(*MsgUpdateOracleConfig))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -492,6 +527,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMetadata",
 			Handler:    _Msg_UpdateMetadata_Handler,
+		},
+		{
+			MethodName: "UpdateOracleConfig",
+			Handler:    _Msg_UpdateOracleConfig_Handler,
 		},
 		{
 			MethodName: "UpdateParams",

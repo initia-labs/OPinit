@@ -63,6 +63,9 @@ service Msg {
   // UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
   rpc UpdateMetadata(MsgUpdateMetadata) returns (MsgUpdateMetadataResponse);
 
+  // UpdateOracleConfig defines a rpc handler method for MsgUpdateOracleConfig.
+  rpc UpdateOracleConfig(MsgUpdateOracleConfig) returns (MsgUpdateOracleConfigResponse);
+
   // UpdateParams defines an operation for updating the
   // x/opchild module parameters.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
