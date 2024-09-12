@@ -26,3 +26,17 @@ func TestMsgRecordBatch_Validate(t *testing.T) {
 	invalidMsg = NewMsgRecordBatch(addr, 123, nil)
 	require.Error(t, invalidMsg.Validate(ac))
 }
+
+func Test_MsgUpdateOracleConfig(t *testing.T) {
+	ac := address.NewBech32Codec("init")
+	addr, err := ac.BytesToString(bytes.Repeat([]byte{1}, 20))
+	require.NoError(t, err)
+
+	// Valid input
+	validMsg := NewMsgUpdateOracleConfig(addr, 123, true)
+	require.NoError(t, validMsg.Validate(ac))
+
+	// Empty submitter
+	invalidMsg := NewMsgUpdateOracleConfig("", 123, false)
+	require.Error(t, invalidMsg.Validate(ac))
+}
