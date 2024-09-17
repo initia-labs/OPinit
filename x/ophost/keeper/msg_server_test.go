@@ -163,7 +163,7 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	input.Faucet.Fund(ctx, addrs[1], amount)
 	_, err = ms.InitiateTokenDeposit(
 		ctx,
-		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, "hook", amount, []byte("messages")),
+		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, "l2_addr", amount, []byte("messages")),
 	)
 	require.NoError(t, err)
 	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).IsZero())

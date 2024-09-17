@@ -251,11 +251,8 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 		return sdkerrors.ErrInvalidAddress.Wrap("from address cannot be empty")
 	}
 
-	// allow hook as a special address
-	if msg.To != "hook" {
-		if _, err := ac.StringToBytes(msg.To); err != nil {
-			return err
-		}
+	if _, err := ac.StringToBytes(msg.To); err != nil {
+		return err
 	}
 
 	// allow zero amount
