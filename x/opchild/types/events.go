@@ -28,8 +28,6 @@ const (
 	AttributeKeyMetadata       = "metadata"
 	AttributeKeyL1Sequence     = "l1_sequence"
 	AttributeKeyFinalizeHeight = "finalize_height"
-	AttributeKeyHookSuccess    = "hook_success"
-	AttributeKeyHookReason     = "hook_reason"
 	AttributeKeyFrom           = "from"
 	AttributeKeyTo             = "to"
 	AttributeKeyL2Sequence     = "l2_sequence"

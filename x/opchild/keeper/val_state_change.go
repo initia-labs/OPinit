@@ -31,12 +31,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.V
 	}
 
 	updates := []abci.ValidatorUpdate{}
-	maxValidators, err := k.MaxValidators(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	validators, err := k.GetValidators(ctx, maxValidators)
+	validators, err := k.GetAllValidators(ctx)
 	if err != nil {
 		return nil, err
 	}
