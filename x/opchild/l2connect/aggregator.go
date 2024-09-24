@@ -57,7 +57,7 @@ func WritePrices(ctx sdk.Context, ok types.OracleKeeper, updatedTime time.Time, 
 		quotePrice := oracletypes.QuotePrice{
 			Price:          math.NewIntFromBigInt(price),
 			BlockTimestamp: updatedTime,
-			BlockHeight:    uint64(ctx.BlockHeight()),
+			BlockHeight:    uint64(ctx.BlockHeight()), //nolint:gosec
 		}
 
 		if err := ok.SetPriceForCurrencyPair(ctx, cp, quotePrice); err != nil {
