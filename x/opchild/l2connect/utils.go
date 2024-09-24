@@ -1,4 +1,4 @@
-package l2slinky
+package l2connect
 
 import (
 	"bytes"

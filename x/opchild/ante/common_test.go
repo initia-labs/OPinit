@@ -46,8 +46,8 @@ import (
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
-	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 )
 
 var ModuleBasics = module.NewBasicManager(

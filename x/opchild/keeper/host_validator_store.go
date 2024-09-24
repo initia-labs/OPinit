@@ -11,8 +11,8 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/skip-mev/slinky/abci/ve"
-	"github.com/skip-mev/slinky/pkg/math/voteweighted"
+	"github.com/skip-mev/connect/v2/abci/ve"
+	"github.com/skip-mev/connect/v2/pkg/math/voteweighted"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )

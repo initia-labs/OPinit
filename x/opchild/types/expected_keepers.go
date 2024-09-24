@@ -7,10 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
-	"github.com/skip-mev/slinky/abci/strategies/currencypair"
+	"github.com/skip-mev/connect/v2/abci/strategies/currencypair"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -55,8 +55,8 @@ type BankKeeper interface {
 
 type OracleKeeper interface {
 	currencypair.OracleKeeper
-	GetAllCurrencyPairs(ctx sdk.Context) []slinkytypes.CurrencyPair
-	SetPriceForCurrencyPair(ctx sdk.Context, cp slinkytypes.CurrencyPair, qp oracletypes.QuotePrice) error
+	GetAllCurrencyPairs(ctx sdk.Context) []connecttypes.CurrencyPair
+	SetPriceForCurrencyPair(ctx sdk.Context, cp connecttypes.CurrencyPair, qp oracletypes.QuotePrice) error
 }
 
 // ValidatorSet expected properties for the set of all validators (noalias)
