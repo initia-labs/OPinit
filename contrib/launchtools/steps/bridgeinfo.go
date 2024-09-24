@@ -4,7 +4,7 @@ import (
 	"github.com/pkg/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types" //nolint:staticcheck
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	tmclient "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"

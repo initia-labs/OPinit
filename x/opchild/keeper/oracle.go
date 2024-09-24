@@ -65,7 +65,7 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	h := int64(height)
+	h := int64(height) //nolint:gosec
 	if hostStoreLastHeight > h {
 		return types.ErrInvalidOracleHeight
 	}
