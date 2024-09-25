@@ -16,79 +16,79 @@ service Query {
   // Bridge queries bridge info.
   rpc Bridge(QueryBridgeRequest) returns (QueryBridgeResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}";
   }
 
   // Bridges queries bridge infos.
   rpc Bridges(QueryBridgesRequest) returns (QueryBridgesResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges";
   }
 
   // TokenPairByL1Denom queries token pair by l1 denom.
   rpc TokenPairByL1Denom(QueryTokenPairByL1DenomRequest) returns (QueryTokenPairByL1DenomResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs/by_l1_denom";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs/by_l1_denom";
   }
 
   // TokenPairByL2Denom queries token pair by l2 denom.
   rpc TokenPairByL2Denom(QueryTokenPairByL2DenomRequest) returns (QueryTokenPairByL2DenomResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs/by_l2_denom";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs/by_l2_denom";
   }
 
   // TokenPairs queries all (l1 denom, l2 denom) pair.
   rpc TokenPairs(QueryTokenPairsRequest) returns (QueryTokenPairsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/token_pairs";
   }
 
   // LastFinalizedOutput queries last finalized output.
   rpc LastFinalizedOutput(QueryLastFinalizedOutputRequest) returns (QueryLastFinalizedOutputResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/last_finalized_output";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/last_finalized_output";
   }
 
   // OutputProposal queries output proposal by output index.
   rpc OutputProposal(QueryOutputProposalRequest) returns (QueryOutputProposalResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/outputs/{output_index}";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/outputs/{output_index}";
   }
 
   // OutputProposals queries all output proposals.
   rpc OutputProposals(QueryOutputProposalsRequest) returns (QueryOutputProposalsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/outputs";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/outputs";
   }
 
   // Parameters queries the rollup parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/params";
+    option (google.api.http).get = "/opinit/ophost/v1/params";
   }
 
   // Claimed queries whether the output is claimed.
   rpc Claimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/claimed/by_hash";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/withdrawals/claimed/by_hash";
   }
 
   // NextL1Sequence queries the next l1 sequence.
   rpc NextL1Sequence(QueryNextL1SequenceRequest) returns (QueryNextL1SequenceResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/next_l1_sequence";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/next_l1_sequence";
   }
 
   // BatchInfos queries all batch infos.
   rpc BatchInfos(QueryBatchInfosRequest) returns (QueryBatchInfosResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/ophost/v1/bridges/{bridge_id}/batch_infos";
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/batch_infos";
   }
 }
 
 // QueryBridgeRequest is request type for Query/Bridge RPC method.
 message QueryBridgeRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   uint64 bridge_id = 1;
@@ -96,14 +96,17 @@ message QueryBridgeRequest {
 
 // QueryBridgeResponse is response type for the Query/Bridge RPC method
 message QueryBridgeResponse {
-  uint64       bridge_id     = 1;
-  string       bridge_addr   = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  BridgeConfig bridge_config = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 bridge_id = 1;
+  string bridge_addr = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  BridgeConfig bridge_config = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryBridgesRequest is request type for Query/Bridges RPC method.
 message QueryBridgesRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // pagination defines the pagination in the request.
@@ -112,7 +115,10 @@ message QueryBridgesRequest {
 
 // QueryBridgesResponse is response type for the Query/Bridges RPC method
 message QueryBridgesResponse {
-  repeated QueryBridgeResponse bridges = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated QueryBridgeResponse bridges = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -121,23 +127,29 @@ message QueryBridgesResponse {
 // QueryTokenPairByL1DenomRequest is response type for the Query/TokenPairByL1Denom RPC method
 message QueryTokenPairByL1DenomRequest {
   uint64 bridge_id = 1;
-  string l1_denom  = 2;
+  string l1_denom = 2;
 }
 
 // QueryTokenPairByL1DenomResponse is response type for the Query/TokenPairByL1Denom RPC method
 message QueryTokenPairByL1DenomResponse {
-  TokenPair token_pair = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  TokenPair token_pair = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryTokenPairByL2DenomRequest is response type for the Query/TokenPairByL2Denom RPC method
 message QueryTokenPairByL2DenomRequest {
   uint64 bridge_id = 1;
-  string l2_denom  = 2;
+  string l2_denom = 2;
 }
 
 // QueryTokenPairByL2DenomResponse is response type for the Query/TokenPairByL2Denom RPC method
 message QueryTokenPairByL2DenomResponse {
-  TokenPair token_pair = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  TokenPair token_pair = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryTokenPairsRequest is response type for the Query/TokenPairs RPC method
@@ -150,7 +162,10 @@ message QueryTokenPairsRequest {
 
 // QueryTokenPairsResponse is response type for the Query/TokenPairs RPC method
 message QueryTokenPairsResponse {
-  repeated TokenPair token_pairs = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated TokenPair token_pairs = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -163,21 +178,27 @@ message QueryLastFinalizedOutputRequest {
 
 // QueryLastFinalizedOutputResponse is response type for the Query/LastFinalizedOutput RPC method
 message QueryLastFinalizedOutputResponse {
-  uint64 output_index    = 1;
-  Output output_proposal = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 output_index = 1;
+  Output output_proposal = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryOutputProposalRequest is response type for the Query/OutputProposal RPC method
 message QueryOutputProposalRequest {
-  uint64 bridge_id    = 1;
+  uint64 bridge_id = 1;
   uint64 output_index = 2;
 }
 
 // QueryOutputProposalResponse is response type for the Query/OutputProposal RPC method
 message QueryOutputProposalResponse {
-  uint64 bridge_id       = 1;
-  uint64 output_index    = 2;
-  Output output_proposal = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 bridge_id = 1;
+  uint64 output_index = 2;
+  Output output_proposal = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryOutputProposalsRequest is response type for the Query/OutputProposals RPC method
@@ -189,8 +210,10 @@ message QueryOutputProposalsRequest {
 
 // QueryOutputProposalsResponse is response type for the Query/OutputProposals RPC method
 message QueryOutputProposalsResponse {
-  repeated QueryOutputProposalResponse output_proposals = 1
-      [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated QueryOutputProposalResponse output_proposals = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -201,13 +224,16 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryClaimedRequest is request type for the Query/Claimed RPC method.
 message QueryClaimedRequest {
-  uint64 bridge_id       = 1;
-  bytes  withdrawal_hash = 2;
+  uint64 bridge_id = 1;
+  bytes withdrawal_hash = 2;
 }
 
 // QueryClaimedResponse is response type for the Query/Claimed RPC method
@@ -227,13 +253,16 @@ message QueryNextL1SequenceResponse {
 
 // QueryBatchInfosRequest is request type for Query/BatchInfos RPC method.
 message QueryBatchInfosRequest {
-  uint64                                bridge_id  = 1;
+  uint64 bridge_id = 1;
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryBatchInfosResponse is response type for Query/BatchInfos RPC method.
 message QueryBatchInfosResponse {
-  repeated BatchInfoWithOutput batch_infos = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated BatchInfoWithOutput batch_infos = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

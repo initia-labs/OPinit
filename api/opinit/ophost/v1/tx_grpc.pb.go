@@ -26,7 +26,7 @@ const (
 	Msg_InitiateTokenDeposit_FullMethodName    = "/opinit.ophost.v1.Msg/InitiateTokenDeposit"
 	Msg_FinalizeTokenWithdrawal_FullMethodName = "/opinit.ophost.v1.Msg/FinalizeTokenWithdrawal"
 	Msg_UpdateProposer_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateProposer"
-	Msg_UpdateChallengers_FullMethodName       = "/opinit.ophost.v1.Msg/UpdateChallengers"
+	Msg_UpdateChallenger_FullMethodName        = "/opinit.ophost.v1.Msg/UpdateChallenger"
 	Msg_UpdateBatchInfo_FullMethodName         = "/opinit.ophost.v1.Msg/UpdateBatchInfo"
 	Msg_UpdateMetadata_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateMetadata"
 	Msg_UpdateOracleConfig_FullMethodName      = "/opinit.ophost.v1.Msg/UpdateOracleConfig"
@@ -51,8 +51,8 @@ type MsgClient interface {
 	FinalizeTokenWithdrawal(ctx context.Context, in *MsgFinalizeTokenWithdrawal, opts ...grpc.CallOption) (*MsgFinalizeTokenWithdrawalResponse, error)
 	// UpdateProposer defines a rpc handler method for MsgUpdateProposer.
 	UpdateProposer(ctx context.Context, in *MsgUpdateProposer, opts ...grpc.CallOption) (*MsgUpdateProposerResponse, error)
-	// UpdateChallengers defines a rpc handler method for MsgUpdateChallengers.
-	UpdateChallengers(ctx context.Context, in *MsgUpdateChallengers, opts ...grpc.CallOption) (*MsgUpdateChallengersResponse, error)
+	// UpdateChallenger defines a rpc handler method for MsgUpdateChallenger.
+	UpdateChallenger(ctx context.Context, in *MsgUpdateChallenger, opts ...grpc.CallOption) (*MsgUpdateChallengerResponse, error)
 	// UpdateBatchInfo defines a rpc handler method for MsgUpdateBatchInfo.
 	UpdateBatchInfo(ctx context.Context, in *MsgUpdateBatchInfo, opts ...grpc.CallOption) (*MsgUpdateBatchInfoResponse, error)
 	// UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
@@ -135,9 +135,9 @@ func (c *msgClient) UpdateProposer(ctx context.Context, in *MsgUpdateProposer, o
 	return out, nil
 }
 
-func (c *msgClient) UpdateChallengers(ctx context.Context, in *MsgUpdateChallengers, opts ...grpc.CallOption) (*MsgUpdateChallengersResponse, error) {
-	out := new(MsgUpdateChallengersResponse)
-	err := c.cc.Invoke(ctx, Msg_UpdateChallengers_FullMethodName, in, out, opts...)
+func (c *msgClient) UpdateChallenger(ctx context.Context, in *MsgUpdateChallenger, opts ...grpc.CallOption) (*MsgUpdateChallengerResponse, error) {
+	out := new(MsgUpdateChallengerResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateChallenger_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -198,8 +198,8 @@ type MsgServer interface {
 	FinalizeTokenWithdrawal(context.Context, *MsgFinalizeTokenWithdrawal) (*MsgFinalizeTokenWithdrawalResponse, error)
 	// UpdateProposer defines a rpc handler method for MsgUpdateProposer.
 	UpdateProposer(context.Context, *MsgUpdateProposer) (*MsgUpdateProposerResponse, error)
-	// UpdateChallengers defines a rpc handler method for MsgUpdateChallengers.
-	UpdateChallengers(context.Context, *MsgUpdateChallengers) (*MsgUpdateChallengersResponse, error)
+	// UpdateChallenger defines a rpc handler method for MsgUpdateChallenger.
+	UpdateChallenger(context.Context, *MsgUpdateChallenger) (*MsgUpdateChallengerResponse, error)
 	// UpdateBatchInfo defines a rpc handler method for MsgUpdateBatchInfo.
 	UpdateBatchInfo(context.Context, *MsgUpdateBatchInfo) (*MsgUpdateBatchInfoResponse, error)
 	// UpdateMetadata defines a rpc handler method for MsgUpdateMetadata.
@@ -237,8 +237,8 @@ func (UnimplementedMsgServer) FinalizeTokenWithdrawal(context.Context, *MsgFinal
 func (UnimplementedMsgServer) UpdateProposer(context.Context, *MsgUpdateProposer) (*MsgUpdateProposerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProposer not implemented")
 }
-func (UnimplementedMsgServer) UpdateChallengers(context.Context, *MsgUpdateChallengers) (*MsgUpdateChallengersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateChallengers not implemented")
+func (UnimplementedMsgServer) UpdateChallenger(context.Context, *MsgUpdateChallenger) (*MsgUpdateChallengerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateChallenger not implemented")
 }
 func (UnimplementedMsgServer) UpdateBatchInfo(context.Context, *MsgUpdateBatchInfo) (*MsgUpdateBatchInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBatchInfo not implemented")
@@ -391,20 +391,20 @@ func _Msg_UpdateProposer_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_UpdateChallengers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateChallengers)
+func _Msg_UpdateChallenger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateChallenger)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).UpdateChallengers(ctx, in)
+		return srv.(MsgServer).UpdateChallenger(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Msg_UpdateChallengers_FullMethodName,
+		FullMethod: Msg_UpdateChallenger_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UpdateChallengers(ctx, req.(*MsgUpdateChallengers))
+		return srv.(MsgServer).UpdateChallenger(ctx, req.(*MsgUpdateChallenger))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -517,8 +517,8 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_UpdateProposer_Handler,
 		},
 		{
-			MethodName: "UpdateChallengers",
-			Handler:    _Msg_UpdateChallengers_Handler,
+			MethodName: "UpdateChallenger",
+			Handler:    _Msg_UpdateChallenger_Handler,
 		},
 		{
 			MethodName: "UpdateBatchInfo",

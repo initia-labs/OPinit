@@ -13,7 +13,7 @@ import (
 func Test_QueryBridge(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config := types.BridgeConfig{
-		Challengers:           []string{addrs[0].String()},
+		Challenger:            addrs[0].String(),
 		Proposer:              addrs[0].String(),
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
@@ -40,7 +40,7 @@ func Test_QueryBridge(t *testing.T) {
 func Test_QueryBridges(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config1 := types.BridgeConfig{
-		Challengers:           []string{addrs[0].String()},
+		Challenger:            addrs[0].String(),
 		Proposer:              addrs[0].String(),
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
@@ -49,7 +49,7 @@ func Test_QueryBridges(t *testing.T) {
 		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challengers:           []string{addrs[1].String()},
+		Challenger:            addrs[1].String(),
 		Proposer:              addrs[0].String(),
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
@@ -185,7 +185,7 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,

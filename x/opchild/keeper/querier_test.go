@@ -56,8 +56,8 @@ func Test_QuerySetBridgeInfo(t *testing.T) {
 		BridgeId:   1,
 		BridgeAddr: addrsStr[1],
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challengers: []string{addrsStr[2]},
-			Proposer:    addrsStr[3],
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
 				Submitter: addrsStr[4],
 				ChainType: ophosttypes.BatchInfo_CHAIN_TYPE_INITIA,

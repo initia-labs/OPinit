@@ -2,14 +2,14 @@ syntax = "proto3";
 package opinit.ophost.v1;
 
 import "amino/amino.proto";
-import "gogoproto/gogo.proto";
 import "cosmos/auth/v1beta1/auth.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/initia-labs/OPinit/x/ophost/types";
 
 // BridgeAccount defines an account for bridge that holds coins without pubkey.
 message BridgeAccount {
-  option (amino.name)                = "ophost/BridgeAccount";
+  option (amino.name) = "ophost/BridgeAccount";
   option (gogoproto.goproto_getters) = false;
 
   cosmos.auth.v1beta1.BaseAccount base_account = 1 [(gogoproto.embed) = true];

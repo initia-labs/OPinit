@@ -33,7 +33,7 @@ func Test_CreateBridge(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challengers:           []string{addrsStr[0]},
+		Challenger:            addrsStr[0],
 		Proposer:              addrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
@@ -58,7 +58,7 @@ func Test_ProposeOutput(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challengers:           []string{addrsStr[0]},
+		Challenger:            addrsStr[0],
 		Proposer:              addrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
@@ -97,7 +97,7 @@ func Test_DeleteOutput(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -148,7 +148,7 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -176,7 +176,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -248,7 +248,7 @@ func Test_UpdateProposal(t *testing.T) {
 
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -292,13 +292,13 @@ func Test_UpdateProposal(t *testing.T) {
 	require.Error(t, err)
 }
 
-func Test_UpdateChallengers(t *testing.T) {
+func Test_UpdateChallenger(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1], addrsStr[2], addrsStr[3]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -312,74 +312,31 @@ func Test_UpdateChallengers(t *testing.T) {
 	// gov signer
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
-	msg := types.NewMsgUpdateChallengers(govAddr, 1, []string{addrsStr[2], addrsStr[3]})
-	_, err = ms.UpdateChallengers(ctx, msg)
+	msg := types.NewMsgUpdateChallenger(govAddr, 1, addrsStr[2])
+	_, err = ms.UpdateChallenger(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, []string{addrsStr[2], addrsStr[3]}, _config.Challengers)
-	require.Equal(t, input.BridgeHook.challengers, _config.Challengers)
+	require.Equal(t, addrsStr[2], _config.Challenger)
+	require.Equal(t, input.BridgeHook.challenger, _config.Challenger)
 
 	// current challenger
-
-	// case 1. replace oneself
-	msg = types.NewMsgUpdateChallengers(addrsStr[2], 1, []string{addrsStr[3], addrsStr[4]})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.NoError(t, err)
-	_config, err = ms.GetBridgeConfig(ctx, 1)
-	require.NoError(t, err)
-	require.Equal(t, []string{addrsStr[3], addrsStr[4]}, _config.Challengers)
-	require.Equal(t, input.BridgeHook.challengers, _config.Challengers)
-
-	// case 2. try to remove other challenger
-	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[4]})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.Error(t, err)
-
-	// case 2. try to replace other challenger
-	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[2], addrsStr[4]})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.Error(t, err)
-
-	// case 3. remove oneself
-	msg = types.NewMsgUpdateChallengers(addrsStr[3], 1, []string{addrsStr[4]})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.NoError(t, err)
-	_config, err = ms.GetBridgeConfig(ctx, 1)
-	require.NoError(t, err)
-	require.Equal(t, []string{addrsStr[4]}, _config.Challengers)
-	require.Equal(t, input.BridgeHook.challengers, _config.Challengers)
-
-	// case 4. try to add more challenger
-	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[3], addrsStr[4]})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.Error(t, err)
-
-	// case 5. try to add more challenger with replace
-	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{addrsStr[2], addrsStr[3]})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.Error(t, err)
-
-	// case 6. remove all challengers
-	msg = types.NewMsgUpdateChallengers(addrsStr[4], 1, []string{})
-	_, err = ms.UpdateChallengers(ctx, msg)
-	require.Error(t, err)
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
-	msg = types.NewMsgUpdateChallengers(invalidAddr, 1, []string{addrsStr[1]})
+	msg = types.NewMsgUpdateChallenger(invalidAddr, 1, addrsStr[1])
 	require.NoError(t, err)
 
-	_, err = ms.UpdateChallengers(
+	_, err = ms.UpdateChallenger(
 		ctx,
 		msg,
 	)
 	require.Error(t, err)
 
 	// invalid case
-	msg = types.NewMsgUpdateChallengers(govAddr, 1, []string{})
-	_, err = ms.UpdateChallengers(ctx, msg)
+	msg = types.NewMsgUpdateChallenger(govAddr, 1, "")
+	_, err = ms.UpdateChallenger(ctx, msg)
 	require.Error(t, err)
 }
 
@@ -389,7 +346,7 @@ func Test_UpdateBatchInfo(t *testing.T) {
 
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -453,7 +410,7 @@ func Test_UpdateOracleConfig(t *testing.T) {
 
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
@@ -498,7 +455,7 @@ func Test_UpdateMetadata(t *testing.T) {
 
 	config := types.BridgeConfig{
 		Proposer:              addrsStr[0],
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,

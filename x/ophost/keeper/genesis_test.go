@@ -13,7 +13,7 @@ func Test_GenesisExport(t *testing.T) {
 
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		Proposer:              addrsStr[0],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    100,
@@ -22,7 +22,7 @@ func Test_GenesisExport(t *testing.T) {
 		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challengers:           []string{addrsStr[2]},
+		Challenger:            addrsStr[2],
 		Proposer:              addrsStr[3],
 		SubmissionInterval:    200,
 		FinalizationPeriod:    200,
@@ -111,7 +111,7 @@ func Test_GenesisImportExport(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challengers:           []string{addrsStr[1]},
+		Challenger:            addrsStr[1],
 		Proposer:              addrsStr[0],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    100,

@@ -10,10 +10,16 @@ option go_package = "github.com/initia-labs/OPinit/x/ophost/types";
 // GenesisState defines the rollup module's genesis state.
 message GenesisState {
   // params defines all the parameters of related to deposit.
-  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // bridges defines the registered bridges.
-  repeated Bridge bridges = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated Bridge bridges = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // the id will be asisgned to a new bridge.
   uint64 next_bridge_id = 3;
@@ -27,19 +33,34 @@ message Bridge {
   // next output index.
   uint64 next_output_index = 3;
   // a bridge config.
-  BridgeConfig bridge_config = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  BridgeConfig bridge_config = 4 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
   // a list of (l1, l2) token pairs
-  repeated TokenPair token_pairs = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated TokenPair token_pairs = 5 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
   // a list of l2 output proposals, which has been proven.
   repeated bytes proven_withdrawals = 6;
   // a list of l2 output proposals.
-  repeated WrappedOutput proposals = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated WrappedOutput proposals = 7 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
   // a list of batch infos.
-  repeated BatchInfoWithOutput batch_infos = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated BatchInfoWithOutput batch_infos = 8 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // WrappedOutput defines a wrapped output containing its index and proposal.
 message WrappedOutput {
-  uint64 output_index    = 1;
-  Output output_proposal = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  uint64 output_index = 1;
+  Output output_proposal = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }

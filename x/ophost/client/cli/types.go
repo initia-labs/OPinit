@@ -7,7 +7,7 @@ import (
 // BridgeConfig defines the set of bridge config.
 // NOTE: it is a modified BridgeConfig from x/ophost/types/types.go to make unmarshal easier
 type BridgeCliConfig struct {
-	Challengers           []string        `json:"challengers"`
+	Challenger            string          `json:"challenger"`
 	Proposer              string          `json:"proposer"`
 	SubmissionInterval    string          `json:"submission_interval"`
 	FinalizationPeriod    string          `json:"finalization_period"`

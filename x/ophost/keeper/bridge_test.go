@@ -11,7 +11,7 @@ import (
 func Test_BridgeConfig(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config := types.BridgeConfig{
-		Challengers:           []string{addrs[0].String()},
+		Challenger:            addrs[0].String(),
 		Proposer:              addrs[1].String(),
 		SubmissionInterval:    time.Second * 100,
 		FinalizationPeriod:    time.Second * 10,
@@ -28,7 +28,7 @@ func Test_BridgeConfig(t *testing.T) {
 func Test_IterateBridgeConfig(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	config1 := types.BridgeConfig{
-		Challengers:           []string{addrs[0].String()},
+		Challenger:            addrs[0].String(),
 		Proposer:              addrs[1].String(),
 		SubmissionInterval:    time.Second * 100,
 		FinalizationPeriod:    time.Second * 10,
@@ -37,7 +37,7 @@ func Test_IterateBridgeConfig(t *testing.T) {
 		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challengers:           []string{addrs[2].String()},
+		Challenger:            addrs[2].String(),
 		Proposer:              addrs[3].String(),
 		SubmissionInterval:    time.Second * 100,
 		FinalizationPeriod:    time.Second * 10,
