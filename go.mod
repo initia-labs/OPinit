@@ -24,7 +24,7 @@ require (
 	github.com/cosmos/relayer/v2 v2.5.2
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit/api v0.5.0
+	github.com/initia-labs/OPinit/api v0.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk/v2 v2.1.1
 	github.com/skip-mev/connect/v2 v2.0.1
