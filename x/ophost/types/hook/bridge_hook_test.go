@@ -157,7 +157,7 @@ func Test_BridgeHook_BridgeCreated(t *testing.T) {
 	require.False(t, ok)
 }
 
-func Test_BridgeHook_ChallengersUpdated(t *testing.T) {
+func Test_BridgeHook_ChallengerUpdated(t *testing.T) {
 	ctx, h := setup()
 
 	metadata, err := json.Marshal(hook.PermsMetadata{
@@ -178,7 +178,7 @@ func Test_BridgeHook_ChallengersUpdated(t *testing.T) {
 	require.NoError(t, err)
 
 	newAddr := acc_addr()
-	err = h.BridgeChallengersUpdated(ctx, 1, ophosttypes.BridgeConfig{
+	err = h.BridgeChallengerUpdated(ctx, 1, ophosttypes.BridgeConfig{
 		Challenger: newAddr[0].String(),
 		Metadata:   metadata,
 	})

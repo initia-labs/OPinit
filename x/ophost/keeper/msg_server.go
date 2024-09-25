@@ -409,7 +409,7 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	}
 
 	config.Challenger = req.Challenger
-	if err := ms.Keeper.bridgeHook.BridgeChallengersUpdated(ctx, bridgeId, config); err != nil {
+	if err := ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
