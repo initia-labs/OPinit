@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"slices"
 	"strings"
 	time "time"
 
@@ -12,17 +11,8 @@ import (
 )
 
 func (config BridgeConfig) Validate(ac address.Codec) error {
-	challengerDupMap := make(map[string]bool, len(config.Challengers))
-	for _, challenger := range config.Challengers {
-		if _, err := ac.StringToBytes(challenger); err != nil {
-			return err
-		}
-
-		if _, ok := challengerDupMap[challenger]; ok {
-			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challengers must be unique")
-		}
-
-		challengerDupMap[challenger] = true
+	if _, err := ac.StringToBytes(config.Challenger); err != nil {
+		return err
 	}
 
 	if _, err := ac.StringToBytes(config.Proposer); err != nil {
@@ -35,10 +25,6 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 
 	if config.BatchInfo.Submitter == "" {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch submitter must be set")
-	}
-
-	if !config.isValidChallengers() {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challengers must be non-empty array")
 	}
 
 	if config.FinalizationPeriod == time.Duration(0) {
@@ -61,8 +47,8 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "proposer must be set")
 	}
 
-	if !config.isValidChallengers() {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challengers must be non-empty array")
+	if len(config.Challenger) == 0 {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challenger must be set")
 	}
 
 	if config.BatchInfo.ChainType == BatchInfo_CHAIN_TYPE_UNSPECIFIED {
@@ -88,18 +74,6 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 	}
 
 	return nil
-}
-
-func (config BridgeConfig) isValidChallengers() bool {
-	if len(config.Challengers) == 0 {
-		return false
-	}
-
-	if slices.Contains(config.Challengers, "") {
-		return false
-	}
-
-	return true
 }
 
 // prefix for chain type enum

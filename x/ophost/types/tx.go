@@ -14,7 +14,7 @@ var (
 	_ sdk.Msg = &MsgFinalizeTokenWithdrawal{}
 	_ sdk.Msg = &MsgInitiateTokenDeposit{}
 	_ sdk.Msg = &MsgUpdateProposer{}
-	_ sdk.Msg = &MsgUpdateChallengers{}
+	_ sdk.Msg = &MsgUpdateChallenger{}
 	_ sdk.Msg = &MsgUpdateBatchInfo{}
 	_ sdk.Msg = &MsgUpdateMetadata{}
 	_ sdk.Msg = &MsgUpdateParams{}
@@ -313,23 +313,23 @@ func (msg MsgUpdateProposer) Validate(ac address.Codec) error {
 	return nil
 }
 
-/* MsgUpdateChallengers */
+/* MsgUpdateChallenger */
 
-// NewMsgUpdateChallengers creates a new MsgUpdateChallengers instance.
-func NewMsgUpdateChallengers(
+// NewMsgUpdateChallenger creates a new MsgUpdateChallenger instance.
+func NewMsgUpdateChallenger(
 	authority string,
 	bridgeId uint64,
-	newChallengers []string,
-) *MsgUpdateChallengers {
-	return &MsgUpdateChallengers{
-		Authority:      authority,
-		BridgeId:       bridgeId,
-		NewChallengers: newChallengers,
+	challenger string,
+) *MsgUpdateChallenger {
+	return &MsgUpdateChallenger{
+		Authority:  authority,
+		BridgeId:   bridgeId,
+		Challenger: challenger,
 	}
 }
 
-// Validate performs basic MsgUpdateChallengers message validation.
-func (msg MsgUpdateChallengers) Validate(ac address.Codec) error {
+// Validate performs basic MsgUpdateChallenger message validation.
+func (msg MsgUpdateChallenger) Validate(ac address.Codec) error {
 	if _, err := ac.StringToBytes(msg.Authority); err != nil {
 		return err
 	}
@@ -338,22 +338,9 @@ func (msg MsgUpdateChallengers) Validate(ac address.Codec) error {
 		return ErrInvalidBridgeId
 	}
 
-	dupCheckMap := make(map[string]bool)
-	for _, challenger := range msg.NewChallengers {
-		_, err := ac.StringToBytes(challenger)
-		if err != nil {
-			return err
-		}
-
-		if _, found := dupCheckMap[challenger]; found {
-			return ErrInvalidChallengerUpdate.Wrap("duplicate challenger")
-		}
-
-		dupCheckMap[challenger] = true
-	}
-
-	if len(msg.NewChallengers) == 0 {
-		return ErrInvalidChallengerUpdate.Wrap("at least one new challenger is required")
+	_, err := ac.StringToBytes(msg.Challenger)
+	if err != nil {
+		return err
 	}
 
 	return nil

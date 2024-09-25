@@ -11,26 +11,38 @@ option go_package = "github.com/initia-labs/OPinit/x/opchild/types";
 // GenesisState defines the rollup module's genesis state.
 message GenesisState {
   // params defines all the parameters of related to deposit.
-  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // last_validator_powers is a special index that provides a historical list
   // of the last-block's bonded validators.
-  repeated LastValidatorPower last_validator_powers = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated LastValidatorPower last_validator_powers = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // delegations defines the validator set at genesis.
-  repeated Validator validators = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated Validator validators = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
-  uint64     next_l2_sequence = 4;
-  uint64     next_l1_sequence = 5;
-  BridgeInfo bridge_info      = 6;
-  bool       exported         = 7;
+  uint64 next_l2_sequence = 4;
+  uint64 next_l1_sequence = 5;
+  BridgeInfo bridge_info = 6;
+  bool exported = 7;
 
-  repeated DenomPair denom_pairs = 8 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated DenomPair denom_pairs = 8 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // LastValidatorPower required for validator set update logic.
 message LastValidatorPower {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // address is the address of the validator.

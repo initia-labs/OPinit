@@ -8,7 +8,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "opinit/ophost/v1/types.proto";
 
-option go_package                      = "github.com/initia-labs/OPinit/x/ophost/types";
+option go_package = "github.com/initia-labs/OPinit/x/ophost/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the rollup Msg service.
@@ -54,8 +54,8 @@ service Msg {
   // UpdateProposer defines a rpc handler method for MsgUpdateProposer.
   rpc UpdateProposer(MsgUpdateProposer) returns (MsgUpdateProposerResponse);
 
-  // UpdateChallengers defines a rpc handler method for MsgUpdateChallengers.
-  rpc UpdateChallengers(MsgUpdateChallengers) returns (MsgUpdateChallengersResponse);
+  // UpdateChallenger defines a rpc handler method for MsgUpdateChallenger.
+  rpc UpdateChallenger(MsgUpdateChallenger) returns (MsgUpdateChallengerResponse);
 
   // UpdateBatchInfo defines a rpc handler method for MsgUpdateBatchInfo.
   rpc UpdateBatchInfo(MsgUpdateBatchInfo) returns (MsgUpdateBatchInfoResponse);
@@ -77,11 +77,14 @@ service Msg {
 // MsgRecordBatch is no_op message, which is only for tx indexing.
 message MsgRecordBatch {
   option (cosmos.msg.v1.signer) = "submitter";
-  option (amino.name)           = "ophost/MsgRecordBatch";
+  option (amino.name) = "ophost/MsgRecordBatch";
 
-  string submitter   = 1 [(gogoproto.moretags) = "yaml:\"submitter\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 bridge_id   = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  bytes  batch_bytes = 3 [(gogoproto.moretags) = "yaml:\"batch_bytes\""];
+  string submitter = 1 [
+    (gogoproto.moretags) = "yaml:\"submitter\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  bytes batch_bytes = 3 [(gogoproto.moretags) = "yaml:\"batch_bytes\""];
 }
 
 // MsgRecordBatchResponse returns MsgRecordBatch message result data
@@ -94,11 +97,17 @@ message MsgRecordBatchResponse {}
 // new bridge id.
 message MsgCreateBridge {
   option (cosmos.msg.v1.signer) = "creator";
-  option (amino.name)           = "ophost/MsgCreateBridge";
+  option (amino.name) = "ophost/MsgCreateBridge";
 
-  string       creator = 1 [(gogoproto.moretags) = "yaml:\"creator\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  BridgeConfig config  = 2
-      [(gogoproto.moretags) = "yaml:\"config\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string creator = 1 [
+    (gogoproto.moretags) = "yaml:\"creator\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  BridgeConfig config = 2 [
+    (gogoproto.moretags) = "yaml:\"config\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // MsgCreateBridgeResponse returns MsgCreateBridge message
@@ -113,13 +122,16 @@ message MsgCreateBridgeResponse {
 // MsgProposeOutput is a message to submit l2 block proposal.
 message MsgProposeOutput {
   option (cosmos.msg.v1.signer) = "proposer";
-  option (amino.name)           = "ophost/MsgProposeOutput";
+  option (amino.name) = "ophost/MsgProposeOutput";
 
-  string proposer     = 1 [(gogoproto.moretags) = "yaml:\"proposer\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 bridge_id    = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  string proposer = 1 [
+    (gogoproto.moretags) = "yaml:\"proposer\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   uint64 output_index = 3 [(gogoproto.moretags) = "yaml:\"output_index\""];
   uint64 l2_block_number = 4 [(gogoproto.moretags) = "yaml:\"l2_block_number\""];
-  bytes  output_root     = 5 [(gogoproto.moretags) = "yaml:\"output_root\""];
+  bytes output_root = 5 [(gogoproto.moretags) = "yaml:\"output_root\""];
 }
 
 // MsgProposeOutputResponse returns deposit result data
@@ -132,10 +144,13 @@ message MsgProposeOutputResponse {}
 // in [outputIndex, nextOutputIndex) range.
 message MsgDeleteOutput {
   option (cosmos.msg.v1.signer) = "challenger";
-  option (amino.name)           = "ophost/MsgDeleteOutput";
+  option (amino.name) = "ophost/MsgDeleteOutput";
 
-  string challenger = 1 [(gogoproto.moretags) = "yaml:\"challenger\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 bridge_id  = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  string challenger = 1 [
+    (gogoproto.moretags) = "yaml:\"challenger\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
   uint64 output_index = 3 [(gogoproto.moretags) = "yaml:\"output_index\""];
 }
 
@@ -148,17 +163,27 @@ message MsgDeleteOutputResponse {}
 // MsgInitiateTokenDeposit is a message to deposit a new token from L1 to L2.
 message MsgInitiateTokenDeposit {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "ophost/MsgInitiateTokenDeposit";
+  option (amino.name) = "ophost/MsgInitiateTokenDeposit";
 
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string sender    = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string sender = 1 [
+    (gogoproto.moretags) = "yaml:\"sender\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  string to        = 3 [(gogoproto.moretags) = "yaml:\"to\""];
-  cosmos.base.v1beta1.Coin amount = 4
-      [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-  bytes data = 5 [(gogoproto.moretags) = "yaml:\"data\"", (gogoproto.nullable) = true, (amino.dont_omitempty) = false];
+  string to = 3 [(gogoproto.moretags) = "yaml:\"to\""];
+  cosmos.base.v1beta1.Coin amount = 4 [
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  bytes data = 5 [
+    (gogoproto.moretags) = "yaml:\"data\"",
+    (gogoproto.nullable) = true,
+    (amino.dont_omitempty) = false
+  ];
 }
 
 // MsgInitiateTokenDepositResponse returns a message handle result.
@@ -169,28 +194,40 @@ message MsgInitiateTokenDepositResponse {
 // MsgFinalizeTokenWithdrawal is a message finalizing funds withdrawal from L2.
 message MsgFinalizeTokenWithdrawal {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "ophost/MsgFinalizeTokenWithdrawal";
+  option (amino.name) = "ophost/MsgFinalizeTokenWithdrawal";
 
   // address of the sender of the transaction
 
-  string         sender = 1 [(gogoproto.moretags) = "yaml:\"sender\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64         bridge_id         = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  uint64         output_index      = 3 [(gogoproto.moretags) = "yaml:\"output_index\""];
-  repeated bytes withdrawal_proofs = 4 [(gogoproto.nullable) = true, (amino.dont_omitempty) = false];
+  string sender = 1 [
+    (gogoproto.moretags) = "yaml:\"sender\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  uint64 output_index = 3 [(gogoproto.moretags) = "yaml:\"output_index\""];
+  repeated bytes withdrawal_proofs = 4 [
+    (gogoproto.nullable) = true,
+    (amino.dont_omitempty) = false
+  ];
 
   // withdraw tx data
 
-  string from     = 5 [(gogoproto.moretags) = "yaml:\"from\""];
-  string to       = 6 [(gogoproto.moretags) = "yaml:\"to\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string from = 5 [(gogoproto.moretags) = "yaml:\"from\""];
+  string to = 6 [
+    (gogoproto.moretags) = "yaml:\"to\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
   uint64 sequence = 7 [(gogoproto.moretags) = "yaml:\"sequence\""];
-  cosmos.base.v1beta1.Coin amount = 8
-      [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  cosmos.base.v1beta1.Coin amount = 8 [
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // output root proofs
 
   // version of the output root
-  bytes version         = 9 [(gogoproto.moretags) = "yaml:\"version\""];
-  bytes storage_root    = 10 [(gogoproto.moretags) = "yaml:\"storage_root\""];
+  bytes version = 9 [(gogoproto.moretags) = "yaml:\"version\""];
+  bytes storage_root = 10 [(gogoproto.moretags) = "yaml:\"storage_root\""];
   bytes last_block_hash = 11 [(gogoproto.moretags) = "yaml:\"last_block_hash\""];
 }
 
@@ -203,14 +240,19 @@ message MsgFinalizeTokenWithdrawalResponse {}
 // MsgUpdateProposer is a message to change a proposer
 message MsgUpdateProposer {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateProposer";
+  option (amino.name) = "ophost/MsgUpdateProposer";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current proposer address.
-  string authority    = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 bridge_id    = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  string new_proposer = 3
-      [(gogoproto.moretags) = "yaml:\"new_proposer\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  string new_proposer = 3 [
+    (gogoproto.moretags) = "yaml:\"new_proposer\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
 }
 
 // MsgUpdateProposerResponse returns a message handle result.
@@ -222,22 +264,27 @@ message MsgUpdateProposerResponse {
 }
 
 // MsgUpdateChallenger is a message to change a challenger
-message MsgUpdateChallengers {
+message MsgUpdateChallenger {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateChallengers";
+  option (amino.name) = "ophost/MsgUpdateChallenger";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current challenger address.
   //
   // If the given authority is a challenger address, it has the ability to replace itself with another address.
-  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  repeated string new_challengers = 3
-      [(gogoproto.moretags) = "yaml:\"new_challengers\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string challenger = 3 [
+    (gogoproto.moretags) = "yaml:\"challenger\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
 }
 
-// MsgUpdateChallengersResponse returns a message handle result.
-message MsgUpdateChallengersResponse {
+// MsgUpdateChallengerResponse returns a message handle result.
+message MsgUpdateChallengerResponse {
   // last finalized output index
   uint64 output_index = 1;
   // last finalized l2 block number
@@ -247,14 +294,20 @@ message MsgUpdateChallengersResponse {
 // MsgUpdateBatchInfo is a message to change a batch info
 message MsgUpdateBatchInfo {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateBatchInfo";
+  option (amino.name) = "ophost/MsgUpdateBatchInfo";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current proposer address.
-  string    authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64    bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  BatchInfo new_batch_info = 3
-      [(gogoproto.moretags) = "yaml:\"new_batch_info\"", (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  BatchInfo new_batch_info = 3 [
+    (gogoproto.moretags) = "yaml:\"new_batch_info\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // MsgUpdateBatchInfoResponse returns a message handle result.
@@ -268,13 +321,16 @@ message MsgUpdateBatchInfoResponse {
 // MsgUpdateOracleFlag is a message to change oracle config
 message MsgUpdateOracleConfig {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateOracleConfig";
+  option (amino.name) = "ophost/MsgUpdateOracleConfig";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current proposer address.
-  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  bool   oracle_enabled = 3 [(gogoproto.moretags) = "yaml:\"oracle_enabled\""];
+  bool oracle_enabled = 3 [(gogoproto.moretags) = "yaml:\"oracle_enabled\""];
 }
 
 // MsgUpdateOracleFlagResponse returns a message handle result.
@@ -283,16 +339,19 @@ message MsgUpdateOracleConfigResponse {}
 // MsgUpdateMetadata is a message to change metadata
 message MsgUpdateMetadata {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateMetadata";
+  option (amino.name) = "ophost/MsgUpdateMetadata";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten)
   // or the current challenger address.
   //
   // If the given authority is a challenger address, it has the ability to replace oneself to another address or remove
   // oneself.
-  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
   uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
-  bytes  metadata  = 3 [(gogoproto.moretags) = "yaml:\"metadata\""];
+  bytes metadata = 3 [(gogoproto.moretags) = "yaml:\"metadata\""];
 }
 
 // MsgUpdateMetadataResponse returns a message handle result.
@@ -306,11 +365,14 @@ message MsgUpdateMetadataResponse {
 // MsgUpdateParams is a message to update parameters
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name)           = "ophost/MsgUpdateParams";
+  option (amino.name) = "ophost/MsgUpdateParams";
 
   // authority is the address that controls the module
   // (defaults to x/gov unless overwritten).
-  string authority = 1 [(gogoproto.moretags) = "yaml:\"authority\"", (cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
 
   // params are the arbitrary parameters to be updated.
   Params params = 2 [(gogoproto.moretags) = "yaml:\"params\""];

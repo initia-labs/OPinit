@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"slices"
 	"strconv"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
@@ -91,7 +89,7 @@ func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge
 		types.EventTypeCreateBridge,
 		sdk.NewAttribute(types.AttributeKeyCreator, req.Creator),
 		sdk.NewAttribute(types.AttributeKeyProposer, req.Config.Proposer),
-		sdk.NewAttribute(types.AttributeKeyChallenger, strings.Join(req.Config.Challengers, ",")),
+		sdk.NewAttribute(types.AttributeKeyChallenger, req.Config.Challenger),
 		sdk.NewAttribute(types.AttributeKeyBatchChainType, req.Config.BatchInfo.ChainType.StringWithoutPrefix()),
 		sdk.NewAttribute(types.AttributeKeyBatchSubmitter, req.Config.BatchInfo.Submitter),
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
@@ -186,7 +184,7 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 	}
 
 	// permission check
-	if !slices.Contains(bridgeConfig.Challengers, challenger) {
+	if bridgeConfig.Challenger != challenger {
 		return nil, errors.ErrUnauthorized.Wrap("invalid challenger")
 	}
 
@@ -393,7 +391,7 @@ func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProp
 	}, nil
 }
 
-func (ms MsgServer) UpdateChallengers(ctx context.Context, req *types.MsgUpdateChallengers) (*types.MsgUpdateChallengersResponse, error) {
+func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
 	}
@@ -405,29 +403,13 @@ func (ms MsgServer) UpdateChallengers(ctx context.Context, req *types.MsgUpdateC
 	}
 
 	// permission check
-	if req.Authority == ms.authority {
-		config.Challengers = req.NewChallengers
-	} else if idx := slices.Index(config.Challengers, req.Authority); idx >= 0 {
-		removedChallengers := []string{}
-		for _, challenger := range config.Challengers {
-			if found := slices.Contains(req.NewChallengers, challenger); !found {
-				removedChallengers = append(removedChallengers, challenger)
-			}
-		}
 
-		originChallengersLen := len(config.Challengers)
-		newChallengersLen := len(req.NewChallengers)
-		removedChallengersLen := len(removedChallengers)
-		if removedChallengersLen != 1 || removedChallengers[0] != req.Authority || originChallengersLen-newChallengersLen < 0 {
-			return nil, types.ErrInvalidChallengerUpdate.Wrap("a challenger can replace only oneself or remove oneself")
-		}
-
-		config.Challengers = req.NewChallengers
-	} else {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or one in [%s], but got %s", ms.authority, strings.Join(config.Challengers, ","), req.Authority)
+	if req.Authority != ms.authority && config.Challenger != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, but got %s", ms.authority, config.Challenger, req.Authority)
 	}
 
-	if err := ms.Keeper.bridgeHook.BridgeChallengersUpdated(ctx, bridgeId, config); err != nil {
+	config.Challenger = req.Challenger
+	if err := ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
@@ -442,12 +424,12 @@ func (ms MsgServer) UpdateChallengers(ctx context.Context, req *types.MsgUpdateC
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateChallenger,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
-		sdk.NewAttribute(types.AttributeKeyChallenger, strings.Join(config.Challengers, ",")),
+		sdk.NewAttribute(types.AttributeKeyChallenger, config.Challenger),
 		sdk.NewAttribute(types.AttributeKeyFinalizedOutputIndex, strconv.FormatUint(finalizedOutputIndex, 10)),
 		sdk.NewAttribute(types.AttributeKeyFinalizedL2BlockNumber, strconv.FormatUint(finalizedOutput.L2BlockNumber, 10)),
 	))
 
-	return &types.MsgUpdateChallengersResponse{
+	return &types.MsgUpdateChallengerResponse{
 		OutputIndex:   finalizedOutputIndex,
 		L2BlockNumber: finalizedOutput.L2BlockNumber,
 	}, nil

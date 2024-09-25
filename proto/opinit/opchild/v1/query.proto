@@ -19,42 +19,42 @@ service Query {
   // gas if the pagination field is incorrectly set.
   rpc Validators(QueryValidatorsRequest) returns (QueryValidatorsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/validators";
+    option (google.api.http).get = "/opinit/opchild/v1/validators";
   }
 
   // Validator queries validator info for given validator address.
   rpc Validator(QueryValidatorRequest) returns (QueryValidatorResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/validator/{validator_addr}";
+    option (google.api.http).get = "/opinit/opchild/v1/validator/{validator_addr}";
   }
 
   // BridgeInfo queries the bridge information.
   rpc BridgeInfo(QueryBridgeInfoRequest) returns (QueryBridgeInfoResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/bridge_info";
+    option (google.api.http).get = "/opinit/opchild/v1/bridge_info";
   }
 
   // Parameters queries the rollup parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/params";
+    option (google.api.http).get = "/opinit/opchild/v1/params";
   }
 
   // NextL1Sequence queries the next l1 sequence number.
   rpc NextL1Sequence(QueryNextL1SequenceRequest) returns (QueryNextL1SequenceResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/next_l1_sequence";
+    option (google.api.http).get = "/opinit/opchild/v1/next_l1_sequence";
   }
 
   // NextL2Sequence queries the next l2 sequence number.
   rpc NextL2Sequence(QueryNextL2SequenceRequest) returns (QueryNextL2SequenceResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/next_l2_sequence";
+    option (google.api.http).get = "/opinit/opchild/v1/next_l2_sequence";
   }
 
   rpc BaseDenom(QueryBaseDenomRequest) returns (QueryBaseDenomResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/opinit/opchild/v1/base_denom/{denom}";
+    option (google.api.http).get = "/opinit/opchild/v1/base_denom/{denom}";
   }
 }
 
@@ -67,7 +67,10 @@ message QueryValidatorsRequest {
 // QueryValidatorsResponse is response type for the Query/Validators RPC method
 message QueryValidatorsResponse {
   // validators contains all the queried validators.
-  repeated Validator validators = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  repeated Validator validators = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -82,7 +85,10 @@ message QueryValidatorRequest {
 // QueryValidatorResponse is response type for the Query/Validator RPC method
 message QueryValidatorResponse {
   // validator defines the validator info.
-  Validator validator = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Validator validator = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryBridgeInfoRequest is request type for the Query/BridgeInfo RPC method.
@@ -91,7 +97,10 @@ message QueryBridgeInfoRequest {}
 // QueryBridgeInfoResponse is response type for the Query/BridgeInfo RPC method.
 message QueryBridgeInfoResponse {
   // bridge_info holds all the information about the bridge.
-  BridgeInfo bridge_info = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  BridgeInfo bridge_info = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -100,7 +109,10 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // QueryNextL1SequenceRequest is request type for the Query/NextL1Sequence RPC method.

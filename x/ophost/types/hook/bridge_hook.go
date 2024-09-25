@@ -24,9 +24,10 @@ type ChannelKeeper interface {
 }
 
 type PermKeeper interface {
-	HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error)
-	SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error
-	GetPermissionedRelayers(ctx context.Context, portID, channelID string) ([]sdk.AccAddress, error)
+	IsTaken(ctx context.Context, portID, channelID string) (bool, error)
+
+	SetAdmin(ctx context.Context, portID, channelID string, admin sdk.AccAddress) error
+	HasAdminPermission(ctx context.Context, portID, channelID string, admin sdk.AccAddress) (bool, error)
 }
 
 func NewBridgeHook(channelKeeper ChannelKeeper, permKeeper PermKeeper, ac address.Codec) BridgeHook {
@@ -43,34 +44,17 @@ func (h BridgeHook) BridgeCreated(
 		return nil
 	}
 
-	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
-	for i, challenger := range bridgeConfig.Challengers {
-		challengerAddr, err := h.ac.StringToBytes(challenger)
-		if err != nil {
-			return err
-		}
-
-		challengers[i] = challengerAddr
+	challenger, err := h.ac.StringToBytes(bridgeConfig.Challenger)
+	if err != nil {
+		return err
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
-		if seq, ok := h.IBCChannelKeeper.GetNextSequenceSend(sdkCtx, portID, channelID); !ok {
-			return channeltypes.ErrChannelNotFound.Wrap("failed to get next sequence send")
-		} else if seq != 1 {
-			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayers for the channel in use")
-		}
 
-		// check if the channel has a permissioned relayer
-		if relayers, err := h.IBCPermKeeper.GetPermissionedRelayers(ctx, portID, channelID); err != nil {
-			return err
-		} else if len(relayers) > 0 {
-			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayers for the channel in use")
-		}
-
-		// register challengers as channel relayer
-		if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
+		// register challenger as channel admin
+		if err := h.registerChannelAdmin(sdkCtx, portID, channelID, challenger); err != nil {
 			return err
 		}
 	}
@@ -78,7 +62,7 @@ func (h BridgeHook) BridgeCreated(
 	return nil
 }
 
-func (h BridgeHook) BridgeChallengersUpdated(
+func (h BridgeHook) BridgeChallengerUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
@@ -88,21 +72,17 @@ func (h BridgeHook) BridgeChallengersUpdated(
 		return nil
 	}
 
-	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
-	for i, challenger := range bridgeConfig.Challengers {
-		challengerAddr, err := h.ac.StringToBytes(challenger)
-		if err != nil {
-			return err
-		}
-
-		challengers[i] = challengerAddr
+	challenger, err := h.ac.StringToBytes(bridgeConfig.Challenger)
+	if err != nil {
+		return err
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
-		// register challengers as channel relayers
-		if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
+
+		// update channel admin to the new challenger
+		if err := h.IBCPermKeeper.SetAdmin(sdkCtx, portID, channelID, challenger); err != nil {
 			return err
 		}
 	}
@@ -137,46 +117,52 @@ func (h BridgeHook) BridgeMetadataUpdated(
 		return nil
 	}
 
-	challengers := make([]sdk.AccAddress, len(bridgeConfig.Challengers))
-	for i, challenger := range bridgeConfig.Challengers {
-		challengerAddr, err := h.ac.StringToBytes(challenger)
-		if err != nil {
-			return err
-		}
-
-		challengers[i] = challengerAddr
+	challenger, err := h.ac.StringToBytes(bridgeConfig.Challenger)
+	if err != nil {
+		return err
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, permChannel := range metadata.PermChannels {
 		portID, channelID := permChannel.PortID, permChannel.ChannelID
 
-		hasPermission := true
-
-		// check if the challengers are already registered as a permissioned relayers
-		for _, challenger := range challengers {
-			if hasPerm, err := h.IBCPermKeeper.HasPermission(ctx, portID, channelID, challenger); err != nil {
-				return err
-			} else if !hasPerm {
-				hasPermission = false
-				break
-			}
-		}
-
-		if hasPermission {
+		// check if the challenger is already registered as a channel admin
+		if hasPerm, err := h.IBCPermKeeper.HasAdminPermission(ctx, portID, channelID, challenger); err != nil {
+			return err
+		} else if hasPerm {
 			continue
 		}
 
-		if seq, ok := h.IBCChannelKeeper.GetNextSequenceSend(sdkCtx, portID, channelID); !ok {
-			return channeltypes.ErrChannelNotFound.Wrap("failed to register permissioned relayer")
-		} else if seq != 1 {
-			return channeltypes.ErrChannelExists.Wrap("cannot register permissioned relayer for the channel in use")
-		}
-
-		// register challengers as channel relayers
-		if err := h.IBCPermKeeper.SetPermissionedRelayers(sdkCtx, portID, channelID, challengers); err != nil {
+		// register challenger as channel admin
+		if err := h.registerChannelAdmin(sdkCtx, portID, channelID, challenger); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (h BridgeHook) registerChannelAdmin(
+	ctx sdk.Context,
+	portID, channelID string,
+	admin sdk.AccAddress,
+) error {
+	if seq, ok := h.IBCChannelKeeper.GetNextSequenceSend(ctx, portID, channelID); !ok {
+		return channeltypes.ErrChannelNotFound.Wrap("failed to register ibcperm admin")
+	} else if seq != 1 {
+		return channeltypes.ErrChannelExists.Wrap("cannot register ibcperm admin for the channel in use")
+	}
+
+	// check if the channel has a admin already
+	if taken, err := h.IBCPermKeeper.IsTaken(ctx, portID, channelID); err != nil {
+		return err
+	} else if taken {
+		return channeltypes.ErrChannelExists.Wrap("cannot register ibcperm admin for the channel in use")
+	}
+
+	// register challenger as channel admin
+	if err := h.IBCPermKeeper.SetAdmin(ctx, portID, channelID, admin); err != nil {
+		return err
 	}
 
 	return nil

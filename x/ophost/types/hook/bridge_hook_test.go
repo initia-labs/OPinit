@@ -61,23 +61,21 @@ func (l MockPermRelayerList) Equals(relayer sdk.AccAddress) bool {
 }
 
 type MockPermKeeper struct {
-	perms map[string]MockPermRelayerList
+	perms map[string]sdk.AccAddress
 }
 
-func (k MockPermKeeper) HasPermission(ctx context.Context, portID, channelID string, relayer sdk.AccAddress) (bool, error) {
-	return k.perms[portID+"/"+channelID].Equals(relayer), nil
+func (k MockPermKeeper) IsTaken(ctx context.Context, portID, channelID string) (bool, error) {
+	_, ok := k.perms[portID+"/"+channelID]
+	return ok, nil
 }
 
-func (k MockPermKeeper) SetPermissionedRelayers(ctx context.Context, portID, channelID string, relayers []sdk.AccAddress) error {
-	k.perms[portID+"/"+channelID] = MockPermRelayerList{Relayers: relayers}
+func (k MockPermKeeper) SetAdmin(ctx context.Context, portID, channelID string, admin sdk.AccAddress) error {
+	k.perms[portID+"/"+channelID] = admin
 	return nil
 }
 
-func (k MockPermKeeper) GetPermissionedRelayers(ctx context.Context, portID, channelID string) ([]sdk.AccAddress, error) {
-	if _, ok := k.perms[portID+"/"+channelID]; !ok {
-		return []sdk.AccAddress{}, nil
-	}
-	return k.perms[portID+"/"+channelID].Relayers, nil
+func (k MockPermKeeper) HasAdminPermission(ctx context.Context, portID, channelID string, admin sdk.AccAddress) (bool, error) {
+	return k.perms[portID+"/"+channelID].Equals(admin), nil
 }
 
 func setup() (context.Context, hook.BridgeHook) {
@@ -88,7 +86,7 @@ func setup() (context.Context, hook.BridgeHook) {
 			"transfer/channel-2": 1,
 		},
 	}, MockPermKeeper{
-		perms: make(map[string]MockPermRelayerList),
+		perms: make(map[string]sdk.AccAddress),
 	}, address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()))
 
 	ms := store.NewCommitMultiStore(dbm.NewMemDB(), log.NewNopLogger(), metrics.NewNoOpMetrics())
@@ -129,37 +127,37 @@ func Test_BridgeHook_BridgeCreated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String()},
-		Metadata:    metadata,
+		Challenger: addr[0].String(),
+		Metadata:   metadata,
 	})
 	require.NoError(t, err)
 
 	// can't create bridge with already taken channel
 	err = h.BridgeCreated(ctx, 2, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String()},
-		Metadata:    metadata,
+		Challenger: addr[0].String(),
+		Metadata:   metadata,
 	})
 	require.ErrorIs(t, err, channeltypes.ErrChannelExists)
 
 	// cannot take non-1 sequence channel
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String()},
-		Metadata:    metadata2,
+		Challenger: addr[0].String(),
+		Metadata:   metadata2,
 	})
 	require.ErrorIs(t, err, channeltypes.ErrChannelExists)
 
 	// check permission is applied
-	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[0])
+	ok, err := h.IBCPermKeeper.HasAdminPermission(ctx, "transfer", "channel-0", addr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
 
 	// check permission is applied
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[1])
+	ok, err = h.IBCPermKeeper.HasAdminPermission(ctx, "transfer", "channel-0", addr[1])
 	require.NoError(t, err)
 	require.False(t, ok)
 }
 
-func Test_BridgeHook_ChallengersUpdated(t *testing.T) {
+func Test_BridgeHook_ChallengerUpdated(t *testing.T) {
 	ctx, h := setup()
 
 	metadata, err := json.Marshal(hook.PermsMetadata{
@@ -174,28 +172,24 @@ func Test_BridgeHook_ChallengersUpdated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String()},
-		Metadata:    metadata,
+		Challenger: addr[0].String(),
+		Metadata:   metadata,
 	})
 	require.NoError(t, err)
 
 	newAddr := acc_addr()
-	err = h.BridgeChallengersUpdated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{newAddr[0].String(), newAddr[1].String()},
-		Metadata:    metadata,
+	err = h.BridgeChallengerUpdated(ctx, 1, ophosttypes.BridgeConfig{
+		Challenger: newAddr[0].String(),
+		Metadata:   metadata,
 	})
 	require.NoError(t, err)
 
 	// check permission is applied
-	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", newAddr[0])
+	ok, err := h.IBCPermKeeper.HasAdminPermission(ctx, "transfer", "channel-0", newAddr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", newAddr[1])
-	require.NoError(t, err)
-	require.True(t, ok)
-
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-0", addr[0])
+	ok, err = h.IBCPermKeeper.HasAdminPermission(ctx, "transfer", "channel-0", addr[0])
 	require.NoError(t, err)
 	require.False(t, ok)
 }
@@ -215,8 +209,8 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 
 	addr := acc_addr()
 	err = h.BridgeCreated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String()},
-		Metadata:    metadata,
+		Challenger: addr[0].String(),
+		Metadata:   metadata,
 	})
 	require.NoError(t, err)
 
@@ -237,8 +231,8 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 
 	// cannot take non-1 sequence channel
 	err = h.BridgeMetadataUpdated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String(), addr[1].String()},
-		Metadata:    metadata,
+		Challenger: addr[0].String(),
+		Metadata:   metadata,
 	})
 	require.Error(t, err)
 
@@ -258,17 +252,17 @@ func Test_BridgeHook_MetadataUpdated(t *testing.T) {
 	require.NoError(t, err)
 
 	err = h.BridgeMetadataUpdated(ctx, 1, ophosttypes.BridgeConfig{
-		Challengers: []string{addr[0].String(), addr[1].String()},
-		Metadata:    metadata,
+		Challenger: addr[0].String(),
+		Metadata:   metadata,
 	})
 	require.NoError(t, err)
 
 	// check permission is applied
-	ok, err := h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-2", addr[0])
+	ok, err := h.IBCPermKeeper.HasAdminPermission(ctx, "transfer", "channel-2", addr[0])
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	ok, err = h.IBCPermKeeper.HasPermission(ctx, "transfer", "channel-1", addr[0])
+	ok, err = h.IBCPermKeeper.HasAdminPermission(ctx, "transfer", "channel-1", addr[0])
 	require.NoError(t, err)
 	require.False(t, ok)
 }

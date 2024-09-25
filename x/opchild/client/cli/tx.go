@@ -321,7 +321,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			}
 
 			bridgeConfig := ophosttypes.BridgeConfig{
-				Challengers:           origConfig.Challengers,
+				Challenger:            origConfig.Challenger,
 				Proposer:              origConfig.Proposer,
 				SubmissionInterval:    submissionInterval,
 				FinalizationPeriod:    finalizationPeriod,

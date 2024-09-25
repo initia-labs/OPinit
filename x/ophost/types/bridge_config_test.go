@@ -26,7 +26,7 @@ func Test_JSONMarshalUnmarshal(t *testing.T) {
 func Test_ValidateBridgeConfig(t *testing.T) {
 	config := BridgeConfig{
 		Proposer:              "proposer",
-		Challengers:           []string{"challenger1", "challenger2"},
+		Challenger:            "challenger",
 		SubmissionInterval:    100,
 		FinalizationPeriod:    100,
 		SubmissionStartHeight: 1,

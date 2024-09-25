@@ -97,7 +97,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				
 				Where bridge-config.json contains:
 				{
-					"challengers": ["bech32-address"],
+					"challenger": "bech32-address",
 					"proposer": "bech32-addresss",
 					"submission_interval": "duration",
 					"finalization_period": "duration",
@@ -142,7 +142,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 			}
 
 			config := types.BridgeConfig{
-				Challengers:           origConfig.Challengers, // Ensure Challenger is properly assigned
+				Challenger:            origConfig.Challenger,
 				Proposer:              origConfig.Proposer,
 				SubmissionInterval:    submissionInterval,
 				FinalizationPeriod:    finalizationPeriod,
