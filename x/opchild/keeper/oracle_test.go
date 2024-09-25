@@ -18,12 +18,12 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
-	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
-	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	vetypes "github.com/skip-mev/slinky/abci/ve/types"
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	connectcodec "github.com/skip-mev/connect/v2/abci/strategies/codec"
+	"github.com/skip-mev/connect/v2/abci/strategies/currencypair"
+	vetypes "github.com/skip-mev/connect/v2/abci/ve/types"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 )
 
 func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []cryptotypes.PubKey, *cmtproto.ValidatorSet) {
@@ -50,16 +50,16 @@ func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []
 	return privKeys, pubKeys, cmtValSet
 }
 
-func getSlinky(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, slinkycodec.ExtendedCommitCodec, slinkycodec.VoteExtensionCodec) {
+func getSlinky(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, connectcodec.ExtendedCommitCodec, connectcodec.VoteExtensionCodec) {
 	cpStrategy := currencypair.NewHashCurrencyPairStrategy(oracleKeeper)
-	voteExtensionCodec := slinkycodec.NewCompressionVoteExtensionCodec(
-		slinkycodec.NewDefaultVoteExtensionCodec(),
-		slinkycodec.NewZLibCompressor(),
+	voteExtensionCodec := connectcodec.NewCompressionVoteExtensionCodec(
+		connectcodec.NewDefaultVoteExtensionCodec(),
+		connectcodec.NewZLibCompressor(),
 	)
 
-	extendedCommitCodec := slinkycodec.NewCompressionExtendedCommitCodec(
-		slinkycodec.NewDefaultExtendedCommitCodec(),
-		slinkycodec.NewZStdCompressor(),
+	extendedCommitCodec := connectcodec.NewCompressionExtendedCommitCodec(
+		connectcodec.NewDefaultExtendedCommitCodec(),
+		connectcodec.NewZStdCompressor(),
 	)
 
 	return cpStrategy, extendedCommitCodec, voteExtensionCodec
@@ -254,7 +254,7 @@ func Test_UpdateOracle(t *testing.T) {
 				CurrencyPairGenesis: make([]oracletypes.CurrencyPairGenesis, 0),
 			})
 			for _, currencyPair := range tc.currencyPairs {
-				cp, err := slinkytypes.CurrencyPairFromString(currencyPair)
+				cp, err := connecttypes.CurrencyPairFromString(currencyPair)
 				require.NoError(t, err)
 				err = oracleKeeper.CreateCurrencyPair(sdk.UnwrapSDKContext(ctx), cp)
 				require.NoError(t, err)
@@ -273,7 +273,7 @@ func Test_UpdateOracle(t *testing.T) {
 			for i, privKey := range valPrivKeys {
 				convertedPrices := make(map[uint64][]byte)
 				for currencyPairID, priceString := range tc.prices[i] {
-					cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
+					cp, err := connecttypes.CurrencyPairFromString(currencyPairID)
 					require.NoError(t, err)
 					rawPrice, converted := new(big.Int).SetString(priceString, 10)
 					require.True(t, converted)
@@ -330,7 +330,7 @@ func Test_UpdateOracle(t *testing.T) {
 			}
 
 			for currencyPairID, priceString := range tc.result {
-				cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
+				cp, err := connecttypes.CurrencyPairFromString(currencyPairID)
 				require.NoError(t, err)
 
 				price, err := oracleKeeper.GetPriceForCurrencyPair(sdk.UnwrapSDKContext(ctx), cp)

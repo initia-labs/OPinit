@@ -9,13 +9,13 @@ import (
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	slinkyaggregator "github.com/skip-mev/slinky/abci/strategies/aggregator"
-	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
-	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	"github.com/skip-mev/slinky/pkg/math/voteweighted"
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
+	connectaggregator "github.com/skip-mev/connect/v2/abci/strategies/aggregator"
+	connectcodec "github.com/skip-mev/connect/v2/abci/strategies/codec"
+	"github.com/skip-mev/connect/v2/abci/strategies/currencypair"
+	"github.com/skip-mev/connect/v2/pkg/math/voteweighted"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 
-	"github.com/initia-labs/OPinit/x/opchild/l2slinky"
+	"github.com/initia-labs/OPinit/x/opchild/l2connect"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -23,9 +23,9 @@ type L2OracleHandler struct {
 	*Keeper
 
 	oracleKeeper        types.OracleKeeper
-	extendedCommitCodec slinkycodec.ExtendedCommitCodec
-	veCodec             slinkycodec.VoteExtensionCodec
-	voteAggregator      slinkyaggregator.VoteAggregator
+	extendedCommitCodec connectcodec.ExtendedCommitCodec
+	veCodec             connectcodec.VoteExtensionCodec
+	voteAggregator      connectaggregator.VoteAggregator
 }
 
 func NewL2OracleHandler(
@@ -36,15 +36,15 @@ func NewL2OracleHandler(
 	return &L2OracleHandler{
 		Keeper:       k,
 		oracleKeeper: oracleKeeper,
-		extendedCommitCodec: slinkycodec.NewCompressionExtendedCommitCodec(
-			slinkycodec.NewDefaultExtendedCommitCodec(),
-			slinkycodec.NewZStdCompressor(),
+		extendedCommitCodec: connectcodec.NewCompressionExtendedCommitCodec(
+			connectcodec.NewDefaultExtendedCommitCodec(),
+			connectcodec.NewZStdCompressor(),
 		),
-		veCodec: slinkycodec.NewCompressionVoteExtensionCodec(
-			slinkycodec.NewDefaultVoteExtensionCodec(),
-			slinkycodec.NewZLibCompressor(),
+		veCodec: connectcodec.NewCompressionVoteExtensionCodec(
+			connectcodec.NewDefaultVoteExtensionCodec(),
+			connectcodec.NewZLibCompressor(),
 		),
-		voteAggregator: slinkyaggregator.NewDefaultVoteAggregator(
+		voteAggregator: connectaggregator.NewDefaultVoteAggregator(
 			logger,
 			voteweighted.MedianFromContext(
 				logger,
@@ -65,7 +65,7 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	h := int64(height)
+	h := int64(height) //nolint:gosec
 	if hostStoreLastHeight > h {
 		return types.ErrInvalidOracleHeight
 	}
@@ -84,12 +84,12 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	err = l2slinky.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, h-1, hostChainID, extendedCommitInfo)
+	err = l2connect.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, h-1, hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
 	}
 
-	votes, err := l2slinky.GetOracleVotes(k.veCodec, extendedCommitInfo)
+	votes, err := l2connect.GetOracleVotes(k.veCodec, extendedCommitInfo)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	tsCp, err := slinkytypes.CurrencyPairFromString(l2slinky.ReservedCPTimestamp)
+	tsCp, err := connecttypes.CurrencyPairFromString(l2connect.ReservedCPTimestamp)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 	}
 
 	updatedTime := time.Unix(0, prices[tsCp].Int64())
-	err = l2slinky.WritePrices(sdkCtx, k.oracleKeeper, updatedTime, prices)
+	err = l2connect.WritePrices(sdkCtx, k.oracleKeeper, updatedTime, prices)
 	if err != nil {
 		return err
 	}

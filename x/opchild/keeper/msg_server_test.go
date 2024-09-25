@@ -20,10 +20,10 @@ import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	vetypes "github.com/skip-mev/slinky/abci/ve/types"
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/connect/v2/abci/strategies/currencypair"
+	vetypes "github.com/skip-mev/connect/v2/abci/ve/types"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
@@ -591,7 +591,7 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 	numVals := 5
 
 	for _, currencyPair := range currencyPairs {
-		cp, err := slinkytypes.CurrencyPairFromString(currencyPair)
+		cp, err := connecttypes.CurrencyPairFromString(currencyPair)
 		require.NoError(t, err)
 		err = oracleKeeper.CreateCurrencyPair(sdk.UnwrapSDKContext(ctx), cp)
 		require.NoError(t, err)
@@ -619,7 +619,7 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 	for i, privKey := range valPrivKeys {
 		convertedPrices := make(map[uint64][]byte)
 		for currencyPairID, priceString := range prices[i] {
-			cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
+			cp, err := connecttypes.CurrencyPairFromString(currencyPairID)
 			require.NoError(t, err)
 			rawPrice, converted := new(big.Int).SetString(priceString, 10)
 			require.True(t, converted)

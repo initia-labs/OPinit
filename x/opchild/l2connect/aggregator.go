@@ -1,4 +1,4 @@
-package l2slinky
+package l2connect
 
 import (
 	"fmt"
@@ -9,29 +9,29 @@ import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	slinkyaggregator "github.com/skip-mev/slinky/abci/strategies/aggregator"
-	slinkycodec "github.com/skip-mev/slinky/abci/strategies/codec"
-	slinkyabci "github.com/skip-mev/slinky/abci/types"
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	connectaggregator "github.com/skip-mev/connect/v2/abci/strategies/aggregator"
+	connectcodec "github.com/skip-mev/connect/v2/abci/strategies/codec"
+	connectabci "github.com/skip-mev/connect/v2/abci/types"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 func GetOracleVotes(
-	veCodec slinkycodec.VoteExtensionCodec,
+	veCodec connectcodec.VoteExtensionCodec,
 	extendedCommitInfo cometabci.ExtendedCommitInfo,
-) ([]slinkyaggregator.Vote, error) {
-	votes := make([]slinkyaggregator.Vote, len(extendedCommitInfo.Votes))
+) ([]connectaggregator.Vote, error) {
+	votes := make([]connectaggregator.Vote, len(extendedCommitInfo.Votes))
 	for i, voteInfo := range extendedCommitInfo.Votes {
 		voteExtension, err := veCodec.Decode(voteInfo.VoteExtension)
 		if err != nil {
-			return nil, slinkyabci.CodecError{
+			return nil, connectabci.CodecError{
 				Err: fmt.Errorf("error decoding vote-extension: %w", err),
 			}
 		}
 
-		votes[i] = slinkyaggregator.Vote{
+		votes[i] = connectaggregator.Vote{
 			ConsAddress:         voteInfo.Validator.Address,
 			OracleVoteExtension: voteExtension,
 		}
@@ -40,7 +40,7 @@ func GetOracleVotes(
 	return votes, nil
 }
 
-func WritePrices(ctx sdk.Context, ok types.OracleKeeper, updatedTime time.Time, prices map[slinkytypes.CurrencyPair]*big.Int) error {
+func WritePrices(ctx sdk.Context, ok types.OracleKeeper, updatedTime time.Time, prices map[connecttypes.CurrencyPair]*big.Int) error {
 	currencyPairs := ok.GetAllCurrencyPairs(ctx)
 	for _, cp := range currencyPairs {
 		price, found := prices[cp]
@@ -57,7 +57,7 @@ func WritePrices(ctx sdk.Context, ok types.OracleKeeper, updatedTime time.Time, 
 		quotePrice := oracletypes.QuotePrice{
 			Price:          math.NewIntFromBigInt(price),
 			BlockTimestamp: updatedTime,
-			BlockHeight:    uint64(ctx.BlockHeight()),
+			BlockHeight:    uint64(ctx.BlockHeight()), //nolint:gosec
 		}
 
 		if err := ok.SetPriceForCurrencyPair(ctx, cp, quotePrice); err != nil {
