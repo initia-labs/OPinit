@@ -508,7 +508,7 @@ func (ms MsgServer) UpdateOracleConfig(ctx context.Context, req *types.MsgUpdate
 	}
 
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeUpdateBatchInfo,
+		types.EventTypeUpdateOracle,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
 		sdk.NewAttribute(types.AttributeKeyOracleEnabled, strconv.FormatBool(config.OracleEnabled)),
 	))
