@@ -16,6 +16,9 @@ import (
 	relayertypes "github.com/cosmos/relayer/v2/relayer"
 	relayerconfig "github.com/cosmos/relayer/v2/relayer/chains/cosmos"
 
+	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 )
 
@@ -235,21 +238,40 @@ func initializeRelayerKeyring(config *launchtools.Config) func(*Relayer) error {
 	}
 }
 
+func marshalIBCFeeMetadata(appVersion string) ([]byte, error) {
+	return json.Marshal(ibcfeetypes.Metadata{
+		FeeVersion: ibcfeetypes.Version,
+		AppVersion: appVersion,
+	})
+}
+
 // link creates a default transfer channel between the chains
 // it does all the heavy lifting of creating the channel, connection, and client
 func link(r *Relayer) error {
-	r.logger.Info("linking chains for relayer...")
+	versionBz, err := marshalIBCFeeMetadata(ibctransfertypes.Version)
+	if err != nil {
+		return err
+	}
+
+	r.logger.Info("linking chains for relayer...", "version", string(versionBz))
 	return r.run([]string{
 		"tx",
 		"link",
 		RelayerPathName,
+		"--version",
+		string(versionBz),
 	})
 }
 
 // linkWithports is the same as link, however ports are specified
 func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer) error {
 	return func(r *Relayer) error {
-		r.logger.Info("linking chains for relayer...")
+		versionBz, err := marshalIBCFeeMetadata(version)
+		if err != nil {
+			return err
+		}
+
+		r.logger.Info("linking chains for relayer...", "version", string(versionBz))
 		return r.run([]string{
 			"tx",
 			"link",
@@ -259,7 +281,7 @@ func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer
 			"--dst-port",
 			dstPort,
 			"--version",
-			version,
+			string(versionBz),
 		})
 	}
 }
