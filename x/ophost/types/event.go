@@ -11,6 +11,7 @@ const (
 	EventTypeUpdateChallenger        = "update_challenger"
 	EventTypeUpdateBatchInfo         = "update_batch_info"
 	EventTypeUpdateMetadata          = "update_metadata"
+	EventTypeUpdateOracle            = "update_oracle"
 
 	AttributeKeySubmitter              = "submitter"
 	AttributeKeyCreator                = "creator"
