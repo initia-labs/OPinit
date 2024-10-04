@@ -260,7 +260,7 @@ func (l1config *L1Config) Finalize(buf *bufio.Reader) error {
 	}
 
 	if l1config.GasPrices == "" {
-		l1config.GasPrices = "0.15uinit"
+		l1config.GasPrices = "0.015uinit"
 	}
 
 	_, err := sdk.ParseDecCoins(l1config.GasPrices)

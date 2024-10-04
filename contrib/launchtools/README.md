@@ -30,7 +30,7 @@ minitiad launch $TARGET_NETWORK --with-config [path-to-config]
   "l1_config": {
     "chain_id": "initiation-1",
     "rpc_url": "https://rpc.initiation-1.initia.xyz:443",
-    "gas_prices": "0.15uinit"
+    "gas_prices": "0.015uinit"
   },
   "l2_config": {
     "chain_id": "minitia-XDzNjd-1",
