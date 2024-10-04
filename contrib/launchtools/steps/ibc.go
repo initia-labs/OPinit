@@ -238,13 +238,17 @@ func initializeRelayerKeyring(config *launchtools.Config) func(*Relayer) error {
 	}
 }
 
+func marshalIBCFeeMetadata(appVersion string) ([]byte, error) {
+	return json.Marshal(ibcfeetypes.Metadata{
+		FeeVersion: ibcfeetypes.Version,
+		AppVersion: appVersion,
+	})
+}
+
 // link creates a default transfer channel between the chains
 // it does all the heavy lifting of creating the channel, connection, and client
 func link(r *Relayer) error {
-	versionBz, err := json.Marshal(ibcfeetypes.Metadata{
-		FeeVersion: ibcfeetypes.Version,
-		AppVersion: ibctransfertypes.Version,
-	})
+	versionBz, err := marshalIBCFeeMetadata(ibctransfertypes.Version)
 	if err != nil {
 		return err
 	}
@@ -262,10 +266,7 @@ func link(r *Relayer) error {
 // linkWithports is the same as link, however ports are specified
 func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer) error {
 	return func(r *Relayer) error {
-		versionBz, err := json.Marshal(ibcfeetypes.Metadata{
-			FeeVersion: ibcfeetypes.Version,
-			AppVersion: version,
-		})
+		versionBz, err := marshalIBCFeeMetadata(version)
 		if err != nil {
 			return err
 		}
