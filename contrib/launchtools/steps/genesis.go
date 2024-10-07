@@ -8,6 +8,8 @@ import (
 	"cosmossdk.io/log"
 	conmetconfig "github.com/cometbft/cometbft/config"
 	cometos "github.com/cometbft/cometbft/libs/os"
+	cmttypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -218,8 +220,12 @@ func initializeGenesis(
 
 	// finalize app genesis
 	appGenesis := &genutiltypes.AppGenesis{}
+	consensusParams := cmttypes.DefaultConsensusParams()
+	consensusParams.Block.MaxBytes = config.L2Config.BlockMaxBytes
+	consensusParams.Block.MaxGas = config.L2Config.BlockMaxGas
 	appGenesis.Consensus = &genutiltypes.ConsensusGenesis{
 		Validators: nil,
+		Params:     consensusParams,
 	}
 	appGenesis.AppName = version.AppName
 	appGenesis.AppVersion = version.Version
