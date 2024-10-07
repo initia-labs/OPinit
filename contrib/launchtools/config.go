@@ -111,7 +111,7 @@ func (l2config *L2Config) Finalize() error {
 	}
 
 	if l2config.BlockMaxBytes == 0 {
-		l2config.BlockMaxBytes = 5242880 // 5MB
+		l2config.BlockMaxBytes = 22_020_096 // 21MB
 	}
 
 	if l2config.BlockMaxGas == 0 {
