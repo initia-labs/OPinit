@@ -89,6 +89,10 @@ type L2Config struct {
 	Denom   string `json:"denom,omitempty"`
 	Moniker string `json:"moniker,omitempty"`
 
+	// block parameters
+	BlockMaxBytes int64 `json:"block_max_bytes,omitempty"`
+	BlockMaxGas   int64 `json:"block_max_gas,omitempty"`
+
 	// BridgeID will be generated after the launch.
 	BridgeID uint64 `json:"bridge_id,omitempty"`
 }
@@ -104,6 +108,14 @@ func (l2config *L2Config) Finalize() error {
 
 	if l2config.Moniker == "" {
 		l2config.Moniker = "operator"
+	}
+
+	if l2config.BlockMaxBytes == 0 {
+		l2config.BlockMaxBytes = 5242880 // 5MB
+	}
+
+	if l2config.BlockMaxGas == 0 {
+		l2config.BlockMaxGas = 100_000_000 // 100M
 	}
 
 	return nil
