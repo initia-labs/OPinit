@@ -220,14 +220,12 @@ func initializeGenesis(
 
 	// finalize app genesis
 	appGenesis := &genutiltypes.AppGenesis{}
+	consensusParams := cmttypes.DefaultConsensusParams()
+	consensusParams.Block.MaxBytes = config.L2Config.BlockMaxBytes
+	consensusParams.Block.MaxGas = config.L2Config.BlockMaxGas
 	appGenesis.Consensus = &genutiltypes.ConsensusGenesis{
 		Validators: nil,
-		Params: &cmttypes.ConsensusParams{
-			Block: cmttypes.BlockParams{
-				MaxBytes: config.L2Config.BlockMaxBytes,
-				MaxGas:   config.L2Config.BlockMaxGas,
-			},
-		},
+		Params:     consensusParams,
 	}
 	appGenesis.AppName = version.AppName
 	appGenesis.AppVersion = version.Version
