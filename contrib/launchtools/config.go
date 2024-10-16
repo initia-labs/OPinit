@@ -158,7 +158,7 @@ func (opBridge *OpBridge) Finalize(buf *bufio.Reader) error {
 	}
 
 	if opBridge.OutputFinalizationPeriod == nil {
-		period := time.Hour
+		period := time.Hour * 24 * 7 // 7 days
 		opBridge.OutputFinalizationPeriod = &period
 	}
 
