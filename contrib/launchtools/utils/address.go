@@ -14,6 +14,10 @@ func L2AddressCodec() address.Codec {
 	return authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
 }
 
+func CelestiaAddressCodec() address.Codec {
+	return authcodec.NewBech32Codec("celestia")
+}
+
 func HackBech32Prefix(prefix string) func() {
 	originPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
 	originPubPrefix := sdk.GetConfig().GetBech32AccountPubPrefix()
