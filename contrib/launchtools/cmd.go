@@ -96,7 +96,7 @@ Artifact written to
 
 `,
 				path.Join(clientCtx.HomeDir, artifactsDir, "config.json"),
-				path.Join(clientCtx.HomeDir, artifactsDir, "artifact.json"),
+				path.Join(clientCtx.HomeDir, artifactsDir, "artifacts.json"),
 			); err != nil {
 				return errors.Wrap(err, "failed to write artifacts to stdout")
 			}

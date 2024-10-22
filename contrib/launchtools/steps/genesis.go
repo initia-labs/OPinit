@@ -322,7 +322,6 @@ func addFeeWhitelists(cdc codec.Codec, genesisAppState map[string]json.RawMessag
 ) {
 	opchildState := opchildtypes.GetGenesisStateFromAppState(cdc, genesisAppState)
 	opchildState.Params.FeeWhitelist = append(opchildState.Params.FeeWhitelist, whitelistAddrs...)
-
 	return opchildState, nil
 }
 

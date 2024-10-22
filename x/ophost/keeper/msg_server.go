@@ -347,6 +347,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	return &types.MsgFinalizeTokenWithdrawalResponse{}, nil
 }
 
+//nolint:dupl
 func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProposer) (*types.MsgUpdateProposerResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -391,6 +392,7 @@ func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProp
 	}, nil
 }
 
+//nolint:dupl
 func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateChallenger) (*types.MsgUpdateChallengerResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err

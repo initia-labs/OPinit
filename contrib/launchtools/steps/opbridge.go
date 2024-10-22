@@ -44,7 +44,7 @@ func InitializeOpBridge(
 			config.SystemKeys.BridgeExecutor.L1Address,
 			config.SystemKeys.Challenger.L1Address,
 			config.SystemKeys.OutputSubmitter.L1Address,
-			config.SystemKeys.BatchSubmitter.L1Address,
+			config.SystemKeys.BatchSubmitter.DAAddress,
 			config.OpBridge.BatchSubmissionTarget,
 			*config.OpBridge.OutputSubmissionInterval,
 			*config.OpBridge.OutputFinalizationPeriod,

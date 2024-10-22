@@ -1,10 +1,10 @@
 # OPinit CosmosSDK Modules
+
 The OPinit Stack is a versatile framework designed for CosmosSDK, facilitating the development of vm-agnostic Optimistic Rollups. This framework aligns closely with the interface of Optimism's Bedrock, promoting a straightforward user experience. Leveraging the Initia L1 Governance model, it addresses fraud-proof disputes efficiently.
 
 ## Optimistic Rollup Architecture
 
 ![image](https://github.com/initia-labs/OPinit/assets/160459432/77103140-73ef-41f2-95ba-682bee616f4e)
-
 
 ### L1 Components
 

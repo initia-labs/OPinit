@@ -12,8 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
 
@@ -74,7 +72,7 @@ func (i *Config) Finalize(buf *bufio.Reader) error {
 	if err := i.OpBridge.Finalize(buf); err != nil {
 		return err
 	}
-	if err := i.SystemKeys.Finalize(buf); err != nil {
+	if err := i.SystemKeys.Finalize(buf, i.OpBridge.BatchSubmissionTarget); err != nil {
 		return err
 	}
 	if err := i.GenesisAccounts.Finalize(*i.SystemKeys); err != nil {
@@ -286,6 +284,7 @@ func (l1config *L1Config) Finalize(buf *bufio.Reader) error {
 type SystemAccount struct {
 	L1Address string `json:"l1_address,omitempty"`
 	L2Address string `json:"l2_address,omitempty"`
+	DAAddress string `json:"da_address,omitempty"`
 	Mnemonic  string `json:"mnemonic,omitempty"`
 }
 
@@ -302,6 +301,10 @@ func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
 		k, ok := keys.Field(idx).Interface().(*SystemAccount)
 		if !ok {
 			return errors.New("systemKeys must be of type launcher.Account")
+		}
+
+		if k.L2Address == "" {
+			continue
 		}
 
 		found := false
@@ -360,31 +363,7 @@ func generateMnemonic() (string, error) {
 	return mnemonic, nil
 }
 
-func deriveAddress(mnemonic string) (string, string, error) {
-	algo := hd.Secp256k1
-	derivedPriv, err := algo.Derive()(
-		mnemonic,
-		keyring.DefaultBIP39Passphrase,
-		sdk.GetConfig().GetFullBIP44Path(),
-	)
-	if err != nil {
-		return "", "", errors.Wrap(err, "failed to derive private key")
-	}
-
-	privKey := algo.Generate()(derivedPriv)
-	addrBz := privKey.PubKey().Address()
-
-	// use init Bech32 prefix for l1 address
-	l1Addr, err := utils.L1AddressCodec().BytesToString(addrBz)
-	if err != nil {
-		return "", "", errors.Wrap(err, "failed to convert address to bech32")
-	}
-
-	l2Addr, err := utils.L2AddressCodec().BytesToString(addrBz)
-	return l1Addr, l2Addr, err
-}
-
-func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
+func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader, batchSubmissionTarget ophosttypes.BatchInfo_ChainType) error {
 	if systemKeys.Validator == nil {
 		mnemonic, err := generateMnemonic()
 		if err != nil {
@@ -392,13 +371,12 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		}
 
 		// derive address
-		l1Addr, l2Addr, err := deriveAddress(mnemonic)
+		l2Addr, err := utils.DeriveL2Address(mnemonic)
 		if err != nil {
 			return errors.Wrap(err, "failed to derive address")
 		}
 
 		systemKeys.Validator = &SystemAccount{
-			L1Address: l1Addr,
 			L2Address: l2Addr,
 			Mnemonic:  mnemonic,
 		}
@@ -410,14 +388,13 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		}
 
 		// derive address
-		l1Addr, l2Addr, err := deriveAddress(mnemonic)
+		daAddr, err := utils.DeriveDAAddress(mnemonic, batchSubmissionTarget)
 		if err != nil {
 			return errors.Wrap(err, "failed to derive address")
 		}
 
 		systemKeys.BatchSubmitter = &SystemAccount{
-			L1Address: l1Addr,
-			L2Address: l2Addr,
+			DAAddress: daAddr,
 			Mnemonic:  mnemonic,
 		}
 	}
@@ -432,7 +409,11 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		}
 
 		// derive address
-		l1Addr, l2Addr, err := deriveAddress(mnemonic)
+		l1Addr, err := utils.DeriveL1Address(mnemonic)
+		if err != nil {
+			return errors.Wrap(err, "failed to derive address")
+		}
+		l2Addr, err := utils.DeriveL2Address(mnemonic)
 		if err != nil {
 			return errors.Wrap(err, "failed to derive address")
 		}
@@ -450,7 +431,11 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		}
 
 		// derive address
-		l1Addr, l2Addr, err := deriveAddress(mnemonic)
+		l1Addr, err := utils.DeriveL1Address(mnemonic)
+		if err != nil {
+			return errors.Wrap(err, "failed to derive address")
+		}
+		l2Addr, err := utils.DeriveL2Address(mnemonic)
 		if err != nil {
 			return errors.Wrap(err, "failed to derive address")
 		}
@@ -468,14 +453,13 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 		}
 
 		// derive address
-		l1Addr, l2Addr, err := deriveAddress(mnemonic)
+		l1Addr, err := utils.DeriveL1Address(mnemonic)
 		if err != nil {
 			return errors.Wrap(err, "failed to derive address")
 		}
 
 		systemKeys.OutputSubmitter = &SystemAccount{
 			L1Address: l1Addr,
-			L2Address: l2Addr,
 			Mnemonic:  mnemonic,
 		}
 	}
@@ -487,13 +471,13 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader) error {
 	if systemKeys.BridgeExecutor.L1Address == "" || systemKeys.BridgeExecutor.L2Address == "" || systemKeys.BridgeExecutor.Mnemonic == "" {
 		return errors.New("bridge_executor account not initialized")
 	}
-	if systemKeys.BatchSubmitter.L1Address == "" {
+	if systemKeys.BatchSubmitter.DAAddress == "" {
 		return errors.New("batch_submitter account not initialized")
 	}
 	if systemKeys.OutputSubmitter.L1Address == "" {
 		return errors.New("output_submitter account not initialized")
 	}
-	if systemKeys.Challenger.L1Address == "" {
+	if systemKeys.Challenger.L1Address == "" || systemKeys.Challenger.L2Address == "" {
 		return errors.New("challenger account not initialized")
 	}
 
