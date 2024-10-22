@@ -58,7 +58,7 @@ minitiad launch $TARGET_NETWORK --with-config [path-to-config]
       "l1_address": "init1f4lu0ze9c7zegrrjfpymjvztucqz48z3cy8p5f"
     },
     "batch_submitter": {
-      "l1_address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72"
+      "da_address": "init1hqv5xqt7lckdj9p5kfp2q5auc5z37p2vyt4d72"
     },
     "challenger": {
       "l1_address": "init1gn0yjtcma92y27c0z84ratxf6juy69lpln6u88",
