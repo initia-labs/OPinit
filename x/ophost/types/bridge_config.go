@@ -8,7 +8,11 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/jsonpb"
 )
+
+var _ jsonpb.JSONPBMarshaler = (*BatchInfo_ChainType)(nil)
+var _ jsonpb.JSONPBUnmarshaler = (*BatchInfo_ChainType)(nil)
 
 func (config BridgeConfig) Validate(ac address.Codec) error {
 	if _, err := ac.StringToBytes(config.Challenger); err != nil {
@@ -99,6 +103,16 @@ func (cy *BatchInfo_ChainType) UnmarshalJSON(b []byte) error {
 
 	*cy = BatchInfo_ChainType(chainType)
 	return nil
+}
+
+// MarshalJSONPB marshals the BatchInfo_ChainType to JSON
+func (cy BatchInfo_ChainType) MarshalJSONPB(_ *jsonpb.Marshaler) ([]byte, error) {
+	return cy.MarshalJSON()
+}
+
+// UnmarshalJSONPB unmarshals the BatchInfo_ChainType from JSON
+func (cy *BatchInfo_ChainType) UnmarshalJSONPB(_ *jsonpb.Unmarshaler, inputBz []byte) error {
+	return cy.UnmarshalJSON(inputBz)
 }
 
 // StringWithoutPrefix returns the string representation of a BatchInfo_ChainType without the prefix
