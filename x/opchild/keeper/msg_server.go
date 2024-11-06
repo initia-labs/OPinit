@@ -436,10 +436,15 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
 	)
 
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// if the deposit is successful and the data is not empty, execute the hook
 	hookSuccess := true
 	if depositSuccess && len(req.Data) > 0 {
-		hookSuccess, reason = ms.handleBridgeHook(sdkCtx, req.Data)
+		hookSuccess, reason = ms.handleBridgeHook(sdkCtx, req.Data, params.HookMaxGas)
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(hookSuccess)))
 		if !hookSuccess {
 			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))

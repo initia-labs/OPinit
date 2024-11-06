@@ -47,6 +47,8 @@ message Params {
     (amino.dont_omitempty) = true,
     (gogoproto.moretags) = "yaml:\"fee_whitelist\""
   ];
+  // Max gas for hook execution of `MsgFinalizeTokenDeposit`
+  uint64 hook_max_gas = 7 [(gogoproto.moretags) = "yaml:\"hook_max_gas\""];
 }
 
 // Validator defines a validator, together with the total amount of the
