@@ -11,6 +11,10 @@ import (
 )
 
 func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte, hookMaxGas uint64) (success bool, reason string) {
+	if hookMaxGas == 0 {
+		return false, "hook max gas is zero"
+	}
+
 	originGasMeter := ctx.GasMeter()
 	gasForHook := originGasMeter.GasRemaining()
 	if gasForHook > hookMaxGas {
