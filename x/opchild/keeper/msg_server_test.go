@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -547,6 +548,63 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 			require.Positive(t, attrIdx)
 			require.Equal(t, event.Attributes[attrIdx+1].Key, types.AttributeKeyReason)
 			require.Contains(t, event.Attributes[attrIdx+1].Value, "hook failed;")
+		}
+	}
+
+	// check addrs[2] balance
+	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	require.Equal(t, math.NewInt(0), afterBalance.Amount)
+
+	// check receiver has no balance
+	afterBalance = input.BankKeeper.GetBalance(ctx, addr, denom)
+	require.Equal(t, math.NewInt(0), afterBalance.Amount)
+}
+
+func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	bz := sha3.Sum256([]byte("test_token"))
+	denom := "l2/" + hex.EncodeToString(bz[:])
+
+	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
+
+	// empty deposit to create account
+	priv, _, addr := keyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
+	_, err := ms.FinalizeTokenDeposit(ctx, msg)
+	require.NoError(t, err)
+
+	// create hook data
+	acc := input.AccountKeeper.GetAccount(ctx, addr)
+	require.NotNil(t, acc)
+	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+		t, input,
+		[]sdk.Msg{banktypes.NewMsgSend(addr, addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))))},
+		privs, accNums, accSeqs, sdk.UnwrapSDKContext(ctx).ChainID(),
+	))
+	require.NoError(t, err)
+
+	params, err := input.OPChildKeeper.GetParams(ctx)
+	require.NoError(t, err)
+
+	params.HookMaxGas = 1
+	input.OPChildKeeper.SetParams(ctx, params)
+
+	// valid deposit
+	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager()).WithGasMeter(storetypes.NewGasMeter(2_000_000))
+	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
+	_, err = ms.FinalizeTokenDeposit(ctx, msg)
+	require.NoError(t, err)
+
+	for _, event := range sdk.UnwrapSDKContext(ctx).EventManager().Events() {
+		if event.Type == types.EventTypeFinalizeTokenDeposit {
+			attrIdx := slices.Index(event.Attributes, sdk.NewAttribute(types.AttributeKeySuccess, "false").ToKVPair())
+			require.Positive(t, attrIdx)
+			require.Equal(t, event.Attributes[attrIdx+1].Key, types.AttributeKeyReason)
+			require.Contains(t, event.Attributes[attrIdx+1].Value, "hook failed;")
+			require.Contains(t, event.Attributes[attrIdx+1].Value, "panic:")
 		}
 	}
 

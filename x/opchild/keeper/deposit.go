@@ -4,11 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
-func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte) (success bool, reason string) {
+func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte, hookMaxGas uint64) (success bool, reason string) {
+	if hookMaxGas == 0 {
+		return false, "hook max gas is zero"
+	}
+
+	originGasMeter := ctx.GasMeter()
+	gasForHook := originGasMeter.GasRemaining()
+	if gasForHook > hookMaxGas {
+		gasForHook = hookMaxGas
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
 			reason = fmt.Sprintf("panic: %v", r)
@@ -18,7 +30,12 @@ func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte) (success bool, re
 		if len(reason) > maxReasonLength {
 			reason = reason[:maxReasonLength] + "..."
 		}
+
+		originGasMeter.ConsumeGas(ctx.GasMeter().GasConsumedToLimit(), "bridge hook")
 	}()
+
+	// use new gas meter with the hook max gas limit
+	ctx = ctx.WithGasMeter(storetypes.NewGasMeter(gasForHook))
 
 	tx, err := k.txDecoder(data)
 	if err != nil {
