@@ -260,6 +260,7 @@ func link(r *Relayer) error {
 		RelayerPathName,
 		"--version",
 		string(versionBz),
+		"--override",
 	})
 }
 
@@ -282,6 +283,7 @@ func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer
 			dstPort,
 			"--version",
 			string(versionBz),
+			"--override",
 		})
 	}
 }
