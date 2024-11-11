@@ -54,7 +54,7 @@ service Query {
 
   rpc BaseDenom(QueryBaseDenomRequest) returns (QueryBaseDenomResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/opinit/opchild/v1/base_denom/{denom}";
+    option (google.api.http).get = "/opinit/opchild/v1/base_denom";
   }
 }
 
