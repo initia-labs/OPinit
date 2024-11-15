@@ -82,7 +82,7 @@ func initializeConfig(r *Relayer) error {
 }
 
 // initializeChains creates chain configuration files and initializes chains for the relayer
-// "chains" in cosmos/relayer lingo means srcChain and dstChain. Speficic ports are not created here.
+// "chains" in cosmos/relayer lingo means srcChain and dstChain. Specific ports are not created here.
 // see initializePaths.
 func initializeChains(config *launchtools.Config, basePath string) func(*Relayer) error {
 	// ChainConfig is a struct that represents the configuration of a chain
