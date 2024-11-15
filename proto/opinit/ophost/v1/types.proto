@@ -45,7 +45,7 @@ message BridgeConfig {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-  // The minium time duration that must elapse before a withdrawal can be finalized.
+  // The minimum time duration that must elapse before a withdrawal can be finalized.
   google.protobuf.Duration finalization_period = 5 [
     (gogoproto.stdduration) = true,
     (gogoproto.jsontag) = "finalization_period,omitempty",

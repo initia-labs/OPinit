@@ -251,8 +251,8 @@ func (l1config *L1Config) Finalize(buf *bufio.Reader) error {
 
 	if l1config.RPC_URL == "" {
 		defaultRPC := fmt.Sprintf("https://rpc.%s.initia.xyz:443", l1config.ChainID)
-		promt := fmt.Sprintf("Use default L1 rpc [%s]?", defaultRPC)
-		useDefault, err := input.GetConfirmation(promt, buf, os.Stderr)
+		prompt := fmt.Sprintf("Use default L1 rpc [%s]?", defaultRPC)
+		useDefault, err := input.GetConfirmation(prompt, buf, os.Stderr)
 		if err != nil {
 			return err
 		}

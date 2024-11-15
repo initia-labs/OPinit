@@ -10,7 +10,7 @@ The first version of the implementation does not include a dispute system, but u
 
 L2 output oracle receives `output_root` with L2 block number to check the checkpoint of L2. The checkpoints are the multiple of `submission_interval`. A proposer must submit the `output_root` at the every checkpoints.
 
-The followings are the components of `output_root`.
+The following are the components of `output_root`.
 
 - `version`: the version of output root
 - `state_root`: l2 state root

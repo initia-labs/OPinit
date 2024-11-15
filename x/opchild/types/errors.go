@@ -19,7 +19,7 @@ var (
 	ErrZeroMaxValidators               = errorsmod.Register(ModuleName, 12, "max validators must be non-zero")
 	ErrInvalidExecuteMsg               = errorsmod.Register(ModuleName, 13, "invalid execute message")
 	ErrUnroutableExecuteMsg            = errorsmod.Register(ModuleName, 14, "unroutable execute message")
-	ErrInvalidExecutorChangePlan       = errorsmod.Register(ModuleName, 15, "invalid executor chane plan")
+	ErrInvalidExecutorChangePlan       = errorsmod.Register(ModuleName, 15, "invalid executor change plan")
 	ErrAlreadyRegisteredHeight         = errorsmod.Register(ModuleName, 16, "executor change plan already exists at the height")
 	ErrInvalidBridgeInfo               = errorsmod.Register(ModuleName, 17, "invalid bridge info")
 	ErrInvalidHeight                   = errorsmod.Register(ModuleName, 18, "invalid oracle height")

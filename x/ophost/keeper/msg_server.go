@@ -183,7 +183,7 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 		return nil, err
 	}
 
-	// gov, current propoer or current challenger can delete output.
+	// gov, current proper or current challenger can delete output.
 	if ms.authority != challenger && bridgeConfig.Proposer != challenger && bridgeConfig.Challenger != challenger {
 		return nil, errors.ErrUnauthorized.Wrapf("invalid challenger; expected %s, %s or %s, got %s", ms.authority, bridgeConfig.Proposer, bridgeConfig.Challenger, challenger)
 	}
