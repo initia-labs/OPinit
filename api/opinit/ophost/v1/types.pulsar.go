@@ -3582,7 +3582,7 @@ type BridgeConfig struct {
 	// The time interval at which checkpoints must be submitted.
 	// NOTE: this param is currently not used, but will be used for challenge in future.
 	SubmissionInterval *durationpb.Duration `protobuf:"bytes,4,opt,name=submission_interval,json=submissionInterval,proto3" json:"submission_interval,omitempty"`
-	// The minium time duration that must elapse before a withdrawal can be finalized.
+	// The minimum time duration that must elapse before a withdrawal can be finalized.
 	FinalizationPeriod *durationpb.Duration `protobuf:"bytes,5,opt,name=finalization_period,json=finalizationPeriod,proto3" json:"finalization_period,omitempty"`
 	// The the first l2 block will be recorded on l1.
 	SubmissionStartHeight uint64 `protobuf:"varint,6,opt,name=submission_start_height,json=submissionStartHeight,proto3" json:"submission_start_height,omitempty"`
