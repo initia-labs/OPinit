@@ -183,9 +183,9 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 		return nil, err
 	}
 
-	// permission check
-	if bridgeConfig.Challenger != challenger {
-		return nil, errors.ErrUnauthorized.Wrap("invalid challenger")
+	// gov, current propoer or current challenger can delete output.
+	if ms.authority != challenger && bridgeConfig.Proposer != challenger && bridgeConfig.Challenger != challenger {
+		return nil, errors.ErrUnauthorized.Wrapf("invalid challenger; expected %s, %s or %s, got %s", ms.authority, bridgeConfig.Proposer, bridgeConfig.Challenger, challenger)
 	}
 
 	nextOutputIndex, err := ms.GetNextOutputIndex(ctx, bridgeId)

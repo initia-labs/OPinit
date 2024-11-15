@@ -119,10 +119,10 @@ func Test_DeleteOutput(t *testing.T) {
 	require.NoError(t, err)
 
 	// unauthorized
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[0], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[2], 1, 1))
 	require.Error(t, err)
 
-	// valid
+	// valid by challenger
 	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 1))
 	require.NoError(t, err)
 
@@ -140,6 +140,18 @@ func Test_DeleteOutput(t *testing.T) {
 	// invalid output index: nextoutputindex is 2 now
 	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 2))
 	require.Error(t, err)
+
+	// valid delete by gov
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(input.OPHostKeeper.GetAuthority(), 1, 1))
+	require.NoError(t, err)
+
+	// should be able to resubmit the same output
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	require.NoError(t, err)
+
+	// valid delete by proposer
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[0], 1, 1))
+	require.NoError(t, err)
 }
 
 func Test_InitiateTokenDeposit(t *testing.T) {
