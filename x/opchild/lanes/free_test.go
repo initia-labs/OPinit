@@ -52,14 +52,30 @@ func Test_FreeLaneMatchHandler(t *testing.T) {
 	require.True(t, handler(ctx, MockTx{
 		feePayer: []byte{3, 4, 5, 6},
 	}))
+
+	require.True(t, handler(ctx, MockTx{
+		feePayer:   []byte{2, 3, 4, 5},
+		feeGranter: []byte{0, 1, 2, 3},
+	}))
+
+	require.True(t, handler(ctx, MockTx{
+		feePayer:   []byte{2, 3, 4, 5},
+		feeGranter: []byte{3, 4, 5, 6},
+	}))
+
+	require.False(t, handler(ctx, MockTx{
+		feePayer:   []byte{2, 3, 4, 5},
+		feeGranter: []byte{2, 3, 5, 6},
+	}))
 }
 
 var _ sdk.Tx = MockTx{}
 var _ sdk.FeeTx = &MockTx{}
 
 type MockTx struct {
-	msgs     []sdk.Msg
-	feePayer []byte
+	msgs       []sdk.Msg
+	feePayer   []byte
+	feeGranter []byte
 }
 
 func (tx MockTx) GetMsgsV2() ([]protov2.Message, error) {
@@ -82,5 +98,5 @@ func (tx MockTx) FeePayer() []byte {
 	return tx.feePayer
 }
 func (tx MockTx) FeeGranter() []byte {
-	return nil
+	return tx.feeGranter
 }

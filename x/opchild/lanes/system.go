@@ -5,6 +5,7 @@ import (
 
 	blockbase "github.com/skip-mev/block-sdk/v2/block/base"
 
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -16,8 +17,15 @@ func SystemLaneMatchHandler() blockbase.MatchHandler {
 		}
 
 		for _, msg := range tx.GetMsgs() {
-			switch msg.(type) {
+			switch msg := msg.(type) {
 			case *types.MsgUpdateOracle:
+			case *authz.MsgExec:
+				msgs, err := msg.GetMessages()
+				if err != nil || len(msgs) != 1 {
+					return false
+				} else if _, ok := msgs[0].(*types.MsgUpdateOracle); !ok {
+					return false
+				}
 			default:
 				return false
 			}

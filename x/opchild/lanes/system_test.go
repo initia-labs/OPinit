@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cometbft/cometbft/proto/tendermint/types"
@@ -39,6 +40,28 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 	require.False(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
 			&banktypes.MsgSend{},
+		},
+	}))
+
+	authzMsg := authz.NewMsgExec(nil, []sdk.Msg{
+		&opchildtypes.MsgUpdateOracle{},
+	})
+
+	// 1 system message and authz.MsgExec
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&authzMsg,
+		},
+	}))
+
+	authzMsg = authz.NewMsgExec(nil, []sdk.Msg{
+		&banktypes.MsgSend{},
+	})
+
+	// authz.MsgExec with non-system message
+	require.False(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&authzMsg,
 		},
 	}))
 }

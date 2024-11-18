@@ -39,8 +39,16 @@ func (h FreeLaneMatchHandler) MatchHandler() base.MatchHandler {
 		} else if payer, err := h.ac.BytesToString(feeTx.FeePayer()); err != nil {
 			return false
 		} else {
+			var granter string
+			if feeTx.FeeGranter() != nil {
+				granter, err = h.ac.BytesToString(feeTx.FeeGranter())
+				if err != nil {
+					return false
+				}
+			}
+
 			for _, addr := range whitelist {
-				if addr == payer {
+				if addr == payer || addr == granter {
 					return true
 				}
 			}
