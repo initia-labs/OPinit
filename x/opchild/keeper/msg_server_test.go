@@ -292,7 +292,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 			Proposer:   addrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
 				Submitter: addrsStr[4],
-				ChainType: ophosttypes.BatchInfo_CHAIN_TYPE_INITIA,
+				ChainType: ophosttypes.BatchInfo_INITIA,
 			},
 			SubmissionInterval:    time.Minute,
 			FinalizationPeriod:    time.Hour,
@@ -344,7 +344,7 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 			Proposer:   addrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
 				Submitter: addrsStr[4],
-				ChainType: ophosttypes.BatchInfo_CHAIN_TYPE_INITIA,
+				ChainType: ophosttypes.BatchInfo_INITIA,
 			},
 			SubmissionInterval:    time.Minute,
 			FinalizationPeriod:    time.Hour,

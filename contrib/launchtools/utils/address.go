@@ -47,9 +47,9 @@ func DeriveL2Address(mnemonic string) (string, error) {
 func DeriveDAAddress(mnemonic string, chainType ophosttypes.BatchInfo_ChainType) (string, error) {
 	var codec address.Codec
 	switch chainType {
-	case ophosttypes.BatchInfo_CHAIN_TYPE_INITIA:
+	case ophosttypes.BatchInfo_INITIA:
 		codec = L1AddressCodec()
-	case ophosttypes.BatchInfo_CHAIN_TYPE_CELESTIA:
+	case ophosttypes.BatchInfo_CELESTIA:
 		codec = CelestiaAddressCodec()
 	default:
 		return "", errors.New("unsupported chain type")

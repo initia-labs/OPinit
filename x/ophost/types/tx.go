@@ -371,7 +371,7 @@ func (msg MsgUpdateBatchInfo) Validate(ac address.Codec) error {
 		return ErrInvalidBridgeId
 	}
 
-	if msg.NewBatchInfo.ChainType == BatchInfo_CHAIN_TYPE_UNSPECIFIED || msg.NewBatchInfo.Submitter == "" {
+	if msg.NewBatchInfo.ChainType == BatchInfo_UNSPECIFIED || msg.NewBatchInfo.Submitter == "" {
 		return ErrEmptyBatchInfo
 	}
 

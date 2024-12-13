@@ -8,11 +8,7 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/gogoproto/jsonpb"
 )
-
-var _ jsonpb.JSONPBMarshaler = (*BatchInfo_ChainType)(nil)
-var _ jsonpb.JSONPBUnmarshaler = (*BatchInfo_ChainType)(nil)
 
 func (config BridgeConfig) Validate(ac address.Codec) error {
 	if _, err := ac.StringToBytes(config.Challenger); err != nil {
@@ -23,7 +19,7 @@ func (config BridgeConfig) Validate(ac address.Codec) error {
 		return err
 	}
 
-	if config.BatchInfo.ChainType == BatchInfo_CHAIN_TYPE_UNSPECIFIED {
+	if config.BatchInfo.ChainType == BatchInfo_UNSPECIFIED {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain type must be set")
 	}
 
@@ -55,7 +51,7 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "challenger must be set")
 	}
 
-	if config.BatchInfo.ChainType == BatchInfo_CHAIN_TYPE_UNSPECIFIED {
+	if config.BatchInfo.ChainType == BatchInfo_UNSPECIFIED {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "batch chain type must be set")
 	} else if _, ok := BatchInfo_ChainType_name[int32(config.BatchInfo.ChainType)]; !ok {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid chain type")
@@ -80,12 +76,9 @@ func (config BridgeConfig) ValidateWithNoAddrValidation() error {
 	return nil
 }
 
-// prefix for chain type enum
-const chainTypePrefix = "CHAIN_TYPE_"
-
 // MarshalJSON marshals the BatchInfo_ChainType to JSON
 func (cy BatchInfo_ChainType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(cy.StringWithoutPrefix())
+	return json.Marshal(cy.String())
 }
 
 // UnmarshalJSON unmarshals the BatchInfo_ChainType from JSON
@@ -96,26 +89,11 @@ func (cy *BatchInfo_ChainType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	chainType, ok := BatchInfo_ChainType_value[chainTypePrefix+strings.ToUpper(str)]
+	chainType, ok := BatchInfo_ChainType_value[strings.ToUpper(str)]
 	if !ok {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid chain type")
 	}
 
 	*cy = BatchInfo_ChainType(chainType)
 	return nil
-}
-
-// MarshalJSONPB marshals the BatchInfo_ChainType to JSON
-func (cy BatchInfo_ChainType) MarshalJSONPB(_ *jsonpb.Marshaler) ([]byte, error) {
-	return cy.MarshalJSON()
-}
-
-// UnmarshalJSONPB unmarshals the BatchInfo_ChainType from JSON
-func (cy *BatchInfo_ChainType) UnmarshalJSONPB(_ *jsonpb.Unmarshaler, inputBz []byte) error {
-	return cy.UnmarshalJSON(inputBz)
-}
-
-// StringWithoutPrefix returns the string representation of a BatchInfo_ChainType without the prefix
-func (cy BatchInfo_ChainType) StringWithoutPrefix() string {
-	return cy.String()[len(chainTypePrefix):]
 }

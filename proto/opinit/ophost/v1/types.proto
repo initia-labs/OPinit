@@ -67,11 +67,11 @@ message BatchInfo {
   // ChainType defines the type of chain.
   enum ChainType {
     // Unspecified chain type.
-    CHAIN_TYPE_UNSPECIFIED = 0;
+    UNSPECIFIED = 0;
     // The chain type of the initia chain.
-    CHAIN_TYPE_INITIA = 1;
+    INITIA = 1;
     // The chain type of the celestia chain.
-    CHAIN_TYPE_CELESTIA = 2;
+    CELESTIA = 2;
   }
 
   // The address of the batch submitter.

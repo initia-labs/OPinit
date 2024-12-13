@@ -137,16 +137,16 @@ func (opBridge *OpBridge) Finalize(buf *bufio.Reader) error {
 		opBridge.OutputSubmissionStartHeight = 1
 	}
 
-	if opBridge.BatchSubmissionTarget == ophosttypes.BatchInfo_CHAIN_TYPE_UNSPECIFIED {
+	if opBridge.BatchSubmissionTarget == ophosttypes.BatchInfo_UNSPECIFIED {
 		useCelestia, err := input.GetConfirmation("Use Celestia as DA layer?", buf, os.Stderr)
 		if err != nil {
 			return err
 		}
 
 		if useCelestia {
-			opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CHAIN_TYPE_CELESTIA
+			opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CELESTIA
 		} else {
-			opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_CHAIN_TYPE_INITIA
+			opBridge.BatchSubmissionTarget = ophosttypes.BatchInfo_INITIA
 		}
 	}
 

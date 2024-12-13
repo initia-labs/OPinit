@@ -17,7 +17,7 @@ func Test_opBridgeConfig_JSON(t *testing.T) {
 		OutputSubmissionInterval:    &submissionInterval,
 		OutputFinalizationPeriod:    &finalizationPeriod,
 		OutputSubmissionStartHeight: 1,
-		BatchSubmissionTarget:       ophosttypes.BatchInfo_CHAIN_TYPE_CELESTIA,
+		BatchSubmissionTarget:       ophosttypes.BatchInfo_CELESTIA,
 	}
 
 	bz, err := json.Marshal(opBridgeConfig)

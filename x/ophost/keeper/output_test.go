@@ -90,7 +90,7 @@ func Test_IsFinalized(t *testing.T) {
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -149,7 +149,7 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -196,7 +196,7 @@ func Test_DeleteOutputProposal(t *testing.T) {
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 

@@ -12,7 +12,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	batchInfo1 := types.BatchInfo{
 		Submitter: addrsStr[0],
-		ChainType: types.BatchInfo_CHAIN_TYPE_INITIA,
+		ChainType: types.BatchInfo_INITIA,
 	}
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -25,7 +25,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 
 	batchInfo2 := types.BatchInfo{
 		Submitter: addrsStr[1],
-		ChainType: types.BatchInfo_CHAIN_TYPE_INITIA,
+		ChainType: types.BatchInfo_INITIA,
 	}
 	output2 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},
@@ -38,7 +38,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 
 	batchInfo3 := types.BatchInfo{
 		Submitter: addrsStr[0],
-		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
+		ChainType: types.BatchInfo_CELESTIA,
 	}
 	output3 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -51,7 +51,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 
 	batchInfo4 := types.BatchInfo{
 		Submitter: addrsStr[1],
-		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
+		ChainType: types.BatchInfo_CELESTIA,
 	}
 	output4 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},
@@ -64,7 +64,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 
 	batchInfo5 := types.BatchInfo{
 		Submitter: addrsStr[1],
-		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
+		ChainType: types.BatchInfo_CELESTIA,
 	}
 	output5 := types.Output{
 		OutputRoot:    []byte{4, 5, 6},
