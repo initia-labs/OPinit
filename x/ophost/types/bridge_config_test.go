@@ -20,7 +20,7 @@ import (
 func Test_JSONMarshalUnmarshal(t *testing.T) {
 	batchInfo := BatchInfo{
 		Submitter: "submitter",
-		ChainType: BatchInfo_CHAIN_TYPE_INITIA,
+		ChainType: BatchInfo_INITIA,
 	}
 
 	bz, err := json.Marshal(batchInfo)
@@ -41,14 +41,14 @@ func Test_ValidateBridgeConfig(t *testing.T) {
 		FinalizationPeriod:    100,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             BatchInfo{Submitter: "submitter", ChainType: BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             BatchInfo{Submitter: "submitter", ChainType: BatchInfo_INITIA},
 	}
 
 	require.NoError(t, config.ValidateWithNoAddrValidation())
 
 	// 1. wrong batch info chain type
 	// 1.1 unspecified
-	config.BatchInfo.ChainType = BatchInfo_CHAIN_TYPE_UNSPECIFIED
+	config.BatchInfo.ChainType = BatchInfo_UNSPECIFIED
 	require.Error(t, config.ValidateWithNoAddrValidation())
 
 	// 1.2 unknown chain type
@@ -81,5 +81,5 @@ func TestGoGoProtoJsonPB(t *testing.T) {
 	var msg sdk.Msg
 	err = appCodec.UnpackAny(tx.Body.Messages[0], &msg)
 	require.NoError(t, err)
-	require.Equal(t, BatchInfo_CHAIN_TYPE_CELESTIA, msg.(*MsgCreateBridge).Config.BatchInfo.ChainType)
+	require.Equal(t, BatchInfo_CELESTIA, msg.(*MsgCreateBridge).Config.BatchInfo.ChainType)
 }

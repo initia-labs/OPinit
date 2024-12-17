@@ -39,7 +39,7 @@ func Test_CreateBridge(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func Test_ProposeOutput(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -102,7 +102,7 @@ func Test_DeleteOutput(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	createReq := types.NewMsgCreateBridge(addrsStr[0], config)
 	createRes, err := ms.CreateBridge(ctx, createReq)
@@ -165,7 +165,7 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -193,7 +193,7 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
 	require.NoError(t, err)
@@ -265,7 +265,7 @@ func Test_UpdateProposal(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
@@ -315,7 +315,7 @@ func Test_UpdateChallenger(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
@@ -365,7 +365,7 @@ func Test_UpdateBatchInfo(t *testing.T) {
 		Metadata:              []byte{1, 2, 3},
 		BatchInfo: types.BatchInfo{
 			Submitter: addrsStr[1],
-			ChainType: types.BatchInfo_CHAIN_TYPE_INITIA,
+			ChainType: types.BatchInfo_INITIA,
 		},
 	}
 
@@ -377,27 +377,27 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 	msg := types.NewMsgUpdateBatchInfo(govAddr, 1, types.BatchInfo{
 		Submitter: addrsStr[2],
-		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
+		ChainType: types.BatchInfo_CELESTIA,
 	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, _config.BatchInfo.Submitter, addrsStr[2])
-	require.Equal(t, types.BatchInfo_CHAIN_TYPE_CELESTIA, _config.BatchInfo.ChainType)
+	require.Equal(t, types.BatchInfo_CELESTIA, _config.BatchInfo.ChainType)
 	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
 
 	// current proposer signer
 	msg = types.NewMsgUpdateBatchInfo(addrsStr[0], 1, types.BatchInfo{
 		Submitter: addrsStr[3],
-		ChainType: types.BatchInfo_CHAIN_TYPE_INITIA,
+		ChainType: types.BatchInfo_INITIA,
 	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, _config.BatchInfo.Submitter, addrsStr[3])
-	require.Equal(t, types.BatchInfo_CHAIN_TYPE_INITIA, _config.BatchInfo.ChainType)
+	require.Equal(t, types.BatchInfo_INITIA, _config.BatchInfo.ChainType)
 	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
 
 	// invalid signer
@@ -405,7 +405,7 @@ func Test_UpdateBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 	msg = types.NewMsgUpdateBatchInfo(invalidAddr, 1, types.BatchInfo{
 		Submitter: addrsStr[2],
-		ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
+		ChainType: types.BatchInfo_CELESTIA,
 	})
 	require.NoError(t, err)
 
@@ -427,7 +427,7 @@ func Test_UpdateOracleConfig(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 		OracleEnabled:         true,
 	}
 
@@ -472,7 +472,7 @@ func Test_UpdateMetadata(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
 	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))

@@ -19,7 +19,7 @@ func Test_QueryBridge(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, config)
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func Test_QueryBridges(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	config2 := types.BridgeConfig{
 		Challenger:            addrs[1].String(),
@@ -55,7 +55,7 @@ func Test_QueryBridges(t *testing.T) {
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{3, 4, 5},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
@@ -189,7 +189,7 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -265,13 +265,13 @@ func Test_QueryNextL1Sequence(t *testing.T) {
 
 func Test_QueryBatchInfos(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	batchInfo := types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_CHAIN_TYPE_INITIA}
+	batchInfo := types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}
 	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, batchInfo, types.Output{}))
 
 	newBatchInfo := types.BatchInfoWithOutput{
 		BatchInfo: types.BatchInfo{
 			Submitter: addrsStr[0],
-			ChainType: types.BatchInfo_CHAIN_TYPE_CELESTIA,
+			ChainType: types.BatchInfo_CELESTIA,
 		},
 		Output: types.Output{
 			OutputRoot:    []byte{1, 2, 3},
