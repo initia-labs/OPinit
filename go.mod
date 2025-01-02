@@ -1,6 +1,7 @@
 module github.com/initia-labs/OPinit
 
-go 1.22.2
+go 1.22.7
+
 toolchain go1.23.0
 
 require (
