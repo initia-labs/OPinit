@@ -18,7 +18,7 @@ type MempoolFeeChecker struct {
 	keeper rolluptypes.AnteKeeper
 }
 
-// NewGasPricesDecorator create MempoolFeeDecorator instance
+// NewMempoolFeeChecker create MempoolFeeChecker instance
 func NewMempoolFeeChecker(
 	keeper rolluptypes.AnteKeeper,
 ) MempoolFeeChecker {
