@@ -224,13 +224,19 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 		return nil, err
 	}
 
+	coin := req.Amount
+	bridgeId := req.BridgeId
+	if ok, err := ms.BridgeConfigs.Has(ctx, bridgeId); err != nil {
+		return nil, err
+	} else if !ok {
+		return nil, types.ErrBridgeNotFound
+	}
+
 	sender, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {
 		return nil, err
 	}
 
-	coin := req.Amount
-	bridgeId := req.BridgeId
 	l1Sequence, err := ms.IncreaseNextL1Sequence(ctx, bridgeId)
 	if err != nil {
 		return nil, err

@@ -84,15 +84,16 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	err = l2connect.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, h-1, hostChainID, extendedCommitInfo)
+	extendedVotes, err := l2connect.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, h-1, hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
 	}
 
-	votes, err := l2connect.GetOracleVotes(k.veCodec, extendedCommitInfo)
+	votes, err := l2connect.GetOracleVotes(k.veCodec, extendedVotes)
 	if err != nil {
 		return err
 	}
+
 	prices, err := k.voteAggregator.AggregateOracleVotes(sdkCtx, votes)
 	if err != nil {
 		return err

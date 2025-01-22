@@ -20,10 +20,10 @@ import (
 
 func GetOracleVotes(
 	veCodec connectcodec.VoteExtensionCodec,
-	extendedCommitInfo cometabci.ExtendedCommitInfo,
+	extendedVotes []cometabci.ExtendedVoteInfo,
 ) ([]connectaggregator.Vote, error) {
-	votes := make([]connectaggregator.Vote, len(extendedCommitInfo.Votes))
-	for i, voteInfo := range extendedCommitInfo.Votes {
+	votes := make([]connectaggregator.Vote, len(extendedVotes))
+	for i, voteInfo := range extendedVotes {
 		voteExtension, err := veCodec.Decode(voteInfo.VoteExtension)
 		if err != nil {
 			return nil, connectabci.CodecError{
