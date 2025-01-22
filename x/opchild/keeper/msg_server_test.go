@@ -655,7 +655,7 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	cpStrategy, extendedCommitCodec, voteExtensionCodec := getSlinky(oracleKeeper)
+	cpStrategy, extendedCommitCodec, voteExtensionCodec := getConnect(oracleKeeper)
 	valPrivKeys, _, validatorSet := createCmtValidatorSet(t, numVals)
 	err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultClientId, 1, validatorSet)
 	require.NoError(t, err)

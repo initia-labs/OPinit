@@ -460,7 +460,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	sdkCtx.EventManager().EmitEvent(event)
 
 	// if the deposit is failed, initiate a withdrawal
-	if !depositSuccess || !hookSuccess {
+	if !(depositSuccess && hookSuccess) && coin.IsPositive() {
 		if depositSuccess {
 			// reclaim and burn coins
 			burnCoins := sdk.NewCoins(coin)

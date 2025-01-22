@@ -17,6 +17,8 @@ func (k Keeper) GetValidator(ctx context.Context, addr sdk.ValAddress) (validato
 	validator, err := k.Validators.Get(ctx, addr)
 	if errors.Is(err, collections.ErrNotFound) {
 		return validator, false
+	} else if err != nil {
+		panic(err)
 	}
 
 	return validator, true
@@ -36,6 +38,8 @@ func (k Keeper) GetValidatorByConsAddr(ctx context.Context, consAddr sdk.ConsAdd
 	opAddr, err := k.ValidatorsByConsAddr.Get(ctx, consAddr)
 	if errors.Is(err, collections.ErrNotFound) {
 		return validator, false
+	} else if err != nil {
+		panic(err)
 	}
 
 	return k.GetValidator(ctx, opAddr)

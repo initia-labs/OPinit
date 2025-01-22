@@ -50,7 +50,7 @@ func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []
 	return privKeys, pubKeys, cmtValSet
 }
 
-func getSlinky(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, connectcodec.ExtendedCommitCodec, connectcodec.VoteExtensionCodec) {
+func getConnect(oracleKeeper *oraclekeeper.Keeper) (currencypair.CurrencyPairStrategy, connectcodec.ExtendedCommitCodec, connectcodec.VoteExtensionCodec) {
 	cpStrategy := currencypair.NewHashCurrencyPairStrategy(oracleKeeper)
 	voteExtensionCodec := connectcodec.NewCompressionVoteExtensionCodec(
 		connectcodec.NewDefaultVoteExtensionCodec(),
@@ -260,7 +260,7 @@ func Test_UpdateOracle(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			cpStrategy, extendedCommitCodec, voteExtensionCodec := getSlinky(oracleKeeper)
+			cpStrategy, extendedCommitCodec, voteExtensionCodec := getConnect(oracleKeeper)
 			valPrivKeys, _, validatorSet := createCmtValidatorSet(t, tc.numVals)
 			err = opchildKeeper.UpdateHostValidatorSet(ctx, defaultClientId, 1, validatorSet)
 			require.NoError(t, err)
