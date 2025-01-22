@@ -180,6 +180,13 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).IsZero())
 	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, types.BridgeAddress(1), sdk.DefaultBondDenom))
+
+	// not existing bridge
+	_, err = ms.InitiateTokenDeposit(
+		ctx,
+		types.NewMsgInitiateTokenDeposit(addrsStr[1], 2, "l2_addr", amount, []byte("messages")),
+	)
+	require.Error(t, err)
 }
 
 func Test_FinalizeTokenWithdrawal(t *testing.T) {
