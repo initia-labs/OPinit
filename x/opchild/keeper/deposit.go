@@ -58,11 +58,14 @@ func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte, hookMaxGas uint64
 			return
 		}
 
-		_, err = handler(cacheCtx, msg)
+		res, err := handler(cacheCtx, msg)
 		if err != nil {
 			reason = fmt.Sprintf("Failed to execute Msg: %s", err)
 			return
 		}
+
+		// emit events
+		cacheCtx.EventManager().EmitEvents(res.GetEvents())
 	}
 
 	commit()

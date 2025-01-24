@@ -22,4 +22,5 @@ var (
 	ErrInvalidChallengerUpdate    = errorsmod.Register(ModuleName, 15, "invalid challenger update")
 	ErrEmptyBatchBytes            = errorsmod.Register(ModuleName, 16, "empty batch bytes")
 	ErrBridgeNotFound             = errorsmod.Register(ModuleName, 17, "bridge not found")
+	ErrInvalidData                = errorsmod.Register(ModuleName, 18, "invalid data")
 )

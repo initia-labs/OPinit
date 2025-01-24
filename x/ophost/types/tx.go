@@ -22,6 +22,7 @@ var (
 
 const (
 	MaxMetadataLength = 1024 * 5
+	MaxDataLength     = 1024 * 10
 )
 
 /* MsgRecordBatch */
@@ -193,6 +194,10 @@ func (msg MsgInitiateTokenDeposit) Validate(ac address.Codec) error {
 
 	if msg.BridgeId == 0 {
 		return ErrInvalidBridgeId
+	}
+
+	if len(msg.Data) > MaxDataLength {
+		return ErrInvalidData.Wrapf("data length exceeds %d", MaxDataLength)
 	}
 
 	return nil
