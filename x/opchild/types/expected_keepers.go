@@ -55,8 +55,7 @@ type BankKeeper interface {
 
 type OracleKeeper interface {
 	currencypair.OracleKeeper
-	GetAllCurrencyPairs(ctx sdk.Context) []connecttypes.CurrencyPair
-	SetPriceForCurrencyPair(ctx sdk.Context, cp connecttypes.CurrencyPair, qp oracletypes.QuotePrice) error
+	SetPriceForCurrencyPair(ctx context.Context, cp connecttypes.CurrencyPair, qp oracletypes.QuotePrice) error
 }
 
 // ValidatorSet expected properties for the set of all validators (noalias)
