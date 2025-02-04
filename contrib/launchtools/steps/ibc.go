@@ -264,7 +264,7 @@ func link(r *Relayer) error {
 	})
 }
 
-// linkWithports is the same as link, however ports are specified
+// linkWithPorts is the same as link, however ports are specified
 func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer) error {
 	return func(r *Relayer) error {
 		versionBz, err := marshalIBCFeeMetadata(version)
