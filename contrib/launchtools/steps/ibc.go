@@ -283,7 +283,6 @@ func channelWithPorts(srcPort string, dstPort string, version string) func(*Rela
 			dstPort,
 			"--version",
 			string(versionBz),
-			"--override",
 		})
 	}
 }
