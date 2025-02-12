@@ -55,7 +55,7 @@ func establishIBCChannels(
 		link,
 
 		// create nft-transfer ports as well
-		linkWithPorts(srcPort, dstPort, channelVersion),
+		channelWithPorts(srcPort, dstPort, channelVersion),
 	)
 
 	return func(ctx launchtools.Launcher) error {
@@ -264,8 +264,8 @@ func link(r *Relayer) error {
 	})
 }
 
-// linkWithports is the same as link, however ports are specified
-func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer) error {
+// channelWithPorts  create a channel reusing the same light client
+func channelWithPorts(srcPort string, dstPort string, version string) func(*Relayer) error {
 	return func(r *Relayer) error {
 		versionBz, err := marshalIBCFeeMetadata(version)
 		if err != nil {
@@ -275,7 +275,7 @@ func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer
 		r.logger.Info("linking chains for relayer...", "version", string(versionBz))
 		return r.run([]string{
 			"tx",
-			"link",
+			"channel",
 			RelayerPathName,
 			"--src-port",
 			srcPort,
@@ -283,7 +283,6 @@ func linkWithPorts(srcPort string, dstPort string, version string) func(*Relayer
 			dstPort,
 			"--version",
 			string(versionBz),
-			"--override",
 		})
 	}
 }
