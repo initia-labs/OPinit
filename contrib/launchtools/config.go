@@ -339,6 +339,7 @@ func (gas *GenesisAccounts) Finalize(systemKeys SystemKeys) error {
 }
 
 type SystemKeys struct {
+	Admin           *SystemAccount `json:"admin,omitempty"`
 	Validator       *SystemAccount `json:"validator,omitempty"`
 	BridgeExecutor  *SystemAccount `json:"bridge_executor,omitempty"`
 	OutputSubmitter *SystemAccount `json:"output_submitter,omitempty"`
@@ -463,8 +464,18 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader, batchSubmissionTarget 
 			Mnemonic:  mnemonic,
 		}
 	}
+	if systemKeys.Admin == nil {
+		systemKeys.Admin = &SystemAccount{
+			L1Address: systemKeys.Validator.L2Address,
+			L2Address: systemKeys.Validator.L2Address,
+			Mnemonic:  systemKeys.Validator.Mnemonic,
+		}
+	}
 
 	// validate all accounts
+	if systemKeys.Admin.L2Address == "" {
+		return errors.New("admin account not initialized")
+	}
 	if systemKeys.Validator.L2Address == "" || systemKeys.Validator.Mnemonic == "" {
 		return errors.New("validator account not initialized")
 	}

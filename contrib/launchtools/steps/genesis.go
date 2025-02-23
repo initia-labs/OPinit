@@ -166,14 +166,17 @@ func initializeGenesis(
 	// Add fee whitelist to genesis
 	// whitelist specific operators for fee exemption
 	log.Info("adding fee whitelists",
-		"whitelist-len", 3,
+		"whitelist-len", 4,
 		"whitelists", strings.Join([]string{
+			config.SystemKeys.Admin.L2Address,
 			config.SystemKeys.Validator.L2Address,
 			config.SystemKeys.BridgeExecutor.L2Address,
 			config.SystemKeys.Challenger.L2Address,
 		}, ","),
 	)
+
 	opChildState, err = addFeeWhitelists(cdc, genesisAppState, []string{
+		config.SystemKeys.Admin.L2Address,
 		config.SystemKeys.Validator.L2Address,
 		config.SystemKeys.BridgeExecutor.L2Address,
 		config.SystemKeys.Challenger.L2Address,
@@ -200,10 +203,10 @@ func initializeGenesis(
 	// Step 5 -------------------------------------------------------------------------------------------
 	// Set admin address in the genesis parameter
 	log.Info("setting admin address",
-		"admin", config.SystemKeys.Validator.L2Address,
+		"admin", config.SystemKeys.Admin.L2Address,
 	)
 
-	opChildState, err = setOpChildAdminAddress(cdc, genesisAppState, config.SystemKeys.Validator.L2Address)
+	opChildState, err = setOpChildAdminAddress(cdc, genesisAppState, config.SystemKeys.Admin.L2Address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set bridge executor address")
 	}
