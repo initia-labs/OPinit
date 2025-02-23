@@ -465,6 +465,7 @@ func (systemKeys *SystemKeys) Finalize(buf *bufio.Reader, batchSubmissionTarget 
 		}
 	}
 	if systemKeys.Admin == nil {
+		// use validator account as admin account if not set
 		systemKeys.Admin = &SystemAccount{
 			L1Address: systemKeys.Validator.L2Address,
 			L2Address: systemKeys.Validator.L2Address,
