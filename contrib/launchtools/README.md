@@ -45,6 +45,9 @@ minitiad launch $TARGET_NETWORK --with-config [path-to-config]
     "enable_oracle": true
   },
   "system_keys": {
+    "admin": {
+      "l2_address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x"
+    },
     "validator": {
       "l2_address": "init12z54lfqgp7zapzuuk2m4h6mjz84qzca8j0wm4x",
       "mnemonic": "digital kingdom slim fall cereal aspect expose trade once antique treat spatial unfair trip silver diesel other friend invest valve human blouse decrease salt"
