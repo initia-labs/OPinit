@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	opchildtypes "github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 // AddGenesisValidatorCmd builds the application's add-genesis-validator command.

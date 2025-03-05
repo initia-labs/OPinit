@@ -22,5 +22,5 @@ done
 cd ..
 
 # move proto files to the right places
-cp -r github.com/initia-labs/OPinit/* ./
+cp -r github.com/initia-labs/OPinit/v1/* ./
 rm -rf github.com

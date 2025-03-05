@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 func (k Keeper) RegisterExecutorChangePlan(

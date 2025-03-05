@@ -29,8 +29,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testutilmod "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	"github.com/initia-labs/OPinit/x/opchild"
-	"github.com/initia-labs/OPinit/x/opchild/client/cli"
+	"github.com/initia-labs/OPinit/v1/x/opchild"
+	"github.com/initia-labs/OPinit/v1/x/opchild/client/cli"
 )
 
 var PKs = simtestutil.CreateTestPubKeys(500)

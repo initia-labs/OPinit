@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 

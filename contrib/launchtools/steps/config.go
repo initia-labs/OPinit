@@ -1,6 +1,6 @@
 package steps
 
-import "github.com/initia-labs/OPinit/contrib/launchtools"
+import "github.com/initia-labs/OPinit/v1/contrib/launchtools"
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeConfig
 

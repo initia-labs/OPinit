@@ -4,7 +4,7 @@ import (
 	"errors"
 	"syscall"
 
-	launchertypes "github.com/initia-labs/OPinit/contrib/launchtools"
+	launchertypes "github.com/initia-labs/OPinit/v1/contrib/launchtools"
 )
 
 var _ launchertypes.LauncherStepFuncFactory[*launchertypes.Config] = StopApp

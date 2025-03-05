@@ -1,8 +1,8 @@
 package steps
 
 import (
-	"github.com/initia-labs/OPinit/contrib/launchtools"
-	launchutils "github.com/initia-labs/OPinit/contrib/launchtools/utils"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools"
+	launchutils "github.com/initia-labs/OPinit/v1/contrib/launchtools/utils"
 	"github.com/pkg/errors"
 )
 

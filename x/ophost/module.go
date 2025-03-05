@@ -15,9 +15,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/initia-labs/OPinit/x/ophost/client/cli"
-	"github.com/initia-labs/OPinit/x/ophost/keeper"
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/client/cli"
+	"github.com/initia-labs/OPinit/v1/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 const ConsensusVersion = 1

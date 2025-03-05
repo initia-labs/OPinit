@@ -29,9 +29,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
 
-	"github.com/initia-labs/OPinit/x/opchild/keeper"
-	"github.com/initia-labs/OPinit/x/opchild/types"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/keeper"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 /////////////////////////////////////////

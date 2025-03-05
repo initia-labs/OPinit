@@ -7,9 +7,9 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	tmclient "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
-	"github.com/initia-labs/OPinit/contrib/launchtools"
-	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools"
+	opchildtypes "github.com/initia-labs/OPinit/v1/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = SetBridgeInfo

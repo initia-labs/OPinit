@@ -18,7 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 type RPCHelper struct {

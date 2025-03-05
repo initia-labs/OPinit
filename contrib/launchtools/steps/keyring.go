@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/initia-labs/OPinit/contrib/launchtools"
-	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools/utils"
 )
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeKeyring

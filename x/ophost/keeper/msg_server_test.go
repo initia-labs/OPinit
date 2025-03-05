@@ -10,8 +10,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/initia-labs/OPinit/x/ophost/keeper"
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 func Test_RecordBatch(t *testing.T) {

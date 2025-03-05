@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -29,7 +29,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/initia-labs/OPinit/x/opchild/ante"
+	"github.com/initia-labs/OPinit/v1/x/opchild/ante"
 )
 
 // AnteTestSuite is a test suite to be used with ante handler tests.

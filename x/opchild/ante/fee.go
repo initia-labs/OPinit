@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	rolluptypes "github.com/initia-labs/OPinit/x/opchild/types"
+	rolluptypes "github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 // MempoolFeeChecker will check if the transaction's fee is at least as large

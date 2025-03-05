@@ -3,7 +3,7 @@ package steps
 import (
 	"fmt"
 
-	"github.com/initia-labs/OPinit/contrib/launchtools"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools"
 	"github.com/pkg/errors"
 )
 

@@ -15,7 +15,7 @@ import (
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 func GetOracleVotes(

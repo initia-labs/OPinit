@@ -3,7 +3,7 @@ package ante_test
 import (
 	"context"
 
-	"github.com/initia-labs/OPinit/x/opchild/ante"
+	"github.com/initia-labs/OPinit/v1/x/opchild/ante"
 
 	"cosmossdk.io/math"
 

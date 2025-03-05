@@ -13,7 +13,7 @@ import (
 
 	protov2 "google.golang.org/protobuf/proto"
 
-	"github.com/initia-labs/OPinit/x/opchild/lanes"
+	"github.com/initia-labs/OPinit/v1/x/opchild/lanes"
 )
 
 var _ lanes.FeeWhitelistKeeper = MockFeeWhitelistKeeper{}

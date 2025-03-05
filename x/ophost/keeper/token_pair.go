@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/collections"
 
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 func (k Keeper) SetTokenPair(ctx context.Context, bridgeId uint64, l2Denom, l1Denom string) error {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 type Querier struct {

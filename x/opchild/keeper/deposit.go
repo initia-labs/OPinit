@@ -7,7 +7,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte, hookMaxGas uint64) (success bool, reason string) {

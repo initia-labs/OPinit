@@ -6,7 +6,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 	"github.com/stretchr/testify/require"
 )
 

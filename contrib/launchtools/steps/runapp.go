@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/initia-labs/OPinit/contrib/launchtools"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )

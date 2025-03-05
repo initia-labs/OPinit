@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 	"github.com/stretchr/testify/require"
 )
 

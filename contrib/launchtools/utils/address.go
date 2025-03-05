@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 func L1AddressCodec() address.Codec {

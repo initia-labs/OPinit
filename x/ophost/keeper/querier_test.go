@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/initia-labs/OPinit/x/ophost/keeper"
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 func Test_QueryBridge(t *testing.T) {

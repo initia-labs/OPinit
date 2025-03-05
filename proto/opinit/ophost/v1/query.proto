@@ -9,7 +9,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "opinit/ophost/v1/types.proto";
 
-option go_package = "github.com/initia-labs/OPinit/x/ophost/types";
+option go_package = "github.com/initia-labs/OPinit/v1/x/ophost/types";
 
 // Query defines the gRPC querier service.
 service Query {

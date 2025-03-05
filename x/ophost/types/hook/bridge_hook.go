@@ -8,7 +8,7 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 var _ ophosttypes.BridgeHook = BridgeHook{}

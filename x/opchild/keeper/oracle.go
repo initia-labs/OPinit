@@ -15,8 +15,8 @@ import (
 	"github.com/skip-mev/connect/v2/pkg/math/voteweighted"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 
-	"github.com/initia-labs/OPinit/x/opchild/l2connect"
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/l2connect"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 type L2OracleHandler struct {

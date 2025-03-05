@@ -1,8 +1,6 @@
-module github.com/initia-labs/OPinit
+module github.com/initia-labs/OPinit/v1
 
-go 1.23.1
-
-toolchain go1.23.2
+go 1.23.6
 
 require (
 	cosmossdk.io/api v0.7.6
@@ -24,7 +22,7 @@ require (
 	github.com/cosmos/relayer/v2 v2.5.2
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit/api v0.6.2
+	github.com/initia-labs/OPinit/v1/api v0.6.2
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk/v2 v2.1.5
 	github.com/skip-mev/connect/v2 v2.3.0
@@ -242,7 +240,7 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/initia-labs/OPinit/api => ./api
+replace github.com/initia-labs/OPinit/v1/api => ./api
 
 replace (
 	// use cosmos fork of keyring

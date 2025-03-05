@@ -9,7 +9,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "opinit/opchild/v1/types.proto";
 
-option go_package = "github.com/initia-labs/OPinit/x/opchild/types";
+option go_package = "github.com/initia-labs/OPinit/v1/x/opchild/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the rollup Msg service.

@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/initia-labs/OPinit/x/opchild/lanes"
-	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/lanes"
+	opchildtypes "github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 func Test_SystemLaneMatchHandler(t *testing.T) {

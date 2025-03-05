@@ -7,8 +7,8 @@ import (
 	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/initia-labs/OPinit/x/opchild/keeper"
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/keeper"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
 )

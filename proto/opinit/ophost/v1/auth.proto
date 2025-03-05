@@ -5,7 +5,7 @@ import "amino/amino.proto";
 import "cosmos/auth/v1beta1/auth.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/initia-labs/OPinit/x/ophost/types";
+option go_package = "github.com/initia-labs/OPinit/v1/x/ophost/types";
 
 // BridgeAccount defines an account for bridge that holds coins without pubkey.
 message BridgeAccount {

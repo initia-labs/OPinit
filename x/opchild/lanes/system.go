@@ -6,7 +6,7 @@ import (
 	blockbase "github.com/skip-mev/block-sdk/v2/block/base"
 
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
 )
 
 // SystemLaneMatchHandler returns the default match handler for the system lane.

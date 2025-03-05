@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 // BridgeConfig defines the set of bridge config.

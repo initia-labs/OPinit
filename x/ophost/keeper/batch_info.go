@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/collections"
 
-	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 func (k Keeper) GetNextBatchInfoIndex(ctx context.Context, bridgeId uint64) (batchInfoIndex uint64, err error) {

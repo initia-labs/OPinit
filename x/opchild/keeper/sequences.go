@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"cosmossdk.io/collections"
-	"github.com/initia-labs/OPinit/x/opchild/types"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 func (k Keeper) GetNextL1Sequence(ctx context.Context) (uint64, error) {

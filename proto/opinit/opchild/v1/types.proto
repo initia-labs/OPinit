@@ -9,7 +9,7 @@ import "google/protobuf/any.proto";
 import "opinit/ophost/v1/types.proto";
 import "tendermint/abci/types.proto";
 
-option go_package = "github.com/initia-labs/OPinit/x/opchild/types";
+option go_package = "github.com/initia-labs/OPinit/v1/x/opchild/types";
 option (gogoproto.equal_all) = true;
 option (gogoproto.goproto_getters_all) = false;
 

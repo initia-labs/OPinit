@@ -18,8 +18,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
-	"github.com/initia-labs/OPinit/x/ophost/types/hook"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
+	"github.com/initia-labs/OPinit/v1/x/ophost/types/hook"
 )
 
 var _ hook.ChannelKeeper = MockChannelKeeper{}

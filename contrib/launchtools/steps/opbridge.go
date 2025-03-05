@@ -8,10 +8,10 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/initia-labs/OPinit/contrib/launchtools"
-	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
-	ophosthooktypes "github.com/initia-labs/OPinit/x/ophost/types/hook"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools"
+	"github.com/initia-labs/OPinit/v1/contrib/launchtools/utils"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
+	ophosthooktypes "github.com/initia-labs/OPinit/v1/x/ophost/types/hook"
 	"github.com/pkg/errors"
 )
 

@@ -43,9 +43,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
-	ophost "github.com/initia-labs/OPinit/x/ophost"
-	ophostkeeper "github.com/initia-labs/OPinit/x/ophost/keeper"
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
+	ophost "github.com/initia-labs/OPinit/v1/x/ophost"
+	ophostkeeper "github.com/initia-labs/OPinit/v1/x/ophost/keeper"
+	ophosttypes "github.com/initia-labs/OPinit/v1/x/ophost/types"
 )
 
 var ModuleBasics = module.NewBasicManager(
