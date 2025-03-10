@@ -39,6 +39,10 @@ $ launchtools launch --artifacts-dir ./ --with-config ./config.json
 			sdk.SetAddrCacheEnabled(false)
 			defer sdk.SetAddrCacheEnabled(true)
 
+			// use coin type 118 for opinit-bots and relayer
+			cfg := sdk.GetConfig()
+			cfg.SetCoinType(118)
+
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			serverCtx := server.GetServerContextFromCmd(cmd)
 

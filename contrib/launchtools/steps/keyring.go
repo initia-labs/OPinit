@@ -25,7 +25,7 @@ func InitializeKeyring(config *launchtools.Config) launchtools.LauncherStepFunc 
 	// use reflect to iterate over all system keys, since it's a struct
 	// also this is future-proof in case any new system key is added
 	systemKeys := reflect.ValueOf(*config.SystemKeys)
-	for i := 0; i < systemKeys.NumField(); i++ {
+	for i := range systemKeys.NumField() {
 		fieldName := systemKeys.Type().Field(i).Name
 		k, ok := systemKeys.Field(i).Interface().(*launchtools.SystemAccount)
 		if !ok {
