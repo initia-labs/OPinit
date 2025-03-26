@@ -459,17 +459,15 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	sdkCtx.EventManager().EmitEvent(depositEvent)
 
 	// if the deposit is failed, initiate a withdrawal to refund the deposit
-	if !depositSuccess {
-		if coin.IsPositive() {
-			l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
-			if err != nil {
-				return nil, err
-			}
+	if !depositSuccess && coin.IsPositive() {
+		l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-			err = ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
-			if err != nil {
-				return nil, err
-			}
+		err = ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
+		if err != nil {
+			return nil, err
 		}
 	}
 
