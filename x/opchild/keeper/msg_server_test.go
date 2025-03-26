@@ -428,19 +428,6 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 
 	afterModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
 	require.True(t, afterModuleBalance.Amount.IsZero())
-
-	// token withdrawal initiated
-	events := sdk.UnwrapSDKContext(ctx).EventManager().Events()
-	lastEvent := events[len(events)-1]
-	require.Equal(t, sdk.NewEvent(
-		types.EventTypeInitiateTokenWithdrawal,
-		sdk.NewAttribute(types.AttributeKeyFrom, opchildModuleAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyTo, addrsStr[1]),
-		sdk.NewAttribute(types.AttributeKeyDenom, denom),
-		sdk.NewAttribute(types.AttributeKeyBaseDenom, "test_token"),
-		sdk.NewAttribute(types.AttributeKeyAmount, "100"),
-		sdk.NewAttribute(types.AttributeKeyL2Sequence, "1"),
-	), lastEvent)
 }
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
@@ -557,7 +544,7 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 
 	// check receiver has no balance
 	afterBalance = input.BankKeeper.GetBalance(ctx, addr, denom)
-	require.Equal(t, math.NewInt(0), afterBalance.Amount)
+	require.Equal(t, math.NewInt(100), afterBalance.Amount)
 }
 
 func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
@@ -614,7 +601,7 @@ func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
 
 	// check receiver has no balance
 	afterBalance = input.BankKeeper.GetBalance(ctx, addr, denom)
-	require.Equal(t, math.NewInt(0), afterBalance.Amount)
+	require.Equal(t, math.NewInt(100), afterBalance.Amount)
 }
 
 func Test_MsgServer_UpdateOracle(t *testing.T) {

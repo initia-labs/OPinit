@@ -442,9 +442,8 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	}
 
 	// if the deposit is successful and the data is not empty, execute the hook
-	hookSuccess := true
 	if depositSuccess && len(req.Data) > 0 {
-		hookSuccess, reason = ms.handleBridgeHook(sdkCtx, req.Data, params.HookMaxGas)
+		hookSuccess, reason := ms.handleBridgeHook(sdkCtx, req.Data, params.HookMaxGas)
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(hookSuccess)))
 		if !hookSuccess {
 			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))
@@ -453,36 +452,23 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(depositSuccess)))
 		if !depositSuccess {
 			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "deposit failed; "+reason))
+
+			if coin.IsPositive() {
+				l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				err = ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 	}
 
 	// emit deposit event
 	sdkCtx.EventManager().EmitEvent(event)
-
-	// if the deposit is failed, initiate a withdrawal
-	if !(depositSuccess && hookSuccess) && coin.IsPositive() {
-		if depositSuccess {
-			// reclaim and burn coins
-			burnCoins := sdk.NewCoins(coin)
-			if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, toAddr, types.ModuleName, burnCoins); err != nil {
-				return nil, err
-			}
-			if err := ms.bankKeeper.BurnCoins(ctx, types.ModuleName, burnCoins); err != nil {
-				return nil, err
-			}
-		}
-
-		l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		err = ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return &types.MsgFinalizeTokenDepositResponse{Result: types.SUCCESS}, nil
 }
 
