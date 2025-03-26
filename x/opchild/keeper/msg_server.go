@@ -425,7 +425,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		}
 	}
 
-	event := sdk.NewEvent(
+	events := sdk.Events{sdk.NewEvent(
 		types.EventTypeFinalizeTokenDeposit,
 		sdk.NewAttribute(types.AttributeKeyL1Sequence, strconv.FormatUint(req.Sequence, 10)),
 		sdk.NewAttribute(types.AttributeKeySender, req.From),
@@ -434,7 +434,7 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, req.BaseDenom),
 		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyFinalizeHeight, strconv.FormatUint(req.Height, 10)),
-	)
+	)}
 
 	params, err := ms.GetParams(ctx)
 	if err != nil {
@@ -444,14 +444,14 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 	// if the deposit is successful and the data is not empty, execute the hook
 	if depositSuccess && len(req.Data) > 0 {
 		hookSuccess, reason := ms.handleBridgeHook(sdkCtx, req.Data, params.HookMaxGas)
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(hookSuccess)))
+		events[0] = events[0].AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(hookSuccess)))
 		if !hookSuccess {
-			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))
+			events[0] = events[0].AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "hook failed; "+reason))
 		}
 	} else {
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(depositSuccess)))
+		events[0] = events[0].AppendAttributes(sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(depositSuccess)))
 		if !depositSuccess {
-			event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "deposit failed; "+reason))
+			events[0] = events[0].AppendAttributes(sdk.NewAttribute(types.AttributeKeyReason, "deposit failed; "+reason))
 
 			if coin.IsPositive() {
 				l2Sequence, err := ms.IncreaseNextL2Sequence(ctx)
@@ -459,16 +459,19 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 					return nil, err
 				}
 
-				err = ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
+				withdrawEvent, err := ms.emitWithdrawEvents(ctx, types.NewMsgInitiateTokenWithdrawal(req.To, req.From, coin), l2Sequence)
 				if err != nil {
 					return nil, err
 				}
+
+				events = append(events, withdrawEvent)
 			}
 		}
 	}
 
 	// emit deposit event
-	sdkCtx.EventManager().EmitEvent(event)
+	sdkCtx.EventManager().EmitEvents(events)
+
 	return &types.MsgFinalizeTokenDepositResponse{Result: types.SUCCESS}, nil
 }
 
@@ -504,25 +507,27 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		return nil, err
 	}
 
-	err = ms.emitWithdrawEvents(ctx, req, l2Sequence)
+	event, err := ms.emitWithdrawEvents(ctx, req, l2Sequence)
 	if err != nil {
 		return nil, err
 	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(event)
 
 	return &types.MsgInitiateTokenWithdrawalResponse{
 		Sequence: l2Sequence,
 	}, nil
 }
 
-func (ms MsgServer) emitWithdrawEvents(ctx context.Context, req *types.MsgInitiateTokenWithdrawal, l2Sequence uint64) error {
+func (ms MsgServer) emitWithdrawEvents(ctx context.Context, req *types.MsgInitiateTokenWithdrawal, l2Sequence uint64) (sdk.Event, error) {
 	coin := req.Amount
 	baseDenom, err := ms.GetBaseDenom(ctx, coin.Denom)
 	if err != nil {
-		return err
+		return sdk.Event{}, err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+	return sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
 		sdk.NewAttribute(types.AttributeKeyTo, req.To),
@@ -530,9 +535,7 @@ func (ms MsgServer) emitWithdrawEvents(ctx context.Context, req *types.MsgInitia
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, baseDenom),
 		sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyL2Sequence, strconv.FormatUint(l2Sequence, 10)),
-	))
-
-	return nil
+	), nil
 }
 
 func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle) (*types.MsgUpdateOracleResponse, error) {
