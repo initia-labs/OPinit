@@ -524,7 +524,7 @@ func (ms MsgServer) emitWithdrawEvents(ctx context.Context, req *types.MsgInitia
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
- 	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
 		sdk.NewAttribute(types.AttributeKeyTo, req.To),
