@@ -141,7 +141,7 @@ func NewKeeper(
 }
 
 // WithTokenCreationFn sets the token creation function.
-func (k Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, decimals uint8) error) Keeper {
+func (k *Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, decimals uint8) error) *Keeper {
 	k.tokenCreationFn = fn
 	return k
 }

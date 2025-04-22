@@ -204,13 +204,14 @@ func (f *TestFaucet) NewFundedAccount(ctx context.Context, amounts ...sdk.Coin) 
 }
 
 type TestKeepers struct {
-	Cdc            codec.Codec
-	AccountKeeper  authkeeper.AccountKeeper
-	BankKeeper     bankkeeper.Keeper
-	OPChildKeeper  opchildkeeper.Keeper
-	OracleKeeper   *oraclekeeper.Keeper
-	EncodingConfig EncodingConfig
-	Faucet         *TestFaucet
+	Cdc                  codec.Codec
+	AccountKeeper        authkeeper.AccountKeeper
+	BankKeeper           bankkeeper.Keeper
+	OPChildKeeper        opchildkeeper.Keeper
+	OracleKeeper         *oraclekeeper.Keeper
+	EncodingConfig       EncodingConfig
+	Faucet               *TestFaucet
+	TokenCreationFactory *TestTokenCreationFactory
 }
 
 // createDefaultTestInput common settings for createTestInput
@@ -316,6 +317,7 @@ func _createTestInput(
 		authtypes.NewModuleAddress(opchildtypes.ModuleName),
 	)
 
+	tokenCreationFactory := &TestTokenCreationFactory{created: make(map[string]bool)}
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
@@ -336,7 +338,7 @@ func _createTestInput(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 		ctx.Logger(),
-	)
+	).WithTokenCreationFn(tokenCreationFactory.TokenCreationFn)
 
 	opchildParams := opchildtypes.DefaultParams()
 	opchildParams.Admin = addrs[0].String()
@@ -349,13 +351,14 @@ func _createTestInput(
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
 	keepers := TestKeepers{
-		Cdc:            appCodec,
-		AccountKeeper:  accountKeeper,
-		BankKeeper:     bankKeeper,
-		OPChildKeeper:  *opchildKeeper,
-		OracleKeeper:   &oracleKeeper,
-		EncodingConfig: encodingConfig,
-		Faucet:         faucet,
+		Cdc:                  appCodec,
+		AccountKeeper:        accountKeeper,
+		BankKeeper:           bankKeeper,
+		OPChildKeeper:        *opchildKeeper,
+		OracleKeeper:         &oracleKeeper,
+		EncodingConfig:       encodingConfig,
+		Faucet:               faucet,
+		TokenCreationFactory: tokenCreationFactory,
 	}
 	return ctx, keepers
 }
@@ -413,4 +416,13 @@ func generateTestTx(
 	require.NoError(t, err)
 
 	return txBuilder.GetTx()
+}
+
+type TestTokenCreationFactory struct {
+	created map[string]bool
+}
+
+func (t *TestTokenCreationFactory) TokenCreationFn(ctx context.Context, denom string, decimals uint8) error {
+	t.created[denom] = true
+	return nil
 }
