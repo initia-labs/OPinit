@@ -57,6 +57,9 @@ type Keeper struct {
 
 	l2OracleHandler    *L2OracleHandler
 	HostValidatorStore *HostValidatorStore
+
+	// tokenCreationFn is the function that creates a token at first deposit.
+	tokenCreationFn func(ctx context.Context, denom string, decimals uint8) error
 }
 
 func NewKeeper(
@@ -134,6 +137,12 @@ func NewKeeper(
 	k.Schema = schema
 	k.l2OracleHandler = NewL2OracleHandler(k, ok, logger)
 
+	return k
+}
+
+// WithTokenCreationFn sets the token creation function.
+func (k *Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, decimals uint8) error) *Keeper {
+	k.tokenCreationFn = fn
 	return k
 }
 

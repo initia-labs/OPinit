@@ -503,6 +503,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
+	require.True(t, input.TokenCreationFactory.created[denom])
 
 	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
 	require.Equal(t, math.NewInt(100), afterBalance.Amount)
