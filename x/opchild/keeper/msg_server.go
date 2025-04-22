@@ -423,6 +423,13 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		if err := ms.DenomPairs.Set(ctx, coin.Denom, req.BaseDenom); err != nil {
 			return nil, err
 		}
+
+		// create token if it doesn't exist
+		if ms.tokenCreationFn != nil {
+			if err := ms.tokenCreationFn(ctx, coin.Denom, 0); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	depositEvent := sdk.NewEvent(
