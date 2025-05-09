@@ -113,14 +113,14 @@ func (r *RPCHelper) GetBridgeInfo(bridgeId uint64) (*ophosttypes.QueryBridgeResp
 	return &bridgeInfoRes, nil
 }
 
-// BroadcastTxAndWait broadcasts a transaction and waits until it is included in a block.
-func (r *RPCHelper) BroadcastTxAndWait(
+// CreateAndSignTx creates and signs a transaction
+func (r *RPCHelper) CreateAndSignTx(
 	senderAddress string,
 	mnemonic string,
 	gasLimit uint64,
 	fee sdk.Coins,
 	msgs ...sdk.Msg,
-) (*coretypes.ResultTx, error) {
+) ([]byte, error) {
 	r.log.Info("building tx...",
 		"fee", fee.String(),
 		"msgs-len", len(msgs),
@@ -162,6 +162,22 @@ func (r *RPCHelper) BroadcastTxAndWait(
 	}
 	r.log.Info("built transaction", "tx-bytes", string(json[:100]))
 
+	return txBytes, nil
+}
+
+// BroadcastTxAndWait broadcasts a transaction and waits until it is included in a block.
+func (r *RPCHelper) BroadcastTxAndWait(
+	senderAddress string,
+	mnemonic string,
+	gasLimit uint64,
+	fee sdk.Coins,
+	msgs ...sdk.Msg,
+) (*coretypes.ResultTx, error) {
+	txBytes, err := r.CreateAndSignTx(senderAddress, mnemonic, gasLimit, fee, msgs...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create and sign transaction")
+	}
+
 	// broadcast
 	txResponse, err := r.cliCtx.BroadcastTxSync(txBytes)
 	if err != nil {
@@ -185,7 +201,7 @@ func (r *RPCHelper) BroadcastTxAndWait(
 		"tx-hash", txResponse.TxHash,
 	)
 
-	for retry := 0; retry < 10; retry++ {
+	for range 10 {
 		txResult, _ := r.cliCtx.Client.Tx(
 			context.Background(),
 			hashBz,
