@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -49,7 +50,16 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit [sequence] [height] [from_l1] [to_l2] [amount] [base_denom]",
 		Args:  cobra.ExactArgs(6),
-		Short: "send a deposit to an user account",
+		Short: "finalize a token deposit",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`
+finalize a token deposit.
+Example:
+$ %s tx opchild deposit 1 100 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 init10d07y265gmmuvt4z0w9aw880jnsr700j55nka3 100l2/0830c02d6bcbe6fc9e76539c4c16ec8102039ba87a714a447b821846685bac59 uinit --hook-msg "0x1234567890abcdef"
+				`, version.AppName,
+			),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -91,10 +101,16 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			hookMsg = strings.TrimPrefix(hookMsg, "0x")
+			hookMsgBytes, err := hex.DecodeString(hookMsg)
+			if err != nil {
+				return err
+			}
+
 			txf, msg, err := newBuildDepositMsg(
 				clientCtx, ac, txf, sequence, height,
 				fromAddr, to, amount, baseDenom,
-				[]byte(hookMsg),
+				hookMsgBytes,
 			)
 			if err != nil {
 				return err
@@ -104,7 +120,7 @@ func NewDepositCmd(ac address.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagHookMsg, "", "Hook message passed from the upper layer")
+	cmd.Flags().String(FlagHookMsg, "", "Hex encoded hook message passed from the upper layer")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
