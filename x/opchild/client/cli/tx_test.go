@@ -2,7 +2,6 @@ package cli_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -154,10 +153,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 	require.NoError(err)
 	require.NotNil(consPubKeyBz)
 
-	hookMsg := "hello world"
-	hookMsgBytes, err := json.Marshal(hookMsg)
-	require.NoError(err)
-	hookMsgString := string(hookMsgBytes)
+	hookMsg := "0x1234567890abcdef"
 
 	testCases := []struct {
 		name         string
@@ -271,7 +267,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				s.addrs[1].String(),
 				"100umin",
 				"test_token",
-				fmt.Sprintf("--%s=%s", cli.FlagHookMsg, hookMsgString),
+				fmt.Sprintf("--%s=%s", cli.FlagHookMsg, hookMsg),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -280,7 +276,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 			false, 0, &sdk.TxResponse{},
 		},
 		{
-			"valid transaction with invalid hook msg",
+			"failed transaction with invalid hook msg",
 			[]string{
 				"1",
 				"1",
@@ -294,7 +290,7 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
 			},
-			false, 0, &sdk.TxResponse{},
+			true, 0, &sdk.TxResponse{},
 		},
 	}
 
