@@ -27,7 +27,7 @@ var (
 	ErrMaxValidatorsExceeded           = errorsmod.Register(ModuleName, 20, "max validators exceeded")
 	ErrMaxValidatorsLowerThanCurrent   = errorsmod.Register(ModuleName, 21, "max validators cannot be lower than current number of validators")
 	ErrNonL1Token                      = errorsmod.Register(ModuleName, 22, "token is not from L1")
-	ErrInvalidOracleHeight             = errorsmod.Register(ModuleName, 23, "oracle height is old")
+	ErrInvalidOracleHeight             = errorsmod.Register(ModuleName, 23, "oracle height is old") // unused
 	ErrOracleValidatorsNotRegistered   = errorsmod.Register(ModuleName, 24, "validators are not registered in oracle")
 	ErrOracleTimestampNotExists        = errorsmod.Register(ModuleName, 25, "oracle timestamp does not exist")
 	ErrInvalidOracleTimestamp          = errorsmod.Register(ModuleName, 26, "oracle timestamp is old")
