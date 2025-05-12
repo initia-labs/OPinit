@@ -57,6 +57,22 @@ func NewL2OracleHandler(
 }
 
 func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCommitBz []byte) error {
+	hostStoreLastHeight, err := k.HostValidatorStore.GetLastHeight(ctx)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return types.ErrOracleValidatorsNotRegistered
+		}
+		return err
+	}
+
+	// introduce a delay buffer to prevent race conditions
+	// between ibc relayer and oracle update
+	const updateDelayBuffer = int64(10)
+	h := int64(height) //nolint:gosec
+	if hostStoreLastHeight-updateDelayBuffer > h {
+		return types.ErrInvalidOracleHeight
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	hostChainID, err := k.L1ChainId(ctx)
 	if err != nil {
@@ -71,7 +87,6 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	h := int64(height) //nolint:gosec
 	extendedVotes, err := l2connect.ValidateVoteExtensions(sdkCtx, k.HostValidatorStore, h-1, hostChainID, extendedCommitInfo)
 	if err != nil {
 		return err
