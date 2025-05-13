@@ -583,3 +583,27 @@ func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams
 	return &types.MsgUpdateParamsResponse{}, nil
 
 }
+
+// UpdateFinalizationPeriod implements updating the finalization period
+func (ms MsgServer) UpdateFinalizationPeriod(ctx context.Context, req *types.MsgUpdateFinalizationPeriod) (*types.MsgUpdateFinalizationPeriodResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	config.FinalizationPeriod = req.FinalizationPeriod
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateFinalizationPeriodResponse{}, nil
+}

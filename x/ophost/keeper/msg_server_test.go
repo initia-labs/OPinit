@@ -545,3 +545,62 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 	)
 	require.Error(t, err)
 }
+
+func Test_MsgServer_UpdateFinalizationPeriod(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	config := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challenger:            addrsStr[1],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+	}
+
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgUpdateFinalizationPeriod(govAddr, 1, time.Second*10)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.NoError(t, err)
+
+	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 1, time.Second*20)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.NoError(t, err)
+
+	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 1, time.Second*30)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.NoError(t, err)
+
+	// check finalization period
+	config, err = ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, time.Second*30, config.FinalizationPeriod)
+
+	// invalid signer
+	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+	msg = types.NewMsgUpdateFinalizationPeriod(invalidAddr, 1, time.Second*10)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.Error(t, err)
+
+	// invalid bridge id
+	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 0, time.Second*10)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.Error(t, err)
+
+	// invalid finalization period
+	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 1, time.Second*0)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.Error(t, err)
+
+	// not exist bridge
+	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 2, time.Second*10)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.Error(t, err)
+}

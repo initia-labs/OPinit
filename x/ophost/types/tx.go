@@ -1,7 +1,10 @@
 package types
 
 import (
+	time "time"
+
 	"cosmossdk.io/core/address"
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -18,6 +21,7 @@ var (
 	_ sdk.Msg = &MsgUpdateBatchInfo{}
 	_ sdk.Msg = &MsgUpdateMetadata{}
 	_ sdk.Msg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgUpdateFinalizationPeriod{}
 )
 
 const (
@@ -460,6 +464,38 @@ func (msg MsgUpdateParams) Validate(ac address.Codec) error {
 
 	if err := msg.Params.Validate(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+/* MsgUpdateFinalizationPeriod */
+
+// NewMsgUpdateFinalizationPeriod creates a new MsgUpdateFinalizationPeriod instance.
+func NewMsgUpdateFinalizationPeriod(
+	authority string,
+	bridgeId uint64,
+	finalizationPeriod time.Duration,
+) *MsgUpdateFinalizationPeriod {
+	return &MsgUpdateFinalizationPeriod{
+		Authority:          authority,
+		BridgeId:           bridgeId,
+		FinalizationPeriod: finalizationPeriod,
+	}
+}
+
+// Validate performs basic MsgUpdateFinalizationPeriod message validation.
+func (msg MsgUpdateFinalizationPeriod) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if msg.FinalizationPeriod <= 0 {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "finalization period must be greater than 0")
 	}
 
 	return nil
