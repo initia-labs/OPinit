@@ -19,18 +19,19 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_RecordBatch_FullMethodName             = "/opinit.ophost.v1.Msg/RecordBatch"
-	Msg_CreateBridge_FullMethodName            = "/opinit.ophost.v1.Msg/CreateBridge"
-	Msg_ProposeOutput_FullMethodName           = "/opinit.ophost.v1.Msg/ProposeOutput"
-	Msg_DeleteOutput_FullMethodName            = "/opinit.ophost.v1.Msg/DeleteOutput"
-	Msg_InitiateTokenDeposit_FullMethodName    = "/opinit.ophost.v1.Msg/InitiateTokenDeposit"
-	Msg_FinalizeTokenWithdrawal_FullMethodName = "/opinit.ophost.v1.Msg/FinalizeTokenWithdrawal"
-	Msg_UpdateProposer_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateProposer"
-	Msg_UpdateChallenger_FullMethodName        = "/opinit.ophost.v1.Msg/UpdateChallenger"
-	Msg_UpdateBatchInfo_FullMethodName         = "/opinit.ophost.v1.Msg/UpdateBatchInfo"
-	Msg_UpdateMetadata_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateMetadata"
-	Msg_UpdateOracleConfig_FullMethodName      = "/opinit.ophost.v1.Msg/UpdateOracleConfig"
-	Msg_UpdateParams_FullMethodName            = "/opinit.ophost.v1.Msg/UpdateParams"
+	Msg_RecordBatch_FullMethodName              = "/opinit.ophost.v1.Msg/RecordBatch"
+	Msg_CreateBridge_FullMethodName             = "/opinit.ophost.v1.Msg/CreateBridge"
+	Msg_ProposeOutput_FullMethodName            = "/opinit.ophost.v1.Msg/ProposeOutput"
+	Msg_DeleteOutput_FullMethodName             = "/opinit.ophost.v1.Msg/DeleteOutput"
+	Msg_InitiateTokenDeposit_FullMethodName     = "/opinit.ophost.v1.Msg/InitiateTokenDeposit"
+	Msg_FinalizeTokenWithdrawal_FullMethodName  = "/opinit.ophost.v1.Msg/FinalizeTokenWithdrawal"
+	Msg_UpdateProposer_FullMethodName           = "/opinit.ophost.v1.Msg/UpdateProposer"
+	Msg_UpdateChallenger_FullMethodName         = "/opinit.ophost.v1.Msg/UpdateChallenger"
+	Msg_UpdateBatchInfo_FullMethodName          = "/opinit.ophost.v1.Msg/UpdateBatchInfo"
+	Msg_UpdateMetadata_FullMethodName           = "/opinit.ophost.v1.Msg/UpdateMetadata"
+	Msg_UpdateOracleConfig_FullMethodName       = "/opinit.ophost.v1.Msg/UpdateOracleConfig"
+	Msg_UpdateParams_FullMethodName             = "/opinit.ophost.v1.Msg/UpdateParams"
+	Msg_UpdateFinalizationPeriod_FullMethodName = "/opinit.ophost.v1.Msg/UpdateFinalizationPeriod"
 )
 
 // MsgClient is the client API for Msg service.
@@ -62,6 +63,8 @@ type MsgClient interface {
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// UpdateFinalizationPeriod defines a rpc handler method for MsgUpdateFinalizationPeriod.
+	UpdateFinalizationPeriod(ctx context.Context, in *MsgUpdateFinalizationPeriod, opts ...grpc.CallOption) (*MsgUpdateFinalizationPeriodResponse, error)
 }
 
 type msgClient struct {
@@ -180,6 +183,15 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
+func (c *msgClient) UpdateFinalizationPeriod(ctx context.Context, in *MsgUpdateFinalizationPeriod, opts ...grpc.CallOption) (*MsgUpdateFinalizationPeriodResponse, error) {
+	out := new(MsgUpdateFinalizationPeriodResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateFinalizationPeriod_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -209,6 +221,8 @@ type MsgServer interface {
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// UpdateFinalizationPeriod defines a rpc handler method for MsgUpdateFinalizationPeriod.
+	UpdateFinalizationPeriod(context.Context, *MsgUpdateFinalizationPeriod) (*MsgUpdateFinalizationPeriodResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -251,6 +265,9 @@ func (UnimplementedMsgServer) UpdateOracleConfig(context.Context, *MsgUpdateOrac
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+}
+func (UnimplementedMsgServer) UpdateFinalizationPeriod(context.Context, *MsgUpdateFinalizationPeriod) (*MsgUpdateFinalizationPeriodResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateFinalizationPeriod not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -481,6 +498,24 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateFinalizationPeriod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateFinalizationPeriod)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateFinalizationPeriod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateFinalizationPeriod_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateFinalizationPeriod(ctx, req.(*MsgUpdateFinalizationPeriod))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -535,6 +570,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
+		},
+		{
+			MethodName: "UpdateFinalizationPeriod",
+			Handler:    _Msg_UpdateFinalizationPeriod_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
