@@ -598,4 +598,9 @@ func Test_MsgServer_UpdateFinalizationPeriod(t *testing.T) {
 	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 1, time.Second*0)
 	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
 	require.Error(t, err)
+
+	// not exist bridge
+	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 2, time.Second*10)
+	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
+	require.Error(t, err)
 }
