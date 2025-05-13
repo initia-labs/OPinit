@@ -365,13 +365,11 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.Error(t, err)
 
-	// cannot change client id
+	// possible to change client id
 	info.L1ChainId = "test-chain-id"
 	info.L1ClientId = "test-client-id-2"
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
-	require.Error(t, err)
-
-	info.L1ClientId = "test-client-id"
+	require.NoError(t, err)
 
 	// invalid bridge id
 	info.BridgeId = 0
