@@ -296,7 +296,7 @@ func Test_MsgServer_RemoveFeeWhitelistAddresses(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid authority")
 }
 
-func Test_MsgServer_AddBridgeExecutorAddresses(t *testing.T) {
+func Test_MsgServer_AddBridgeExecutor(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
