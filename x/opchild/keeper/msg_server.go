@@ -264,6 +264,216 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 	return &types.MsgRemoveValidatorResponse{}, nil
 }
 
+// AddFeeWhitelistAddresses implements adding addresses to the fee whitelist addresses parameter
+func (ms MsgServer) AddFeeWhitelistAddresses(ctx context.Context, req *types.MsgAddFeeWhitelistAddresses) (*types.MsgAddFeeWhitelistAddressesResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	existingAddresses := make(map[string]bool)
+	for _, addr := range params.FeeWhitelist {
+		existingAddresses[addr] = true
+	}
+
+	paramsChanged := false
+	for _, addr := range req.Addresses {
+		if !existingAddresses[addr] {
+			params.FeeWhitelist = append(params.FeeWhitelist, addr)
+			existingAddresses[addr] = true
+			paramsChanged = true
+		}
+	}
+
+	if paramsChanged {
+		if err := ms.SetParams(ctx, params); err != nil {
+			return nil, err
+		}
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAddFeeWhitelist,
+			sdk.NewAttribute(types.AttributeKeyAuthority, req.Authority),
+		),
+	)
+
+	return &types.MsgAddFeeWhitelistAddressesResponse{}, nil
+}
+
+func (ms MsgServer) RemoveFeeWhitelistAddresses(ctx context.Context, req *types.MsgRemoveFeeWhitelistAddresses) (*types.MsgRemoveFeeWhitelistAddressesResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	toRemove := make(map[string]bool)
+	for _, addr := range req.Addresses {
+		toRemove[addr] = true
+	}
+
+	filtered := make([]string, 0, len(params.FeeWhitelist))
+	for _, addr := range params.FeeWhitelist {
+		if !toRemove[addr] {
+			filtered = append(filtered, addr)
+		}
+	}
+
+	if len(filtered) != len(params.FeeWhitelist) {
+		params.FeeWhitelist = filtered
+		if err := ms.SetParams(ctx, params); err != nil {
+			return nil, err
+		}
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRemoveFeeWhitelist,
+			sdk.NewAttribute(types.AttributeKeyAuthority, req.Authority),
+		),
+	)
+
+	return &types.MsgRemoveFeeWhitelistAddressesResponse{}, nil
+}
+
+func (ms MsgServer) AddBridgeExecutor(ctx context.Context, req *types.MsgAddBridgeExecutor) (*types.MsgAddBridgeExecutorResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	existingExecutors := make(map[string]bool)
+	for _, addr := range params.BridgeExecutors {
+		existingExecutors[addr] = true
+	}
+
+	paramsChanged := false
+	for _, addr := range req.Addresses {
+		if !existingExecutors[addr] {
+			params.BridgeExecutors = append(params.BridgeExecutors, addr)
+			existingExecutors[addr] = true
+			paramsChanged = true
+		}
+	}
+
+	if paramsChanged {
+		if err := ms.SetParams(ctx, params); err != nil {
+			return nil, err
+		}
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAddBridgeExecutor,
+			sdk.NewAttribute(types.AttributeKeyAuthority, req.Authority),
+		),
+	)
+
+	return &types.MsgAddBridgeExecutorResponse{}, nil
+}
+
+func (ms MsgServer) RemoveBridgeExecutor(ctx context.Context, req *types.MsgRemoveBridgeExecutor) (*types.MsgRemoveBridgeExecutorResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	toRemove := make(map[string]bool)
+	for _, addr := range req.Addresses {
+		toRemove[addr] = true
+	}
+
+	filtered := make([]string, 0, len(params.BridgeExecutors))
+	for _, addr := range params.BridgeExecutors {
+		if !toRemove[addr] {
+			filtered = append(filtered, addr)
+		}
+	}
+
+	if len(filtered) != len(params.BridgeExecutors) {
+		params.BridgeExecutors = filtered
+		if err := ms.SetParams(ctx, params); err != nil {
+			return nil, err
+		}
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRemoveBridgeExecutor,
+			sdk.NewAttribute(types.AttributeKeyAuthority, req.Authority),
+		),
+	)
+
+	return &types.MsgRemoveBridgeExecutorResponse{}, nil
+}
+
+func (ms MsgServer) UpdateMinGasPrices(ctx context.Context, req *types.MsgUpdateMinGasPrices) (*types.MsgUpdateMinGasPricesResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	params.MinGasPrices = req.MinGasPrices
+	if err := ms.SetParams(ctx, params); err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUpdateMinGasPrices,
+			sdk.NewAttribute(types.AttributeKeyAuthority, req.Authority),
+			sdk.NewAttribute(types.AttributeKeyMinGasPrices, req.MinGasPrices.String()),
+		),
+	)
+
+	return &types.MsgUpdateMinGasPricesResponse{}, nil
+}
+
 // UpdateParams implements updating the parameters
 func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	// sort the min gas prices

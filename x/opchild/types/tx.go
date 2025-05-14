@@ -15,6 +15,11 @@ var (
 	_ sdk.Msg = &MsgExecuteMessages{}
 	_ sdk.Msg = &MsgAddValidator{}
 	_ sdk.Msg = &MsgRemoveValidator{}
+	_ sdk.Msg = &MsgAddFeeWhitelistAddresses{}
+	_ sdk.Msg = &MsgRemoveFeeWhitelistAddresses{}
+	_ sdk.Msg = &MsgAddBridgeExecutor{}
+	_ sdk.Msg = &MsgRemoveBridgeExecutor{}
+	_ sdk.Msg = &MsgUpdateMinGasPrices{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgSpendFeePool{}
 	_ sdk.Msg = &MsgSetBridgeInfo{}
@@ -266,6 +271,135 @@ func (msg MsgFinalizeTokenDeposit) Validate(ac address.Codec) error {
 
 	if msg.Height == 0 {
 		return ErrInvalidBlockHeight
+	}
+
+	return nil
+}
+
+/* MsgAddFeeWhitelistAddresses */
+
+func NewMsgAddFeeWhitelistAddresses(authority string, addresses []string) *MsgAddFeeWhitelistAddresses {
+	return &MsgAddFeeWhitelistAddresses{
+		Authority: authority,
+		Addresses: addresses,
+	}
+}
+
+func (msg MsgAddFeeWhitelistAddresses) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if len(msg.Addresses) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("addresses cannot be empty")
+	}
+
+	for _, addr := range msg.Addresses {
+		if _, err := ac.StringToBytes(addr); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+/* MsgRemoveFeeWhitelistAddresses */
+
+func NewMsgRemoveFeeWhitelistAddresses(authority string, addresses []string) *MsgRemoveFeeWhitelistAddresses {
+	return &MsgRemoveFeeWhitelistAddresses{
+		Authority: authority,
+		Addresses: addresses,
+	}
+}
+
+func (msg MsgRemoveFeeWhitelistAddresses) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if len(msg.Addresses) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("addresses cannot be empty")
+	}
+
+	for _, addr := range msg.Addresses {
+		if _, err := ac.StringToBytes(addr); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+/* MsgAddBridgeExecutor */
+
+func NewMsgAddBridgeExecutor(authority string, addresses []string) *MsgAddBridgeExecutor {
+	return &MsgAddBridgeExecutor{
+		Authority: authority,
+		Addresses: addresses,
+	}
+}
+
+func (msg MsgAddBridgeExecutor) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if len(msg.Addresses) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("addresses cannot be empty")
+	}
+
+	for _, addr := range msg.Addresses {
+		if _, err := ac.StringToBytes(addr); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+/* MsgRemoveBridgeExecutor */
+
+func NewMsgRemoveBridgeExecutor(authority string, addresses []string) *MsgRemoveBridgeExecutor {
+	return &MsgRemoveBridgeExecutor{
+		Authority: authority,
+		Addresses: addresses,
+	}
+}
+
+func (msg MsgRemoveBridgeExecutor) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if len(msg.Addresses) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("addresses cannot be empty")
+	}
+
+	for _, addr := range msg.Addresses {
+		if _, err := ac.StringToBytes(addr); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+/* MsgUpdateMinGasPrices */
+
+func NewMsgUpdateMinGasPrices(authority string, minGasPrices sdk.DecCoins) *MsgUpdateMinGasPrices {
+	return &MsgUpdateMinGasPrices{
+		Authority:    authority,
+		MinGasPrices: minGasPrices,
+	}
+}
+
+func (msg MsgUpdateMinGasPrices) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if err := msg.MinGasPrices.Validate(); err != nil {
+		return err
 	}
 
 	return nil

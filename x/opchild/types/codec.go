@@ -14,6 +14,11 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgExecuteMessages{}, "opchild/MsgExecuteMessages")
 	legacy.RegisterAminoMsg(cdc, &MsgAddValidator{}, "opchild/MsgAddValidator")
 	legacy.RegisterAminoMsg(cdc, &MsgRemoveValidator{}, "opchild/MsgRemoveAddValidator")
+	legacy.RegisterAminoMsg(cdc, &MsgAddFeeWhitelistAddresses{}, "opchild/MsgAddFeeWhitelistAddresses")
+	legacy.RegisterAminoMsg(cdc, &MsgRemoveFeeWhitelistAddresses{}, "opchild/MsgRemoveFeeWhitelistAddresses")
+	legacy.RegisterAminoMsg(cdc, &MsgAddBridgeExecutor{}, "opchild/MsgAddBridgeExecutor")
+	legacy.RegisterAminoMsg(cdc, &MsgRemoveBridgeExecutor{}, "opchild/MsgRemoveBridgeExecutor")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateMinGasPrices{}, "opchild/MsgUpdateMinGasPrices")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "opchild/MsgUpdateParams")
 	legacy.RegisterAminoMsg(cdc, &MsgFinalizeTokenDeposit{}, "opchild/MsgFinalizeTokenDeposit")
 	legacy.RegisterAminoMsg(cdc, &MsgInitiateTokenWithdrawal{}, "opchild/MsgInitiateTokenWithdrawal")
@@ -30,6 +35,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgExecuteMessages{},
 		&MsgAddValidator{},
 		&MsgRemoveValidator{},
+		&MsgAddFeeWhitelistAddresses{},
+		&MsgRemoveFeeWhitelistAddresses{},
+		&MsgAddBridgeExecutor{},
+		&MsgRemoveBridgeExecutor{},
+		&MsgUpdateMinGasPrices{},
 		&MsgUpdateParams{},
 		&MsgFinalizeTokenDeposit{},
 		&MsgInitiateTokenWithdrawal{},
