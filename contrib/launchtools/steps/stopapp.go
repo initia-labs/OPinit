@@ -31,6 +31,11 @@ func StopApp(_ *launchertypes.Config) launchertypes.LauncherStepFunc {
 			return err
 		}
 
+		// close the app
+		if localErr := ctx.App().Close(); localErr != nil {
+			log.Error(localErr.Error())
+		}
+
 		log.Info("cleanup finished")
 		return nil
 	}
