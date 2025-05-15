@@ -219,6 +219,244 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_MsgServer_AddFeeWhitelistAddresses(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	initialWhitelistCount := len(params.FeeWhitelist)
+	newAddresses := []string{addrsStr[1], addrsStr[2]}
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	msg := types.NewMsgAddFeeWhitelistAddresses(govAddr, newAddresses)
+	require.NoError(t, err)
+	_, err = ms.AddFeeWhitelistAddresses(
+		ctx,
+		msg,
+	)
+	require.Error(t, err)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	msg = types.NewMsgAddFeeWhitelistAddresses(moduleAddr, newAddresses)
+	_, err = ms.AddFeeWhitelistAddresses(ctx, msg)
+	require.NoError(t, err)
+
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, initialWhitelistCount+2, len(params.FeeWhitelist))
+	require.Contains(t, params.FeeWhitelist, addrsStr[1])
+	require.Contains(t, params.FeeWhitelist, addrsStr[2])
+
+	_, err = ms.AddFeeWhitelistAddresses(ctx, msg)
+	require.NoError(t, err)
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, initialWhitelistCount+2, len(params.FeeWhitelist))
+}
+
+func Test_MsgServer_RemoveFeeWhitelistAddresses(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	addAddresses := []string{addrsStr[1], addrsStr[2], addrsStr[3]}
+	addMsg := types.NewMsgAddFeeWhitelistAddresses(moduleAddr, addAddresses)
+	_, err = ms.AddFeeWhitelistAddresses(ctx, addMsg)
+	require.NoError(t, err)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	countAfterAdd := len(params.FeeWhitelist)
+
+	removeAddresses := []string{addrsStr[1], addrsStr[3]}
+	msg := types.NewMsgRemoveFeeWhitelistAddresses(moduleAddr, removeAddresses)
+	_, err = ms.RemoveFeeWhitelistAddresses(ctx, msg)
+	require.NoError(t, err)
+
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, countAfterAdd-2, len(params.FeeWhitelist))
+	require.NotContains(t, params.FeeWhitelist, addrsStr[1])
+	require.Contains(t, params.FeeWhitelist, addrsStr[2])
+	require.NotContains(t, params.FeeWhitelist, addrsStr[3])
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	invalidMsg := types.NewMsgRemoveFeeWhitelistAddresses(govAddr, removeAddresses)
+	_, err = ms.RemoveFeeWhitelistAddresses(ctx, invalidMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func Test_MsgServer_AddBridgeExecutor(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	initialExecutorCount := len(params.BridgeExecutors)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	// adding valid addresses
+	newAddresses := []string{addrsStr[1], addrsStr[2]}
+	msg := types.NewMsgAddBridgeExecutor(moduleAddr, newAddresses)
+	_, err = ms.AddBridgeExecutor(ctx, msg)
+	require.NoError(t, err)
+
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, initialExecutorCount+2, len(params.BridgeExecutors))
+	require.Contains(t, params.BridgeExecutors, addrsStr[1])
+	require.Contains(t, params.BridgeExecutors, addrsStr[2])
+
+	// adding duplicate addresses (should not increase count)
+	_, err = ms.AddBridgeExecutor(ctx, msg)
+	require.NoError(t, err)
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, initialExecutorCount+2, len(params.BridgeExecutors))
+
+	// invalid authority
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	invalidMsg := types.NewMsgAddBridgeExecutor(govAddr, newAddresses)
+	_, err = ms.AddBridgeExecutor(ctx, invalidMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func Test_MsgServer_RemoveBridgeExecutor(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	addAddresses := []string{addrsStr[1], addrsStr[2], addrsStr[3]}
+	addMsg := types.NewMsgAddBridgeExecutor(moduleAddr, addAddresses)
+	_, err = ms.AddBridgeExecutor(ctx, addMsg)
+	require.NoError(t, err)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	countAfterAdd := len(params.BridgeExecutors)
+
+	removeAddresses := []string{addrsStr[1], addrsStr[3]}
+	msg := types.NewMsgRemoveBridgeExecutor(moduleAddr, removeAddresses)
+	_, err = ms.RemoveBridgeExecutor(ctx, msg)
+	require.NoError(t, err)
+
+	params, err = ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, countAfterAdd-2, len(params.BridgeExecutors))
+	require.NotContains(t, params.BridgeExecutors, addrsStr[1])
+	require.Contains(t, params.BridgeExecutors, addrsStr[2])
+	require.NotContains(t, params.BridgeExecutors, addrsStr[3])
+
+	// invalid authority
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	invalidMsg := types.NewMsgRemoveBridgeExecutor(govAddr, removeAddresses)
+	_, err = ms.RemoveBridgeExecutor(ctx, invalidMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func Test_MsgServer_UpdateMinGasPrices(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	minGasPrices := sdk.NewDecCoinsFromCoins(
+		sdk.NewCoin("test1", math.NewInt(100)),
+		sdk.NewCoin("test2", math.NewInt(10)),
+	)
+
+	msg := types.NewMsgUpdateMinGasPrices(moduleAddr, minGasPrices)
+	_, err = ms.UpdateMinGasPrices(ctx, msg)
+	require.NoError(t, err)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(params.MinGasPrices))
+	require.Equal(t, math.LegacyNewDec(100), params.MinGasPrices.AmountOf("test1"))
+	require.Equal(t, math.LegacyNewDec(10), params.MinGasPrices.AmountOf("test2"))
+
+	// invalid authority
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	invalidMsg := types.NewMsgUpdateMinGasPrices(govAddr, minGasPrices)
+	_, err = ms.UpdateMinGasPrices(ctx, invalidMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func Test_MsgServer_UpdateMinGasPrices_EmptyCoins(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	initialParams, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+
+	initialParams.MinGasPrices = sdk.NewDecCoinsFromCoins(
+		sdk.NewCoin("test1", math.NewInt(1)),
+	)
+	err = input.OPChildKeeper.SetParams(ctx, initialParams)
+	require.NoError(t, err)
+
+	emptyMinGasPrices := sdk.DecCoins{}
+	msg := types.NewMsgUpdateMinGasPrices(moduleAddr, emptyMinGasPrices)
+	_, err = ms.UpdateMinGasPrices(ctx, msg)
+	require.NoError(t, err)
+
+	paramsAfter, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(paramsAfter.MinGasPrices))
+}
+
+func Test_MsgServer_UpdateAdmin(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	msg := types.NewMsgUpdateAdmin(moduleAddr, addrsStr[1])
+	_, err = ms.UpdateAdmin(ctx, msg)
+	require.NoError(t, err)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, addrsStr[1], params.Admin)
+
+	// invalid authority
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	invalidMsg := types.NewMsgUpdateAdmin(govAddr, addrsStr[2])
+	_, err = ms.UpdateAdmin(ctx, invalidMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
 func Test_MsgServer_UpdateParams(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)

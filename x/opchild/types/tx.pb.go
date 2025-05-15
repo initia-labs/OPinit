@@ -523,6 +523,476 @@ func (m *MsgRemoveValidatorResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveValidatorResponse proto.InternalMessageInfo
 
+// MsgAddFeeWhitelistAddresses is a message to add addresses to the x/opchild fee whitelist
+type MsgAddFeeWhitelistAddresses struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority string   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	Addresses []string `protobuf:"bytes,2,rep,name=addresses,proto3" json:"addresses,omitempty" yaml:"addresses"`
+}
+
+func (m *MsgAddFeeWhitelistAddresses) Reset()         { *m = MsgAddFeeWhitelistAddresses{} }
+func (m *MsgAddFeeWhitelistAddresses) String() string { return proto.CompactTextString(m) }
+func (*MsgAddFeeWhitelistAddresses) ProtoMessage()    {}
+func (*MsgAddFeeWhitelistAddresses) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{12}
+}
+func (m *MsgAddFeeWhitelistAddresses) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgAddFeeWhitelistAddresses) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgAddFeeWhitelistAddresses.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgAddFeeWhitelistAddresses) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddFeeWhitelistAddresses.Merge(m, src)
+}
+func (m *MsgAddFeeWhitelistAddresses) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgAddFeeWhitelistAddresses) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddFeeWhitelistAddresses.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgAddFeeWhitelistAddresses proto.InternalMessageInfo
+
+// MsgAddFeeWhitelistAddressesResponse returns the addition result data
+type MsgAddFeeWhitelistAddressesResponse struct {
+}
+
+func (m *MsgAddFeeWhitelistAddressesResponse) Reset()         { *m = MsgAddFeeWhitelistAddressesResponse{} }
+func (m *MsgAddFeeWhitelistAddressesResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddFeeWhitelistAddressesResponse) ProtoMessage()    {}
+func (*MsgAddFeeWhitelistAddressesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{13}
+}
+func (m *MsgAddFeeWhitelistAddressesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgAddFeeWhitelistAddressesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgAddFeeWhitelistAddressesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgAddFeeWhitelistAddressesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddFeeWhitelistAddressesResponse.Merge(m, src)
+}
+func (m *MsgAddFeeWhitelistAddressesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgAddFeeWhitelistAddressesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddFeeWhitelistAddressesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgAddFeeWhitelistAddressesResponse proto.InternalMessageInfo
+
+// MsgRemoveFeeWhitelistAddresses is a message to remove addresses from the x/opchild fee whitelist
+type MsgRemoveFeeWhitelistAddresses struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority string   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	Addresses []string `protobuf:"bytes,2,rep,name=addresses,proto3" json:"addresses,omitempty" yaml:"addresses"`
+}
+
+func (m *MsgRemoveFeeWhitelistAddresses) Reset()         { *m = MsgRemoveFeeWhitelistAddresses{} }
+func (m *MsgRemoveFeeWhitelistAddresses) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveFeeWhitelistAddresses) ProtoMessage()    {}
+func (*MsgRemoveFeeWhitelistAddresses) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{14}
+}
+func (m *MsgRemoveFeeWhitelistAddresses) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveFeeWhitelistAddresses) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveFeeWhitelistAddresses.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveFeeWhitelistAddresses) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveFeeWhitelistAddresses.Merge(m, src)
+}
+func (m *MsgRemoveFeeWhitelistAddresses) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveFeeWhitelistAddresses) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveFeeWhitelistAddresses.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveFeeWhitelistAddresses proto.InternalMessageInfo
+
+// MsgRemoveFeeWhitelistAddressesResponse returns the removal result data
+type MsgRemoveFeeWhitelistAddressesResponse struct {
+}
+
+func (m *MsgRemoveFeeWhitelistAddressesResponse) Reset() {
+	*m = MsgRemoveFeeWhitelistAddressesResponse{}
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveFeeWhitelistAddressesResponse) ProtoMessage()    {}
+func (*MsgRemoveFeeWhitelistAddressesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{15}
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveFeeWhitelistAddressesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveFeeWhitelistAddressesResponse.Merge(m, src)
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveFeeWhitelistAddressesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveFeeWhitelistAddressesResponse proto.InternalMessageInfo
+
+// MsgAddBridgeExecutor is a message to add addresses to the x/opchild bridge executors
+type MsgAddBridgeExecutor struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority string   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	Addresses []string `protobuf:"bytes,2,rep,name=addresses,proto3" json:"addresses,omitempty" yaml:"addresses"`
+}
+
+func (m *MsgAddBridgeExecutor) Reset()         { *m = MsgAddBridgeExecutor{} }
+func (m *MsgAddBridgeExecutor) String() string { return proto.CompactTextString(m) }
+func (*MsgAddBridgeExecutor) ProtoMessage()    {}
+func (*MsgAddBridgeExecutor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{16}
+}
+func (m *MsgAddBridgeExecutor) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgAddBridgeExecutor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgAddBridgeExecutor.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgAddBridgeExecutor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddBridgeExecutor.Merge(m, src)
+}
+func (m *MsgAddBridgeExecutor) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgAddBridgeExecutor) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddBridgeExecutor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgAddBridgeExecutor proto.InternalMessageInfo
+
+// MsgAddBridgeExecutorResponse returns the addition result data
+type MsgAddBridgeExecutorResponse struct {
+}
+
+func (m *MsgAddBridgeExecutorResponse) Reset()         { *m = MsgAddBridgeExecutorResponse{} }
+func (m *MsgAddBridgeExecutorResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddBridgeExecutorResponse) ProtoMessage()    {}
+func (*MsgAddBridgeExecutorResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{17}
+}
+func (m *MsgAddBridgeExecutorResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgAddBridgeExecutorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgAddBridgeExecutorResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgAddBridgeExecutorResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddBridgeExecutorResponse.Merge(m, src)
+}
+func (m *MsgAddBridgeExecutorResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgAddBridgeExecutorResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddBridgeExecutorResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgAddBridgeExecutorResponse proto.InternalMessageInfo
+
+// MsgRemoveBridgeExecutor is a message to remove addresses from the x/opchild bridge executors
+type MsgRemoveBridgeExecutor struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority string   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	Addresses []string `protobuf:"bytes,2,rep,name=addresses,proto3" json:"addresses,omitempty" yaml:"addresses"`
+}
+
+func (m *MsgRemoveBridgeExecutor) Reset()         { *m = MsgRemoveBridgeExecutor{} }
+func (m *MsgRemoveBridgeExecutor) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveBridgeExecutor) ProtoMessage()    {}
+func (*MsgRemoveBridgeExecutor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{18}
+}
+func (m *MsgRemoveBridgeExecutor) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveBridgeExecutor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveBridgeExecutor.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveBridgeExecutor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveBridgeExecutor.Merge(m, src)
+}
+func (m *MsgRemoveBridgeExecutor) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveBridgeExecutor) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveBridgeExecutor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveBridgeExecutor proto.InternalMessageInfo
+
+// MsgRemoveBridgeExecutorResponse returns the removal result data
+type MsgRemoveBridgeExecutorResponse struct {
+}
+
+func (m *MsgRemoveBridgeExecutorResponse) Reset()         { *m = MsgRemoveBridgeExecutorResponse{} }
+func (m *MsgRemoveBridgeExecutorResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveBridgeExecutorResponse) ProtoMessage()    {}
+func (*MsgRemoveBridgeExecutorResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{19}
+}
+func (m *MsgRemoveBridgeExecutorResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveBridgeExecutorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveBridgeExecutorResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveBridgeExecutorResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveBridgeExecutorResponse.Merge(m, src)
+}
+func (m *MsgRemoveBridgeExecutorResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveBridgeExecutorResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveBridgeExecutorResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveBridgeExecutorResponse proto.InternalMessageInfo
+
+// MsgUpdateMinGasPrices is a message to update the min gas prices parameter
+type MsgUpdateMinGasPrices struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority    string                                      `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	MinGasPrices github_com_cosmos_cosmos_sdk_types.DecCoins `protobuf:"bytes,2,rep,name=min_gas_prices,json=minGasPrices,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecCoins" json:"min_gas_prices" yaml:"min_gas_prices"`
+}
+
+func (m *MsgUpdateMinGasPrices) Reset()         { *m = MsgUpdateMinGasPrices{} }
+func (m *MsgUpdateMinGasPrices) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMinGasPrices) ProtoMessage()    {}
+func (*MsgUpdateMinGasPrices) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{20}
+}
+func (m *MsgUpdateMinGasPrices) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateMinGasPrices) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateMinGasPrices.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateMinGasPrices) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMinGasPrices.Merge(m, src)
+}
+func (m *MsgUpdateMinGasPrices) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateMinGasPrices) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMinGasPrices.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateMinGasPrices proto.InternalMessageInfo
+
+// MsgUpdateMinGasPricesResponse returns the update result data
+type MsgUpdateMinGasPricesResponse struct {
+}
+
+func (m *MsgUpdateMinGasPricesResponse) Reset()         { *m = MsgUpdateMinGasPricesResponse{} }
+func (m *MsgUpdateMinGasPricesResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMinGasPricesResponse) ProtoMessage()    {}
+func (*MsgUpdateMinGasPricesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{21}
+}
+func (m *MsgUpdateMinGasPricesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateMinGasPricesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateMinGasPricesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateMinGasPricesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMinGasPricesResponse.Merge(m, src)
+}
+func (m *MsgUpdateMinGasPricesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateMinGasPricesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMinGasPricesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateMinGasPricesResponse proto.InternalMessageInfo
+
+// MsgUpdateAdmin is a message to update the opchild admin address
+type MsgUpdateAdmin struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	NewAdmin  string `protobuf:"bytes,2,opt,name=new_admin,json=newAdmin,proto3" json:"new_admin,omitempty" yaml:"new_admin"`
+}
+
+func (m *MsgUpdateAdmin) Reset()         { *m = MsgUpdateAdmin{} }
+func (m *MsgUpdateAdmin) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateAdmin) ProtoMessage()    {}
+func (*MsgUpdateAdmin) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{22}
+}
+func (m *MsgUpdateAdmin) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateAdmin.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateAdmin) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateAdmin.Merge(m, src)
+}
+func (m *MsgUpdateAdmin) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateAdmin) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateAdmin.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateAdmin proto.InternalMessageInfo
+
+// MsgUpdateAdminResponse returns the update result data
+type MsgUpdateAdminResponse struct {
+}
+
+func (m *MsgUpdateAdminResponse) Reset()         { *m = MsgUpdateAdminResponse{} }
+func (m *MsgUpdateAdminResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateAdminResponse) ProtoMessage()    {}
+func (*MsgUpdateAdminResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{23}
+}
+func (m *MsgUpdateAdminResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateAdminResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateAdminResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateAdminResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateAdminResponse.Merge(m, src)
+}
+func (m *MsgUpdateAdminResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateAdminResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateAdminResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateAdminResponse proto.InternalMessageInfo
+
 // MsgUpdateParams is a message to update parameters
 type MsgUpdateParams struct {
 	// authority is the address that controls the module
@@ -536,7 +1006,7 @@ func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
 func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParams) ProtoMessage()    {}
 func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{12}
+	return fileDescriptor_1ee96a503651b6e4, []int{24}
 }
 func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -573,7 +1043,7 @@ func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse
 func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParamsResponse) ProtoMessage()    {}
 func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{13}
+	return fileDescriptor_1ee96a503651b6e4, []int{25}
 }
 func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -618,7 +1088,7 @@ func (m *MsgSpendFeePool) Reset()         { *m = MsgSpendFeePool{} }
 func (m *MsgSpendFeePool) String() string { return proto.CompactTextString(m) }
 func (*MsgSpendFeePool) ProtoMessage()    {}
 func (*MsgSpendFeePool) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{14}
+	return fileDescriptor_1ee96a503651b6e4, []int{26}
 }
 func (m *MsgSpendFeePool) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -655,7 +1125,7 @@ func (m *MsgSpendFeePoolResponse) Reset()         { *m = MsgSpendFeePoolResponse
 func (m *MsgSpendFeePoolResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSpendFeePoolResponse) ProtoMessage()    {}
 func (*MsgSpendFeePoolResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{15}
+	return fileDescriptor_1ee96a503651b6e4, []int{27}
 }
 func (m *MsgSpendFeePoolResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -698,7 +1168,7 @@ func (m *MsgUpdateOracle) Reset()         { *m = MsgUpdateOracle{} }
 func (m *MsgUpdateOracle) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateOracle) ProtoMessage()    {}
 func (*MsgUpdateOracle) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{16}
+	return fileDescriptor_1ee96a503651b6e4, []int{28}
 }
 func (m *MsgUpdateOracle) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -735,7 +1205,7 @@ func (m *MsgUpdateOracleResponse) Reset()         { *m = MsgUpdateOracleResponse
 func (m *MsgUpdateOracleResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateOracleResponse) ProtoMessage()    {}
 func (*MsgUpdateOracleResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{17}
+	return fileDescriptor_1ee96a503651b6e4, []int{29}
 }
 func (m *MsgUpdateOracleResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -777,6 +1247,18 @@ func init() {
 	proto.RegisterType((*MsgAddValidatorResponse)(nil), "opinit.opchild.v1.MsgAddValidatorResponse")
 	proto.RegisterType((*MsgRemoveValidator)(nil), "opinit.opchild.v1.MsgRemoveValidator")
 	proto.RegisterType((*MsgRemoveValidatorResponse)(nil), "opinit.opchild.v1.MsgRemoveValidatorResponse")
+	proto.RegisterType((*MsgAddFeeWhitelistAddresses)(nil), "opinit.opchild.v1.MsgAddFeeWhitelistAddresses")
+	proto.RegisterType((*MsgAddFeeWhitelistAddressesResponse)(nil), "opinit.opchild.v1.MsgAddFeeWhitelistAddressesResponse")
+	proto.RegisterType((*MsgRemoveFeeWhitelistAddresses)(nil), "opinit.opchild.v1.MsgRemoveFeeWhitelistAddresses")
+	proto.RegisterType((*MsgRemoveFeeWhitelistAddressesResponse)(nil), "opinit.opchild.v1.MsgRemoveFeeWhitelistAddressesResponse")
+	proto.RegisterType((*MsgAddBridgeExecutor)(nil), "opinit.opchild.v1.MsgAddBridgeExecutor")
+	proto.RegisterType((*MsgAddBridgeExecutorResponse)(nil), "opinit.opchild.v1.MsgAddBridgeExecutorResponse")
+	proto.RegisterType((*MsgRemoveBridgeExecutor)(nil), "opinit.opchild.v1.MsgRemoveBridgeExecutor")
+	proto.RegisterType((*MsgRemoveBridgeExecutorResponse)(nil), "opinit.opchild.v1.MsgRemoveBridgeExecutorResponse")
+	proto.RegisterType((*MsgUpdateMinGasPrices)(nil), "opinit.opchild.v1.MsgUpdateMinGasPrices")
+	proto.RegisterType((*MsgUpdateMinGasPricesResponse)(nil), "opinit.opchild.v1.MsgUpdateMinGasPricesResponse")
+	proto.RegisterType((*MsgUpdateAdmin)(nil), "opinit.opchild.v1.MsgUpdateAdmin")
+	proto.RegisterType((*MsgUpdateAdminResponse)(nil), "opinit.opchild.v1.MsgUpdateAdminResponse")
 	proto.RegisterType((*MsgUpdateParams)(nil), "opinit.opchild.v1.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "opinit.opchild.v1.MsgUpdateParamsResponse")
 	proto.RegisterType((*MsgSpendFeePool)(nil), "opinit.opchild.v1.MsgSpendFeePool")
@@ -788,83 +1270,107 @@ func init() {
 func init() { proto.RegisterFile("opinit/opchild/v1/tx.proto", fileDescriptor_1ee96a503651b6e4) }
 
 var fileDescriptor_1ee96a503651b6e4 = []byte{
-	// 1204 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0x41, 0x6f, 0xe3, 0x44,
-	0x14, 0x8e, 0x93, 0x6e, 0x76, 0x33, 0xdd, 0xdd, 0xb6, 0x56, 0x45, 0x5d, 0x8b, 0x26, 0x95, 0x11,
-	0x22, 0x04, 0x62, 0x6f, 0x83, 0xe0, 0x10, 0x09, 0x89, 0x86, 0xdd, 0x4a, 0x65, 0x15, 0x6d, 0x95,
-	0x2e, 0x20, 0x71, 0xa0, 0x4c, 0xe2, 0xa9, 0x33, 0x6a, 0xec, 0x31, 0x9e, 0x49, 0x68, 0xb8, 0x80,
-	0x38, 0x21, 0xc4, 0x81, 0x9f, 0xb0, 0x07, 0x0e, 0x88, 0x53, 0x0f, 0x9c, 0x16, 0x7e, 0x40, 0xb5,
-	0xa7, 0x15, 0x07, 0xc4, 0xa9, 0xb0, 0xed, 0xa1, 0x9c, 0xf7, 0x17, 0x20, 0x8f, 0x27, 0x8e, 0xe3,
-	0xd8, 0x4d, 0x17, 0x95, 0x4b, 0x9b, 0x79, 0xef, 0x9b, 0x37, 0xef, 0x7b, 0xef, 0xcd, 0x7b, 0x63,
-	0xa0, 0x12, 0x17, 0x3b, 0x98, 0x19, 0xc4, 0xed, 0x74, 0x71, 0xcf, 0x34, 0x06, 0x1b, 0x06, 0x3b,
-	0xd4, 0x5d, 0x8f, 0x30, 0x22, 0x2f, 0x05, 0x3a, 0x5d, 0xe8, 0xf4, 0xc1, 0x86, 0xba, 0x04, 0x6d,
-	0xec, 0x10, 0x83, 0xff, 0x0d, 0x50, 0x6a, 0xb1, 0x43, 0xa8, 0x4d, 0xa8, 0xd1, 0x86, 0x14, 0x19,
-	0x83, 0x8d, 0x36, 0x62, 0x70, 0xc3, 0xe8, 0x10, 0xec, 0x08, 0xfd, 0x8a, 0xd0, 0xdb, 0xd4, 0xf2,
-	0xad, 0xdb, 0xd4, 0x12, 0x8a, 0xd5, 0x40, 0xb1, 0xc7, 0x57, 0x46, 0xb0, 0x10, 0xaa, 0x65, 0x8b,
-	0x58, 0x24, 0x90, 0xfb, 0xbf, 0x46, 0x1b, 0x2c, 0x42, 0xac, 0x1e, 0x32, 0xf8, 0xaa, 0xdd, 0xdf,
-	0x37, 0xa0, 0x33, 0x14, 0xaa, 0xb5, 0x04, 0x1a, 0x43, 0x17, 0x09, 0x7b, 0xda, 0x8f, 0x12, 0x90,
-	0x9b, 0xd4, 0xba, 0x77, 0x88, 0x3a, 0x7d, 0x86, 0x9a, 0x88, 0x52, 0x68, 0x21, 0x2a, 0xdf, 0x01,
-	0x79, 0x8a, 0x1c, 0x13, 0x79, 0x8a, 0xb4, 0x2e, 0x95, 0x0b, 0x0d, 0xe5, 0xf7, 0x5f, 0xaa, 0xcb,
-	0xc2, 0x91, 0x4d, 0xd3, 0xf4, 0x10, 0xa5, 0xbb, 0xcc, 0xc3, 0x8e, 0xd5, 0x12, 0x38, 0xf9, 0x0e,
-	0xb8, 0x61, 0x8b, 0xdd, 0x4a, 0x76, 0x3d, 0x57, 0x9e, 0xaf, 0x2d, 0xeb, 0x81, 0x57, 0xfa, 0xc8,
-	0x2b, 0x7d, 0xd3, 0x19, 0xb6, 0x42, 0x54, 0xbd, 0xf2, 0xcd, 0xf9, 0x51, 0x45, 0x6c, 0xff, 0xee,
-	0xfc, 0xa8, 0xa2, 0x8e, 0x5c, 0x9c, 0xf6, 0x47, 0x7b, 0x19, 0xa8, 0xd3, 0xd2, 0x16, 0xa2, 0x2e,
-	0x71, 0x28, 0xd2, 0x9e, 0x48, 0x60, 0xb1, 0x49, 0xad, 0x5d, 0xc4, 0x1a, 0x1e, 0x36, 0x2d, 0xb4,
-	0xed, 0xec, 0x13, 0x79, 0x33, 0x46, 0xe1, 0xf5, 0xe7, 0x27, 0xa5, 0x5b, 0x43, 0x68, 0xf7, 0xea,
-	0x5a, 0x20, 0xd7, 0x66, 0x72, 0xda, 0x06, 0xf3, 0x6d, 0x6e, 0x70, 0x0f, 0x3b, 0xfb, 0x44, 0xc9,
-	0xae, 0x4b, 0xe5, 0xf9, 0xda, 0x9a, 0x3e, 0x95, 0x7c, 0x7d, 0x7c, 0x6c, 0xa3, 0x70, 0x7c, 0x52,
-	0xca, 0xfc, 0x74, 0x7e, 0x54, 0x91, 0x5a, 0xa0, 0x1d, 0x8a, 0xeb, 0xe5, 0x18, 0x59, 0x25, 0x42,
-	0x76, 0xc2, 0x6f, 0x4d, 0x05, 0x4a, 0x5c, 0x16, 0x12, 0xfd, 0x3e, 0x07, 0x56, 0x9a, 0xd4, 0xda,
-	0xc2, 0x0e, 0xec, 0xe1, 0x2f, 0xd1, 0x43, 0x72, 0x80, 0x9c, 0xbb, 0xc8, 0x25, 0x14, 0xb3, 0xab,
-	0xe0, 0x2b, 0x83, 0xb9, 0x7d, 0x8f, 0xd8, 0x9c, 0x68, 0xa1, 0xc5, 0x7f, 0xcb, 0x65, 0x90, 0x65,
-	0x44, 0xc9, 0xcd, 0xa8, 0x82, 0x2c, 0x23, 0x72, 0x13, 0xe4, 0xa1, 0x4d, 0xfa, 0x0e, 0x53, 0xe6,
-	0x78, 0xa0, 0x56, 0x75, 0x01, 0xf5, 0xeb, 0x5f, 0x17, 0xf5, 0xaf, 0xbf, 0x4f, 0xb0, 0xd3, 0x50,
-	0xfd, 0x20, 0x8d, 0xfd, 0x0b, 0xb6, 0x69, 0x41, 0xd4, 0x84, 0x11, 0x59, 0x05, 0x37, 0x28, 0xfa,
-	0xbc, 0x8f, 0x9c, 0x0e, 0x52, 0xae, 0xad, 0x4b, 0xe5, 0xb9, 0x56, 0xb8, 0x96, 0x5f, 0x02, 0xf9,
-	0x2e, 0xc2, 0x56, 0x97, 0x29, 0x79, 0xae, 0x11, 0x2b, 0x79, 0x0d, 0x00, 0xff, 0xb0, 0x3d, 0x13,
-	0x39, 0xc4, 0x56, 0xae, 0x73, 0x1a, 0x05, 0x5f, 0x72, 0xd7, 0x17, 0xc8, 0x6b, 0x60, 0xce, 0x84,
-	0x0c, 0x2a, 0x37, 0xd6, 0xa5, 0xf2, 0x4d, 0x9e, 0x29, 0x29, 0x38, 0x93, 0x8b, 0xeb, 0x46, 0x2c,
-	0x47, 0xa5, 0x48, 0x8e, 0x92, 0x42, 0xae, 0x7d, 0x06, 0x4a, 0x29, 0xaa, 0x51, 0xc6, 0xe4, 0x77,
-	0x41, 0xde, 0x43, 0xb4, 0xdf, 0x63, 0x3c, 0x2b, 0xb7, 0x6b, 0xaf, 0x26, 0x54, 0xcf, 0x08, 0xdc,
-	0xe2, 0xc0, 0x87, 0x43, 0x17, 0xb5, 0xc4, 0x26, 0xed, 0x99, 0xc4, 0x0b, 0x7f, 0xdb, 0xc1, 0x0c,
-	0x43, 0x16, 0x1c, 0xf1, 0x31, 0x66, 0x5d, 0xd3, 0x83, 0x5f, 0xc0, 0xde, 0x7f, 0xb8, 0xa6, 0xb7,
-	0x79, 0x3a, 0x83, 0x04, 0x5f, 0x7d, 0xd2, 0xea, 0xb5, 0x58, 0x08, 0xb5, 0x48, 0x08, 0x53, 0x48,
-	0x68, 0xef, 0x01, 0x2d, 0x5d, 0x1b, 0x06, 0x32, 0x5a, 0x0e, 0xd2, 0x64, 0x39, 0x68, 0x8f, 0xb3,
-	0x60, 0xa1, 0x49, 0xad, 0x4d, 0xd3, 0xfc, 0x08, 0xf6, 0xb0, 0x09, 0x19, 0xf1, 0xe4, 0x0f, 0x40,
-	0x01, 0xf6, 0x59, 0x97, 0x78, 0x98, 0x0d, 0x45, 0x74, 0xde, 0x7c, 0x7e, 0x52, 0x5a, 0x14, 0xce,
-	0x8f, 0x54, 0xe9, 0x97, 0x62, 0xbc, 0x5d, 0x56, 0xc0, 0x75, 0x9b, 0x38, 0xf8, 0x00, 0x79, 0x22,
-	0x72, 0xa3, 0xa5, 0x7c, 0x0f, 0x2c, 0x0d, 0x46, 0x47, 0xee, 0xc1, 0x60, 0xff, 0xcc, 0xcb, 0xb2,
-	0x18, 0x6e, 0x11, 0x72, 0x79, 0x0b, 0xe4, 0xdd, 0x7e, 0xfb, 0x00, 0x0d, 0x45, 0x16, 0x12, 0x5b,
-	0x67, 0x43, 0x79, 0x32, 0xb6, 0xd8, 0xf1, 0x86, 0x2e, 0x23, 0xfa, 0x4e, 0xbf, 0x7d, 0x1f, 0x0d,
-	0x5b, 0x62, 0x77, 0xbd, 0xf6, 0xed, 0xa3, 0x52, 0xe6, 0x9f, 0x47, 0xa5, 0x8c, 0x9f, 0x86, 0x31,
-	0x01, 0x3f, 0x13, 0x2b, 0x91, 0x4c, 0x44, 0x03, 0xa5, 0xad, 0xf2, 0x96, 0x12, 0x15, 0x85, 0xed,
-	0xe6, 0x8f, 0x60, 0x38, 0xb4, 0x90, 0x4d, 0x06, 0xe8, 0xff, 0x09, 0x6d, 0x62, 0x00, 0xb3, 0x2f,
-	0x1a, 0xc0, 0x7a, 0x75, 0x9a, 0x70, 0x74, 0x9c, 0xc4, 0x18, 0x88, 0x71, 0x12, 0x93, 0x86, 0xb4,
-	0x7f, 0x93, 0x78, 0x39, 0x7d, 0xe8, 0x9a, 0x90, 0xa1, 0x1d, 0xe8, 0x41, 0x9b, 0x5e, 0x29, 0xe7,
-	0x0d, 0x90, 0x77, 0xb9, 0x55, 0x31, 0x51, 0x56, 0x13, 0x7a, 0x42, 0x70, 0x6c, 0x4b, 0x00, 0x83,
-	0x59, 0x99, 0x9e, 0xd0, 0xa8, 0xab, 0x22, 0xa1, 0x51, 0xd1, 0x98, 0x59, 0x70, 0x51, 0x76, 0x5d,
-	0xe4, 0x98, 0x5b, 0x08, 0xed, 0x10, 0xd2, 0xbb, 0x52, 0x66, 0xef, 0x80, 0x82, 0x87, 0x3a, 0xd8,
-	0xc5, 0xc8, 0x61, 0x33, 0xb3, 0x38, 0x86, 0xca, 0xc3, 0xb0, 0x0b, 0xe5, 0xf8, 0xd3, 0xe1, 0x82,
-	0x2e, 0xb4, 0x95, 0xd8, 0x85, 0x7e, 0xfe, 0xab, 0x54, 0xb6, 0x30, 0xeb, 0xf6, 0xdb, 0x7a, 0x87,
-	0xd8, 0xe2, 0xc9, 0x24, 0xfe, 0x55, 0xa9, 0x79, 0x20, 0xde, 0x3c, 0xbe, 0x05, 0x3a, 0xd9, 0xb1,
-	0x66, 0x44, 0x36, 0x1a, 0x2a, 0x11, 0xd9, 0xa8, 0x28, 0x8c, 0xec, 0xaf, 0xd1, 0x9a, 0x79, 0xe0,
-	0xc1, 0x4e, 0x0f, 0x5d, 0xc5, 0x44, 0x5e, 0x0b, 0x07, 0x9d, 0x1f, 0xcd, 0xb9, 0xc6, 0x35, 0xe1,
-	0x7c, 0x38, 0xef, 0x82, 0x81, 0x96, 0x4b, 0x1e, 0x68, 0xaf, 0xc5, 0xba, 0xf1, 0x74, 0xc9, 0x04,
-	0x9e, 0x4e, 0x94, 0x4c, 0x20, 0x1a, 0x11, 0xab, 0x3d, 0xbe, 0x0e, 0x72, 0x4d, 0x6a, 0xc9, 0x16,
-	0x58, 0x88, 0x3f, 0x12, 0x93, 0x66, 0xd9, 0xf4, 0x2b, 0x4d, 0xad, 0x5e, 0x0a, 0x16, 0x36, 0x7a,
-	0x08, 0x6e, 0x4d, 0x3e, 0xe4, 0x5e, 0x49, 0xde, 0x3f, 0x01, 0x52, 0xdf, 0xb8, 0x04, 0x28, 0x3c,
-	0x62, 0x00, 0x96, 0x13, 0x9f, 0x50, 0x95, 0x64, 0x23, 0x49, 0x58, 0xb5, 0x76, 0x79, 0x6c, 0x78,
-	0xee, 0x57, 0x60, 0x25, 0x6d, 0x92, 0xa7, 0x04, 0x29, 0x05, 0xae, 0xbe, 0xfd, 0x42, 0xf0, 0xd0,
-	0x81, 0x4f, 0xc1, 0xcd, 0x89, 0x21, 0xa9, 0x25, 0x9b, 0x89, 0x62, 0xd4, 0xca, 0x6c, 0x4c, 0x68,
-	0xdf, 0x02, 0x0b, 0xf1, 0x61, 0x91, 0x52, 0x24, 0x31, 0x58, 0x5a, 0x91, 0xa4, 0xb4, 0x68, 0x9f,
-	0xc8, 0x44, 0x7b, 0x4e, 0x21, 0x12, 0xc5, 0xa4, 0x11, 0x49, 0x6a, 0x94, 0xbe, 0xfd, 0x89, 0x26,
-	0x99, 0x62, 0x3f, 0x8a, 0x49, 0xb3, 0x9f, 0xd4, 0x2e, 0xc6, 0xfe, 0x8b, 0x56, 0x71, 0xa1, 0xff,
-	0x01, 0xe6, 0x62, 0xff, 0x27, 0x6f, 0xad, 0x7a, 0xed, 0x6b, 0xbf, 0x0d, 0x34, 0xee, 0x1f, 0x3f,
-	0x2b, 0x66, 0x8e, 0x4f, 0x8b, 0xd2, 0xd3, 0xd3, 0xa2, 0xf4, 0xf7, 0x69, 0x51, 0xfa, 0xe1, 0xac,
-	0x98, 0x79, 0x7a, 0x56, 0xcc, 0xfc, 0x79, 0x56, 0xcc, 0x7c, 0x52, 0x8d, 0x74, 0x4c, 0xcc, 0x2b,
-	0xa7, 0xda, 0x83, 0x6d, 0x6a, 0x3c, 0xd8, 0xe1, 0x5f, 0x8c, 0x87, 0xe1, 0x37, 0x23, 0x6f, 0x9e,
-	0xed, 0x3c, 0x7f, 0x8c, 0xbc, 0xf5, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x8b, 0x2b, 0x3f, 0x3c,
-	0x19, 0x0f, 0x00, 0x00,
+	// 1588 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x58, 0xc1, 0x6f, 0xd4, 0xc6,
+	0x1a, 0x8f, 0x93, 0xb0, 0x64, 0x27, 0x10, 0x88, 0x15, 0x88, 0x63, 0x92, 0xdd, 0x60, 0x04, 0x2c,
+	0xe1, 0x65, 0x9d, 0xec, 0xd3, 0x43, 0x62, 0xa5, 0x27, 0xbd, 0xec, 0x83, 0x54, 0x29, 0x5d, 0x11,
+	0x2d, 0xb4, 0x48, 0xad, 0xd4, 0xd4, 0xbb, 0x9e, 0x38, 0xa3, 0xac, 0x3d, 0xae, 0xc7, 0x1b, 0xd8,
+	0x5e, 0x5a, 0xd1, 0x4b, 0xd5, 0xf6, 0xc0, 0x9f, 0xc0, 0xa1, 0x07, 0xc4, 0x89, 0x43, 0x4f, 0x6d,
+	0xef, 0x45, 0x48, 0x95, 0x10, 0x52, 0xab, 0x4a, 0x95, 0xa0, 0xc0, 0x81, 0x9e, 0xf9, 0x0b, 0x2a,
+	0xcf, 0xcc, 0xce, 0xda, 0x6b, 0x7b, 0x93, 0xa0, 0xad, 0xc4, 0x25, 0x59, 0xcf, 0xf7, 0x9b, 0x6f,
+	0xbe, 0xdf, 0xef, 0x9b, 0xf1, 0xf7, 0x8d, 0x81, 0x8a, 0x5d, 0xe4, 0x20, 0x5f, 0xc7, 0x6e, 0x63,
+	0x0b, 0x35, 0x4d, 0x7d, 0x67, 0x59, 0xf7, 0x6f, 0x15, 0x5d, 0x0f, 0xfb, 0x58, 0x9e, 0x64, 0xb6,
+	0x22, 0xb7, 0x15, 0x77, 0x96, 0xd5, 0x49, 0xc3, 0x46, 0x0e, 0xd6, 0xe9, 0x5f, 0x86, 0x52, 0x73,
+	0x0d, 0x4c, 0x6c, 0x4c, 0xf4, 0xba, 0x41, 0xa0, 0xbe, 0xb3, 0x5c, 0x87, 0xbe, 0xb1, 0xac, 0x37,
+	0x30, 0x72, 0xb8, 0x7d, 0x9a, 0xdb, 0x6d, 0x62, 0x05, 0xde, 0x6d, 0x62, 0x71, 0xc3, 0x0c, 0x33,
+	0x6c, 0xd0, 0x27, 0x9d, 0x3d, 0x70, 0xd3, 0x94, 0x85, 0x2d, 0xcc, 0xc6, 0x83, 0x5f, 0x9d, 0x09,
+	0x16, 0xc6, 0x56, 0x13, 0xea, 0xf4, 0xa9, 0xde, 0xda, 0xd4, 0x0d, 0xa7, 0xcd, 0x4d, 0x73, 0x09,
+	0x34, 0xda, 0x2e, 0xe4, 0xfe, 0xb4, 0xef, 0x24, 0x20, 0x57, 0x89, 0x75, 0xf9, 0x16, 0x6c, 0xb4,
+	0x7c, 0x58, 0x85, 0x84, 0x18, 0x16, 0x24, 0xf2, 0x12, 0xc8, 0x10, 0xe8, 0x98, 0xd0, 0x53, 0xa4,
+	0x79, 0xa9, 0x90, 0xad, 0x28, 0x4f, 0xbe, 0x5f, 0x9c, 0xe2, 0x81, 0xac, 0x98, 0xa6, 0x07, 0x09,
+	0xb9, 0xe6, 0x7b, 0xc8, 0xb1, 0x6a, 0x1c, 0x27, 0x2f, 0x81, 0x31, 0x9b, 0xcf, 0x56, 0x86, 0xe7,
+	0x47, 0x0a, 0xe3, 0xa5, 0xa9, 0x22, 0x8b, 0xaa, 0xd8, 0x89, 0xaa, 0xb8, 0xe2, 0xb4, 0x6b, 0x02,
+	0x55, 0x5e, 0xb8, 0xfd, 0xea, 0xc1, 0x02, 0x9f, 0xfe, 0xf5, 0xab, 0x07, 0x0b, 0x6a, 0x27, 0xc4,
+	0x78, 0x3c, 0xda, 0x2c, 0x50, 0xe3, 0xa3, 0x35, 0x48, 0x5c, 0xec, 0x10, 0xa8, 0x3d, 0x92, 0xc0,
+	0xd1, 0x2a, 0xb1, 0xae, 0x41, 0xbf, 0xe2, 0x21, 0xd3, 0x82, 0x6b, 0xce, 0x26, 0x96, 0x57, 0x7a,
+	0x28, 0x9c, 0x7b, 0xfd, 0x34, 0x7f, 0xb8, 0x6d, 0xd8, 0xcd, 0xb2, 0xc6, 0xc6, 0xb5, 0x5d, 0x39,
+	0xad, 0x81, 0xf1, 0x3a, 0x75, 0xb8, 0x81, 0x9c, 0x4d, 0xac, 0x0c, 0xcf, 0x4b, 0x85, 0xf1, 0xd2,
+	0x5c, 0x31, 0x96, 0xfc, 0x62, 0x77, 0xd9, 0x4a, 0xf6, 0xe1, 0xd3, 0xfc, 0xd0, 0xbd, 0x57, 0x0f,
+	0x16, 0xa4, 0x1a, 0xa8, 0x8b, 0xe1, 0x72, 0xa1, 0x87, 0xac, 0x12, 0x22, 0x1b, 0x89, 0x5b, 0x53,
+	0x81, 0xd2, 0x3b, 0x26, 0x88, 0x7e, 0x3b, 0x02, 0xa6, 0xab, 0xc4, 0x5a, 0x45, 0x8e, 0xd1, 0x44,
+	0x9f, 0xc1, 0xeb, 0x78, 0x1b, 0x3a, 0x97, 0xa0, 0x8b, 0x09, 0xf2, 0x07, 0xc1, 0x57, 0x06, 0xa3,
+	0x9b, 0x1e, 0xb6, 0x29, 0xd1, 0x6c, 0x8d, 0xfe, 0x96, 0x0b, 0x60, 0xd8, 0xc7, 0xca, 0xc8, 0x2e,
+	0xbb, 0x60, 0xd8, 0xc7, 0x72, 0x15, 0x64, 0x0c, 0x1b, 0xb7, 0x1c, 0x5f, 0x19, 0xa5, 0x42, 0xcd,
+	0x14, 0x39, 0x34, 0xd8, 0xff, 0x45, 0xbe, 0xff, 0x8b, 0xff, 0xc7, 0xc8, 0xa9, 0xa8, 0x81, 0x48,
+	0xdd, 0xf8, 0xd8, 0x34, 0x8d, 0xa9, 0xc6, 0x9d, 0xc8, 0x2a, 0x18, 0x23, 0xf0, 0xd3, 0x16, 0x74,
+	0x1a, 0x50, 0x39, 0x30, 0x2f, 0x15, 0x46, 0x6b, 0xe2, 0x59, 0x3e, 0x0e, 0x32, 0x5b, 0x10, 0x59,
+	0x5b, 0xbe, 0x92, 0xa1, 0x16, 0xfe, 0x24, 0xcf, 0x01, 0x10, 0x2c, 0xb6, 0x61, 0x42, 0x07, 0xdb,
+	0xca, 0x41, 0x4a, 0x23, 0x1b, 0x8c, 0x5c, 0x0a, 0x06, 0xe4, 0x39, 0x30, 0x6a, 0x1a, 0xbe, 0xa1,
+	0x8c, 0xcd, 0x4b, 0x85, 0x43, 0x34, 0x53, 0x12, 0x5b, 0x93, 0x0e, 0x97, 0xf5, 0x9e, 0x1c, 0xe5,
+	0x43, 0x39, 0x4a, 0x92, 0x5c, 0xfb, 0x04, 0xe4, 0x53, 0x4c, 0x9d, 0x8c, 0xc9, 0xff, 0x05, 0x19,
+	0x0f, 0x92, 0x56, 0xd3, 0xa7, 0x59, 0x99, 0x28, 0x9d, 0x4e, 0xd8, 0x3d, 0x1d, 0x70, 0x8d, 0x02,
+	0xaf, 0xb7, 0x5d, 0x58, 0xe3, 0x93, 0xb4, 0xe7, 0x12, 0xdd, 0xf8, 0x6b, 0x0e, 0xf2, 0x91, 0xe1,
+	0xb3, 0x25, 0x6e, 0x20, 0x7f, 0xcb, 0xf4, 0x8c, 0x9b, 0x46, 0xf3, 0x0d, 0x8e, 0xe9, 0x04, 0x4d,
+	0x27, 0x4b, 0xf0, 0xe0, 0x93, 0x56, 0x2e, 0xf5, 0x48, 0xa8, 0x85, 0x24, 0x4c, 0x21, 0xa1, 0xfd,
+	0x0f, 0x68, 0xe9, 0x56, 0x21, 0x64, 0x78, 0x3b, 0x48, 0xd1, 0xed, 0xa0, 0xfd, 0x30, 0x0c, 0x8e,
+	0x54, 0x89, 0xb5, 0x62, 0x9a, 0x1f, 0x18, 0x4d, 0x64, 0x1a, 0x3e, 0xf6, 0xe4, 0x77, 0x41, 0xd6,
+	0x68, 0xf9, 0x5b, 0xd8, 0x43, 0x7e, 0x9b, 0xab, 0xf3, 0xaf, 0xd7, 0x4f, 0xf3, 0x47, 0x79, 0xf0,
+	0x1d, 0x53, 0xfa, 0xa1, 0xe8, 0x4e, 0x97, 0x15, 0x70, 0xd0, 0xc6, 0x0e, 0xda, 0x86, 0x1e, 0x57,
+	0xae, 0xf3, 0x28, 0x5f, 0x06, 0x93, 0x3b, 0x9d, 0x25, 0x37, 0x0c, 0x36, 0x7f, 0xd7, 0xc3, 0x72,
+	0x54, 0x4c, 0xe1, 0xe3, 0xf2, 0x2a, 0xc8, 0xb8, 0xad, 0xfa, 0x36, 0x6c, 0xf3, 0x2c, 0x24, 0xbe,
+	0x3a, 0x2b, 0xca, 0xa3, 0xae, 0xc7, 0x86, 0xd7, 0x76, 0x7d, 0x5c, 0x5c, 0x6f, 0xd5, 0xaf, 0xc0,
+	0x76, 0x8d, 0xcf, 0x2e, 0x97, 0xbe, 0xba, 0x9b, 0x1f, 0xfa, 0xeb, 0x6e, 0x7e, 0x28, 0x48, 0x43,
+	0x97, 0x40, 0x90, 0x89, 0xe9, 0x50, 0x26, 0xc2, 0x42, 0x69, 0x33, 0xf4, 0x95, 0x12, 0x1e, 0x12,
+	0xaf, 0x9b, 0xdf, 0x58, 0x71, 0xa8, 0x41, 0x1b, 0xef, 0xc0, 0x7f, 0x46, 0xda, 0x44, 0x01, 0x87,
+	0xf7, 0x2b, 0x60, 0x79, 0x31, 0x4e, 0x38, 0x5c, 0x4e, 0x7a, 0x18, 0xf0, 0x72, 0xd2, 0x33, 0x2a,
+	0x68, 0xff, 0x2a, 0x81, 0x13, 0x4c, 0x92, 0x55, 0x08, 0x6f, 0x6c, 0x21, 0x1f, 0x36, 0x11, 0xf1,
+	0xf9, 0x52, 0x90, 0x0c, 0x94, 0x7f, 0x09, 0x64, 0x8d, 0x8e, 0x63, 0x5a, 0x37, 0xb3, 0x95, 0xa9,
+	0x90, 0xaf, 0x8e, 0x49, 0xab, 0x75, 0x61, 0xe5, 0x0b, 0x71, 0xb2, 0xa7, 0xa2, 0xd9, 0x4d, 0x8c,
+	0x5b, 0x3b, 0x0d, 0x4e, 0xf5, 0x31, 0x0b, 0xfa, 0x7f, 0x48, 0x20, 0x27, 0xd4, 0x79, 0x3b, 0x15,
+	0xb8, 0x18, 0x57, 0xe0, 0x4c, 0x2c, 0xdd, 0xc9, 0x22, 0x14, 0xc0, 0x99, 0xfe, 0x08, 0xa1, 0xc3,
+	0xcf, 0x12, 0x98, 0x62, 0x7a, 0xb1, 0x4a, 0xcc, 0xba, 0x8f, 0x01, 0xef, 0xff, 0x37, 0x61, 0xaf,
+	0xc7, 0xd9, 0xcf, 0x46, 0xf3, 0x1f, 0x0d, 0x58, 0xcb, 0x81, 0xd9, 0xa4, 0x71, 0xc1, 0xf4, 0x17,
+	0x89, 0xbe, 0x03, 0x98, 0x28, 0x6f, 0x19, 0xd9, 0x52, 0x9c, 0x6c, 0x3e, 0x96, 0xea, 0x1e, 0xbe,
+	0x27, 0x69, 0x5d, 0x4e, 0x32, 0x09, 0xca, 0xf7, 0x86, 0xc1, 0xb1, 0x2a, 0xb1, 0xde, 0x77, 0x4d,
+	0xc3, 0x87, 0x55, 0xe4, 0xbc, 0x63, 0x90, 0x75, 0x0f, 0x35, 0x06, 0xbc, 0xb7, 0xef, 0x48, 0x60,
+	0xc2, 0x46, 0xce, 0x86, 0x65, 0x04, 0xcd, 0x7c, 0xe0, 0x9e, 0xf7, 0xc6, 0xb3, 0x89, 0x65, 0xf6,
+	0x12, 0x6c, 0xd0, 0x4a, 0xfb, 0x1e, 0xaf, 0xb4, 0xc7, 0xd8, 0x9a, 0x51, 0x0f, 0xda, 0xfd, 0x67,
+	0xf9, 0xf3, 0x16, 0xf2, 0xb7, 0x5a, 0xf5, 0x62, 0x03, 0xdb, 0xfc, 0x7a, 0xc0, 0xff, 0x2d, 0x12,
+	0x73, 0x9b, 0xf7, 0xf7, 0xdc, 0x19, 0xa9, 0x1d, 0xb2, 0x43, 0xf4, 0xca, 0x4b, 0x71, 0x3d, 0xe7,
+	0x42, 0x7a, 0xc6, 0x05, 0xd1, 0xf2, 0x60, 0x2e, 0xd1, 0x20, 0xb4, 0x7c, 0x22, 0x81, 0x09, 0x81,
+	0x58, 0x31, 0x6d, 0xe4, 0x0c, 0x54, 0xc4, 0x35, 0x90, 0x75, 0xe0, 0xcd, 0x0d, 0x23, 0x70, 0xcc,
+	0x4b, 0x43, 0xc8, 0x97, 0x30, 0xa5, 0xfb, 0x1a, 0x73, 0xe0, 0x4d, 0x1a, 0x56, 0xf9, 0x5c, 0x9c,
+	0xfc, 0xf1, 0x18, 0x79, 0x0a, 0xd5, 0x14, 0x70, 0x3c, 0x3a, 0x22, 0xe8, 0xfe, 0x24, 0xd1, 0x6e,
+	0x83, 0x99, 0xd6, 0x0d, 0xcf, 0xb0, 0x07, 0xbb, 0x69, 0x96, 0x41, 0xc6, 0xa5, 0x5e, 0xf9, 0x85,
+	0x63, 0x26, 0xa1, 0x65, 0x64, 0xcb, 0xd6, 0x38, 0x90, 0x5d, 0xa5, 0xd2, 0xeb, 0x7d, 0x38, 0x54,
+	0x5e, 0xef, 0xc3, 0x43, 0x5d, 0x66, 0xac, 0x8f, 0xba, 0xe6, 0x42, 0x27, 0xa8, 0x11, 0xeb, 0x18,
+	0x37, 0x07, 0xca, 0xec, 0x02, 0xc8, 0x7a, 0xb0, 0x81, 0x5c, 0x04, 0x1d, 0x7f, 0xd7, 0x22, 0xdf,
+	0x85, 0xca, 0x6d, 0xd1, 0xa4, 0x8e, 0xd0, 0xd3, 0xd3, 0xa7, 0x49, 0x5d, 0x4d, 0x6c, 0x52, 0xef,
+	0x3f, 0xcb, 0x17, 0xf6, 0x70, 0x64, 0xe8, 0x79, 0x89, 0x36, 0xb4, 0xbb, 0x28, 0x1b, 0x96, 0x8a,
+	0x2b, 0x1b, 0x1e, 0x12, 0xca, 0xfe, 0x18, 0xde, 0x33, 0x57, 0x3d, 0xa3, 0xd1, 0x84, 0x83, 0xb8,
+	0xb0, 0xcd, 0x89, 0x7b, 0x50, 0xa0, 0xe6, 0x68, 0xe5, 0x00, 0x0f, 0x5e, 0x5c, 0x87, 0xd8, 0x7d,
+	0x67, 0x24, 0xf9, 0xbe, 0x73, 0xb6, 0xa7, 0x59, 0x8f, 0x6f, 0x19, 0x16, 0x69, 0x64, 0xcb, 0xb0,
+	0xa1, 0x0e, 0xb1, 0xd2, 0x97, 0x87, 0xc1, 0x48, 0x95, 0x58, 0xb2, 0x05, 0x8e, 0xf4, 0x7e, 0x43,
+	0x48, 0xba, 0xea, 0xc4, 0x2f, 0xf1, 0xea, 0xe2, 0x9e, 0x60, 0xe2, 0x1e, 0x60, 0x80, 0xc3, 0xd1,
+	0x7b, 0xfe, 0xa9, 0xe4, 0xf9, 0x11, 0x90, 0x7a, 0x7e, 0x0f, 0x20, 0xb1, 0xc4, 0x0e, 0x98, 0x4a,
+	0xbc, 0x61, 0x2f, 0x24, 0x3b, 0x49, 0xc2, 0xaa, 0xa5, 0xbd, 0x63, 0xc5, 0xba, 0x9f, 0x83, 0xe9,
+	0xb4, 0x8b, 0x5e, 0x8a, 0x48, 0x29, 0x70, 0xf5, 0x3f, 0xfb, 0x82, 0x8b, 0x00, 0x3e, 0x06, 0x87,
+	0x22, 0x77, 0x28, 0x2d, 0xd9, 0x4d, 0x18, 0xa3, 0x2e, 0xec, 0x8e, 0x11, 0xfe, 0x2d, 0x70, 0xa4,
+	0xf7, 0x2e, 0x91, 0xb2, 0x49, 0x7a, 0x60, 0x69, 0x9b, 0x24, 0xa5, 0x83, 0x97, 0x6f, 0x4b, 0x40,
+	0x49, 0x6d, 0xdf, 0x8b, 0xa9, 0x11, 0x27, 0xe2, 0xd5, 0x0b, 0xfb, 0xc3, 0x8b, 0x20, 0xbe, 0x91,
+	0xc0, 0x89, 0x7e, 0x4d, 0xf4, 0x72, 0x3f, 0x4e, 0xc9, 0xa1, 0x5c, 0xdc, 0xf7, 0x14, 0x11, 0x8d,
+	0x0d, 0x26, 0xe3, 0x9d, 0xec, 0xd9, 0x54, 0x6a, 0x51, 0xa0, 0xaa, 0xef, 0x11, 0x18, 0x3e, 0x43,
+	0x89, 0xed, 0xe4, 0x42, 0x3f, 0x06, 0x3d, 0x8b, 0x96, 0xf6, 0x8e, 0x15, 0xeb, 0xba, 0x40, 0x4e,
+	0xe8, 0xe9, 0x0a, 0xc9, 0x9e, 0xe2, 0x48, 0x75, 0x69, 0xaf, 0x48, 0xb1, 0xe2, 0x47, 0x60, 0x3c,
+	0xdc, 0xf9, 0x9c, 0xec, 0xe7, 0x80, 0x42, 0xd4, 0x73, 0xbb, 0x42, 0xc2, 0x27, 0x32, 0xd2, 0x67,
+	0x68, 0xfd, 0xa6, 0x32, 0x4c, 0xda, 0x89, 0x4c, 0xaa, 0xf8, 0x81, 0xff, 0x48, 0xb5, 0x4f, 0xf1,
+	0x1f, 0xc6, 0xa4, 0xf9, 0x4f, 0xaa, 0x7b, 0xdd, 0xf8, 0x79, 0xcd, 0xeb, 0x1b, 0x3f, 0xc3, 0xf4,
+	0x8f, 0x3f, 0x5a, 0x7e, 0xd4, 0x03, 0x5f, 0x04, 0xf5, 0xac, 0x72, 0xe5, 0xe1, 0xf3, 0xdc, 0xd0,
+	0xc3, 0x17, 0x39, 0xe9, 0xf1, 0x8b, 0x9c, 0xf4, 0xe7, 0x8b, 0x9c, 0x74, 0xe7, 0x65, 0x6e, 0xe8,
+	0xf1, 0xcb, 0xdc, 0xd0, 0xef, 0x2f, 0x73, 0x43, 0x1f, 0x2e, 0x86, 0x4a, 0x3f, 0xa2, 0xaf, 0xc0,
+	0xc5, 0xa6, 0x51, 0x27, 0xfa, 0xd5, 0x75, 0xfa, 0x65, 0xfc, 0x96, 0xf8, 0x36, 0x4e, 0xbb, 0x80,
+	0x7a, 0x86, 0x7e, 0x74, 0xf9, 0xf7, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xae, 0xa4, 0x19, 0x50,
+	0x01, 0x18, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -891,6 +1397,20 @@ type MsgClient interface {
 	AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error)
 	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
 	RemoveValidator(ctx context.Context, in *MsgRemoveValidator, opts ...grpc.CallOption) (*MsgRemoveValidatorResponse, error)
+	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
+	AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error)
+	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
+	// fee whitelist.
+	RemoveFeeWhitelistAddresses(ctx context.Context, in *MsgRemoveFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgRemoveFeeWhitelistAddressesResponse, error)
+	// AddBridgeExecutor defines an authorized operation for adding addresses to x/opchild bridge executors
+	AddBridgeExecutor(ctx context.Context, in *MsgAddBridgeExecutor, opts ...grpc.CallOption) (*MsgAddBridgeExecutorResponse, error)
+	// RemoveBridgeExecutor defines an authorized operation for removing addresses from x/opchild
+	// bridge executors.
+	RemoveBridgeExecutor(ctx context.Context, in *MsgRemoveBridgeExecutor, opts ...grpc.CallOption) (*MsgRemoveBridgeExecutorResponse, error)
+	// UpdateMinGasPrices defines an authorized operation for updating the min gas prices parameter
+	UpdateMinGasPrices(ctx context.Context, in *MsgUpdateMinGasPrices, opts ...grpc.CallOption) (*MsgUpdateMinGasPricesResponse, error)
+	// UpdateAdmin defines an authorized operation for updating the x/opchild admin
+	UpdateAdmin(ctx context.Context, in *MsgUpdateAdmin, opts ...grpc.CallOption) (*MsgUpdateAdminResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -962,6 +1482,60 @@ func (c *msgClient) RemoveValidator(ctx context.Context, in *MsgRemoveValidator,
 	return out, nil
 }
 
+func (c *msgClient) AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error) {
+	out := new(MsgAddFeeWhitelistAddressesResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/AddFeeWhitelistAddresses", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveFeeWhitelistAddresses(ctx context.Context, in *MsgRemoveFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgRemoveFeeWhitelistAddressesResponse, error) {
+	out := new(MsgRemoveFeeWhitelistAddressesResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/RemoveFeeWhitelistAddresses", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) AddBridgeExecutor(ctx context.Context, in *MsgAddBridgeExecutor, opts ...grpc.CallOption) (*MsgAddBridgeExecutorResponse, error) {
+	out := new(MsgAddBridgeExecutorResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/AddBridgeExecutor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveBridgeExecutor(ctx context.Context, in *MsgRemoveBridgeExecutor, opts ...grpc.CallOption) (*MsgRemoveBridgeExecutorResponse, error) {
+	out := new(MsgRemoveBridgeExecutorResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/RemoveBridgeExecutor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateMinGasPrices(ctx context.Context, in *MsgUpdateMinGasPrices, opts ...grpc.CallOption) (*MsgUpdateMinGasPricesResponse, error) {
+	out := new(MsgUpdateMinGasPricesResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/UpdateMinGasPrices", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateAdmin(ctx context.Context, in *MsgUpdateAdmin, opts ...grpc.CallOption) (*MsgUpdateAdminResponse, error) {
+	out := new(MsgUpdateAdminResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/UpdateAdmin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/UpdateParams", in, out, opts...)
@@ -1003,6 +1577,20 @@ type MsgServer interface {
 	AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error)
 	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
 	RemoveValidator(context.Context, *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error)
+	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
+	AddFeeWhitelistAddresses(context.Context, *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error)
+	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
+	// fee whitelist.
+	RemoveFeeWhitelistAddresses(context.Context, *MsgRemoveFeeWhitelistAddresses) (*MsgRemoveFeeWhitelistAddressesResponse, error)
+	// AddBridgeExecutor defines an authorized operation for adding addresses to x/opchild bridge executors
+	AddBridgeExecutor(context.Context, *MsgAddBridgeExecutor) (*MsgAddBridgeExecutorResponse, error)
+	// RemoveBridgeExecutor defines an authorized operation for removing addresses from x/opchild
+	// bridge executors.
+	RemoveBridgeExecutor(context.Context, *MsgRemoveBridgeExecutor) (*MsgRemoveBridgeExecutorResponse, error)
+	// UpdateMinGasPrices defines an authorized operation for updating the min gas prices parameter
+	UpdateMinGasPrices(context.Context, *MsgUpdateMinGasPrices) (*MsgUpdateMinGasPricesResponse, error)
+	// UpdateAdmin defines an authorized operation for updating the x/opchild admin
+	UpdateAdmin(context.Context, *MsgUpdateAdmin) (*MsgUpdateAdminResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -1033,6 +1621,24 @@ func (*UnimplementedMsgServer) AddValidator(ctx context.Context, req *MsgAddVali
 }
 func (*UnimplementedMsgServer) RemoveValidator(ctx context.Context, req *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveValidator not implemented")
+}
+func (*UnimplementedMsgServer) AddFeeWhitelistAddresses(ctx context.Context, req *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddFeeWhitelistAddresses not implemented")
+}
+func (*UnimplementedMsgServer) RemoveFeeWhitelistAddresses(ctx context.Context, req *MsgRemoveFeeWhitelistAddresses) (*MsgRemoveFeeWhitelistAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveFeeWhitelistAddresses not implemented")
+}
+func (*UnimplementedMsgServer) AddBridgeExecutor(ctx context.Context, req *MsgAddBridgeExecutor) (*MsgAddBridgeExecutorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBridgeExecutor not implemented")
+}
+func (*UnimplementedMsgServer) RemoveBridgeExecutor(ctx context.Context, req *MsgRemoveBridgeExecutor) (*MsgRemoveBridgeExecutorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBridgeExecutor not implemented")
+}
+func (*UnimplementedMsgServer) UpdateMinGasPrices(ctx context.Context, req *MsgUpdateMinGasPrices) (*MsgUpdateMinGasPricesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMinGasPrices not implemented")
+}
+func (*UnimplementedMsgServer) UpdateAdmin(ctx context.Context, req *MsgUpdateAdmin) (*MsgUpdateAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAdmin not implemented")
 }
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -1156,6 +1762,114 @@ func _Msg_RemoveValidator_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_AddFeeWhitelistAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddFeeWhitelistAddresses)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).AddFeeWhitelistAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/AddFeeWhitelistAddresses",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).AddFeeWhitelistAddresses(ctx, req.(*MsgAddFeeWhitelistAddresses))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveFeeWhitelistAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveFeeWhitelistAddresses)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveFeeWhitelistAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/RemoveFeeWhitelistAddresses",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveFeeWhitelistAddresses(ctx, req.(*MsgRemoveFeeWhitelistAddresses))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_AddBridgeExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddBridgeExecutor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).AddBridgeExecutor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/AddBridgeExecutor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).AddBridgeExecutor(ctx, req.(*MsgAddBridgeExecutor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveBridgeExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveBridgeExecutor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveBridgeExecutor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/RemoveBridgeExecutor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveBridgeExecutor(ctx, req.(*MsgRemoveBridgeExecutor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateMinGasPrices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMinGasPrices)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateMinGasPrices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/UpdateMinGasPrices",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateMinGasPrices(ctx, req.(*MsgUpdateMinGasPrices))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateAdmin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/UpdateAdmin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateAdmin(ctx, req.(*MsgUpdateAdmin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -1237,6 +1951,30 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveValidator",
 			Handler:    _Msg_RemoveValidator_Handler,
+		},
+		{
+			MethodName: "AddFeeWhitelistAddresses",
+			Handler:    _Msg_AddFeeWhitelistAddresses_Handler,
+		},
+		{
+			MethodName: "RemoveFeeWhitelistAddresses",
+			Handler:    _Msg_RemoveFeeWhitelistAddresses_Handler,
+		},
+		{
+			MethodName: "AddBridgeExecutor",
+			Handler:    _Msg_AddBridgeExecutor_Handler,
+		},
+		{
+			MethodName: "RemoveBridgeExecutor",
+			Handler:    _Msg_RemoveBridgeExecutor_Handler,
+		},
+		{
+			MethodName: "UpdateMinGasPrices",
+			Handler:    _Msg_UpdateMinGasPrices_Handler,
+		},
+		{
+			MethodName: "UpdateAdmin",
+			Handler:    _Msg_UpdateAdmin_Handler,
 		},
 		{
 			MethodName: "UpdateParams",
@@ -1705,6 +2443,381 @@ func (m *MsgRemoveValidatorResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgAddFeeWhitelistAddresses) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgAddFeeWhitelistAddresses) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgAddFeeWhitelistAddresses) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Addresses) > 0 {
+		for iNdEx := len(m.Addresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Addresses[iNdEx])
+			copy(dAtA[i:], m.Addresses[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Addresses[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgAddFeeWhitelistAddressesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgAddFeeWhitelistAddressesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgAddFeeWhitelistAddressesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveFeeWhitelistAddresses) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveFeeWhitelistAddresses) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveFeeWhitelistAddresses) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Addresses) > 0 {
+		for iNdEx := len(m.Addresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Addresses[iNdEx])
+			copy(dAtA[i:], m.Addresses[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Addresses[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveFeeWhitelistAddressesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveFeeWhitelistAddressesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveFeeWhitelistAddressesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgAddBridgeExecutor) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgAddBridgeExecutor) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgAddBridgeExecutor) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Addresses) > 0 {
+		for iNdEx := len(m.Addresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Addresses[iNdEx])
+			copy(dAtA[i:], m.Addresses[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Addresses[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgAddBridgeExecutorResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgAddBridgeExecutorResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgAddBridgeExecutorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveBridgeExecutor) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveBridgeExecutor) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveBridgeExecutor) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Addresses) > 0 {
+		for iNdEx := len(m.Addresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Addresses[iNdEx])
+			copy(dAtA[i:], m.Addresses[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Addresses[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveBridgeExecutorResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveBridgeExecutorResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveBridgeExecutorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateMinGasPrices) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateMinGasPrices) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateMinGasPrices) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.MinGasPrices) > 0 {
+		for iNdEx := len(m.MinGasPrices) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.MinGasPrices[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateMinGasPricesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateMinGasPricesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateMinGasPricesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateAdmin) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateAdmin) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateAdmin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.NewAdmin) > 0 {
+		i -= len(m.NewAdmin)
+		copy(dAtA[i:], m.NewAdmin)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.NewAdmin)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateAdminResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateAdminResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateAdminResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgUpdateParams) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -2104,6 +3217,172 @@ func (m *MsgRemoveValidator) Size() (n int) {
 }
 
 func (m *MsgRemoveValidatorResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgAddFeeWhitelistAddresses) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Addresses) > 0 {
+		for _, s := range m.Addresses {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgAddFeeWhitelistAddressesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRemoveFeeWhitelistAddresses) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Addresses) > 0 {
+		for _, s := range m.Addresses {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgRemoveFeeWhitelistAddressesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgAddBridgeExecutor) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Addresses) > 0 {
+		for _, s := range m.Addresses {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgAddBridgeExecutorResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRemoveBridgeExecutor) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Addresses) > 0 {
+		for _, s := range m.Addresses {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgRemoveBridgeExecutorResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateMinGasPrices) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.MinGasPrices) > 0 {
+		for _, e := range m.MinGasPrices {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgUpdateMinGasPricesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateAdmin) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.NewAdmin)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUpdateAdminResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3477,6 +4756,992 @@ func (m *MsgRemoveValidatorResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgRemoveValidatorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgAddFeeWhitelistAddresses) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgAddFeeWhitelistAddresses: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgAddFeeWhitelistAddresses: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Addresses = append(m.Addresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgAddFeeWhitelistAddressesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgAddFeeWhitelistAddressesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgAddFeeWhitelistAddressesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveFeeWhitelistAddresses) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveFeeWhitelistAddresses: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveFeeWhitelistAddresses: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Addresses = append(m.Addresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveFeeWhitelistAddressesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveFeeWhitelistAddressesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveFeeWhitelistAddressesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgAddBridgeExecutor) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgAddBridgeExecutor: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgAddBridgeExecutor: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Addresses = append(m.Addresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgAddBridgeExecutorResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgAddBridgeExecutorResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgAddBridgeExecutorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveBridgeExecutor) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveBridgeExecutor: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveBridgeExecutor: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Addresses = append(m.Addresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveBridgeExecutorResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveBridgeExecutorResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveBridgeExecutorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateMinGasPrices) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateMinGasPrices: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateMinGasPrices: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinGasPrices", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MinGasPrices = append(m.MinGasPrices, types1.DecCoin{})
+			if err := m.MinGasPrices[len(m.MinGasPrices)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateMinGasPricesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateMinGasPricesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateMinGasPricesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateAdmin) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateAdmin: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateAdmin: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewAdmin", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NewAdmin = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateAdminResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateAdminResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateAdminResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
