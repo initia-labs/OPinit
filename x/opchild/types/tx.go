@@ -20,6 +20,7 @@ var (
 	_ sdk.Msg = &MsgAddBridgeExecutor{}
 	_ sdk.Msg = &MsgRemoveBridgeExecutor{}
 	_ sdk.Msg = &MsgUpdateMinGasPrices{}
+	_ sdk.Msg = &MsgUpdateAdmin{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgSpendFeePool{}
 	_ sdk.Msg = &MsgSetBridgeInfo{}
@@ -399,6 +400,27 @@ func (msg MsgUpdateMinGasPrices) Validate(ac address.Codec) error {
 	}
 
 	if err := msg.MinGasPrices.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* MsgUpdateAdmin */
+
+func NewMsgUpdateAdmin(authority, newAdmin string) *MsgUpdateAdmin {
+	return &MsgUpdateAdmin{
+		Authority: authority,
+		NewAdmin:  newAdmin,
+	}
+}
+
+func (msg MsgUpdateAdmin) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if _, err := ac.StringToBytes(msg.NewAdmin); err != nil {
 		return err
 	}
 

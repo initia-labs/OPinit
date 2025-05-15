@@ -265,6 +265,8 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 }
 
 // AddFeeWhitelistAddresses implements adding addresses to the fee whitelist addresses parameter
+//
+//nolint:dupl
 func (ms MsgServer) AddFeeWhitelistAddresses(ctx context.Context, req *types.MsgAddFeeWhitelistAddresses) (*types.MsgAddFeeWhitelistAddressesResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -310,6 +312,7 @@ func (ms MsgServer) AddFeeWhitelistAddresses(ctx context.Context, req *types.Msg
 	return &types.MsgAddFeeWhitelistAddressesResponse{}, nil
 }
 
+// RemoveFeeWhitelistAddresses implements removing addresses from the fee whitelist addresses parameter
 func (ms MsgServer) RemoveFeeWhitelistAddresses(ctx context.Context, req *types.MsgRemoveFeeWhitelistAddresses) (*types.MsgRemoveFeeWhitelistAddressesResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -354,6 +357,9 @@ func (ms MsgServer) RemoveFeeWhitelistAddresses(ctx context.Context, req *types.
 	return &types.MsgRemoveFeeWhitelistAddressesResponse{}, nil
 }
 
+// AddBridgeExecutor implements adding addresses to the list of bridge executors
+//
+//nolint:dupl
 func (ms MsgServer) AddBridgeExecutor(ctx context.Context, req *types.MsgAddBridgeExecutor) (*types.MsgAddBridgeExecutorResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -399,6 +405,7 @@ func (ms MsgServer) AddBridgeExecutor(ctx context.Context, req *types.MsgAddBrid
 	return &types.MsgAddBridgeExecutorResponse{}, nil
 }
 
+// RemoveBridgeExecutor implements removing addresses from the list of bridge executors
 func (ms MsgServer) RemoveBridgeExecutor(ctx context.Context, req *types.MsgRemoveBridgeExecutor) (*types.MsgRemoveBridgeExecutorResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -443,6 +450,7 @@ func (ms MsgServer) RemoveBridgeExecutor(ctx context.Context, req *types.MsgRemo
 	return &types.MsgRemoveBridgeExecutorResponse{}, nil
 }
 
+// UpdateMinGasPrices implements updating the MinGasPrices of the x/opchild parameter
 func (ms MsgServer) UpdateMinGasPrices(ctx context.Context, req *types.MsgUpdateMinGasPrices) (*types.MsgUpdateMinGasPricesResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -472,6 +480,38 @@ func (ms MsgServer) UpdateMinGasPrices(ctx context.Context, req *types.MsgUpdate
 	)
 
 	return &types.MsgUpdateMinGasPricesResponse{}, nil
+}
+
+// UpdateAdmin implements updating the opchild admin address
+func (ms MsgServer) UpdateAdmin(ctx context.Context, req *types.MsgUpdateAdmin) (*types.MsgUpdateAdminResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	params, err := ms.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	params.Admin = req.NewAdmin
+	if err := ms.SetParams(ctx, params); err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUpdateAdmin,
+			sdk.NewAttribute(types.AttributeKeyAuthority, req.Authority),
+			sdk.NewAttribute(types.AttributeNewAdmin, req.NewAdmin),
+		),
+	)
+
+	return &types.MsgUpdateAdminResponse{}, nil
 }
 
 // UpdateParams implements updating the parameters

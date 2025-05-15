@@ -19,6 +19,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgAddBridgeExecutor{}, "opchild/MsgAddBridgeExecutor")
 	legacy.RegisterAminoMsg(cdc, &MsgRemoveBridgeExecutor{}, "opchild/MsgRemoveBridgeExecutor")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateMinGasPrices{}, "opchild/MsgUpdateMinGasPrices")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateAdmin{}, "opchild/MsgUpdateAdmin")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "opchild/MsgUpdateParams")
 	legacy.RegisterAminoMsg(cdc, &MsgFinalizeTokenDeposit{}, "opchild/MsgFinalizeTokenDeposit")
 	legacy.RegisterAminoMsg(cdc, &MsgInitiateTokenWithdrawal{}, "opchild/MsgInitiateTokenWithdrawal")
@@ -40,6 +41,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgAddBridgeExecutor{},
 		&MsgRemoveBridgeExecutor{},
 		&MsgUpdateMinGasPrices{},
+		&MsgUpdateAdmin{},
 		&MsgUpdateParams{},
 		&MsgFinalizeTokenDeposit{},
 		&MsgInitiateTokenWithdrawal{},

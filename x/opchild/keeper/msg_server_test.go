@@ -432,6 +432,31 @@ func Test_MsgServer_UpdateMinGasPrices_EmptyCoins(t *testing.T) {
 	require.Equal(t, 0, len(paramsAfter.MinGasPrices))
 }
 
+func Test_MsgServer_UpdateAdmin(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+	require.NoError(t, err)
+
+	msg := types.NewMsgUpdateAdmin(moduleAddr, addrsStr[1])
+	_, err = ms.UpdateAdmin(ctx, msg)
+	require.NoError(t, err)
+
+	params, err := ms.GetParams(ctx)
+	require.NoError(t, err)
+	require.Equal(t, addrsStr[1], params.Admin)
+
+	// invalid authority
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	invalidMsg := types.NewMsgUpdateAdmin(govAddr, addrsStr[2])
+	_, err = ms.UpdateAdmin(ctx, invalidMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
 func Test_MsgServer_UpdateParams(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
