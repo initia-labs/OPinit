@@ -63,8 +63,7 @@ message BridgeConfig {
 
   // Optional config for Fast Bridge
   FastBridgeConfig fast_bridge_config = 9 [
-    (gogoproto.nullable) = true,
-    (amino.dont_omitempty) = true
+    (gogoproto.nullable) = true
   ];
 }
 
