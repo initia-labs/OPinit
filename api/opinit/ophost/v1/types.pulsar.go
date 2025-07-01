@@ -522,6 +522,7 @@ var (
 	fd_BridgeConfig_submission_start_height protoreflect.FieldDescriptor
 	fd_BridgeConfig_oracle_enabled          protoreflect.FieldDescriptor
 	fd_BridgeConfig_metadata                protoreflect.FieldDescriptor
+	fd_BridgeConfig_fast_bridge_config      protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -535,6 +536,7 @@ func init() {
 	fd_BridgeConfig_submission_start_height = md_BridgeConfig.Fields().ByName("submission_start_height")
 	fd_BridgeConfig_oracle_enabled = md_BridgeConfig.Fields().ByName("oracle_enabled")
 	fd_BridgeConfig_metadata = md_BridgeConfig.Fields().ByName("metadata")
+	fd_BridgeConfig_fast_bridge_config = md_BridgeConfig.Fields().ByName("fast_bridge_config")
 }
 
 var _ protoreflect.Message = (*fastReflection_BridgeConfig)(nil)
@@ -650,6 +652,12 @@ func (x *fastReflection_BridgeConfig) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
+	if x.FastBridgeConfig != nil {
+		value := protoreflect.ValueOfMessage(x.FastBridgeConfig.ProtoReflect())
+		if !f(fd_BridgeConfig_fast_bridge_config, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -681,6 +689,8 @@ func (x *fastReflection_BridgeConfig) Has(fd protoreflect.FieldDescriptor) bool 
 		return x.OracleEnabled != false
 	case "opinit.ophost.v1.BridgeConfig.metadata":
 		return len(x.Metadata) != 0
+	case "opinit.ophost.v1.BridgeConfig.fast_bridge_config":
+		return x.FastBridgeConfig != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BridgeConfig"))
@@ -713,6 +723,8 @@ func (x *fastReflection_BridgeConfig) Clear(fd protoreflect.FieldDescriptor) {
 		x.OracleEnabled = false
 	case "opinit.ophost.v1.BridgeConfig.metadata":
 		x.Metadata = nil
+	case "opinit.ophost.v1.BridgeConfig.fast_bridge_config":
+		x.FastBridgeConfig = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BridgeConfig"))
@@ -753,6 +765,9 @@ func (x *fastReflection_BridgeConfig) Get(descriptor protoreflect.FieldDescripto
 	case "opinit.ophost.v1.BridgeConfig.metadata":
 		value := x.Metadata
 		return protoreflect.ValueOfBytes(value)
+	case "opinit.ophost.v1.BridgeConfig.fast_bridge_config":
+		value := x.FastBridgeConfig
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BridgeConfig"))
@@ -789,6 +804,8 @@ func (x *fastReflection_BridgeConfig) Set(fd protoreflect.FieldDescriptor, value
 		x.OracleEnabled = value.Bool()
 	case "opinit.ophost.v1.BridgeConfig.metadata":
 		x.Metadata = value.Bytes()
+	case "opinit.ophost.v1.BridgeConfig.fast_bridge_config":
+		x.FastBridgeConfig = value.Message().Interface().(*FastBridgeConfig)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BridgeConfig"))
@@ -824,6 +841,11 @@ func (x *fastReflection_BridgeConfig) Mutable(fd protoreflect.FieldDescriptor) p
 			x.FinalizationPeriod = new(durationpb.Duration)
 		}
 		return protoreflect.ValueOfMessage(x.FinalizationPeriod.ProtoReflect())
+	case "opinit.ophost.v1.BridgeConfig.fast_bridge_config":
+		if x.FastBridgeConfig == nil {
+			x.FastBridgeConfig = new(FastBridgeConfig)
+		}
+		return protoreflect.ValueOfMessage(x.FastBridgeConfig.ProtoReflect())
 	case "opinit.ophost.v1.BridgeConfig.challenger":
 		panic(fmt.Errorf("field challenger of message opinit.ophost.v1.BridgeConfig is not mutable"))
 	case "opinit.ophost.v1.BridgeConfig.proposer":
@@ -866,6 +888,9 @@ func (x *fastReflection_BridgeConfig) NewField(fd protoreflect.FieldDescriptor) 
 		return protoreflect.ValueOfBool(false)
 	case "opinit.ophost.v1.BridgeConfig.metadata":
 		return protoreflect.ValueOfBytes(nil)
+	case "opinit.ophost.v1.BridgeConfig.fast_bridge_config":
+		m := new(FastBridgeConfig)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.BridgeConfig"))
@@ -965,6 +990,10 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		if x.FastBridgeConfig != nil {
+			l = options.Size(x.FastBridgeConfig)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -993,6 +1022,20 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.FastBridgeConfig != nil {
+			encoded, err := options.Marshal(x.FastBridgeConfig)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x4a
 		}
 		if len(x.Metadata) > 0 {
 			i -= len(x.Metadata)
@@ -1364,6 +1407,42 @@ func (x *fastReflection_BridgeConfig) ProtoMethods() *protoiface.Methods {
 				x.Metadata = append(x.Metadata[:0], dAtA[iNdEx:postIndex]...)
 				if x.Metadata == nil {
 					x.Metadata = []byte{}
+				}
+				iNdEx = postIndex
+			case 9:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FastBridgeConfig", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.FastBridgeConfig == nil {
+					x.FastBridgeConfig = &FastBridgeConfig{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.FastBridgeConfig); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
 			default:
@@ -3464,6 +3543,1144 @@ func (x *fastReflection_BatchInfoWithOutput) ProtoMethods() *protoiface.Methods 
 	}
 }
 
+var _ protoreflect.List = (*_FastBridgeConfig_1_list)(nil)
+
+type _FastBridgeConfig_1_list struct {
+	list *[]*FastBridgeValidator
+}
+
+func (x *_FastBridgeConfig_1_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_FastBridgeConfig_1_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_FastBridgeConfig_1_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*FastBridgeValidator)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_FastBridgeConfig_1_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*FastBridgeValidator)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_FastBridgeConfig_1_list) AppendMutable() protoreflect.Value {
+	v := new(FastBridgeValidator)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_FastBridgeConfig_1_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_FastBridgeConfig_1_list) NewElement() protoreflect.Value {
+	v := new(FastBridgeValidator)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_FastBridgeConfig_1_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_FastBridgeConfig                 protoreflect.MessageDescriptor
+	fd_FastBridgeConfig_validators      protoreflect.FieldDescriptor
+	fd_FastBridgeConfig_threshold       protoreflect.FieldDescriptor
+	fd_FastBridgeConfig_max_rate        protoreflect.FieldDescriptor
+	fd_FastBridgeConfig_recovery_window protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_opinit_ophost_v1_types_proto_init()
+	md_FastBridgeConfig = File_opinit_ophost_v1_types_proto.Messages().ByName("FastBridgeConfig")
+	fd_FastBridgeConfig_validators = md_FastBridgeConfig.Fields().ByName("validators")
+	fd_FastBridgeConfig_threshold = md_FastBridgeConfig.Fields().ByName("threshold")
+	fd_FastBridgeConfig_max_rate = md_FastBridgeConfig.Fields().ByName("max_rate")
+	fd_FastBridgeConfig_recovery_window = md_FastBridgeConfig.Fields().ByName("recovery_window")
+}
+
+var _ protoreflect.Message = (*fastReflection_FastBridgeConfig)(nil)
+
+type fastReflection_FastBridgeConfig FastBridgeConfig
+
+func (x *FastBridgeConfig) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_FastBridgeConfig)(x)
+}
+
+func (x *FastBridgeConfig) slowProtoReflect() protoreflect.Message {
+	mi := &file_opinit_ophost_v1_types_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_FastBridgeConfig_messageType fastReflection_FastBridgeConfig_messageType
+var _ protoreflect.MessageType = fastReflection_FastBridgeConfig_messageType{}
+
+type fastReflection_FastBridgeConfig_messageType struct{}
+
+func (x fastReflection_FastBridgeConfig_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_FastBridgeConfig)(nil)
+}
+func (x fastReflection_FastBridgeConfig_messageType) New() protoreflect.Message {
+	return new(fastReflection_FastBridgeConfig)
+}
+func (x fastReflection_FastBridgeConfig_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_FastBridgeConfig
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_FastBridgeConfig) Descriptor() protoreflect.MessageDescriptor {
+	return md_FastBridgeConfig
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_FastBridgeConfig) Type() protoreflect.MessageType {
+	return _fastReflection_FastBridgeConfig_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_FastBridgeConfig) New() protoreflect.Message {
+	return new(fastReflection_FastBridgeConfig)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_FastBridgeConfig) Interface() protoreflect.ProtoMessage {
+	return (*FastBridgeConfig)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_FastBridgeConfig) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Validators) != 0 {
+		value := protoreflect.ValueOfList(&_FastBridgeConfig_1_list{list: &x.Validators})
+		if !f(fd_FastBridgeConfig_validators, value) {
+			return
+		}
+	}
+	if x.Threshold != uint32(0) {
+		value := protoreflect.ValueOfUint32(x.Threshold)
+		if !f(fd_FastBridgeConfig_threshold, value) {
+			return
+		}
+	}
+	if x.MaxRate != "" {
+		value := protoreflect.ValueOfString(x.MaxRate)
+		if !f(fd_FastBridgeConfig_max_rate, value) {
+			return
+		}
+	}
+	if x.RecoveryWindow != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.RecoveryWindow)
+		if !f(fd_FastBridgeConfig_recovery_window, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_FastBridgeConfig) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeConfig.validators":
+		return len(x.Validators) != 0
+	case "opinit.ophost.v1.FastBridgeConfig.threshold":
+		return x.Threshold != uint32(0)
+	case "opinit.ophost.v1.FastBridgeConfig.max_rate":
+		return x.MaxRate != ""
+	case "opinit.ophost.v1.FastBridgeConfig.recovery_window":
+		return x.RecoveryWindow != uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeConfig"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeConfig does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeConfig) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeConfig.validators":
+		x.Validators = nil
+	case "opinit.ophost.v1.FastBridgeConfig.threshold":
+		x.Threshold = uint32(0)
+	case "opinit.ophost.v1.FastBridgeConfig.max_rate":
+		x.MaxRate = ""
+	case "opinit.ophost.v1.FastBridgeConfig.recovery_window":
+		x.RecoveryWindow = uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeConfig"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeConfig does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_FastBridgeConfig) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "opinit.ophost.v1.FastBridgeConfig.validators":
+		if len(x.Validators) == 0 {
+			return protoreflect.ValueOfList(&_FastBridgeConfig_1_list{})
+		}
+		listValue := &_FastBridgeConfig_1_list{list: &x.Validators}
+		return protoreflect.ValueOfList(listValue)
+	case "opinit.ophost.v1.FastBridgeConfig.threshold":
+		value := x.Threshold
+		return protoreflect.ValueOfUint32(value)
+	case "opinit.ophost.v1.FastBridgeConfig.max_rate":
+		value := x.MaxRate
+		return protoreflect.ValueOfString(value)
+	case "opinit.ophost.v1.FastBridgeConfig.recovery_window":
+		value := x.RecoveryWindow
+		return protoreflect.ValueOfUint64(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeConfig"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeConfig does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeConfig) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeConfig.validators":
+		lv := value.List()
+		clv := lv.(*_FastBridgeConfig_1_list)
+		x.Validators = *clv.list
+	case "opinit.ophost.v1.FastBridgeConfig.threshold":
+		x.Threshold = uint32(value.Uint())
+	case "opinit.ophost.v1.FastBridgeConfig.max_rate":
+		x.MaxRate = value.Interface().(string)
+	case "opinit.ophost.v1.FastBridgeConfig.recovery_window":
+		x.RecoveryWindow = value.Uint()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeConfig"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeConfig does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeConfig) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeConfig.validators":
+		if x.Validators == nil {
+			x.Validators = []*FastBridgeValidator{}
+		}
+		value := &_FastBridgeConfig_1_list{list: &x.Validators}
+		return protoreflect.ValueOfList(value)
+	case "opinit.ophost.v1.FastBridgeConfig.threshold":
+		panic(fmt.Errorf("field threshold of message opinit.ophost.v1.FastBridgeConfig is not mutable"))
+	case "opinit.ophost.v1.FastBridgeConfig.max_rate":
+		panic(fmt.Errorf("field max_rate of message opinit.ophost.v1.FastBridgeConfig is not mutable"))
+	case "opinit.ophost.v1.FastBridgeConfig.recovery_window":
+		panic(fmt.Errorf("field recovery_window of message opinit.ophost.v1.FastBridgeConfig is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeConfig"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeConfig does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_FastBridgeConfig) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeConfig.validators":
+		list := []*FastBridgeValidator{}
+		return protoreflect.ValueOfList(&_FastBridgeConfig_1_list{list: &list})
+	case "opinit.ophost.v1.FastBridgeConfig.threshold":
+		return protoreflect.ValueOfUint32(uint32(0))
+	case "opinit.ophost.v1.FastBridgeConfig.max_rate":
+		return protoreflect.ValueOfString("")
+	case "opinit.ophost.v1.FastBridgeConfig.recovery_window":
+		return protoreflect.ValueOfUint64(uint64(0))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeConfig"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeConfig does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_FastBridgeConfig) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in opinit.ophost.v1.FastBridgeConfig", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_FastBridgeConfig) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeConfig) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_FastBridgeConfig) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_FastBridgeConfig) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*FastBridgeConfig)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if len(x.Validators) > 0 {
+			for _, e := range x.Validators {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.Threshold != 0 {
+			n += 1 + runtime.Sov(uint64(x.Threshold))
+		}
+		l = len(x.MaxRate)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.RecoveryWindow != 0 {
+			n += 1 + runtime.Sov(uint64(x.RecoveryWindow))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*FastBridgeConfig)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.RecoveryWindow != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.RecoveryWindow))
+			i--
+			dAtA[i] = 0x20
+		}
+		if len(x.MaxRate) > 0 {
+			i -= len(x.MaxRate)
+			copy(dAtA[i:], x.MaxRate)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.MaxRate)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if x.Threshold != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Threshold))
+			i--
+			dAtA[i] = 0x10
+		}
+		if len(x.Validators) > 0 {
+			for iNdEx := len(x.Validators) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Validators[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0xa
+			}
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*FastBridgeConfig)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: FastBridgeConfig: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: FastBridgeConfig: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Validators", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Validators = append(x.Validators, &FastBridgeValidator{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Validators[len(x.Validators)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Threshold", wireType)
+				}
+				x.Threshold = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Threshold |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxRate", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.MaxRate = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 4:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field RecoveryWindow", wireType)
+				}
+				x.RecoveryWindow = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.RecoveryWindow |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_FastBridgeValidator         protoreflect.MessageDescriptor
+	fd_FastBridgeValidator_address protoreflect.FieldDescriptor
+	fd_FastBridgeValidator_pubkey  protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_opinit_ophost_v1_types_proto_init()
+	md_FastBridgeValidator = File_opinit_ophost_v1_types_proto.Messages().ByName("FastBridgeValidator")
+	fd_FastBridgeValidator_address = md_FastBridgeValidator.Fields().ByName("address")
+	fd_FastBridgeValidator_pubkey = md_FastBridgeValidator.Fields().ByName("pubkey")
+}
+
+var _ protoreflect.Message = (*fastReflection_FastBridgeValidator)(nil)
+
+type fastReflection_FastBridgeValidator FastBridgeValidator
+
+func (x *FastBridgeValidator) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_FastBridgeValidator)(x)
+}
+
+func (x *FastBridgeValidator) slowProtoReflect() protoreflect.Message {
+	mi := &file_opinit_ophost_v1_types_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_FastBridgeValidator_messageType fastReflection_FastBridgeValidator_messageType
+var _ protoreflect.MessageType = fastReflection_FastBridgeValidator_messageType{}
+
+type fastReflection_FastBridgeValidator_messageType struct{}
+
+func (x fastReflection_FastBridgeValidator_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_FastBridgeValidator)(nil)
+}
+func (x fastReflection_FastBridgeValidator_messageType) New() protoreflect.Message {
+	return new(fastReflection_FastBridgeValidator)
+}
+func (x fastReflection_FastBridgeValidator_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_FastBridgeValidator
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_FastBridgeValidator) Descriptor() protoreflect.MessageDescriptor {
+	return md_FastBridgeValidator
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_FastBridgeValidator) Type() protoreflect.MessageType {
+	return _fastReflection_FastBridgeValidator_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_FastBridgeValidator) New() protoreflect.Message {
+	return new(fastReflection_FastBridgeValidator)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_FastBridgeValidator) Interface() protoreflect.ProtoMessage {
+	return (*FastBridgeValidator)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_FastBridgeValidator) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Address != "" {
+		value := protoreflect.ValueOfString(x.Address)
+		if !f(fd_FastBridgeValidator_address, value) {
+			return
+		}
+	}
+	if x.Pubkey != "" {
+		value := protoreflect.ValueOfString(x.Pubkey)
+		if !f(fd_FastBridgeValidator_pubkey, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_FastBridgeValidator) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeValidator.address":
+		return x.Address != ""
+	case "opinit.ophost.v1.FastBridgeValidator.pubkey":
+		return x.Pubkey != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeValidator"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeValidator does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeValidator) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeValidator.address":
+		x.Address = ""
+	case "opinit.ophost.v1.FastBridgeValidator.pubkey":
+		x.Pubkey = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeValidator"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeValidator does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_FastBridgeValidator) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "opinit.ophost.v1.FastBridgeValidator.address":
+		value := x.Address
+		return protoreflect.ValueOfString(value)
+	case "opinit.ophost.v1.FastBridgeValidator.pubkey":
+		value := x.Pubkey
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeValidator"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeValidator does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeValidator) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeValidator.address":
+		x.Address = value.Interface().(string)
+	case "opinit.ophost.v1.FastBridgeValidator.pubkey":
+		x.Pubkey = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeValidator"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeValidator does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeValidator) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeValidator.address":
+		panic(fmt.Errorf("field address of message opinit.ophost.v1.FastBridgeValidator is not mutable"))
+	case "opinit.ophost.v1.FastBridgeValidator.pubkey":
+		panic(fmt.Errorf("field pubkey of message opinit.ophost.v1.FastBridgeValidator is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeValidator"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeValidator does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_FastBridgeValidator) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.ophost.v1.FastBridgeValidator.address":
+		return protoreflect.ValueOfString("")
+	case "opinit.ophost.v1.FastBridgeValidator.pubkey":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.ophost.v1.FastBridgeValidator"))
+		}
+		panic(fmt.Errorf("message opinit.ophost.v1.FastBridgeValidator does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_FastBridgeValidator) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in opinit.ophost.v1.FastBridgeValidator", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_FastBridgeValidator) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_FastBridgeValidator) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_FastBridgeValidator) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_FastBridgeValidator) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*FastBridgeValidator)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Address)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Pubkey)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*FastBridgeValidator)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Pubkey) > 0 {
+			i -= len(x.Pubkey)
+			copy(dAtA[i:], x.Pubkey)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Pubkey)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Address) > 0 {
+			i -= len(x.Address)
+			copy(dAtA[i:], x.Address)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Address)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*FastBridgeValidator)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: FastBridgeValidator: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: FastBridgeValidator: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Address = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Pubkey = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -3590,6 +4807,8 @@ type BridgeConfig struct {
 	OracleEnabled bool `protobuf:"varint,7,opt,name=oracle_enabled,json=oracleEnabled,proto3" json:"oracle_enabled,omitempty"`
 	// Normally it is IBC channelID for permissioned IBC relayer.
 	Metadata []byte `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Optional config for Fast Bridge
+	FastBridgeConfig *FastBridgeConfig `protobuf:"bytes,9,opt,name=fast_bridge_config,json=fastBridgeConfig,proto3" json:"fast_bridge_config,omitempty"`
 }
 
 func (x *BridgeConfig) Reset() {
@@ -3664,6 +4883,13 @@ func (x *BridgeConfig) GetOracleEnabled() bool {
 func (x *BridgeConfig) GetMetadata() []byte {
 	if x != nil {
 		return x.Metadata
+	}
+	return nil
+}
+
+func (x *BridgeConfig) GetFastBridgeConfig() *FastBridgeConfig {
+	if x != nil {
+		return x.FastBridgeConfig
 	}
 	return nil
 }
@@ -3866,6 +5092,114 @@ func (x *BatchInfoWithOutput) GetOutput() *Output {
 	return nil
 }
 
+// FastBridgeConfig defines validator set and threshold for fast withdrawals.
+type FastBridgeConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Validator set authorized to sign withdrawals
+	Validators []*FastBridgeValidator `protobuf:"bytes,1,rep,name=validators,proto3" json:"validators,omitempty"`
+	// Number of required validator signatures to finalize a withdrawal
+	Threshold uint32 `protobuf:"varint,2,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	// Maximum percentage of the bridge balance that can be withdrawn within the recovery window (e.g., "0.2" = 20%)
+	MaxRate string `protobuf:"bytes,3,opt,name=max_rate,json=maxRate,proto3" json:"max_rate,omitempty"`
+	// Time duration (in seconds) over which the max_rate is applied (e.g., 86400 = 24h)
+	RecoveryWindow uint64 `protobuf:"varint,4,opt,name=recovery_window,json=recoveryWindow,proto3" json:"recovery_window,omitempty"`
+}
+
+func (x *FastBridgeConfig) Reset() {
+	*x = FastBridgeConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_opinit_ophost_v1_types_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FastBridgeConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FastBridgeConfig) ProtoMessage() {}
+
+// Deprecated: Use FastBridgeConfig.ProtoReflect.Descriptor instead.
+func (*FastBridgeConfig) Descriptor() ([]byte, []int) {
+	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *FastBridgeConfig) GetValidators() []*FastBridgeValidator {
+	if x != nil {
+		return x.Validators
+	}
+	return nil
+}
+
+func (x *FastBridgeConfig) GetThreshold() uint32 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *FastBridgeConfig) GetMaxRate() string {
+	if x != nil {
+		return x.MaxRate
+	}
+	return ""
+}
+
+func (x *FastBridgeConfig) GetRecoveryWindow() uint64 {
+	if x != nil {
+		return x.RecoveryWindow
+	}
+	return 0
+}
+
+// FastBridgeValidator represents a multisig validator.
+type FastBridgeValidator struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Pubkey  string `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey,omitempty"` // base64-encoded secp256k1 public key (compressed)
+}
+
+func (x *FastBridgeValidator) Reset() {
+	*x = FastBridgeValidator{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_opinit_ophost_v1_types_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FastBridgeValidator) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FastBridgeValidator) ProtoMessage() {}
+
+// Deprecated: Use FastBridgeValidator.ProtoReflect.Descriptor instead.
+func (*FastBridgeValidator) Descriptor() ([]byte, []int) {
+	return file_opinit_ophost_v1_types_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *FastBridgeValidator) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *FastBridgeValidator) GetPubkey() string {
+	if x != nil {
+		return x.Pubkey
+	}
+	return ""
+}
+
 var File_opinit_ophost_v1_types_proto protoreflect.FileDescriptor
 
 var file_opinit_ophost_v1_types_proto_rawDesc = []byte{
@@ -3892,7 +5226,7 @@ var file_opinit_ophost_v1_types_proto_rawDesc = []byte{
 	0x73, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x73, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0f, 0x72, 0x65,
 	0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x65, 0x65, 0x3a, 0x1a, 0x98,
 	0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x0d, 0x6f, 0x70, 0x68, 0x6f,
-	0x73, 0x74, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0xb8, 0x04, 0x0a, 0x0c, 0x42, 0x72,
+	0x73, 0x74, 0x2f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x95, 0x05, 0x0a, 0x0c, 0x42, 0x72,
 	0x69, 0x64, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x38, 0x0a, 0x0a, 0x63, 0x68,
 	0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18,
 	0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65,
@@ -3928,57 +5262,81 @@ var file_opinit_ophost_v1_types_proto_rawDesc = []byte{
 	0x6c, 0x65, 0x64, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0d, 0x6f, 0x72, 0x61, 0x63, 0x6c,
 	0x65, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61,
 	0x64, 0x61, 0x74, 0x61, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x08, 0x6d, 0x65, 0x74, 0x61,
-	0x64, 0x61, 0x74, 0x61, 0x22, 0xa7, 0x01, 0x0a, 0x09, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e,
-	0x66, 0x6f, 0x12, 0x1c, 0x0a, 0x09, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x72, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x72,
-	0x12, 0x44, 0x0a, 0x0a, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x0e, 0x32, 0x25, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70,
-	0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66,
-	0x6f, 0x2e, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x52, 0x09, 0x63, 0x68, 0x61,
-	0x69, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x22, 0x36, 0x0a, 0x09, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x54,
-	0x79, 0x70, 0x65, 0x12, 0x0f, 0x0a, 0x0b, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49,
-	0x45, 0x44, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x49, 0x4e, 0x49, 0x54, 0x49, 0x41, 0x10, 0x01,
-	0x12, 0x0c, 0x0a, 0x08, 0x43, 0x45, 0x4c, 0x45, 0x53, 0x54, 0x49, 0x41, 0x10, 0x02, 0x22, 0x41,
-	0x0a, 0x09, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x12, 0x19, 0x0a, 0x08, 0x6c,
-	0x31, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c,
-	0x31, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x32, 0x5f, 0x64, 0x65, 0x6e,
-	0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x32, 0x44, 0x65, 0x6e, 0x6f,
-	0x6d, 0x22, 0xc8, 0x01, 0x0a, 0x06, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x12, 0x1f, 0x0a, 0x0b,
-	0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x0c, 0x52, 0x0a, 0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x52, 0x6f, 0x6f, 0x74, 0x12, 0x26, 0x0a,
-	0x0f, 0x6c, 0x31, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x6c, 0x31, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e,
-	0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x4d, 0x0a, 0x0d, 0x6c, 0x31, 0x5f, 0x62, 0x6c, 0x6f, 0x63,
-	0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54,
-	0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0d, 0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf,
-	0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0b, 0x6c, 0x31, 0x42, 0x6c, 0x6f, 0x63, 0x6b,
-	0x54, 0x69, 0x6d, 0x65, 0x12, 0x26, 0x0a, 0x0f, 0x6c, 0x32, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b,
-	0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x6c,
-	0x32, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x22, 0x99, 0x01, 0x0a,
-	0x13, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x57, 0x69, 0x74, 0x68, 0x4f, 0x75,
-	0x74, 0x70, 0x75, 0x74, 0x12, 0x45, 0x0a, 0x0a, 0x62, 0x61, 0x74, 0x63, 0x68, 0x5f, 0x69, 0x6e,
-	0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69,
-	0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61, 0x74, 0x63,
-	0x68, 0x49, 0x6e, 0x66, 0x6f, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01,
-	0x52, 0x09, 0x62, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x3b, 0x0a, 0x06, 0x6f,
-	0x75, 0x74, 0x70, 0x75, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6f, 0x70,
-	0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4f,
-	0x75, 0x74, 0x70, 0x75, 0x74, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01,
-	0x52, 0x06, 0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x42, 0xc9, 0x01, 0xc8, 0xe1, 0x1e, 0x00, 0xa8,
-	0xe2, 0x1e, 0x01, 0x0a, 0x14, 0x63, 0x6f, 0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e,
-	0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x54, 0x79, 0x70, 0x65, 0x73,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f,
-	0x4f, 0x50, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69,
-	0x74, 0x2f, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x68, 0x6f,
-	0x73, 0x74, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x10, 0x4f, 0x70, 0x69,
-	0x6e, 0x69, 0x74, 0x2e, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x10,
-	0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56, 0x31,
-	0xe2, 0x02, 0x1c, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74,
-	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
-	0x02, 0x12, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74,
-	0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x64, 0x61, 0x74, 0x61, 0x12, 0x5b, 0x0a, 0x12, 0x66, 0x61, 0x73, 0x74, 0x5f, 0x62, 0x72, 0x69,
+	0x64, 0x67, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x22, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74,
+	0x2e, 0x76, 0x31, 0x2e, 0x46, 0x61, 0x73, 0x74, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52,
+	0x10, 0x66, 0x61, 0x73, 0x74, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x22, 0xa7, 0x01, 0x0a, 0x09, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x12,
+	0x1c, 0x0a, 0x09, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x72, 0x12, 0x44, 0x0a,
+	0x0a, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x25, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73,
+	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x2e, 0x43,
+	0x68, 0x61, 0x69, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x52, 0x09, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x54,
+	0x79, 0x70, 0x65, 0x22, 0x36, 0x0a, 0x09, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x54, 0x79, 0x70, 0x65,
+	0x12, 0x0f, 0x0a, 0x0b, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10,
+	0x00, 0x12, 0x0a, 0x0a, 0x06, 0x49, 0x4e, 0x49, 0x54, 0x49, 0x41, 0x10, 0x01, 0x12, 0x0c, 0x0a,
+	0x08, 0x43, 0x45, 0x4c, 0x45, 0x53, 0x54, 0x49, 0x41, 0x10, 0x02, 0x22, 0x41, 0x0a, 0x09, 0x54,
+	0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x31, 0x5f, 0x64,
+	0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x31, 0x44, 0x65,
+	0x6e, 0x6f, 0x6d, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x32, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x32, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0xc8,
+	0x01, 0x0a, 0x06, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x6f, 0x75, 0x74,
+	0x70, 0x75, 0x74, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0a,
+	0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x52, 0x6f, 0x6f, 0x74, 0x12, 0x26, 0x0a, 0x0f, 0x6c, 0x31,
+	0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x04, 0x52, 0x0d, 0x6c, 0x31, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62,
+	0x65, 0x72, 0x12, 0x4d, 0x0a, 0x0d, 0x6c, 0x31, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x74,
+	0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65,
+	0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0d, 0xc8, 0xde, 0x1f, 0x00, 0x90, 0xdf, 0x1f, 0x01, 0xa8,
+	0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0b, 0x6c, 0x31, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x69, 0x6d,
+	0x65, 0x12, 0x26, 0x0a, 0x0f, 0x6c, 0x32, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x6e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x6c, 0x32, 0x42, 0x6c,
+	0x6f, 0x63, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x22, 0x99, 0x01, 0x0a, 0x13, 0x42, 0x61,
+	0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x57, 0x69, 0x74, 0x68, 0x4f, 0x75, 0x74, 0x70, 0x75,
+	0x74, 0x12, 0x45, 0x0a, 0x0a, 0x62, 0x61, 0x74, 0x63, 0x68, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f,
+	0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x49, 0x6e,
+	0x66, 0x6f, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x09, 0x62,
+	0x61, 0x74, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x3b, 0x0a, 0x06, 0x6f, 0x75, 0x74, 0x70,
+	0x75, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x75, 0x74, 0x70,
+	0x75, 0x74, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x06, 0x6f,
+	0x75, 0x74, 0x70, 0x75, 0x74, 0x22, 0xbb, 0x01, 0x0a, 0x10, 0x46, 0x61, 0x73, 0x74, 0x42, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x45, 0x0a, 0x0a, 0x76, 0x61,
+	0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x25,
+	0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76,
+	0x31, 0x2e, 0x46, 0x61, 0x73, 0x74, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x56, 0x61, 0x6c, 0x69,
+	0x64, 0x61, 0x74, 0x6f, 0x72, 0x52, 0x0a, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72,
+	0x73, 0x12, 0x1c, 0x0a, 0x09, 0x74, 0x68, 0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0d, 0x52, 0x09, 0x74, 0x68, 0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x12,
+	0x19, 0x0a, 0x08, 0x6d, 0x61, 0x78, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x07, 0x6d, 0x61, 0x78, 0x52, 0x61, 0x74, 0x65, 0x12, 0x27, 0x0a, 0x0f, 0x72, 0x65,
+	0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x5f, 0x77, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x04, 0x52, 0x0e, 0x72, 0x65, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x57, 0x69, 0x6e,
+	0x64, 0x6f, 0x77, 0x22, 0x61, 0x0a, 0x13, 0x46, 0x61, 0x73, 0x74, 0x42, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x12, 0x32, 0x0a, 0x07, 0x61, 0x64,
+	0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d,
+	0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53,
+	0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x16,
+	0x0a, 0x06, 0x70, 0x75, 0x62, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06,
+	0x70, 0x75, 0x62, 0x6b, 0x65, 0x79, 0x42, 0xc9, 0x01, 0xc8, 0xe1, 0x1e, 0x00, 0xa8, 0xe2, 0x1e,
+	0x01, 0x0a, 0x14, 0x63, 0x6f, 0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70,
+	0x68, 0x6f, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x54, 0x79, 0x70, 0x65, 0x73, 0x50, 0x72,
+	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50,
+	0x69, 0x6e, 0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f,
+	0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x68, 0x6f, 0x73, 0x74,
+	0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x10, 0x4f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x2e, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x10, 0x4f, 0x70,
+	0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02,
+	0x1c, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x5c, 0x56,
+	0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x12,
+	0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x68, 0x6f, 0x73, 0x74, 0x3a, 0x3a,
+	0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3994,7 +5352,7 @@ func file_opinit_ophost_v1_types_proto_rawDescGZIP() []byte {
 }
 
 var file_opinit_ophost_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_opinit_ophost_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_opinit_ophost_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_opinit_ophost_v1_types_proto_goTypes = []interface{}{
 	(BatchInfo_ChainType)(0),      // 0: opinit.ophost.v1.BatchInfo.ChainType
 	(*Params)(nil),                // 1: opinit.ophost.v1.Params
@@ -4003,24 +5361,28 @@ var file_opinit_ophost_v1_types_proto_goTypes = []interface{}{
 	(*TokenPair)(nil),             // 4: opinit.ophost.v1.TokenPair
 	(*Output)(nil),                // 5: opinit.ophost.v1.Output
 	(*BatchInfoWithOutput)(nil),   // 6: opinit.ophost.v1.BatchInfoWithOutput
-	(*v1beta1.Coin)(nil),          // 7: cosmos.base.v1beta1.Coin
-	(*durationpb.Duration)(nil),   // 8: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*FastBridgeConfig)(nil),      // 7: opinit.ophost.v1.FastBridgeConfig
+	(*FastBridgeValidator)(nil),   // 8: opinit.ophost.v1.FastBridgeValidator
+	(*v1beta1.Coin)(nil),          // 9: cosmos.base.v1beta1.Coin
+	(*durationpb.Duration)(nil),   // 10: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 }
 var file_opinit_ophost_v1_types_proto_depIdxs = []int32{
-	7, // 0: opinit.ophost.v1.Params.registration_fee:type_name -> cosmos.base.v1beta1.Coin
-	3, // 1: opinit.ophost.v1.BridgeConfig.batch_info:type_name -> opinit.ophost.v1.BatchInfo
-	8, // 2: opinit.ophost.v1.BridgeConfig.submission_interval:type_name -> google.protobuf.Duration
-	8, // 3: opinit.ophost.v1.BridgeConfig.finalization_period:type_name -> google.protobuf.Duration
-	0, // 4: opinit.ophost.v1.BatchInfo.chain_type:type_name -> opinit.ophost.v1.BatchInfo.ChainType
-	9, // 5: opinit.ophost.v1.Output.l1_block_time:type_name -> google.protobuf.Timestamp
-	3, // 6: opinit.ophost.v1.BatchInfoWithOutput.batch_info:type_name -> opinit.ophost.v1.BatchInfo
-	5, // 7: opinit.ophost.v1.BatchInfoWithOutput.output:type_name -> opinit.ophost.v1.Output
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	9,  // 0: opinit.ophost.v1.Params.registration_fee:type_name -> cosmos.base.v1beta1.Coin
+	3,  // 1: opinit.ophost.v1.BridgeConfig.batch_info:type_name -> opinit.ophost.v1.BatchInfo
+	10, // 2: opinit.ophost.v1.BridgeConfig.submission_interval:type_name -> google.protobuf.Duration
+	10, // 3: opinit.ophost.v1.BridgeConfig.finalization_period:type_name -> google.protobuf.Duration
+	7,  // 4: opinit.ophost.v1.BridgeConfig.fast_bridge_config:type_name -> opinit.ophost.v1.FastBridgeConfig
+	0,  // 5: opinit.ophost.v1.BatchInfo.chain_type:type_name -> opinit.ophost.v1.BatchInfo.ChainType
+	11, // 6: opinit.ophost.v1.Output.l1_block_time:type_name -> google.protobuf.Timestamp
+	3,  // 7: opinit.ophost.v1.BatchInfoWithOutput.batch_info:type_name -> opinit.ophost.v1.BatchInfo
+	5,  // 8: opinit.ophost.v1.BatchInfoWithOutput.output:type_name -> opinit.ophost.v1.Output
+	8,  // 9: opinit.ophost.v1.FastBridgeConfig.validators:type_name -> opinit.ophost.v1.FastBridgeValidator
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_opinit_ophost_v1_types_proto_init() }
@@ -4101,6 +5463,30 @@ func file_opinit_ophost_v1_types_proto_init() {
 				return nil
 			}
 		}
+		file_opinit_ophost_v1_types_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FastBridgeConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_opinit_ophost_v1_types_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FastBridgeValidator); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -4108,7 +5494,7 @@ func file_opinit_ophost_v1_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_opinit_ophost_v1_types_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
