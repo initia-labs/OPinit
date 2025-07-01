@@ -408,3 +408,23 @@ message MsgUpdateFinalizationPeriod {
 
 // MsgUpdateFinalizationPeriodResponse returns a message handle result.
 message MsgUpdateFinalizationPeriodResponse {}
+
+// MsgSetFastBridgeConfig sets (or disables) the fast bridge config for a bridge.
+message MsgSetFastBridgeConfig {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "ophost/MsgSetFastBridgeConfig";
+
+  // Address authorized to set the config (must match proposer)
+  string authority = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.moretags) = "yaml:\"authority\""
+  ];
+
+  // Bridge ID this config applies to
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+
+  // New fast bridge config to apply. If null, disables fast withdrawal.
+  FastBridgeConfig config = 3 [
+    (gogoproto.nullable) = true
+  ];
+}

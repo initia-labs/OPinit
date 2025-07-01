@@ -60,6 +60,11 @@ message BridgeConfig {
 
   // Normally it is IBC channelID for permissioned IBC relayer.
   bytes metadata = 8;
+
+  // Optional config for Fast Bridge
+  FastBridgeConfig fast_bridge_config = 9 [
+    (gogoproto.nullable) = true
+  ];
 }
 
 // BatchInfo defines the set of batch information.
@@ -113,4 +118,25 @@ message BatchInfoWithOutput {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+}
+
+// FastBridgeConfig defines validator set and threshold for fast withdrawals.
+message FastBridgeConfig {
+  // Validator set authorized to sign withdrawals
+  repeated FastBridgeValidator validators = 1;
+
+  // Number of required validator signatures to finalize a withdrawal
+  uint32 threshold = 2;
+
+  // Maximum percentage of the bridge balance that can be withdrawn within the recovery window (e.g., "0.2" = 20%)
+  string max_rate = 3;
+
+  // Time duration (in seconds) over which the max_rate is applied (e.g., 86400 = 24h)
+  uint64 recovery_window = 4;
+}
+
+// FastBridgeValidator represents a multisig validator.
+message FastBridgeValidator {
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string pubkey = 2; // base64-encoded secp256k1 public key (compressed)
 }

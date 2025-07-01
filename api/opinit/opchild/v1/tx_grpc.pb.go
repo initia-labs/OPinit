@@ -19,15 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_ExecuteMessages_FullMethodName         = "/opinit.opchild.v1.Msg/ExecuteMessages"
-	Msg_SetBridgeInfo_FullMethodName           = "/opinit.opchild.v1.Msg/SetBridgeInfo"
-	Msg_FinalizeTokenDeposit_FullMethodName    = "/opinit.opchild.v1.Msg/FinalizeTokenDeposit"
-	Msg_InitiateTokenWithdrawal_FullMethodName = "/opinit.opchild.v1.Msg/InitiateTokenWithdrawal"
-	Msg_AddValidator_FullMethodName            = "/opinit.opchild.v1.Msg/AddValidator"
-	Msg_RemoveValidator_FullMethodName         = "/opinit.opchild.v1.Msg/RemoveValidator"
-	Msg_UpdateParams_FullMethodName            = "/opinit.opchild.v1.Msg/UpdateParams"
-	Msg_SpendFeePool_FullMethodName            = "/opinit.opchild.v1.Msg/SpendFeePool"
-	Msg_UpdateOracle_FullMethodName            = "/opinit.opchild.v1.Msg/UpdateOracle"
+	Msg_ExecuteMessages_FullMethodName             = "/opinit.opchild.v1.Msg/ExecuteMessages"
+	Msg_SetBridgeInfo_FullMethodName               = "/opinit.opchild.v1.Msg/SetBridgeInfo"
+	Msg_FinalizeTokenDeposit_FullMethodName        = "/opinit.opchild.v1.Msg/FinalizeTokenDeposit"
+	Msg_InitiateTokenWithdrawal_FullMethodName     = "/opinit.opchild.v1.Msg/InitiateTokenWithdrawal"
+	Msg_AddValidator_FullMethodName                = "/opinit.opchild.v1.Msg/AddValidator"
+	Msg_RemoveValidator_FullMethodName             = "/opinit.opchild.v1.Msg/RemoveValidator"
+	Msg_AddFeeWhitelistAddresses_FullMethodName    = "/opinit.opchild.v1.Msg/AddFeeWhitelistAddresses"
+	Msg_RemoveFeeWhitelistAddresses_FullMethodName = "/opinit.opchild.v1.Msg/RemoveFeeWhitelistAddresses"
+	Msg_AddBridgeExecutor_FullMethodName           = "/opinit.opchild.v1.Msg/AddBridgeExecutor"
+	Msg_RemoveBridgeExecutor_FullMethodName        = "/opinit.opchild.v1.Msg/RemoveBridgeExecutor"
+	Msg_UpdateMinGasPrices_FullMethodName          = "/opinit.opchild.v1.Msg/UpdateMinGasPrices"
+	Msg_UpdateAdmin_FullMethodName                 = "/opinit.opchild.v1.Msg/UpdateAdmin"
+	Msg_UpdateParams_FullMethodName                = "/opinit.opchild.v1.Msg/UpdateParams"
+	Msg_SpendFeePool_FullMethodName                = "/opinit.opchild.v1.Msg/SpendFeePool"
+	Msg_UpdateOracle_FullMethodName                = "/opinit.opchild.v1.Msg/UpdateOracle"
 )
 
 // MsgClient is the client API for Msg service.
@@ -46,6 +52,20 @@ type MsgClient interface {
 	AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error)
 	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
 	RemoveValidator(ctx context.Context, in *MsgRemoveValidator, opts ...grpc.CallOption) (*MsgRemoveValidatorResponse, error)
+	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
+	AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error)
+	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
+	// fee whitelist.
+	RemoveFeeWhitelistAddresses(ctx context.Context, in *MsgRemoveFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgRemoveFeeWhitelistAddressesResponse, error)
+	// AddBridgeExecutor defines an authorized operation for adding addresses to x/opchild bridge executors
+	AddBridgeExecutor(ctx context.Context, in *MsgAddBridgeExecutor, opts ...grpc.CallOption) (*MsgAddBridgeExecutorResponse, error)
+	// RemoveBridgeExecutor defines an authorized operation for removing addresses from x/opchild
+	// bridge executors.
+	RemoveBridgeExecutor(ctx context.Context, in *MsgRemoveBridgeExecutor, opts ...grpc.CallOption) (*MsgRemoveBridgeExecutorResponse, error)
+	// UpdateMinGasPrices defines an authorized operation for updating the min gas prices parameter
+	UpdateMinGasPrices(ctx context.Context, in *MsgUpdateMinGasPrices, opts ...grpc.CallOption) (*MsgUpdateMinGasPricesResponse, error)
+	// UpdateAdmin defines an authorized operation for updating the x/opchild admin
+	UpdateAdmin(ctx context.Context, in *MsgUpdateAdmin, opts ...grpc.CallOption) (*MsgUpdateAdminResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -117,6 +137,60 @@ func (c *msgClient) RemoveValidator(ctx context.Context, in *MsgRemoveValidator,
 	return out, nil
 }
 
+func (c *msgClient) AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error) {
+	out := new(MsgAddFeeWhitelistAddressesResponse)
+	err := c.cc.Invoke(ctx, Msg_AddFeeWhitelistAddresses_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveFeeWhitelistAddresses(ctx context.Context, in *MsgRemoveFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgRemoveFeeWhitelistAddressesResponse, error) {
+	out := new(MsgRemoveFeeWhitelistAddressesResponse)
+	err := c.cc.Invoke(ctx, Msg_RemoveFeeWhitelistAddresses_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) AddBridgeExecutor(ctx context.Context, in *MsgAddBridgeExecutor, opts ...grpc.CallOption) (*MsgAddBridgeExecutorResponse, error) {
+	out := new(MsgAddBridgeExecutorResponse)
+	err := c.cc.Invoke(ctx, Msg_AddBridgeExecutor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveBridgeExecutor(ctx context.Context, in *MsgRemoveBridgeExecutor, opts ...grpc.CallOption) (*MsgRemoveBridgeExecutorResponse, error) {
+	out := new(MsgRemoveBridgeExecutorResponse)
+	err := c.cc.Invoke(ctx, Msg_RemoveBridgeExecutor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateMinGasPrices(ctx context.Context, in *MsgUpdateMinGasPrices, opts ...grpc.CallOption) (*MsgUpdateMinGasPricesResponse, error) {
+	out := new(MsgUpdateMinGasPricesResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateMinGasPrices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateAdmin(ctx context.Context, in *MsgUpdateAdmin, opts ...grpc.CallOption) (*MsgUpdateAdminResponse, error) {
+	out := new(MsgUpdateAdminResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateAdmin_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, opts...)
@@ -160,6 +234,20 @@ type MsgServer interface {
 	AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error)
 	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
 	RemoveValidator(context.Context, *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error)
+	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
+	AddFeeWhitelistAddresses(context.Context, *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error)
+	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
+	// fee whitelist.
+	RemoveFeeWhitelistAddresses(context.Context, *MsgRemoveFeeWhitelistAddresses) (*MsgRemoveFeeWhitelistAddressesResponse, error)
+	// AddBridgeExecutor defines an authorized operation for adding addresses to x/opchild bridge executors
+	AddBridgeExecutor(context.Context, *MsgAddBridgeExecutor) (*MsgAddBridgeExecutorResponse, error)
+	// RemoveBridgeExecutor defines an authorized operation for removing addresses from x/opchild
+	// bridge executors.
+	RemoveBridgeExecutor(context.Context, *MsgRemoveBridgeExecutor) (*MsgRemoveBridgeExecutorResponse, error)
+	// UpdateMinGasPrices defines an authorized operation for updating the min gas prices parameter
+	UpdateMinGasPrices(context.Context, *MsgUpdateMinGasPrices) (*MsgUpdateMinGasPricesResponse, error)
+	// UpdateAdmin defines an authorized operation for updating the x/opchild admin
+	UpdateAdmin(context.Context, *MsgUpdateAdmin) (*MsgUpdateAdminResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -191,6 +279,24 @@ func (UnimplementedMsgServer) AddValidator(context.Context, *MsgAddValidator) (*
 }
 func (UnimplementedMsgServer) RemoveValidator(context.Context, *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveValidator not implemented")
+}
+func (UnimplementedMsgServer) AddFeeWhitelistAddresses(context.Context, *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddFeeWhitelistAddresses not implemented")
+}
+func (UnimplementedMsgServer) RemoveFeeWhitelistAddresses(context.Context, *MsgRemoveFeeWhitelistAddresses) (*MsgRemoveFeeWhitelistAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveFeeWhitelistAddresses not implemented")
+}
+func (UnimplementedMsgServer) AddBridgeExecutor(context.Context, *MsgAddBridgeExecutor) (*MsgAddBridgeExecutorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBridgeExecutor not implemented")
+}
+func (UnimplementedMsgServer) RemoveBridgeExecutor(context.Context, *MsgRemoveBridgeExecutor) (*MsgRemoveBridgeExecutorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBridgeExecutor not implemented")
+}
+func (UnimplementedMsgServer) UpdateMinGasPrices(context.Context, *MsgUpdateMinGasPrices) (*MsgUpdateMinGasPricesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMinGasPrices not implemented")
+}
+func (UnimplementedMsgServer) UpdateAdmin(context.Context, *MsgUpdateAdmin) (*MsgUpdateAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAdmin not implemented")
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -322,6 +428,114 @@ func _Msg_RemoveValidator_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_AddFeeWhitelistAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddFeeWhitelistAddresses)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).AddFeeWhitelistAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_AddFeeWhitelistAddresses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).AddFeeWhitelistAddresses(ctx, req.(*MsgAddFeeWhitelistAddresses))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveFeeWhitelistAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveFeeWhitelistAddresses)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveFeeWhitelistAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RemoveFeeWhitelistAddresses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveFeeWhitelistAddresses(ctx, req.(*MsgRemoveFeeWhitelistAddresses))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_AddBridgeExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddBridgeExecutor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).AddBridgeExecutor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_AddBridgeExecutor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).AddBridgeExecutor(ctx, req.(*MsgAddBridgeExecutor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveBridgeExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveBridgeExecutor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveBridgeExecutor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RemoveBridgeExecutor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveBridgeExecutor(ctx, req.(*MsgRemoveBridgeExecutor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateMinGasPrices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMinGasPrices)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateMinGasPrices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateMinGasPrices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateMinGasPrices(ctx, req.(*MsgUpdateMinGasPrices))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateAdmin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateAdmin(ctx, req.(*MsgUpdateAdmin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -406,6 +620,30 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveValidator",
 			Handler:    _Msg_RemoveValidator_Handler,
+		},
+		{
+			MethodName: "AddFeeWhitelistAddresses",
+			Handler:    _Msg_AddFeeWhitelistAddresses_Handler,
+		},
+		{
+			MethodName: "RemoveFeeWhitelistAddresses",
+			Handler:    _Msg_RemoveFeeWhitelistAddresses_Handler,
+		},
+		{
+			MethodName: "AddBridgeExecutor",
+			Handler:    _Msg_AddBridgeExecutor_Handler,
+		},
+		{
+			MethodName: "RemoveBridgeExecutor",
+			Handler:    _Msg_RemoveBridgeExecutor_Handler,
+		},
+		{
+			MethodName: "UpdateMinGasPrices",
+			Handler:    _Msg_UpdateMinGasPrices_Handler,
+		},
+		{
+			MethodName: "UpdateAdmin",
+			Handler:    _Msg_UpdateAdmin_Handler,
 		},
 		{
 			MethodName: "UpdateParams",
