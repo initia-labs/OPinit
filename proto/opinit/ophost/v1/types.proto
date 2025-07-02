@@ -135,7 +135,7 @@ message FastBridgeConfig {
   uint64 recovery_window = 4;
 
   // Fast bridge fee. Must be uinit on L1, but op-bridged init on L2
-  cosmos.base.v1beta1.Coin fee = 5 [
+  cosmos.base.v1beta1.Coin base_fee = 5 [
     (gogoproto.moretags) = "yaml:\"fee\"",
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
