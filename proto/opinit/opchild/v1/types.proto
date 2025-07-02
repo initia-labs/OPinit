@@ -111,10 +111,7 @@ message BridgeInfo {
   ];
 
   // l1_gas_price is the init gas price of the l1 chain.
-  cosmos.base.v1beta1.Coin l1_gas_price = 6 [
-    (gogoproto.nullable) = false,
-    (amino.dont_omitempty) = true
-  ];
+  cosmos.base.v1beta1.Coin l1_gas_price = 6;
 }
 
 // CoinsWrapper defines the set of coins.
