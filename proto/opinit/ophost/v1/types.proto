@@ -134,8 +134,8 @@ message FastBridgeConfig {
   // Time duration (in seconds) over which the max_rate is applied (e.g., 86400 = 24h)
   uint64 recovery_window = 4;
 
-  // Fast bridge fee
-  cosmos.base.v1beta1.Coin fee = 8 [
+  // Fast bridge fee. Must be uinit on L1, but op-bridged init on L2
+  cosmos.base.v1beta1.Coin fee = 5 [
     (gogoproto.moretags) = "yaml:\"fee\"",
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
