@@ -63,7 +63,8 @@ message BridgeConfig {
 
   // Optional config for Fast Bridge
   FastBridgeConfig fast_bridge_config = 9 [
-    (gogoproto.nullable) = true
+    (gogoproto.nullable) = true,
+    (amino.dont_omitempty) = false
   ];
 }
 
@@ -133,6 +134,14 @@ message FastBridgeConfig {
 
   // Time duration (in seconds) over which the max_rate is applied (e.g., 86400 = 24h)
   uint64 recovery_window = 4;
+
+  // Fee amount in uinit
+  string fee_amount = 5 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable)   = false,
+    (amino.dont_omitempty) = true
+  ]; 
 }
 
 // FastBridgeValidator represents a multisig validator.

@@ -425,6 +425,7 @@ message MsgSetFastBridgeConfig {
 
   // New fast bridge config to apply. If null, disables fast withdrawal.
   FastBridgeConfig config = 3 [
-    (gogoproto.nullable) = true
+    (gogoproto.nullable) = true,
+    (amino.dont_omitempty) = false
   ];
 }
