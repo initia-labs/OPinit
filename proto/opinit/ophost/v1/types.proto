@@ -136,7 +136,7 @@ message FastBridgeConfig {
 
   // Fast bridge fee. Must be uinit on L1, but op-bridged init on L2
   cosmos.base.v1beta1.Coin base_fee = 5 [
-    (gogoproto.moretags) = "yaml:\"fee\"",
+    (gogoproto.moretags) = "yaml:\"base_fee\"",
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
