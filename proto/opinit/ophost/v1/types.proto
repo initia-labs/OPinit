@@ -120,12 +120,12 @@ message BatchInfoWithOutput {
   ];
 }
 
-// FastBridgeConfig defines validator set and threshold for fast withdrawals.
+// FastBridgeConfig defines verifier set and threshold for fast withdrawals.
 message FastBridgeConfig {
-  // Validator set authorized to sign withdrawals
-  repeated FastBridgeValidator validators = 1;
+  // Verifier set authorized to sign withdrawals
+  repeated FastBridgeVerifier verifiers = 1;
 
-  // Number of required validator signatures to finalize a withdrawal
+  // Number of required verifier signatures to finalize a withdrawal
   uint32 threshold = 2;
 
   // Maximum percentage of the bridge balance that can be withdrawn within the recovery window (e.g., "0.2" = 20%)
@@ -142,8 +142,8 @@ message FastBridgeConfig {
   ];
 }
 
-// FastBridgeValidator represents a multisig validator.
-message FastBridgeValidator {
+// FastBridgeVerifier represents a multisig verifier.
+message FastBridgeVerifier {
   string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string pubkey = 2; // base64-encoded secp256k1 public key (compressed)
 }
