@@ -10,8 +10,8 @@ import (
 
 var _ FastBridgeVerifierI = FastBridgeVerifier{}
 
-// NewFastBridgeValidator constructs a new Fast Bridge Validator
-func NewFastBridgeValidator(address sdk.Address, pubKey cryptotypes.PubKey) (FastBridgeVerifier, error) {
+// NewFastBridgeVerifier constructs a new Fast Bridge verifier
+func NewFastBridgeVerifier(address sdk.Address, pubKey cryptotypes.PubKey) (FastBridgeVerifier, error) {
 	pkAddress := sdk.AccAddress(pubKey.Address())
 	if !address.Equals(pkAddress) {
 		return FastBridgeVerifier{}, sdkerrors.ErrInvalidPubKey.Wrapf("mismatch pubkey address; expected %s, got %s", address, pkAddress)

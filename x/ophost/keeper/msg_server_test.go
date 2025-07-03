@@ -630,7 +630,7 @@ func Test_MsgServer_SetFastBridgeConfig(t *testing.T) {
 
 	verifiers := make([]types.FastBridgeVerifier, len(pubKeys))
 	for i := range pubKeys {
-		verifier, _ := types.NewFastBridgeValidator(addrs[i], pubKeys[i])
+		verifier, _ := types.NewFastBridgeVerifier(addrs[i], pubKeys[i])
 		verifiers[i] = verifier
 	}
 	fastBridgeConfig := types.FastBridgeConfig{
