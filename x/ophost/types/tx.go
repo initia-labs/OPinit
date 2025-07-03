@@ -540,7 +540,7 @@ func (msg MsgUpdateFastBridgeConfig) Validate(ac address.Codec) error {
 		if msg.Config.Threshold == 0 {
 			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "threshold must be greater than 0")
 		}
-		// validate threshold ≤ len(validators)
+		// validate threshold ≤ len(verifiers)
 		if int(msg.Config.Threshold) > len(msg.Config.Verifiers) {
 			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "threshold exceeds %d, got %d", len(msg.Config.Verifiers), msg.Config.Threshold)
 		}
