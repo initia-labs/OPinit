@@ -1,10 +1,12 @@
 package types
 
 import (
+	"strconv"
 	time "time"
 
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -22,6 +24,7 @@ var (
 	_ sdk.Msg = &MsgUpdateMetadata{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgUpdateFinalizationPeriod{}
+	_ sdk.Msg = &MsgUpdateFastBridgeConfig{}
 )
 
 const (
@@ -498,5 +501,74 @@ func (msg MsgUpdateFinalizationPeriod) Validate(ac address.Codec) error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "finalization period must be greater than 0")
 	}
 
+	return nil
+}
+
+/* MsgUpdateFastBridgeConfig */
+
+// NewMsgUpdateFastBridgeConfig creates a new MsgUpdateFastBridgeConfig instance.
+func NewMsgUpdateFastBridgeConfig(
+	authority string,
+	bridgeId uint64,
+	fastBridgeConfig *FastBridgeConfig,
+) *MsgUpdateFastBridgeConfig {
+	return &MsgUpdateFastBridgeConfig{
+		Authority: authority,
+		BridgeId:  bridgeId,
+		Config:    fastBridgeConfig,
+	}
+}
+
+// Validate performs basic MsgUpdateFastBridgeConfig message validation.
+func (msg MsgUpdateFastBridgeConfig) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if msg.Config != nil {
+		for _, verifier := range msg.Config.Verifiers {
+			if _, err := ac.StringToBytes(verifier.Address); err != nil {
+				return err
+			}
+		}
+
+		// validate threshold > 0
+		if msg.Config.Threshold == 0 {
+			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "threshold must be greater than 0")
+		}
+		// validate threshold ≤ len(validators)
+		if int(msg.Config.Threshold) > len(msg.Config.Verifiers) {
+			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "threshold exceeds %d, got %d", len(msg.Config.Verifiers), msg.Config.Threshold)
+		}
+
+		// validate max_rate is math.LegacyDec [0, 1]
+		maxRate, err := strconv.ParseFloat(msg.Config.MaxRate, 64)
+		if err != nil {
+			return err
+		}
+		if maxRate < 0 || 1 < maxRate {
+			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "max rate must be within 0 and 1, got %f", maxRate)
+		}
+
+		// validate recovery_window is non-zero
+		if msg.Config.RecoveryWindow == 0 {
+			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "recovery window must be greater than 0")
+		}
+	}
+
+	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgUpdateFastBridgeConfig) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	for i := range msg.Config.Verifiers {
+		if err := msg.Config.Verifiers[i].UnpackInterfaces(unpacker); err != nil {
+			return err
+		}
+	}
 	return nil
 }

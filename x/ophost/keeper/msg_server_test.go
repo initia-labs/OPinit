@@ -2,12 +2,15 @@ package keeper_test
 
 import (
 	"encoding/base64"
+	"strconv"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
@@ -468,6 +471,7 @@ func Test_UpdateOracleConfig(t *testing.T) {
 	_, err = ms.UpdateOracleConfig(ctx, msg)
 	require.Error(t, err)
 }
+
 func Test_UpdateMetadata(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
@@ -516,7 +520,6 @@ func Test_UpdateMetadata(t *testing.T) {
 		msg,
 	)
 	require.Error(t, err)
-
 }
 
 func Test_MsgServer_UpdateParams(t *testing.T) {
@@ -603,4 +606,134 @@ func Test_MsgServer_UpdateFinalizationPeriod(t *testing.T) {
 	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 2, time.Second*10)
 	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
 	require.Error(t, err)
+}
+
+func Test_MsgServer_SetFastBridgeConfig(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	config := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challenger:            addrsStr[1],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+	}
+
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+
+	verifiers := make([]types.FastBridgeVerifier, len(pubKeys))
+	for i := range pubKeys {
+		verifier, _ := types.NewFastBridgeValidator(addrs[i], pubKeys[i])
+		verifiers[i] = verifier
+	}
+	fastBridgeConfig := types.FastBridgeConfig{
+		Verifiers:      verifiers,
+		Threshold:      2,
+		MaxRate:        "0.2",
+		RecoveryWindow: 86400,
+		BaseFee:        sdk.NewCoin("uinit", math.NewInt(100)),
+	}
+
+	// success case - new config
+	msg := types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &fastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.NoError(t, err)
+
+	_fastBridgeConfig, err := ms.GetFastBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.True(t, fastBridgeConfig.Equal(_fastBridgeConfig))
+
+	// success case - clear config
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, nil)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.NoError(t, err)
+
+	_fastBridgeConfig, err = ms.GetFastBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Nil(t, _fastBridgeConfig)
+
+	// fail case - non-gov signer
+	msg = types.NewMsgUpdateFastBridgeConfig(addrsStr[0], 1, &fastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorIs(t, err, govtypes.ErrInvalidSigner)
+
+	// fail case - threshold is 0
+	invalidFastBridgeConfig := fastBridgeConfig
+	invalidFastBridgeConfig.Threshold = 0
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "threshold must be greater than 0")
+
+	// fail case - threshold is larger than the number of verifers
+	invalidFastBridgeConfig.Threshold = uint32(len(verifiers) + 1)
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "threshold exceeds 5, got 6")
+
+	// fail case - non-float max rate
+	invalidFastBridgeConfig = fastBridgeConfig
+	invalidFastBridgeConfig.MaxRate = "invalid"
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorIs(t, err, strconv.ErrSyntax)
+
+	// fail case - invalid max rate
+	invalidFastBridgeConfig.MaxRate = "1.1"
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "max rate must be within 0 and 1, got 1.100000")
+
+	// fail case - recovery window is 0
+	invalidFastBridgeConfig = fastBridgeConfig
+	invalidFastBridgeConfig.RecoveryWindow = 0
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "recovery window must be greater than 0")
+
+	// fail case - invalid verifier address format
+	invalidVerifiers := []types.FastBridgeVerifier{
+		{
+			Address: "invalid",
+			Pubkey:  verifiers[0].Pubkey,
+		},
+		verifiers[1],
+		verifiers[2],
+	}
+	invalidFastBridgeConfig = fastBridgeConfig
+	invalidFastBridgeConfig.Verifiers = invalidVerifiers
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "decoding bech32 failed")
+
+	// fail case - invalid pubkey format
+	invalidFastBridgeConfig.Verifiers[0].Address = verifiers[0].Address
+	invalidPubkey, _ := codectypes.NewAnyWithValue(&types.FastBridgeVerifier{})
+	invalidFastBridgeConfig.Verifiers[0].Pubkey = invalidPubkey
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "expecting cryptotypes.PubKey")
+
+	// fail case - verifier address and pubkey mismatch
+	invalidVerifiers = []types.FastBridgeVerifier{
+		{
+			Address: verifiers[1].Address,
+			Pubkey:  verifiers[0].Pubkey,
+		},
+		{
+			Address: verifiers[0].Address,
+			Pubkey:  verifiers[1].Pubkey,
+		},
+	}
+	invalidFastBridgeConfig = fastBridgeConfig
+	invalidFastBridgeConfig.Verifiers = invalidVerifiers
+	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
+	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
+	require.ErrorContains(t, err, "mismatch pubkey address")
 }

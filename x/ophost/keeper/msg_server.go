@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"strconv"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -581,7 +582,6 @@ func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
-
 }
 
 // UpdateFinalizationPeriod implements updating the finalization period
@@ -606,4 +606,34 @@ func (ms MsgServer) UpdateFinalizationPeriod(ctx context.Context, req *types.Msg
 	}
 
 	return &types.MsgUpdateFinalizationPeriodResponse{}, nil
+}
+
+func (ms MsgServer) UpdateFastBridgeConfig(ctx context.Context, req *types.MsgUpdateFastBridgeConfig) (*types.MsgUpdateFastBridgeConfigResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	if req.Config != nil {
+		// validate pubkeys format...
+		for _, verifier := range req.Config.Verifiers {
+			pk, ok := verifier.Pubkey.GetCachedValue().(cryptotypes.PubKey)
+			if !ok {
+				return nil, errors.ErrInvalidType.Wrapf("expecting cryptotypes.PubKey, got %T", pk)
+			}
+
+			pkAddress := sdk.AccAddress(pk.Address()).String()
+			if verifier.Address != pkAddress {
+				return nil, errors.ErrInvalidPubKey.Wrapf("mismatch pubkey address; expected %s, got %s", verifier.Address, pkAddress)
+			}
+		}
+	}
+
+	// store the config
+	ms.SetFastBridgeConfig(ctx, req.BridgeId, req.Config)
+
+	return &types.MsgUpdateFastBridgeConfigResponse{}, nil
 }

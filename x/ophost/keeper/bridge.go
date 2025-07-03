@@ -108,3 +108,25 @@ func (k Keeper) IncreaseNextBridgeId(ctx context.Context) (uint64, error) {
 
 	return nextBridgeId, nil
 }
+
+////////////////////////////////////
+// FastBridgeConfig
+
+func (k Keeper) SetFastBridgeConfig(ctx context.Context, bridgeId uint64, fastBridgeConfig *types.FastBridgeConfig) error {
+	bridgeConfig, err := k.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return err
+	}
+
+	bridgeConfig.FastBridgeConfig = fastBridgeConfig
+	return k.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+}
+
+func (k Keeper) GetFastBridgeConfig(ctx context.Context, bridgeId uint64) (fastBridgeConfig *types.FastBridgeConfig, err error) {
+	bridgeConfig, err := k.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return &types.FastBridgeConfig{}, err
+	}
+
+	return bridgeConfig.FastBridgeConfig, nil
+}
