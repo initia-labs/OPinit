@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/base64"
-	"strconv"
 	"testing"
 	"time"
 
@@ -682,7 +681,7 @@ func Test_MsgServer_SetFastBridgeConfig(t *testing.T) {
 	invalidFastBridgeConfig.MaxRate = "invalid"
 	msg = types.NewMsgUpdateFastBridgeConfig(govAddr, 1, &invalidFastBridgeConfig)
 	_, err = ms.UpdateFastBridgeConfig(ctx, msg)
-	require.ErrorIs(t, err, strconv.ErrSyntax)
+	require.ErrorContains(t, err, "failed to set decimal string with base 10")
 
 	// fail case - invalid max rate
 	invalidFastBridgeConfig.MaxRate = "1.1"
