@@ -520,11 +520,13 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
+	l1GasPrice := sdk.NewDecCoin("GAS", math.NewInt(100))
 	info := types.BridgeInfo{
 		BridgeId:   1,
 		BridgeAddr: addrsStr[1],
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
+		L1GasPrice: &l1GasPrice,
 		BridgeConfig: ophosttypes.BridgeConfig{
 			Challenger: addrsStr[2],
 			Proposer:   addrsStr[3],
