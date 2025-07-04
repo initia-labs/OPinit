@@ -938,7 +938,7 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	// this should fail due to mismatched denoms between L1GasPrice and FastBridgeConfig.BaseFee
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "mismatched denoms")
+	require.Contains(t, err.Error(), "fast bridge base fee denom does not match l1 gas price")
 
 	// fix the denom to match
 	info.BridgeConfig.FastBridgeConfig.BaseFee = sdk.NewCoin("GAS", math.NewInt(1_500_000))
