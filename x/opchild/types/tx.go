@@ -276,7 +276,7 @@ func (info BridgeInfo) Validate(ac address.Codec) error {
 		return ErrInvalidBridgeInfo.Wrap("invalid l1 gas price")
 	}
 
-	if info.BridgeConfig.FastBridgeConfig != nil && info.BridgeConfig.FastBridgeConfig.BaseFee.Denom != info.L1GasPrice.Denom {
+	if info.BridgeConfig.FastBridgeConfig != nil && info.L1GasPrice != nil && info.BridgeConfig.FastBridgeConfig.BaseFee.Denom != info.L1GasPrice.Denom {
 		return ErrInvalidBridgeInfo.Wrap("fast bridge base fee denom does not match l1 gas price")
 	}
 

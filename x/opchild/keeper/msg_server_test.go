@@ -904,6 +904,48 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.Error(t, err)
 	require.ErrorContains(t, err, "expected bridge addr")
+
+	fastBridgeConfig := &ophosttypes.FastBridgeConfig{
+		Threshold:      2,
+		MaxRate:        "0.2",
+		RecoveryWindow: uint64(86400),
+		// Using a different denom than the L1GasPrice
+		BaseFee: sdk.NewCoin("DIFFERENT_DENOM", math.NewInt(1_500_000)),
+	}
+
+	// set valid bridge info first
+	info = types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		L1GasPrice: &l1GasPrice, // This uses "GAS" denom
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			FastBridgeConfig:      fastBridgeConfig,
+		},
+	}
+
+	// this should fail due to mismatched denoms between L1GasPrice and FastBridgeConfig.BaseFee
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "mismatched denoms")
+
+	// fix the denom to match
+	info.BridgeConfig.FastBridgeConfig.BaseFee = sdk.NewCoin("GAS", math.NewInt(1_500_000))
+
+	// now it should succeed
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
 }
 
 func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
