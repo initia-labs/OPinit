@@ -5187,7 +5187,7 @@ func (x *BatchInfoWithOutput) GetOutput() *Output {
 	return nil
 }
 
-// FastBridgeConfig defines validator set and threshold for fast withdrawals.
+// FastBridgeConfig defines verifier set and threshold for fast withdrawals.
 type FastBridgeConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -5195,7 +5195,7 @@ type FastBridgeConfig struct {
 
 	// Verifier set authorized to sign withdrawals
 	Verifiers []*FastBridgeVerifier `protobuf:"bytes,1,rep,name=verifiers,proto3" json:"verifiers,omitempty"`
-	// Number of required validator signatures to finalize a withdrawal
+	// Number of required verifier signatures to finalize a withdrawal
 	Threshold uint32 `protobuf:"varint,2,opt,name=threshold,proto3" json:"threshold,omitempty"`
 	// Maximum percentage of the bridge balance that can be withdrawn within the recovery window (e.g., "0.2" = 20%)
 	MaxRate string `protobuf:"bytes,3,opt,name=max_rate,json=maxRate,proto3" json:"max_rate,omitempty"`
@@ -5260,7 +5260,7 @@ func (x *FastBridgeConfig) GetBaseFee() *v1beta1.Coin {
 	return nil
 }
 
-// FastBridgeValidator represents a multisig validator.
+// FastBridgeVerifier represents a multisig verifier.
 type FastBridgeVerifier struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

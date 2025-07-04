@@ -324,11 +324,11 @@ func (m *BatchInfoWithOutput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BatchInfoWithOutput proto.InternalMessageInfo
 
-// FastBridgeConfig defines validator set and threshold for fast withdrawals.
+// FastBridgeConfig defines verifier set and threshold for fast withdrawals.
 type FastBridgeConfig struct {
 	// Verifier set authorized to sign withdrawals
 	Verifiers []FastBridgeVerifier `protobuf:"bytes,1,rep,name=verifiers,proto3" json:"verifiers"`
-	// Number of required validator signatures to finalize a withdrawal
+	// Number of required verifier signatures to finalize a withdrawal
 	Threshold uint32 `protobuf:"varint,2,opt,name=threshold,proto3" json:"threshold,omitempty"`
 	// Maximum percentage of the bridge balance that can be withdrawn within the recovery window (e.g., "0.2" = 20%)
 	MaxRate string `protobuf:"bytes,3,opt,name=max_rate,json=maxRate,proto3" json:"max_rate,omitempty"`
@@ -371,7 +371,7 @@ func (m *FastBridgeConfig) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_FastBridgeConfig proto.InternalMessageInfo
 
-// FastBridgeValidator represents a multisig validator.
+// FastBridgeVerifier represents a multisig verifier.
 type FastBridgeVerifier struct {
 	Address string      `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	Pubkey  *types1.Any `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey,omitempty"`

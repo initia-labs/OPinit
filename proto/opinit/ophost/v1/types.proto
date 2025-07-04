@@ -121,7 +121,7 @@ message BatchInfoWithOutput {
   ];
 }
 
-// FastBridgeConfig defines validator set and threshold for fast withdrawals.
+// FastBridgeConfig defines verifier set and threshold for fast withdrawals.
 message FastBridgeConfig {
   // Verifier set authorized to sign withdrawals
   repeated FastBridgeVerifier verifiers = 1 [
@@ -129,7 +129,7 @@ message FastBridgeConfig {
     (amino.dont_omitempty) = true
   ];
 
-  // Number of required validator signatures to finalize a withdrawal
+  // Number of required verifier signatures to finalize a withdrawal
   uint32 threshold = 2;
 
   // Maximum percentage of the bridge balance that can be withdrawn within the recovery window (e.g., "0.2" = 20%)
