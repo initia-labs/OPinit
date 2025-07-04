@@ -30,4 +30,6 @@ var (
 	// HostValidatorStore keys
 	HostHeightKey        = []byte{0x51}
 	HostValidatorsPrefix = []byte{0x52}
+
+	NextFastBridgeNoncePrefix = []byte{0x61} // prefix for each key to a fast bridge nonce
 )

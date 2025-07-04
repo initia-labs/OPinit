@@ -3,10 +3,13 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -603,17 +606,21 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 		return nil, err
 	}
 
+	setBridgeEvent := sdk.NewEvent(
+		types.EventTypeSetBridgeInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
+		sdk.NewAttribute(types.AttributeKeyL1ChainId, req.BridgeInfo.L1ChainId),
+		sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
+	)
+
+	if req.BridgeInfo.L1GasPrice != nil {
+		setBridgeEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyL1GasPrice, req.BridgeInfo.L1GasPrice.String()))
+	}
+
 	// emit event
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSetBridgeInfo,
-			sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
-			sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
-			sdk.NewAttribute(types.AttributeKeyL1ChainId, req.BridgeInfo.L1ChainId),
-			sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
-		),
-	)
+	sdkCtx.EventManager().EmitEvent(setBridgeEvent)
 
 	return &types.MsgSetBridgeInfoResponse{}, nil
 }
@@ -792,6 +799,73 @@ func (ms MsgServer) emitWithdrawEvents(ctx context.Context, req *types.MsgInitia
 	))
 
 	return nil
+}
+
+// InitiateFastWithdrawal implements withdrawing token to L1 via the Fast Bridge
+func (ms MsgServer) InitiateFastWithdrawal(ctx context.Context, req *types.MsgInitiateFastWithdrawal) (*types.MsgInitiateFastWithdrawalResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	bridgeInfo, err := ms.Keeper.BridgeInfo.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// check first if fast bridge is enabled
+	if bridgeInfo.BridgeConfig.FastBridgeConfig == nil {
+		return nil, types.ErrFastBridgeDisabled
+	}
+
+	// there also should be a l1 gas price for this to work
+	if bridgeInfo.L1GasPrice == nil {
+		return nil, types.ErrL1GasPrinceNotRegistered
+	}
+
+	// check if it is an op-bridged token
+	if ok, err := ms.DenomPairs.Has(ctx, req.Amount.Denom); err != nil || !ok {
+		return nil, types.ErrNonL1Token
+	}
+
+	// compute fast bridge fee: (l1_gas_price * gas_limit) + base_fee
+	gasFeeDec := bridgeInfo.L1GasPrice.Amount.Mul(math.LegacyNewDecFromBigInt(new(big.Int).SetUint64(req.GasLimit)))
+	totalFeeDec := gasFeeDec.Add(bridgeInfo.BridgeConfig.FastBridgeConfig.BaseFee.Amount.ToLegacyDec())
+	totalFee := sdk.NewCoin(bridgeInfo.L1GasPrice.Denom, totalFeeDec.Ceil().TruncateInt())
+
+	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	burnCoins := sdk.NewCoins(req.Amount).Add(totalFee)
+	if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, burnCoins); err != nil {
+		return nil, err
+	}
+
+	// burn fast withdrawn coins from the module account
+	if err := ms.bankKeeper.BurnCoins(ctx, types.ModuleName, burnCoins); err != nil {
+		return nil, err
+	}
+
+	nonce, err := ms.Keeper.IncreaseFastBridgeNonce(ctx, senderAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeInitiateFastWithdrawal,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeInfo.BridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyFrom, req.Sender),
+		sdk.NewAttribute(types.AttributeKeyRecipient, req.Recipient),
+		sdk.NewAttribute(types.AttributeKeyAmount, req.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyGasLimit, strconv.FormatUint(req.GasLimit, 10)),
+		sdk.NewAttribute(types.AttributeKeyNonce, strconv.FormatUint(nonce, 10)),
+		sdk.NewAttribute(types.AttributeKeyFee, totalFee.String()),
+		sdk.NewAttribute(types.AttributeKeyData, hex.EncodeToString(req.Data)),
+	))
+
+	return &types.MsgInitiateFastWithdrawalResponse{}, nil
 }
 
 func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle) (*types.MsgUpdateOracleResponse, error) {

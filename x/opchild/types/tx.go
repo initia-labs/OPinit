@@ -26,6 +26,7 @@ var (
 	_ sdk.Msg = &MsgSetBridgeInfo{}
 	_ sdk.Msg = &MsgFinalizeTokenDeposit{}
 	_ sdk.Msg = &MsgInitiateTokenWithdrawal{}
+	_ sdk.Msg = &MsgInitiateFastWithdrawal{}
 
 	_ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}
 )
@@ -184,6 +185,57 @@ func (msg MsgInitiateTokenWithdrawal) Validate(ac address.Codec) error {
 	return nil
 }
 
+/* MsgInitiateFastWithdrawal */
+
+// NewMsgInitiateFastWithdrawal creates a new MsgInitiateFastWithdrawal instance.
+func NewMsgInitiateFastWithdrawal(
+	sender string,
+	recipient string,
+	amount sdk.Coin,
+	gasLimit uint64,
+	data []byte,
+) *MsgInitiateFastWithdrawal {
+	return &MsgInitiateFastWithdrawal{
+		Sender:    sender,
+		Recipient: recipient,
+		Amount:    amount,
+		GasLimit:  gasLimit,
+		Data:      data,
+	}
+}
+
+// Validate performs basic MsgInitiateFastWithdrawal message validation.
+func (msg MsgInitiateFastWithdrawal) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
+	}
+
+	if len(msg.Recipient) == 0 {
+		return sdkerrors.ErrInvalidAddress.Wrap("recipient address cannot be empty")
+	}
+
+	if !msg.Amount.IsValid() || !msg.Amount.IsPositive() {
+		return ErrInvalidAmount
+	}
+
+	// hook data must not exceed 10KB
+	if len(msg.Data) > 1024*10 {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "data payload exceeds maximum size of 10KB")
+	}
+
+	// amount must fit within uint64-safe range
+	if !msg.Amount.Amount.IsUint64() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "amount exceeds uint64 range")
+	}
+
+	// gas_limit shouldn't be 0
+	if msg.GasLimit == 0 {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "bridge operations gas limit cannot be 0")
+	}
+
+	return nil
+}
+
 /* MsgSetBridgeInfo */
 func NewMsgSetBridgeInfo(
 	sender string,
@@ -218,6 +270,14 @@ func (info BridgeInfo) Validate(ac address.Codec) error {
 
 	if err := info.BridgeConfig.ValidateWithNoAddrValidation(); err != nil {
 		return ErrInvalidBridgeInfo.Wrap(err.Error())
+	}
+
+	if info.L1GasPrice != nil && (!info.L1GasPrice.IsValid() || !info.L1GasPrice.IsPositive()) {
+		return ErrInvalidBridgeInfo.Wrap("invalid l1 gas price")
+	}
+
+	if info.BridgeConfig.FastBridgeConfig != nil && info.L1GasPrice != nil && info.BridgeConfig.FastBridgeConfig.BaseFee.Denom != info.L1GasPrice.Denom {
+		return ErrInvalidBridgeInfo.Wrap("fast bridge base fee denom does not match l1 gas price")
 	}
 
 	return nil

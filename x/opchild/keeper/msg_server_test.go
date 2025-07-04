@@ -520,11 +520,13 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
+	l1GasPrice := sdk.NewDecCoin("GAS", math.NewInt(100))
 	info := types.BridgeInfo{
 		BridgeId:   1,
 		BridgeAddr: addrsStr[1],
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
+		L1GasPrice: &l1GasPrice,
 		BridgeConfig: ophosttypes.BridgeConfig{
 			Challenger: addrsStr[2],
 			Proposer:   addrsStr[3],
@@ -565,6 +567,276 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_MsgServer_InitiateFastWithdrawal_NilGasPrice(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	// create bridge info with nil L1GasPrice
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		L1GasPrice: nil,
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			FastBridgeConfig: &ophosttypes.FastBridgeConfig{
+				Threshold:      2,
+				MaxRate:        "0.2",
+				RecoveryWindow: uint64(86400),
+				BaseFee:        sdk.NewCoin("GAS", math.NewInt(1_500_000)),
+			},
+		},
+	}
+
+	// test 1: set bridge info with nil gas price
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	// prepare for withdrawal
+	baseDenom := "test_token"
+	denom := ophosttypes.L2Denom(1, baseDenom)
+
+	// fund test account
+	coins := sdk.NewCoins(sdk.NewCoin("GAS", math.NewInt(10_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000)))
+	account := input.Faucet.NewFundedAccount(ctx, coins...)
+	accountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(account)
+	require.NoError(t, err)
+
+	err = input.OPChildKeeper.DenomPairs.Set(ctx, denom, baseDenom)
+	require.NoError(t, err)
+
+	// test 2: attempt fast withdrawal with nil L1GasPrice
+	msg := types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(denom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "l1 gas price is not registered")
+}
+
+func Test_MsgServer_InitiateFastWithdrawal(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	gasDenom := ophosttypes.L2Denom(1, "uinit")
+	l1GasPrice := sdk.NewDecCoinFromDec(gasDenom, math.LegacyMustNewDecFromStr("0.015"))
+	bridgeInfo := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		L1GasPrice: &l1GasPrice,
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			FastBridgeConfig: &ophosttypes.FastBridgeConfig{
+				Threshold:      2,
+				MaxRate:        "0.2",
+				RecoveryWindow: uint64(86400),
+				BaseFee:        sdk.NewCoin(gasDenom, math.NewInt(1_500_000)),
+			},
+		},
+	}
+
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], bridgeInfo))
+	require.NoError(t, err)
+
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(
+		addrsStr[0],
+		"testaddr",
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(1_000_000)),
+		1,
+		1,
+		"uinit",
+		nil,
+	))
+	require.NoError(t, err)
+
+	// fund account more
+	coins := sdk.NewCoins(
+		sdk.NewCoin(gasDenom, math.NewInt(1_000_000_000)),
+		sdk.NewCoin("foo", math.NewInt(1_000_000_000)),
+	)
+	account := input.Faucet.NewFundedAccount(ctx, coins...)
+	accountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(account)
+	require.NoError(t, err)
+
+	// test 1: withdraw token not from l1
+	msg := types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		"recipientAddr",
+		sdk.NewCoin("foo", math.NewInt(100)),
+		100000,
+		nil,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "token is not from L1")
+
+	// test 2: valid fast withdrawal
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+	resp, err := ms.InitiateFastWithdrawal(ctx, msg)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+
+	// verify user balance
+	afterBalance := input.BankKeeper.GetBalance(ctx, account, gasDenom)
+	// amount should be left = start - amount_withdrawn - ((gas_limit * gas_price) + base_fee)
+	require.Equal(t, afterBalance.Amount.Int64(), 1000000000-100-((bridgeInfo.L1GasPrice.Amount.MulInt64(100000).TruncateInt64())+1500000))
+
+	// test 3: data exceeding 10KB
+	largeData := make([]byte, 11*1024) // 11KB
+	for i := range largeData {
+		largeData[i] = byte(i % 256)
+	}
+
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		100000,
+		largeData,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "data payload exceeds maximum size")
+
+	// test 4: amount exceeding uint64
+	hugeAmount := math.NewIntFromBigInt(new(big.Int).Lsh(big.NewInt(1), 64))
+
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, hugeAmount),
+		100000,
+		nil,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "exceeds uint64 range")
+
+	// test 5: fast bridge disabled
+	bridgeInfo.BridgeConfig.FastBridgeConfig = nil
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], bridgeInfo))
+	require.NoError(t, err)
+
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "fast bridge is disabled")
+
+	// test 6: non existing bridge
+	err = ms.Keeper.BridgeInfo.Remove(ctx)
+	require.NoError(t, err)
+
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "collections: not found")
+
+	// test 7: check nonce incrementation
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], bridgeInfo))
+	require.NoError(t, err)
+
+	bridgeInfo.BridgeConfig.FastBridgeConfig = &ophosttypes.FastBridgeConfig{
+		Threshold:      2,
+		MaxRate:        "0.2",
+		RecoveryWindow: uint64(86400),
+		BaseFee:        sdk.NewCoin(gasDenom, math.NewInt(1_500_000)),
+	}
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], bridgeInfo))
+	require.NoError(t, err)
+
+	initialNonce, err := ms.Keeper.GetFastBridgeNonce(ctx, account)
+	require.NoError(t, err)
+
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.NoError(t, err)
+
+	newNonce, err := ms.Keeper.GetFastBridgeNonce(ctx, account)
+	require.NoError(t, err)
+	require.Equal(t, initialNonce+1, newNonce)
+
+	// test 8: insufficient funds
+	poorAccount := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(gasDenom, math.NewInt(50)))
+	poorAccountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(poorAccount)
+	require.NoError(t, err)
+
+	msg = types.NewMsgInitiateFastWithdrawal(
+		poorAccountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "insufficient funds")
+
+	// test 9: zero bridge gas limit
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		0,
+		nil,
+	)
+
+	// Should return an error
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "bridge operations gas limit cannot be 0")
+}
+
 /////////////////////////////////////////
 // The messages for Bridge Executor
 
@@ -572,11 +844,13 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
+	l1GasPrice := sdk.NewDecCoin("GAS", math.NewInt(100))
 	info := types.BridgeInfo{
 		BridgeId:   1,
 		BridgeAddr: addrsStr[1],
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
+		L1GasPrice: &l1GasPrice,
 		BridgeConfig: ophosttypes.BridgeConfig{
 			Challenger: addrsStr[2],
 			Proposer:   addrsStr[3],
@@ -630,6 +904,48 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
 	require.Error(t, err)
 	require.ErrorContains(t, err, "expected bridge addr")
+
+	fastBridgeConfig := &ophosttypes.FastBridgeConfig{
+		Threshold:      2,
+		MaxRate:        "0.2",
+		RecoveryWindow: uint64(86400),
+		// Using a different denom than the L1GasPrice
+		BaseFee: sdk.NewCoin("DIFFERENT_DENOM", math.NewInt(1_500_000)),
+	}
+
+	// set valid bridge info first
+	info = types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		L1GasPrice: &l1GasPrice, // This uses "GAS" denom
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			FastBridgeConfig:      fastBridgeConfig,
+		},
+	}
+
+	// this should fail due to mismatched denoms between L1GasPrice and FastBridgeConfig.BaseFee
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "fast bridge base fee denom does not match l1 gas price")
+
+	// fix the denom to match
+	info.BridgeConfig.FastBridgeConfig.BaseFee = sdk.NewCoin("GAS", math.NewInt(1_500_000))
+
+	// now it should succeed
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
 }
 
 func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {

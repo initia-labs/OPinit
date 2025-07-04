@@ -12,6 +12,7 @@ const (
 	EventTypeUpdateAdmin             = "update_admin"
 	EventTypeFinalizeTokenDeposit    = "finalize_token_deposit"
 	EventTypeInitiateTokenWithdrawal = "initiate_token_withdrawal"
+	EventTypeInitiateFastWithdrawal  = "initiate_fast_withdrawal"
 	EventTypeExecuteMessages         = "execute_messages"
 	EventTypeWhitelist               = "whitelist"
 	EventTypeParams                  = "params"
@@ -41,4 +42,9 @@ const (
 	AttributeKeyTo             = "to"
 	AttributeKeyL2Sequence     = "l2_sequence"
 	AttributeKeyHeight         = "height"
+	AttributeKeyGasLimit       = "gas_limit"
+	AttributeKeyNonce          = "nonce"
+	AttributeKeyFee            = "fee"
+	AttributeKeyData           = "data"
+	AttributeKeyL1GasPrice     = "l1_gas_price"
 )
