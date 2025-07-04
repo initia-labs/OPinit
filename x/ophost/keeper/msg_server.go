@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -617,23 +616,10 @@ func (ms MsgServer) UpdateFastBridgeConfig(ctx context.Context, req *types.MsgUp
 		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	if req.Config != nil {
-		// validate pubkeys format...
-		for _, verifier := range req.Config.Verifiers {
-			pk, ok := verifier.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-			if !ok {
-				return nil, errors.ErrInvalidType.Wrapf("expecting cryptotypes.PubKey, got %T", pk)
-			}
-
-			pkAddress := sdk.AccAddress(pk.Address()).String()
-			if verifier.Address != pkAddress {
-				return nil, errors.ErrInvalidPubKey.Wrapf("mismatch pubkey address; expected %s, got %s", verifier.Address, pkAddress)
-			}
-		}
-	}
-
 	// store the config
-	ms.SetFastBridgeConfig(ctx, req.BridgeId, req.Config)
+	if err := ms.SetFastBridgeConfig(ctx, req.BridgeId, req.Config); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgUpdateFastBridgeConfigResponse{}, nil
 }

@@ -1,11 +1,11 @@
 package types
 
 import (
-	"strconv"
 	time "time"
 
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -546,17 +546,34 @@ func (msg MsgUpdateFastBridgeConfig) Validate(ac address.Codec) error {
 		}
 
 		// validate max_rate is math.LegacyDec [0, 1]
-		maxRate, err := strconv.ParseFloat(msg.Config.MaxRate, 64)
+		maxRate, err := math.LegacyNewDecFromStr(msg.Config.MaxRate)
 		if err != nil {
 			return err
 		}
-		if maxRate < 0 || 1 < maxRate {
+		if maxRate.LT(math.LegacyZeroDec()) || maxRate.GT(math.LegacyOneDec()) {
 			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "max rate must be within 0 and 1, got %f", maxRate)
 		}
 
 		// validate recovery_window is non-zero
 		if msg.Config.RecoveryWindow == 0 {
 			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "recovery window must be greater than 0")
+		}
+
+		// validate pubkeys format...
+		for _, verifier := range msg.Config.Verifiers {
+			pk, err := verifier.GetPubKey()
+			if err != nil {
+				return sdkerrors.ErrInvalidType.Wrapf("expecting cryptotypes.PubKey, got %T", pk)
+			}
+
+			pkAddress, err := ac.BytesToString(pk.Address())
+			if err != nil {
+				return sdkerrors.ErrInvalidType.Wrapf("expecting cryptotypes.PubKey, got %T", pk)
+			}
+
+			if verifier.Address != pkAddress {
+				return sdkerrors.ErrInvalidPubKey.Wrapf("mismatch pubkey address; expected %s, got %s", verifier.Address, pkAddress)
+			}
 		}
 	}
 

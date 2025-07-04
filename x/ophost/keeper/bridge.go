@@ -125,7 +125,7 @@ func (k Keeper) SetFastBridgeConfig(ctx context.Context, bridgeId uint64, fastBr
 func (k Keeper) GetFastBridgeConfig(ctx context.Context, bridgeId uint64) (fastBridgeConfig *types.FastBridgeConfig, err error) {
 	bridgeConfig, err := k.GetBridgeConfig(ctx, bridgeId)
 	if err != nil {
-		return &types.FastBridgeConfig{}, err
+		return nil, err
 	}
 
 	return bridgeConfig.FastBridgeConfig, nil
