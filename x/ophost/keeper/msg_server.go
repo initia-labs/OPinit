@@ -581,7 +581,6 @@ func (ms MsgServer) UpdateParams(ctx context.Context, req *types.MsgUpdateParams
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
-
 }
 
 // UpdateFinalizationPeriod implements updating the finalization period
@@ -606,4 +605,21 @@ func (ms MsgServer) UpdateFinalizationPeriod(ctx context.Context, req *types.Msg
 	}
 
 	return &types.MsgUpdateFinalizationPeriodResponse{}, nil
+}
+
+func (ms MsgServer) UpdateFastBridgeConfig(ctx context.Context, req *types.MsgUpdateFastBridgeConfig) (*types.MsgUpdateFastBridgeConfigResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	// store the config
+	if err := ms.SetFastBridgeConfig(ctx, req.BridgeId, req.Config); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateFastBridgeConfigResponse{}, nil
 }
