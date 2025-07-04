@@ -203,6 +203,9 @@ func NewFastWithdrawCmd(ac address.Codec) *cobra.Command {
 			}
 
 			bridgeGasLimit, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
 
 			txf, msg, err := newBuildFastWithdrawMsg(clientCtx, ac, txf, recipientAddr, amount, bridgeGasLimit, hookMsgBytes)
 			if err != nil {

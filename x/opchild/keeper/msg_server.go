@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -818,7 +820,7 @@ func (ms MsgServer) InitiateFastWithdrawal(ctx context.Context, req *types.MsgIn
 	}
 
 	// compute fast bridge fee: (l1_gas_price * gas_limit) + base_fee
-	gasFeeDec := bridgeInfo.L1GasPrice.Amount.MulInt64(int64(req.GasLimit))
+	gasFeeDec := bridgeInfo.L1GasPrice.Amount.Mul(math.LegacyNewDecFromBigInt(new(big.Int).SetUint64(req.GasLimit)))
 	totalFeeDec := gasFeeDec.Add(bridgeInfo.BridgeConfig.FastBridgeConfig.BaseFee.Amount.ToLegacyDec())
 	totalFee := sdk.NewCoin(bridgeInfo.L1GasPrice.Denom, totalFeeDec.Ceil().TruncateInt())
 
