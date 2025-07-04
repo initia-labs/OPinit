@@ -104,6 +104,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 					"submission_start_height" : "l2-block-height",
 					"batch_info": {"submitter": "bech32-address","chain": "INITIA|CELESTIA"},
 					"metadata": "{\"perm_channels\":[{\"port_id\":\"transfer\", \"channel_id\":\"channel-0\"}, {\"port_id\":\"icqhost\", \"channel_id\":\"channel-1\"}]}"
+					"fast_bridge_config": {"verifiers": [], "threshold": 2, "max_rate": "0.2", "recovery_window": 86400, "base_fee": {"denom": "l2/...", "amount": "1500000"}}
 				}`, version.AppName,
 			),
 		),
@@ -150,6 +151,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				Metadata:              []byte(origConfig.Metadata),
 				BatchInfo:             origConfig.BatchInfo,
 				OracleEnabled:         origConfig.OracleEnabled,
+				FastBridgeConfig:      origConfig.FastBridgeConfig,
 			}
 
 			if err = config.Validate(ac); err != nil {

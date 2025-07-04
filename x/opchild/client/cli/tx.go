@@ -408,7 +408,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				Metadata:              []byte(origConfig.Metadata),
 				BatchInfo:             origConfig.BatchInfo,
 				OracleEnabled:         origConfig.OracleEnabled,
-				FastBridgeConfig:      &origConfig.FastBridgeConfig,
+				FastBridgeConfig:      origConfig.FastBridgeConfig,
 			}
 
 			if err = bridgeConfig.ValidateWithNoAddrValidation(); err != nil {

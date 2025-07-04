@@ -230,7 +230,7 @@ func (msg MsgInitiateFastWithdrawal) Validate(ac address.Codec) error {
 
 	// gas_limit shouldn't be 0
 	if msg.GasLimit == 0 {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "gas limit cannot be 0")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "bridge operations gas limit cannot be 0")
 	}
 
 	return nil
@@ -270,6 +270,10 @@ func (info BridgeInfo) Validate(ac address.Codec) error {
 
 	if err := info.BridgeConfig.ValidateWithNoAddrValidation(); err != nil {
 		return ErrInvalidBridgeInfo.Wrap(err.Error())
+	}
+
+	if info.L1GasPrice != nil && (!info.L1GasPrice.IsValid() || !info.L1GasPrice.IsPositive()) {
+		return ErrInvalidBridgeInfo.Wrap("invalid l1 gas price")
 	}
 
 	return nil

@@ -606,18 +606,21 @@ func (ms MsgServer) SetBridgeInfo(ctx context.Context, req *types.MsgSetBridgeIn
 		return nil, err
 	}
 
+	setBridgeEvent := sdk.NewEvent(
+		types.EventTypeSetBridgeInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
+		sdk.NewAttribute(types.AttributeKeyL1ChainId, req.BridgeInfo.L1ChainId),
+		sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
+	)
+
+	if req.BridgeInfo.L1GasPrice != nil {
+		setBridgeEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyL1GasPrice, req.BridgeInfo.L1GasPrice.String()))
+	}
+
 	// emit event
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSetBridgeInfo,
-			sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.BridgeInfo.BridgeId, 10)),
-			sdk.NewAttribute(types.AttributeKeyBridgeAddr, req.BridgeInfo.BridgeAddr),
-			sdk.NewAttribute(types.AttributeKeyL1ChainId, req.BridgeInfo.L1ChainId),
-			sdk.NewAttribute(types.AttributeKeyL1ClientId, req.BridgeInfo.L1ClientId),
-			sdk.NewAttribute(types.AttributeKeyL1GasPrice, req.BridgeInfo.L1GasPrice.String()),
-		),
-	)
+	sdkCtx.EventManager().EmitEvent(setBridgeEvent)
 
 	return &types.MsgSetBridgeInfoResponse{}, nil
 }
@@ -812,6 +815,11 @@ func (ms MsgServer) InitiateFastWithdrawal(ctx context.Context, req *types.MsgIn
 	// check first if fast bridge is enabled
 	if bridgeInfo.BridgeConfig.FastBridgeConfig == nil {
 		return nil, types.ErrFastBridgeDisabled
+	}
+
+	// there also should be a l1 gas price for this to work
+	if bridgeInfo.L1GasPrice == nil {
+		return nil, types.ErrL1GasPrinceNotRegistered
 	}
 
 	// check if it is an op-bridged token

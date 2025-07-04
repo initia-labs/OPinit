@@ -567,6 +567,68 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_MsgServer_InitiateFastWithdrawal_NilGasPrice(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+	// create bridge info with nil L1GasPrice
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		L1GasPrice: nil,
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			FastBridgeConfig: &ophosttypes.FastBridgeConfig{
+				Threshold:      2,
+				MaxRate:        "0.2",
+				RecoveryWindow: uint64(86400),
+				BaseFee:        sdk.NewCoin("GAS", math.NewInt(1_500_000)),
+			},
+		},
+	}
+
+	// test 1: set bridge info with nil gas price
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	// prepare for withdrawal
+	baseDenom := "test_token"
+	denom := ophosttypes.L2Denom(1, baseDenom)
+
+	// fund test account
+	coins := sdk.NewCoins(sdk.NewCoin("GAS", math.NewInt(10_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000)))
+	account := input.Faucet.NewFundedAccount(ctx, coins...)
+	accountAddr, err := input.AccountKeeper.AddressCodec().BytesToString(account)
+	require.NoError(t, err)
+
+	err = input.OPChildKeeper.DenomPairs.Set(ctx, denom, baseDenom)
+	require.NoError(t, err)
+
+	// test 2: attempt fast withdrawal with nil L1GasPrice
+	msg := types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(denom, math.NewInt(100)),
+		100000,
+		nil,
+	)
+
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "l1 gas price is not registered")
+}
+
 func Test_MsgServer_InitiateFastWithdrawal(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
@@ -760,7 +822,7 @@ func Test_MsgServer_InitiateFastWithdrawal(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "insufficient funds")
 
-	// test 9: zero gas limit
+	// test 9: zero bridge gas limit
 	msg = types.NewMsgInitiateFastWithdrawal(
 		accountAddr,
 		addrsStr[1],
@@ -772,7 +834,7 @@ func Test_MsgServer_InitiateFastWithdrawal(t *testing.T) {
 	// Should return an error
 	_, err = ms.InitiateFastWithdrawal(ctx, msg)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "gas limit cannot be zero")
+	require.Contains(t, err.Error(), "bridge operations gas limit cannot be 0")
 }
 
 /////////////////////////////////////////
