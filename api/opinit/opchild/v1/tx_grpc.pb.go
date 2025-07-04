@@ -23,6 +23,7 @@ const (
 	Msg_SetBridgeInfo_FullMethodName               = "/opinit.opchild.v1.Msg/SetBridgeInfo"
 	Msg_FinalizeTokenDeposit_FullMethodName        = "/opinit.opchild.v1.Msg/FinalizeTokenDeposit"
 	Msg_InitiateTokenWithdrawal_FullMethodName     = "/opinit.opchild.v1.Msg/InitiateTokenWithdrawal"
+	Msg_InitiateFastWithdrawal_FullMethodName      = "/opinit.opchild.v1.Msg/InitiateFastWithdrawal"
 	Msg_AddValidator_FullMethodName                = "/opinit.opchild.v1.Msg/AddValidator"
 	Msg_RemoveValidator_FullMethodName             = "/opinit.opchild.v1.Msg/RemoveValidator"
 	Msg_AddFeeWhitelistAddresses_FullMethodName    = "/opinit.opchild.v1.Msg/AddFeeWhitelistAddresses"
@@ -48,6 +49,8 @@ type MsgClient interface {
 	FinalizeTokenDeposit(ctx context.Context, in *MsgFinalizeTokenDeposit, opts ...grpc.CallOption) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	InitiateTokenWithdrawal(ctx context.Context, in *MsgInitiateTokenWithdrawal, opts ...grpc.CallOption) (*MsgInitiateTokenWithdrawalResponse, error)
+	// InitiateFastWithdrawal defines a user facing L2 => l1 fast withdraw interface.
+	InitiateFastWithdrawal(ctx context.Context, in *MsgInitiateFastWithdrawal, opts ...grpc.CallOption) (*MsgInitiateFastWithdrawalResponse, error)
 	// AddValidator defines a rpc handler method for MsgAddValidator.
 	AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error)
 	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
@@ -113,6 +116,15 @@ func (c *msgClient) FinalizeTokenDeposit(ctx context.Context, in *MsgFinalizeTok
 func (c *msgClient) InitiateTokenWithdrawal(ctx context.Context, in *MsgInitiateTokenWithdrawal, opts ...grpc.CallOption) (*MsgInitiateTokenWithdrawalResponse, error) {
 	out := new(MsgInitiateTokenWithdrawalResponse)
 	err := c.cc.Invoke(ctx, Msg_InitiateTokenWithdrawal_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) InitiateFastWithdrawal(ctx context.Context, in *MsgInitiateFastWithdrawal, opts ...grpc.CallOption) (*MsgInitiateFastWithdrawalResponse, error) {
+	out := new(MsgInitiateFastWithdrawalResponse)
+	err := c.cc.Invoke(ctx, Msg_InitiateFastWithdrawal_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -230,6 +242,8 @@ type MsgServer interface {
 	FinalizeTokenDeposit(context.Context, *MsgFinalizeTokenDeposit) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	InitiateTokenWithdrawal(context.Context, *MsgInitiateTokenWithdrawal) (*MsgInitiateTokenWithdrawalResponse, error)
+	// InitiateFastWithdrawal defines a user facing L2 => l1 fast withdraw interface.
+	InitiateFastWithdrawal(context.Context, *MsgInitiateFastWithdrawal) (*MsgInitiateFastWithdrawalResponse, error)
 	// AddValidator defines a rpc handler method for MsgAddValidator.
 	AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error)
 	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
@@ -273,6 +287,9 @@ func (UnimplementedMsgServer) FinalizeTokenDeposit(context.Context, *MsgFinalize
 }
 func (UnimplementedMsgServer) InitiateTokenWithdrawal(context.Context, *MsgInitiateTokenWithdrawal) (*MsgInitiateTokenWithdrawalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitiateTokenWithdrawal not implemented")
+}
+func (UnimplementedMsgServer) InitiateFastWithdrawal(context.Context, *MsgInitiateFastWithdrawal) (*MsgInitiateFastWithdrawalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InitiateFastWithdrawal not implemented")
 }
 func (UnimplementedMsgServer) AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddValidator not implemented")
@@ -388,6 +405,24 @@ func _Msg_InitiateTokenWithdrawal_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).InitiateTokenWithdrawal(ctx, req.(*MsgInitiateTokenWithdrawal))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_InitiateFastWithdrawal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgInitiateFastWithdrawal)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).InitiateFastWithdrawal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_InitiateFastWithdrawal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).InitiateFastWithdrawal(ctx, req.(*MsgInitiateFastWithdrawal))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -612,6 +647,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InitiateTokenWithdrawal",
 			Handler:    _Msg_InitiateTokenWithdrawal_Handler,
+		},
+		{
+			MethodName: "InitiateFastWithdrawal",
+			Handler:    _Msg_InitiateFastWithdrawal_Handler,
 		},
 		{
 			MethodName: "AddValidator",

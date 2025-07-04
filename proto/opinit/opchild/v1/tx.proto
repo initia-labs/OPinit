@@ -37,6 +37,9 @@ service Msg {
   // InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
   rpc InitiateTokenWithdrawal(MsgInitiateTokenWithdrawal) returns (MsgInitiateTokenWithdrawalResponse);
 
+  // InitiateFastWithdrawal defines a user facing L2 => l1 fast withdraw interface.
+  rpc InitiateFastWithdrawal(MsgInitiateFastWithdrawal) returns (MsgInitiateFastWithdrawalResponse);
+
   ////////////////////////////
   // Authority Messages
 
@@ -189,6 +192,34 @@ message MsgInitiateTokenWithdrawalResponse {
   // l2 sequence number
   uint64 sequence = 1;
 }
+
+// MsgInitiateFastWithdrawal is a message to initiate a fast token withdrawal from L2 to L1.
+message MsgInitiateFastWithdrawal {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "opchild/MsgInitiateFastWithdrawal";
+
+  // sender is an L2 user initiating the withdrawal
+  string sender = 1;
+
+  // recipient is the L1 recipient address
+  string recipient = 2;
+
+  // amount specifies the token denom and amount
+  cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+
+  // gas_limit defines max gas for bridge operation and additional hook
+  uint64 gas_limit = 4;
+
+  // data defines an optional payload for L1 execution
+  bytes data = 5;
+}
+
+// MsgInitiateFastWithdrawalResponse returns the initiation result data
+message MsgInitiateFastWithdrawalResponse {}
 
 ///////////////////////////
 // Authority Messages

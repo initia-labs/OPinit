@@ -38,6 +38,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewExecuteMessagesCmd(ac),
 		NewDepositCmd(ac),
 		NewWithdrawCmd(ac),
+		NewFastWithdrawCmd(ac),
 		NewSetBridgeInfoCmd(ac),
 		NewUpdateOracleCmd(ac),
 	)
@@ -165,6 +166,59 @@ func NewWithdrawCmd(ac address.Codec) *cobra.Command {
 	return cmd
 }
 
+// NewFastWithdrawCmd returns a CLI command handler for the transfer via a fast bridge withdrawal
+func NewFastWithdrawCmd(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "fast-withdraw [recipient] [amount] [bridge-gas-limit]",
+		Short: "initialize fast bridge withdraw a token from L2 to L1",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			// we can't validate the address here because the address is not l2 address.
+			recipientAddr := args[0]
+
+			amount, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			hookMsg, err := cmd.Flags().GetString(FlagHookMsg)
+			if err != nil {
+				return err
+			}
+
+			hookMsg = strings.TrimPrefix(hookMsg, "0x")
+			hookMsgBytes, err := hex.DecodeString(hookMsg)
+			if err != nil {
+				return err
+			}
+
+			bridgeGasLimit, err := strconv.ParseUint(args[2], 10, 64)
+
+			txf, msg, err := newBuildFastWithdrawMsg(clientCtx, ac, txf, recipientAddr, amount, bridgeGasLimit, hookMsgBytes)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+		},
+	}
+
+	cmd.Flags().String(FlagHookMsg, "", "Hex encoded additional bridge hook to be executed on L1")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // NewUpdateOracleCmd returns a CLI command handler for the transaction updating oracle data.
 func NewUpdateOracleCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
@@ -274,7 +328,7 @@ Where proposal.json contains:
 // NewSetBridgeInfoCmd returns a CLI command handler for transaction to setting a bridge info.
 func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set-bridge-info [bridge-id] [bridge-addr] [l1-chain-id] [l1-client-id] [path/to/bridge-config.json]",
+		Use:   "set-bridge-info [bridge-id] [bridge-addr] [l1-chain-id] [l1-client-id] [l1-gas-price] [path/to/bridge-config.json]",
 		Short: "send a bridge creating tx",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
@@ -290,11 +344,12 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 					"finalization_period": "duration",
 					"submission_start_height" : "l2-block-height",
 					"batch_info": {"submitter": "bech32-address","chain": "INITIA|CELESTIA"},
-					"metadata": "{\"perm_channels\":[{\"port_id\":\"transfer\", \"channel_id\":\"channel-0\"}, {\"port_id\":\"icqhost\", \"channel_id\":\"channel-1\"}]}"
+					"metadata": "{\"perm_channels\":[{\"port_id\":\"transfer\", \"channel_id\":\"channel-0\"}, {\"port_id\":\"icqhost\", \"channel_id\":\"channel-1\"}]}",
+					"fast_bridge_config": {"verifiers": [], "threshold": 2, "max_rate": "0.2", "recovery_window": 86400, "base_fee": {"denom": "l2/...", "amount": "1500000"}}
 				}`, version.AppName,
 			),
 		),
-		Args: cobra.ExactArgs(5),
+		Args: cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -310,7 +365,12 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 			l1ChainId := args[2]
 			l1ClientId := args[3]
 
-			configBytes, err := os.ReadFile(args[4])
+			l1GasPrice, err := sdk.ParseDecCoin(args[4])
+			if err != nil {
+				return err
+			}
+
+			configBytes, err := os.ReadFile(args[5])
 			if err != nil {
 				return err
 			}
@@ -345,6 +405,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				Metadata:              []byte(origConfig.Metadata),
 				BatchInfo:             origConfig.BatchInfo,
 				OracleEnabled:         origConfig.OracleEnabled,
+				FastBridgeConfig:      &origConfig.FastBridgeConfig,
 			}
 
 			if err = bridgeConfig.ValidateWithNoAddrValidation(); err != nil {
@@ -362,6 +423,7 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				L1ChainId:    l1ChainId,
 				L1ClientId:   l1ClientId,
 				BridgeConfig: bridgeConfig,
+				L1GasPrice:   &l1GasPrice,
 			})
 			if err = msg.Validate(ac); err != nil {
 				return err
@@ -384,6 +446,29 @@ func newBuildWithdrawMsg(clientCtx client.Context, ac address.Codec, txf tx.Fact
 	}
 
 	msg := types.NewMsgInitiateTokenWithdrawal(senderAddr, toAddr, amount)
+	if err := msg.Validate(ac); err != nil {
+		return txf, nil, err
+	}
+
+	return txf, msg, nil
+}
+
+func newBuildFastWithdrawMsg(
+	clientCtx client.Context,
+	ac address.Codec,
+	txf tx.Factory,
+	recipient string,
+	amount sdk.Coin,
+	gasLimit uint64,
+	hookMsg []byte,
+) (tx.Factory, *types.MsgInitiateFastWithdrawal, error) {
+	sender := clientCtx.GetFromAddress()
+	senderAddr, err := ac.BytesToString(sender)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	msg := types.NewMsgInitiateFastWithdrawal(senderAddr, recipient, amount, gasLimit, hookMsg)
 	if err := msg.Validate(ac); err != nil {
 		return txf, nil, err
 	}

@@ -36,4 +36,6 @@ var (
 
 	// Antehandler error
 	ErrRedundantTx = errorsmod.Register(ModuleName, 29, "tx messages are all redundant")
+
+	ErrFastBridgeDisabled = errorsmod.Register(ModuleName, 30, "fast bridge is disabled")
 )
