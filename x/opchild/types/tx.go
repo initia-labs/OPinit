@@ -228,6 +228,11 @@ func (msg MsgInitiateFastWithdrawal) Validate(ac address.Codec) error {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "amount exceeds uint64 range")
 	}
 
+	// gas_limit shouldn't be 0
+	if msg.GasLimit == 0 {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "gas limit cannot be 0")
+	}
+
 	return nil
 }
 

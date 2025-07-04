@@ -759,6 +759,20 @@ func Test_MsgServer_InitiateFastWithdrawal(t *testing.T) {
 	_, err = ms.InitiateFastWithdrawal(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "insufficient funds")
+
+	// test 9: zero gas limit
+	msg = types.NewMsgInitiateFastWithdrawal(
+		accountAddr,
+		addrsStr[1],
+		sdk.NewCoin(gasDenom, math.NewInt(100)),
+		0,
+		nil,
+	)
+
+	// Should return an error
+	_, err = ms.InitiateFastWithdrawal(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "gas limit cannot be zero")
 }
 
 /////////////////////////////////////////
