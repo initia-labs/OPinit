@@ -4,8 +4,9 @@ import (
 	"github.com/pkg/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	tmclient "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	clientkeeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
@@ -34,7 +35,8 @@ func SetBridgeInfo(
 		}
 
 		// scan all states from IBC - get all established states
-		res, err := ctx.App().GetIBCKeeper().ClientStates(
+
+		res, err := clientkeeper.NewQueryServer(ctx.App().GetIBCKeeper().ClientKeeper).ClientStates(
 			ctx.QueryContext(),
 			&clienttypes.QueryClientStatesRequest{},
 		)

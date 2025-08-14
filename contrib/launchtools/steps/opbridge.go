@@ -7,7 +7,8 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
+	ibctypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
@@ -28,7 +29,8 @@ func InitializeOpBridge(
 
 		// scan all channels. This should give all IBC channels established before this step
 		// - assumes channels aren't longer than the default pagination limit
-		channels, err := ctx.App().GetIBCKeeper().Channels(
+
+		channels, err := channelkeeper.NewQueryServer(ctx.App().GetIBCKeeper().ChannelKeeper).Channels(
 			ctx.QueryContext(),
 			&ibctypes.QueryChannelsRequest{}, // assume there aren't many channels already open
 		)
