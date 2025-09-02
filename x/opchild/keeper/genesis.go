@@ -7,6 +7,9 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -95,6 +98,22 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		}
 	}
 
+	for _, migrationInfo := range data.MigrationInfos {
+		if err := k.SetMigrationInfo(ctx, migrationInfo); err != nil {
+			panic(err)
+		}
+
+		baseDenom, err := k.GetBaseDenom(ctx, migrationInfo.Denom)
+		if err != nil {
+			panic(err)
+		}
+
+		ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+		if err := k.SetIBCToL2DenomMap(ctx, ibcDenom, migrationInfo.Denom); err != nil {
+			panic(err)
+		}
+	}
+
 	return res
 }
 
@@ -152,6 +171,15 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	var migrationInfos []types.MigrationInfo
+	err = k.MigrationInfos.Walk(ctx, nil, func(denom string, migrationInfo types.MigrationInfo) (stop bool, err error) {
+		migrationInfos = append(migrationInfos, migrationInfo)
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	return &types.GenesisState{
 		Params:              params,
 		LastValidatorPowers: lastValidatorPowers,
@@ -161,5 +189,6 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		NextL2Sequence:      nextL2Sequence,
 		BridgeInfo:          bridgeInfo,
 		DenomPairs:          denomPairs,
+		MigrationInfos:      migrationInfos,
 	}
 }

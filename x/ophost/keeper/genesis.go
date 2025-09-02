@@ -50,6 +50,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 				panic(err)
 			}
 		}
+
+		for _, migrationInfo := range data.MigrationInfos {
+			if err := k.SetMigrationInfo(ctx, migrationInfo); err != nil {
+				panic(err)
+			}
+		}
 	}
 
 	if err := k.SetNextBridgeId(ctx, data.NextBridgeId); err != nil {
@@ -132,9 +138,18 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	var migrationInfos []types.MigrationInfo
+	if err := k.IterateMigrationInfos(ctx, func(key collections.Pair[uint64, string], migrationInfo types.MigrationInfo) (stop bool, err error) {
+		migrationInfos = append(migrationInfos, migrationInfo)
+		return false, nil
+	}); err != nil {
+		panic(err)
+	}
+
 	return &types.GenesisState{
-		Params:       k.GetParams(ctx),
-		Bridges:      bridges,
-		NextBridgeId: nextBridgeId,
+		Params:         k.GetParams(ctx),
+		Bridges:        bridges,
+		NextBridgeId:   nextBridgeId,
+		MigrationInfos: migrationInfos,
 	}
 }

@@ -71,6 +71,22 @@ func Test_GenesisExport(t *testing.T) {
 	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[1], ChainType: types.BatchInfo_CELESTIA}, output1))
 	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, output3))
 
+	// set migration info
+	require.NoError(t, input.OPHostKeeper.SetMigrationInfo(ctx, types.MigrationInfo{
+		BridgeId:     1,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+		L1Denom:      "test1",
+	}))
+
+	// set migration info
+	require.NoError(t, input.OPHostKeeper.SetMigrationInfo(ctx, types.MigrationInfo{
+		BridgeId:     2,
+		IbcChannelId: "channel-1",
+		IbcPortId:    "transfer",
+		L1Denom:      "test2",
+	}))
+
 	genState := input.OPHostKeeper.ExportGenesis(ctx)
 	require.Equal(t, uint64(3), genState.NextBridgeId)
 	require.Equal(t, params, genState.Params)
@@ -105,6 +121,21 @@ func Test_GenesisExport(t *testing.T) {
 			{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: output3},
 		},
 	}, genState.Bridges[0])
+
+	require.Equal(t, []types.MigrationInfo{
+		{
+			BridgeId:     1,
+			IbcChannelId: "channel-0",
+			IbcPortId:    "transfer",
+			L1Denom:      "test1",
+		},
+		{
+			BridgeId:     2,
+			IbcChannelId: "channel-1",
+			IbcPortId:    "transfer",
+			L1Denom:      "test2",
+		},
+	}, genState.MigrationInfos)
 }
 
 func Test_GenesisImportExport(t *testing.T) {
@@ -173,6 +204,20 @@ func Test_GenesisImportExport(t *testing.T) {
 				},
 			}},
 		NextBridgeId: 2,
+		MigrationInfos: []types.MigrationInfo{
+			{
+				BridgeId:     1,
+				IbcChannelId: "channel-0",
+				IbcPortId:    "transfer",
+				L1Denom:      "test1",
+			},
+			{
+				BridgeId:     2,
+				IbcChannelId: "channel-1",
+				IbcPortId:    "transfer",
+				L1Denom:      "test2",
+			},
+		},
 	}
 
 	input.OPHostKeeper.InitGenesis(ctx, genState)

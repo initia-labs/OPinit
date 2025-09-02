@@ -16,7 +16,7 @@ const (
 )
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo) *GenesisState {
+func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo, migrationInfos []MigrationInfo) *GenesisState {
 	return &GenesisState{
 		Params:              params,
 		LastValidatorPowers: []LastValidatorPower{},
@@ -24,6 +24,7 @@ func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeIn
 		Exported:            false,
 		BridgeInfo:          bridgeInfo,
 		DenomPairs:          []DenomPair{},
+		MigrationInfos:      migrationInfos,
 	}
 }
 
@@ -38,6 +39,7 @@ func DefaultGenesisState() *GenesisState {
 		BridgeInfo:          nil,
 		Exported:            false,
 		DenomPairs:          []DenomPair{},
+		MigrationInfos:      []MigrationInfo{},
 	}
 }
 
@@ -60,6 +62,12 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 
 	for _, denomPair := range data.DenomPairs {
 		if err := sdk.ValidateDenom(denomPair.Denom); err != nil {
+			return err
+		}
+	}
+
+	for _, migrationInfo := range data.MigrationInfos {
+		if err := migrationInfo.Validate(); err != nil {
 			return err
 		}
 	}

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	"cosmossdk.io/collections"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -179,5 +180,19 @@ func (q Querier) BatchInfos(ctx context.Context, req *types.QueryBatchInfosReque
 	return &types.QueryBatchInfosResponse{
 		BatchInfos: batchInfos,
 		Pagination: pageRes,
+	}, nil
+}
+
+// MigrationInfo implements the Query/MigrationInfo RPC method
+func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInfoRequest) (*types.QueryMigrationInfoResponse, error) {
+	migrationInfo, err := q.GetMigrationInfo(ctx, req.BridgeId, req.L1Denom)
+	if err != nil {
+		return nil, err
+	} else if errors.Is(err, collections.ErrNotFound) {
+		return nil, status.Error(codes.NotFound, "migration info not found")
+	}
+
+	return &types.QueryMigrationInfoResponse{
+		MigrationInfo: migrationInfo,
 	}, nil
 }

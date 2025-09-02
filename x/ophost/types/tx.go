@@ -22,6 +22,7 @@ var (
 	_ sdk.Msg = &MsgUpdateMetadata{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgUpdateFinalizationPeriod{}
+	_ sdk.Msg = &MsgRegisterMigrationInfo{}
 )
 
 const (
@@ -499,4 +500,27 @@ func (msg MsgUpdateFinalizationPeriod) Validate(ac address.Codec) error {
 	}
 
 	return nil
+}
+
+/* MsgRegisterMigrationInfo */
+
+// NewMsgRegisterMigrationInfo creates a new MsgRegisterMigrationInfo instance.
+func NewMsgRegisterMigrationInfo(
+	authority string,
+	bridgeId uint64,
+	info MigrationInfo,
+) *MsgRegisterMigrationInfo {
+	return &MsgRegisterMigrationInfo{
+		Authority:     authority,
+		MigrationInfo: info,
+	}
+}
+
+// Validate performs basic MsgRegisterMigrationInfo message validation.
+func (msg MsgRegisterMigrationInfo) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	return msg.MigrationInfo.Validate()
 }

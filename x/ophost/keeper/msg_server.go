@@ -7,8 +7,10 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -123,7 +125,7 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 
 	// permission check
 	if proposer != bridgeConfig.Proposer {
-		return nil, errors.ErrUnauthorized.Wrap("invalid proposer")
+		return nil, sdkerrors.ErrUnauthorized.Wrap("invalid proposer")
 	}
 
 	// fetch next output index
@@ -185,7 +187,7 @@ func (ms MsgServer) DeleteOutput(ctx context.Context, req *types.MsgDeleteOutput
 
 	// gov, current proper or current challenger can delete output.
 	if ms.authority != challenger && bridgeConfig.Proposer != challenger && bridgeConfig.Challenger != challenger {
-		return nil, errors.ErrUnauthorized.Wrapf("invalid challenger; expected %s, %s or %s, got %s", ms.authority, bridgeConfig.Proposer, bridgeConfig.Challenger, challenger)
+		return nil, sdkerrors.ErrUnauthorized.Wrapf("invalid challenger; expected %s, %s or %s, got %s", ms.authority, bridgeConfig.Proposer, bridgeConfig.Challenger, challenger)
 	}
 
 	nextOutputIndex, err := ms.GetNextOutputIndex(ctx, bridgeId)
@@ -235,6 +237,13 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 	sender, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
 	if err != nil {
 		return nil, err
+	}
+
+	// if there is migration info, it will be handled by the migrated token deposit handler
+	if ok, err := ms.HandleMigratedTokenDeposit(ctx, req); err != nil {
+		return nil, err
+	} else if ok {
+		return &types.MsgInitiateTokenDepositResponse{}, nil
 	}
 
 	l1Sequence, err := ms.IncreaseNextL1Sequence(ctx, bridgeId)
@@ -606,4 +615,50 @@ func (ms MsgServer) UpdateFinalizationPeriod(ctx context.Context, req *types.Msg
 	}
 
 	return &types.MsgUpdateFinalizationPeriodResponse{}, nil
+}
+
+// RegisterMigrationInfo implements registering the migration info
+func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgRegisterMigrationInfo) (*types.MsgRegisterMigrationInfoResponse, error) {
+	// validate the message
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// check if the authority is valid
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	// check if the migration info is already registered
+	if isRegistered, err := ms.HasMigrationInfo(ctx, req.MigrationInfo.BridgeId, req.MigrationInfo.L1Denom); err != nil {
+		return nil, err
+	} else if isRegistered {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("migration info already exists")
+	}
+
+	// register the migration info
+	if err := ms.Keeper.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
+		return nil, err
+	}
+
+	// move escrowed funds to IBC escrow account
+	bridgeAddr := types.BridgeAddress(req.MigrationInfo.BridgeId)
+	transferEscrowAddress := transfertypes.GetEscrowAddress(req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId)
+	escrowedFunds := sdk.NewCoins(ms.bankKeeper.GetBalance(ctx, bridgeAddr, req.MigrationInfo.L1Denom))
+	if escrowedFunds.IsAllPositive() {
+		if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, transferEscrowAddress, escrowedFunds); err != nil {
+			return nil, err
+		}
+	}
+
+	// emit event
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterMigrationInfo,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(req.MigrationInfo.BridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyL1Denom, req.MigrationInfo.L1Denom),
+		sdk.NewAttribute(types.AttributeKeyIbcChannelId, req.MigrationInfo.IbcChannelId),
+		sdk.NewAttribute(types.AttributeKeyIbcPortId, req.MigrationInfo.IbcPortId),
+	))
+
+	return &types.MsgRegisterMigrationInfoResponse{}, nil
 }

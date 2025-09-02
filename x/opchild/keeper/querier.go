@@ -2,11 +2,16 @@ package keeper
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	"cosmossdk.io/collections"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -102,4 +107,24 @@ func (q Querier) BaseDenom(ctx context.Context, req *types.QueryBaseDenomRequest
 	}
 
 	return &types.QueryBaseDenomResponse{BaseDenom: baseDenom}, nil
+}
+
+// MigrationInfo implements the Query/MigrationInfo RPC method
+func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInfoRequest) (*types.QueryMigrationInfoResponse, error) {
+	migrationInfo, err := q.GetMigrationInfo(ctx, req.Denom)
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	baseDenom, err := q.GetBaseDenom(ctx, req.Denom)
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	return &types.QueryMigrationInfoResponse{MigrationInfo: migrationInfo, IbcDenom: ibcDenom}, nil
 }

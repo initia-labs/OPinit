@@ -136,3 +136,15 @@ message DenomPair {
   string denom = 1;
   string base_denom = 2;
 }
+
+// MigrationInfo defines the information of the migration.
+message MigrationInfo {
+  // denom is the denom of the token on l2 chain.
+  string denom = 1;
+
+  // ibc_channel_id is the IBC channel ID, which is allocated for l1 chain, in l2 chain state.
+  string ibc_channel_id = 2;
+
+  // ibc_port_id is the IBC port ID, which is allocated for l1 chain, in l2 chain state.
+  string ibc_port_id = 3;
+}

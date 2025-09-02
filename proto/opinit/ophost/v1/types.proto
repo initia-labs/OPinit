@@ -114,3 +114,15 @@ message BatchInfoWithOutput {
     (amino.dont_omitempty) = true
   ];
 }
+
+// MigrationInfo defines the information for migration.
+message MigrationInfo {
+  // BridgeID is the id of the bridge.
+  uint64 bridge_id = 1;
+  // IBC ChannelID is the channel id of the ibc.
+  string ibc_channel_id = 2;
+  // IBC PortID is the port id of the ibc.
+  string ibc_port_id = 3;
+  // L1Denom is the denom of the l1.
+  string l1_denom = 4;
+}

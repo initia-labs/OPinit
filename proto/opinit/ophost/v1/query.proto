@@ -84,6 +84,12 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/batch_infos";
   }
+
+  // MigrationInfo queries the migration info.
+  rpc MigrationInfo(QueryMigrationInfoRequest) returns (QueryMigrationInfoResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/migration_info/by_l1_denom";
+  }
 }
 
 // QueryBridgeRequest is request type for Query/Bridge RPC method.
@@ -265,4 +271,18 @@ message QueryBatchInfosResponse {
   ];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryMigrationInfoRequest is request type for Query/MigrationInfo RPC method.
+message QueryMigrationInfoRequest {
+  uint64 bridge_id = 1;
+  string l1_denom = 2;
+}
+
+// QueryMigrationInfoResponse is response type for Query/MigrationInfo RPC method.
+message QueryMigrationInfoResponse {
+  MigrationInfo migration_info = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }

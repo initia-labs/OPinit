@@ -32,7 +32,7 @@ type Keeper struct {
 	// sig verify and sequence increment decorators
 	decorators sdk.AnteHandler
 	txDecoder  sdk.TxDecoder
-	router     *baseapp.MsgServiceRouter
+	msgRouter  baseapp.MessageRouter
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/opchild module account.
@@ -52,6 +52,8 @@ type Keeper struct {
 	ValidatorsByConsAddr collections.Map[[]byte, []byte]
 	HistoricalInfos      collections.Map[int64, cosmostypes.HistoricalInfo]
 	DenomPairs           collections.Map[string, string]
+	MigrationInfos       collections.Map[string, types.MigrationInfo] // l2 denom -> migration info
+	IBCToL2DenomMap      collections.Map[string, string]              // ibc denom -> l2 denom
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -80,7 +82,7 @@ func NewKeeper(
 	*/
 	decorators sdk.AnteHandler,
 	txDecoder sdk.TxDecoder,
-	router *baseapp.MsgServiceRouter,
+	msgRouter baseapp.MessageRouter,
 	authority string,
 	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
@@ -111,7 +113,7 @@ func NewKeeper(
 		bankKeeper:            bk,
 		decorators:            decorators,
 		txDecoder:             txDecoder,
-		router:                router,
+		msgRouter:             msgRouter,
 		authority:             authority,
 		addressCodec:          addressCodec,
 		validatorAddressCodec: validatorAddressCodec,
@@ -125,9 +127,10 @@ func NewKeeper(
 		ValidatorsByConsAddr:  collections.NewMap(sb, types.ValidatorsByConsAddrPrefix, "validators_by_cons_addr", collections.BytesKey, collections.BytesValue),
 		DenomPairs:            collections.NewMap(sb, types.DenomPairPrefix, "denom_pairs", collections.StringKey, collections.StringValue),
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
-
-		ExecutorChangePlans: make(map[uint64]types.ExecutorChangePlan),
-		HostValidatorStore:  hostValidatorStore,
+		MigrationInfos:        collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.StringKey, codec.CollValue[types.MigrationInfo](cdc)),
+		IBCToL2DenomMap:       collections.NewMap(sb, types.IBCToL2DenomMapPrefix, "ibc_to_l2_denom_map", collections.StringKey, collections.StringValue),
+		ExecutorChangePlans:   make(map[uint64]types.ExecutorChangePlan),
+		HostValidatorStore:    hostValidatorStore,
 	}
 
 	schema, err := sb.Build()
@@ -157,9 +160,9 @@ func (k Keeper) Logger(ctx context.Context) log.Logger {
 	return sdkCtx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-// Router returns the gov keeper's router
-func (k Keeper) Router() *baseapp.MsgServiceRouter {
-	return k.router
+// MsgRouter returns the keeper's msg router
+func (k Keeper) MsgRouter() baseapp.MessageRouter {
+	return k.msgRouter
 }
 
 // setDenomMetadata sets an OPinit token's denomination metadata

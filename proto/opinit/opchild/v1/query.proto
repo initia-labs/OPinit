@@ -56,6 +56,12 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get = "/opinit/opchild/v1/base_denom";
   }
+
+  // MigrationInfo queries the migration information.
+  rpc MigrationInfo(QueryMigrationInfoRequest) returns (QueryMigrationInfoResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/opinit/opchild/v1/migration_info/by_denom";
+  }
 }
 
 // QueryValidatorsRequest is request type for Query/Validators RPC method.
@@ -141,4 +147,18 @@ message QueryBaseDenomRequest {
 // QueryBaseDenomResponse is response type for the Query/BaseDenom RPC method.
 message QueryBaseDenomResponse {
   string base_denom = 1;
+}
+
+// QueryMigrationInfoRequest is request type for the Query/MigrationInfo RPC method.
+message QueryMigrationInfoRequest {
+  string denom = 1;
+}
+
+// QueryMigrationInfoResponse is response type for the Query/MigrationInfo RPC method.
+message QueryMigrationInfoResponse {
+  MigrationInfo migration_info = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  string ibc_denom = 2;
 }

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 	"testing"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
@@ -42,6 +44,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	ophost "github.com/initia-labs/OPinit/x/ophost"
 	ophostkeeper "github.com/initia-labs/OPinit/x/ophost/keeper"
@@ -192,6 +195,7 @@ type TestKeepers struct {
 	EncodingConfig      EncodingConfig
 	Faucet              *TestFaucet
 	MultiStore          storetypes.CommitMultiStore
+	MockRouter          *MockRouter
 }
 
 // createDefaultTestInput common settings for createTestInput
@@ -282,14 +286,17 @@ func _createTestInput(
 	err := bankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	require.NoError(t, err)
 
-	msgRouter := baseapp.NewMsgServiceRouter()
-	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
-
+	originMessageRouter := baseapp.NewMsgServiceRouter()
+	originMessageRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
+	mockRouter := &MockRouter{
+		originMessageRouter: originMessageRouter,
+	}
 	bridgeHook := &bridgeHook{}
 	communityPoolKeeper := &MockCommunityPoolKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
+		mockRouter,
 		accountKeeper,
 		bankKeeper,
 		communityPoolKeeper,
@@ -302,7 +309,7 @@ func _createTestInput(
 	require.NoError(t, err)
 
 	// register handlers to msg router
-	ophosttypes.RegisterMsgServer(msgRouter, ophostkeeper.NewMsgServerImpl(*ophostKeeper))
+	ophosttypes.RegisterMsgServer(originMessageRouter, ophostkeeper.NewMsgServerImpl(*ophostKeeper))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
@@ -315,6 +322,7 @@ func _createTestInput(
 		EncodingConfig:      encodingConfig,
 		Faucet:              faucet,
 		MultiStore:          ms,
+		MockRouter:          mockRouter,
 	}
 	return ctx, keepers
 }
@@ -408,4 +416,59 @@ func (k *MockCommunityPoolKeeper) FundCommunityPool(ctx context.Context, amount 
 	k.CommunityPool = k.CommunityPool.Add(amount...)
 
 	return nil
+}
+
+// MockRouter handles IBC transfer messages for testing
+type MockRouter struct {
+	originMessageRouter baseapp.MessageRouter
+	handledMsgs         []*transfertypes.MsgTransfer
+	shouldFail          bool
+}
+
+func (router *MockRouter) Handler(msg sdk.Msg) baseapp.MsgServiceHandler {
+	return router.HandlerByTypeURL(sdk.MsgTypeURL(msg))
+}
+
+func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHandler {
+	switch typeURL {
+	case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+		return func(ctx sdk.Context, _msg sdk.Msg) (*sdk.Result, error) {
+			if router.shouldFail {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
+
+			msg := _msg.(*transfertypes.MsgTransfer)
+
+			// Store the handled message for verification
+			router.handledMsgs = append(router.handledMsgs, msg)
+
+			// Emit an event to track the transfer
+			ctx.EventManager().EmitEvent(sdk.NewEvent("ibc_transfer",
+				sdk.NewAttribute("sender", msg.Sender),
+				sdk.NewAttribute("receiver", msg.Receiver),
+				sdk.NewAttribute("token", msg.Token.String()),
+				sdk.NewAttribute("source_port", msg.SourcePort),
+				sdk.NewAttribute("source_channel", msg.SourceChannel),
+				sdk.NewAttribute("timeout_height", msg.TimeoutHeight.String()),
+				sdk.NewAttribute("timeout_timestamp", fmt.Sprintf("%d", msg.TimeoutTimestamp)),
+				sdk.NewAttribute("memo", msg.Memo),
+			))
+
+			return &sdk.Result{}, nil
+		}
+	}
+
+	return router.originMessageRouter.HandlerByTypeURL(typeURL)
+}
+
+func (router *MockRouter) GetHandledMsgs() []*transfertypes.MsgTransfer {
+	return router.handledMsgs
+}
+
+func (router *MockRouter) Reset() {
+	router.handledMsgs = nil
+}
+
+func (router *MockRouter) SetShouldFail(shouldFail bool) {
+	router.shouldFail = shouldFail
 }

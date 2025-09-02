@@ -12,6 +12,7 @@ const (
 	EventTypeUpdateBatchInfo         = "update_batch_info"
 	EventTypeUpdateMetadata          = "update_metadata"
 	EventTypeUpdateOracle            = "update_oracle"
+	EventTypeRegisterMigrationInfo   = "register_migration_info"
 
 	AttributeKeySubmitter              = "submitter"
 	AttributeKeyCreator                = "creator"
@@ -34,4 +35,6 @@ const (
 	AttributeKeyFinalizedOutputIndex   = "finalized_output_index"
 	AttributeKeyFinalizedL2BlockNumber = "finalized_l2_block_number"
 	AttributeKeyOracleEnabled          = "oracle_enabled"
+	AttributeKeyIbcChannelId           = "ibc_channel_id"
+	AttributeKeyIbcPortId              = "ibc_port_id"
 )
