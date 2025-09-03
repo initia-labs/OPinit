@@ -25,7 +25,6 @@ type L2OracleHandler struct {
 	oracleKeeper        types.OracleKeeper
 	extendedCommitCodec connectcodec.ExtendedCommitCodec
 	veCodec             connectcodec.VoteExtensionCodec
-	voteAggregator      connectaggregator.VoteAggregator
 }
 
 func NewL2OracleHandler(
@@ -43,15 +42,6 @@ func NewL2OracleHandler(
 		veCodec: connectcodec.NewCompressionVoteExtensionCodec(
 			connectcodec.NewDefaultVoteExtensionCodec(),
 			connectcodec.NewZLibCompressor(),
-		),
-		voteAggregator: connectaggregator.NewDefaultVoteAggregator(
-			logger,
-			voteweighted.MedianFromContext(
-				logger,
-				k.HostValidatorStore,
-				voteweighted.DefaultPowerThreshold,
-			),
-			currencypair.NewHashCurrencyPairStrategy(oracleKeeper),
 		),
 	}
 }
@@ -94,7 +84,17 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 		return err
 	}
 
-	prices, err := k.voteAggregator.AggregateOracleVotes(sdkCtx, votes)
+	// create a new vote aggregator for each update
+	voteAggregator := connectaggregator.NewDefaultVoteAggregator(
+		k.Logger(ctx),
+		voteweighted.MedianFromContext(
+			k.Logger(ctx),
+			k.HostValidatorStore,
+			voteweighted.DefaultPowerThreshold,
+		),
+		currencypair.NewHashCurrencyPairStrategy(k.oracleKeeper),
+	)
+	prices, err := voteAggregator.AggregateOracleVotes(sdkCtx, votes)
 	if err != nil {
 		return err
 	}
