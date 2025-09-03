@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -143,12 +142,9 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, sender sdk.AccAd
 	}
 
 	// handle deposit hook if exists
-	var migratedTokenDepositMemo ophosttypes.MigratedTokenDepositMemo
-	decoder := json.NewDecoder(strings.NewReader(memo))
-	decoder.DisallowUnknownFields()
-
 	// if the memo is not valid, return the L2 token
-	if err := decoder.Decode(&migratedTokenDepositMemo); err != nil {
+	var migratedTokenDepositMemo ophosttypes.MigratedTokenDepositMemo
+	if err := json.Unmarshal([]byte(memo), &migratedTokenDepositMemo); err != nil {
 		return l2Coin, nil
 	}
 
