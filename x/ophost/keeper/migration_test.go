@@ -37,6 +37,23 @@ func Test_RegisterMigrationInfo_Success(t *testing.T) {
 	)
 
 	_, err := ms.RegisterMigrationInfo(ctx, msg)
+	require.ErrorContains(t, err, "bridge not found")
+
+	// create bridge
+	_, err = ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], ophosttypes.BridgeConfig{
+		Challenger:            addrsStr[0],
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		BatchInfo: ophosttypes.BatchInfo{
+			Submitter: addrsStr[0],
+			ChainType: ophosttypes.BatchInfo_INITIA,
+		},
+	}))
+	require.NoError(t, err)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
 	require.NoError(t, err)
 
 	// Verify migration info was stored
@@ -93,7 +110,21 @@ func Test_RegisterMigrationInfo_DuplicateRegistration(t *testing.T) {
 		migrationInfo,
 	)
 
-	_, err := ms.RegisterMigrationInfo(ctx, msg)
+	// create bridge
+	_, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], ophosttypes.BridgeConfig{
+		Challenger:            addrsStr[0],
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		BatchInfo: ophosttypes.BatchInfo{
+			Submitter: addrsStr[0],
+			ChainType: ophosttypes.BatchInfo_INITIA,
+		},
+	}))
+	require.NoError(t, err)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
 	require.NoError(t, err)
 
 	// Try to register the same migration info again
