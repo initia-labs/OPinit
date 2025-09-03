@@ -122,7 +122,7 @@ func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInf
 	if err != nil && !errors.Is(err, collections.ErrNotFound) {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()

@@ -636,6 +636,13 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 		return nil, sdkerrors.ErrInvalidRequest.Wrap("migration info already exists")
 	}
 
+	// ensure bridge exists
+	if ok, err := ms.BridgeConfigs.Has(ctx, req.MigrationInfo.BridgeId); err != nil {
+		return nil, err
+	} else if !ok {
+		return nil, types.ErrBridgeNotFound
+	}
+
 	// register the migration info
 	if err := ms.Keeper.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
 		return nil, err

@@ -79,7 +79,7 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
 		msg.To,
 		clienttypes.NewHeight(0, 0),
 		// use default timeout 10 minutes
-		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
+		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp, //nolint:gosec
 		memo,
 	)
 

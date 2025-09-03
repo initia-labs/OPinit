@@ -197,7 +197,7 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 		msg.To,
 		clienttypes.NewHeight(0, 0),
 		// use default timeout 10 minutes
-		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
+		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp, //nolint:gosec
 		"forwarded from opchild module",
 	)
 

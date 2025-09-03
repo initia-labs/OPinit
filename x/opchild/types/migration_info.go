@@ -10,15 +10,15 @@ import (
 
 func (m MigrationInfo) Validate() error {
 	if err := host.ChannelIdentifierValidator(m.IbcChannelId); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	if err := host.PortIdentifierValidator(m.IbcPortId); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	if err := sdk.ValidateDenom(m.Denom); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	return nil

@@ -50,11 +50,11 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 				panic(err)
 			}
 		}
+	}
 
-		for _, migrationInfo := range data.MigrationInfos {
-			if err := k.SetMigrationInfo(ctx, migrationInfo); err != nil {
-				panic(err)
-			}
+	for _, migrationInfo := range data.MigrationInfos {
+		if err := k.SetMigrationInfo(ctx, migrationInfo); err != nil {
+			panic(err)
 		}
 	}
 

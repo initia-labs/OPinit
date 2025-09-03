@@ -49,7 +49,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		SourceChannel:      "channel-0",
 		Data:               buildPacketData(t, denom, "100", addr, addr, ""),
 		DestinationPort:    "transfer",
-		DestinationChannel: "channel-0",
+		DestinationChannel: "channel-1",
 	}
 
 	ack := middleware.OnRecvPacket(ctx, packet, relayer)

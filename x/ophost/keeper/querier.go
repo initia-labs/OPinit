@@ -186,10 +186,10 @@ func (q Querier) BatchInfos(ctx context.Context, req *types.QueryBatchInfosReque
 // MigrationInfo implements the Query/MigrationInfo RPC method
 func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInfoRequest) (*types.QueryMigrationInfoResponse, error) {
 	migrationInfo, err := q.GetMigrationInfo(ctx, req.BridgeId, req.L1Denom)
-	if err != nil {
-		return nil, err
-	} else if errors.Is(err, collections.ErrNotFound) {
+	if err != nil && errors.Is(err, collections.ErrNotFound) {
 		return nil, status.Error(codes.NotFound, "migration info not found")
+	} else if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryMigrationInfoResponse{
