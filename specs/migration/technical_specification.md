@@ -152,7 +152,7 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
         msg.Sender,
         msg.To,
         clienttypes.NewHeight(0, 0),
-        uint64(time.Now().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
+        uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
         memo,
     )
     

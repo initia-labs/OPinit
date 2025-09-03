@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -198,7 +197,7 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 		msg.To,
 		clienttypes.NewHeight(0, 0),
 		// use default timeout 10 minutes
-		uint64(time.Now().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
+		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
 		"forwarded from opchild module",
 	)
 
