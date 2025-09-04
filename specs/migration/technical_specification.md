@@ -18,6 +18,7 @@
 - **Purpose**: Handles L1 bridge coordination and L1→L2 migration via IBC transfer
 - **Key Functions**:
   - `HandleMigratedTokenDeposit`: Process `MsgInitiateTokenDeposit` by forwarding as IBC transfer
+  - `HandleMigratedTokenWithdrawal`: Process in-flight `MsgFinalizeTokenWithdrawal` requests by withdrawing from IBC escrow
   - `SetMigrationInfo`: Register migration info for L1→L2 flow
   - Bridge hook encoding in IBC transfer memos
 
@@ -164,6 +165,38 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
         return false, err
     } else {
         sdkCtx.EventManager().EmitEvents(res.GetEvents())
+    }
+    
+    return true, nil
+}
+```
+
+#### HandleMigratedTokenWithdrawal (OPHost) - In-Flight Request Handling
+
+```go
+func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.MsgFinalizeTokenWithdrawal) (handled bool, err error) {
+    // 1. Get migration info for this bridge and L1 denom
+    l1Denom := msg.Amount.Denom
+    migrationInfo, err := k.GetMigrationInfo(ctx, msg.BridgeId, l1Denom)
+    if err != nil && errors.Is(err, collections.ErrNotFound) {
+        return false, nil // Not configured for migration, fall back to bridge withdrawal
+    } else if err != nil {
+        return false, err
+    }
+    
+    // 2. Get IBC escrow address from migration info
+    transferEscrowAddress := transfertypes.GetEscrowAddress(migrationInfo.IbcPortId, migrationInfo.IbcChannelId)
+    
+    // 3. Convert receiver address string to bytes
+    receiver, err := k.authKeeper.AddressCodec().StringToBytes(msg.To)
+    if err != nil {
+        return false, err
+    }
+    
+    // 4. Transfer tokens from IBC escrow to receiver
+    withdrawnFunds := sdk.NewCoins(msg.Amount)
+    if err := k.bankKeeper.SendCoins(ctx, transferEscrowAddress, receiver, withdrawnFunds); err != nil {
+        return false, err
     }
     
     return true, nil

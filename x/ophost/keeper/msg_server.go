@@ -293,11 +293,6 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		return nil, err
 	}
 
-	receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
-	if err != nil {
-		return nil, err
-	}
-
 	bridgeId := req.BridgeId
 	outputIndex := req.OutputIndex
 	l2Sequence := req.Sequence
@@ -341,12 +336,28 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 		return nil, err
 	}
 
-	// transfer asset to a user from the bridge account
-	bridgeAddr := types.BridgeAddress(bridgeId)
-	if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, receiver, sdk.NewCoins(sdk.NewCoin(denom, amount))); err != nil {
+	// if the token is migrated, handle the withdrawal by the migration info
+	if handled, err := ms.Keeper.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
 		return nil, err
+	} else if handled {
+		return &types.MsgFinalizeTokenWithdrawalResponse{}, nil
+	} else {
+		// if the token is not migrated, transfer asset to a user from the bridge account
+
+		// compute receiver address
+		receiver, err := ms.authKeeper.AddressCodec().StringToBytes(req.To)
+		if err != nil {
+			return nil, err
+		}
+
+		// transfer asset to a user from the bridge account
+		bridgeAddr := types.BridgeAddress(bridgeId)
+		if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, receiver, sdk.NewCoins(sdk.NewCoin(denom, amount))); err != nil {
+			return nil, err
+		}
 	}
 
+	// emit events regardless of the token is migrated or not
 	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeFinalizeTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),

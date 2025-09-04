@@ -19,6 +19,7 @@ Replace OP Bridge with IBC Bridge infrastructure while maintaining backward comp
 - **Feature Preservation**: Bridge hooks continue to work via IBC transfer memos
 - **Seamless Migration**: No user-facing changes required
 - **Dual Bridge Support**: Both bridge replacement and normal IBC bridge functionality available
+- **In-Flight Request Handling**: Supports withdrawal requests initiated before migration
 
 ### Bridge Replacement Flows
 
@@ -38,7 +39,7 @@ User calls MsgTransfer → IBC transfer → L2 receives IBC tokens
 
 #### L2 → L1 Flow (Two Options)
 
-**Option A: Automatic Migration (User Experience Preserved)**
+**Option A: Bridge Replacement (User Experience Preserved)**
 
 ```plaintext
 User calls MsgInitiateTokenWithdrawal → Receives L1 tokens
@@ -61,10 +62,22 @@ User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
 6. User gets OP tokens + hook execution results
 ```
 
+#### In-Flight Withdrawal Handling
+
+```plaintext
+1. User initiated withdrawal before migration was registered
+2. Migration gets registered (tokens moved to IBC escrow)
+3. User calls MsgFinalizeTokenWithdrawal
+4. OPHost checks if token has migration info
+5. If migrated: Transfer from IBC escrow to receiver
+6. If not migrated: Fall back to bridge account withdrawal
+7. User receives L1 tokens (same as before)
+```
+
 ## Module Documentation
 
 - **[OPChild Module](opchild_module.md)**: L2 token operations, L2→L1 migration, and IBC→L2 conversion
-- **[OPHost Module](ophost_module.md)**: L1 bridge coordination and L1→L2 migration via IBC transfer
+- **[OPHost Module](ophost_module.md)**: L1 bridge coordination, L1→L2 migration via IBC transfer, and in-flight withdrawal handling from IBC escrow
 - **[IBC Middleware](ibc_middleware.md)**: Intercepts IBC packets and triggers IBC→L2 conversion
 - **[Technical Specification](technical_specification.md)**: Detailed technical implementation and flows
 - **[Flow Diagrams](flow_diagrams.md)**: Visual representations of the system
@@ -87,6 +100,15 @@ OPHost processes `MsgInitiateTokenDeposit` by:
 2. Encoding bridge hook data in IBC transfer memo
 3. Creating and routing IBC transfer messages
 4. Preserving all existing functionality
+
+### OPHost In-Flight Withdrawal Handling
+
+OPHost processes `MsgFinalizeTokenWithdrawal` for in-flight requests by:
+
+1. Checking migration info for the bridge and L1 denom
+2. If migrated: Transfer tokens from IBC escrow to receiver
+3. If not migrated: Fall back to bridge account withdrawal
+4. Ensuring seamless handling of requests initiated before migration
 
 ### OPChild Token Conversion
 

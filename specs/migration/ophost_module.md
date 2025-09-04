@@ -2,7 +2,7 @@
 
 ## Overview
 
-The OPHost module provides **migration handling** functionality that enables switching from OP Bridge to IBC Bridge while maintaining seamless user experience. It handles L1 → L2 token migration via IBC transfer, ensuring users continue using `MsgInitiateTokenDeposit` while the underlying infrastructure switches to IBC. With the IBC integration, users can now also use `MsgTransfer` as a new interface to initiate token deposits, providing more flexibility in how tokens are transferred between chains.
+The OPHost module provides **migration handling** functionality that enables switching from OP Bridge to IBC Bridge while maintaining seamless user experience. It handles L1 → L2 token migration via IBC transfer and L2 → L1 withdrawal from IBC escrow accounts, ensuring users continue using existing bridge messages while the underlying infrastructure switches to IBC. With the IBC integration, users can now also use `MsgTransfer` as a new interface to initiate token deposits, providing more flexibility in how tokens are transferred between chains.
 
 ## Core Functions
 
@@ -44,11 +44,24 @@ The OPHost module provides **migration handling** functionality that enables swi
 - **Returns**: Boolean indicating if handled, plus any error
 - **Integration**: Seamlessly integrates with existing `MsgInitiateTokenDeposit` workflow
 
+#### `HandleMigratedTokenWithdrawal`
+
+- **Purpose**: Processes in-flight withdrawal requests that were initiated before migration was registered
+- **Process**:
+  1. Checks if L1 denom has migration info registered
+  2. Retrieves IBC escrow address from migration info
+  3. Transfers tokens from IBC escrow to receiver address
+  4. Returns `true` if handled, `false` if not migrated (falls back to bridge withdrawal)
+- **Returns**: Boolean indicating if handled, plus any error
+- **Integration**: Integrates with `MsgFinalizeTokenWithdrawal` workflow for in-flight requests
+- **Fallback**: If not migrated, normal bridge withdrawal logic takes over
+- **Use Case**: Handles withdrawal requests that were initiated before migration registration
+
 ## Integration
 
 ### 1. User Experience Preservation
 
-- **Same Messages**: Users continue using `MsgInitiateTokenDeposit`
+- **Same Messages**: Users continue using `MsgInitiateTokenDeposit` and `MsgFinalizeTokenWithdrawal`
 - **Same Tokens**: Users work with L1 tokens (ex: INIT)
 - **Hidden Complexity**: Bridge replacement is transparent to users
 
@@ -58,7 +71,14 @@ The OPHost module provides **migration handling** functionality that enables swi
 - **Transfer Creation**: Creates `MsgTransfer` with migration parameters
 - **Event Emission**: Emits transfer events for tracking
 
-### 3. Bridge Hook Support
+### 3. IBC Escrow Integration
+
+- **Escrow Withdrawal**: Handles withdrawals from IBC transfer escrow accounts
+- **Address Resolution**: Uses migration info to determine correct escrow address
+- **Balance Verification**: Ensures sufficient funds in escrow before withdrawal
+- **Error Handling**: Proper error propagation for insufficient funds or invalid addresses
+
+### 4. Bridge Hook Support
 
 - **Hook Preservation**: Maintains OP Bridge hook functionality during bridge replacement
 - **Memo Encoding**: Encodes bridge hook data in IBC transfer message's memo field
@@ -83,6 +103,18 @@ The migration system preserves the existing OP Bridge hook functionality by enco
 7. User gets OP tokens + hook execution results
 ```
 
+### L2 → L1 Flow (In-Flight Withdrawal Handling)
+
+```plaintext
+1. User initiated withdrawal before migration was registered
+2. Migration gets registered (tokens moved to IBC escrow)
+3. User calls MsgFinalizeTokenWithdrawal
+4. OPHost checks if token has migration info
+5. If migrated: Transfer from IBC escrow to receiver
+6. If not migrated: Fall back to bridge account withdrawal
+7. User receives L1 tokens (same as before)
+```
+
 ### Hook Data Structure
 
 - **Memo Format**: JSON-encoded `MigratedTokenDepositMemo`
@@ -95,3 +127,4 @@ The migration system preserves the existing OP Bridge hook functionality by enco
 - **Seamless Migration**: No changes needed to hook implementation
 - **IBC Integration**: Leverages IBC's secure cross-chain communication
 - **Execution Consistency**: Hooks execute the same way on both sides
+- **Withdrawal Support**: Complete L2→L1 flow with IBC escrow integration

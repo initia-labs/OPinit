@@ -95,3 +95,27 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
 
 	return true, nil
 }
+
+// HandleMigratedTokenWithdrawal handles the migrated token withdrawal by withdrawing the token from the ibc transfer escrow address
+func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.MsgFinalizeTokenWithdrawal) (handled bool, err error) {
+	l1Denom := msg.Amount.Denom
+	migrationInfo, err := k.GetMigrationInfo(ctx, msg.BridgeId, l1Denom)
+	if err != nil && errors.Is(err, collections.ErrNotFound) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	transferEscrowAddress := transfertypes.GetEscrowAddress(migrationInfo.IbcPortId, migrationInfo.IbcChannelId)
+	receiver, err := k.authKeeper.AddressCodec().StringToBytes(msg.To)
+	if err != nil {
+		return false, err
+	}
+
+	withdrawnFunds := sdk.NewCoins(msg.Amount)
+	if err := k.bankKeeper.SendCoins(ctx, transferEscrowAddress, receiver, withdrawnFunds); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

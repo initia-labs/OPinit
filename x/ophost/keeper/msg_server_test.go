@@ -5,10 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/stretchr/testify/require"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
 	"github.com/initia-labs/OPinit/x/ophost/types"
@@ -252,6 +255,89 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 	receiverAddr, err := sdk.AccAddressFromBech32(receiver)
 	require.NoError(t, err)
 	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
+}
+
+func Test_FinalizeTokenWithdrawal_MigratedToken(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+	config := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challenger:            addrsStr[1],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+	}
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	// fund amount
+	amount := sdk.NewCoin("uinit", math.NewInt(1_000_000))
+	input.Faucet.Fund(ctx, types.BridgeAddress(1), amount.Add(amount))
+
+	// register migration info
+	migrationInfo := types.MigrationInfo{
+		BridgeId:     1,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+		L1Denom:      "uinit",
+	}
+	msg := types.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		1,
+		migrationInfo,
+	)
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.NoError(t, err)
+
+	// build withdrawal proof
+	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
+	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
+
+	version := byte(1)
+
+	withdrawal1 := types.GenerateWithdrawalHash(1, 1, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal2 := types.GenerateWithdrawalHash(1, 2, sender, receiver, amount.Denom, amount.Amount.Uint64())
+	withdrawal3 := types.GenerateWithdrawalHash(1, 3, sender, receiver, amount.Denom, amount.Amount.Uint64())
+
+	proof1 := withdrawal2
+	proof2 := types.GenerateNodeHash(withdrawal3[:], withdrawal3[:])
+
+	node12 := types.GenerateNodeHash(withdrawal1[:], withdrawal2[:])
+
+	storageRoot := types.GenerateNodeHash(node12[:], proof2[:])
+	blockHash := decodeBase64(t, "tgmfQJT4uipVToW631xz0RXdrfzu7n5XxGNoPpX6isI=")
+	outputRoot := types.GenerateOutputRoot(version, storageRoot[:], blockHash)
+	proofs := [][]byte{
+		proof1[:],
+		proof2[:],
+	}
+
+	now := time.Now().UTC()
+	ctx = ctx.WithBlockTime(now)
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, outputRoot[:]))
+	require.NoError(t, err)
+
+	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
+
+	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[3], // any address can execute this
+		1, 1, 1, proofs,
+		sender,
+		receiver,
+		amount,
+		[]byte{version}, storageRoot[:], blockHash,
+	))
+	require.NoError(t, err)
+
+	receiverAddr, err := sdk.AccAddressFromBech32(receiver)
+	require.NoError(t, err)
+	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, receiverAddr, amount.Denom))
+
+	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
+	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, transferEscrowAddress, amount.Denom))
 }
 
 func decodeBase64(t *testing.T, str string) []byte {

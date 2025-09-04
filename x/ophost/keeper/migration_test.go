@@ -358,3 +358,246 @@ func Test_HandleMigratedTokenDeposit_IBCTransferSuccess(t *testing.T) {
 	require.Len(t, events, 1)
 	require.Equal(t, "ibc_transfer", events[0].Type)
 }
+
+func Test_HandleMigratedTokenWithdrawal_Direct(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	// Create a bridge first
+	bridgeConfig := ophosttypes.BridgeConfig{
+		Challenger:            addrsStr[0],
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	require.NoError(t, err)
+
+	// Register migration info
+	migrationInfo := ophosttypes.MigrationInfo{
+		BridgeId:     createRes.BridgeId,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+		L1Denom:      "test1",
+	}
+
+	msg := ophosttypes.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		createRes.BridgeId,
+		migrationInfo,
+	)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.NoError(t, err)
+
+	// Fund the IBC escrow account
+	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
+	input.Faucet.Fund(ctx, transferEscrowAddress, sdk.NewCoin("test1", math.NewInt(1000)))
+
+	// Check initial balances
+	initialEscrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
+	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "test1")
+	require.Equal(t, math.NewInt(1000), initialEscrowBalance.Amount)
+	require.Equal(t, math.NewInt(0), initialReceiverBalance.Amount)
+
+	// Test migrated token withdrawal directly
+	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[0],
+		createRes.BridgeId,
+		1,           // outputIndex
+		1,           // sequence
+		[][]byte{},  // withdrawalProofs
+		addrsStr[0], // from
+		addrsStr[1], // to
+		sdk.NewCoin("test1", math.NewInt(500)),
+		[]byte{1},        // version
+		make([]byte, 32), // storageRoot
+		make([]byte, 32), // lastBlockHash
+	)
+
+	handled, err := input.OPHostKeeper.HandleMigratedTokenWithdrawal(ctx, withdrawalMsg)
+	require.NoError(t, err)
+	require.True(t, handled)
+
+	// Check final balances
+	finalEscrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
+	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "test1")
+	require.Equal(t, math.NewInt(500), finalEscrowBalance.Amount) // 1000 - 500
+	require.Equal(t, math.NewInt(500), finalReceiverBalance.Amount)
+}
+
+func Test_HandleMigratedTokenWithdrawal_NonMigratedToken_Direct(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	// Create a bridge first
+	bridgeConfig := ophosttypes.BridgeConfig{
+		Challenger:            addrsStr[0],
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	require.NoError(t, err)
+
+	// Fund the bridge account (not IBC escrow)
+	bridgeAddr := ophosttypes.BridgeAddress(createRes.BridgeId)
+	input.Faucet.Fund(ctx, bridgeAddr, sdk.NewCoin("non-migrated-token", math.NewInt(1000)))
+
+	// Check initial balances
+	initialBridgeBalance := input.BankKeeper.GetBalance(ctx, bridgeAddr, "non-migrated-token")
+	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "non-migrated-token")
+	require.Equal(t, math.NewInt(1000), initialBridgeBalance.Amount)
+	require.Equal(t, math.NewInt(0), initialReceiverBalance.Amount)
+
+	// Test non-migrated token withdrawal directly
+	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[0],
+		createRes.BridgeId,
+		1,           // outputIndex
+		1,           // sequence
+		[][]byte{},  // withdrawalProofs
+		addrsStr[0], // from
+		addrsStr[1], // to
+		sdk.NewCoin("non-migrated-token", math.NewInt(500)),
+		[]byte{1},        // version
+		make([]byte, 32), // storageRoot
+		make([]byte, 32), // lastBlockHash
+	)
+
+	handled, err := input.OPHostKeeper.HandleMigratedTokenWithdrawal(ctx, withdrawalMsg)
+	require.NoError(t, err)
+	require.False(t, handled) // Should not handle non-migrated tokens
+
+	// Balances should remain unchanged since it wasn't handled
+	finalBridgeBalance := input.BankKeeper.GetBalance(ctx, bridgeAddr, "non-migrated-token")
+	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "non-migrated-token")
+	require.Equal(t, math.NewInt(1000), finalBridgeBalance.Amount) // unchanged
+	require.Equal(t, math.NewInt(0), finalReceiverBalance.Amount)  // unchanged
+}
+
+func Test_HandleMigratedTokenWithdrawal_InvalidReceiverAddress_Direct(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	// Create a bridge first
+	bridgeConfig := ophosttypes.BridgeConfig{
+		Challenger:            addrsStr[0],
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	require.NoError(t, err)
+
+	// Register migration info
+	migrationInfo := ophosttypes.MigrationInfo{
+		BridgeId:     createRes.BridgeId,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+		L1Denom:      "test1",
+	}
+
+	msg := ophosttypes.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		createRes.BridgeId,
+		migrationInfo,
+	)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.NoError(t, err)
+
+	// Fund the IBC escrow account
+	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
+	input.Faucet.Fund(ctx, transferEscrowAddress, sdk.NewCoin("test1", math.NewInt(1000)))
+
+	// Test withdrawal with invalid receiver address
+	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[0],
+		createRes.BridgeId,
+		1,                 // outputIndex
+		1,                 // sequence
+		[][]byte{},        // withdrawalProofs
+		addrsStr[0],       // from
+		"invalid-address", // invalid address
+		sdk.NewCoin("test1", math.NewInt(500)),
+		[]byte{1},        // version
+		make([]byte, 32), // storageRoot
+		make([]byte, 32), // lastBlockHash
+	)
+
+	_, err = input.OPHostKeeper.HandleMigratedTokenWithdrawal(ctx, withdrawalMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "decoding bech32 failed")
+}
+
+func Test_HandleMigratedTokenWithdrawal_InsufficientBalance_Direct(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	// Create a bridge first
+	bridgeConfig := ophosttypes.BridgeConfig{
+		Challenger:            addrsStr[0],
+		Proposer:              addrsStr[0],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	require.NoError(t, err)
+
+	// Register migration info
+	migrationInfo := ophosttypes.MigrationInfo{
+		BridgeId:     createRes.BridgeId,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+		L1Denom:      "test1",
+	}
+
+	msg := ophosttypes.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		createRes.BridgeId,
+		migrationInfo,
+	)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.NoError(t, err)
+
+	// Fund the IBC escrow account with insufficient balance
+	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
+	input.Faucet.Fund(ctx, transferEscrowAddress, sdk.NewCoin("test1", math.NewInt(100)))
+
+	// Test withdrawal with amount larger than available balance
+	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
+		addrsStr[0],
+		createRes.BridgeId,
+		1,                                      // outputIndex
+		1,                                      // sequence
+		[][]byte{},                             // withdrawalProofs
+		addrsStr[0],                            // from
+		addrsStr[1],                            // to
+		sdk.NewCoin("test1", math.NewInt(500)), // more than available 100
+		[]byte{1},                              // version
+		make([]byte, 32),                       // storageRoot
+		make([]byte, 32),                       // lastBlockHash
+	)
+
+	_, err = input.OPHostKeeper.HandleMigratedTokenWithdrawal(ctx, withdrawalMsg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "insufficient funds")
+}

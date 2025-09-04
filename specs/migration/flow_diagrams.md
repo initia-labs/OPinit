@@ -154,3 +154,26 @@ sequenceDiagram
     OPChild->>OPChild: Execute hook
     OPChild->>User: OP tokens + Hook results
 ```
+
+## In-Flight Withdrawal Handling on OPHost (Initiated Before Migration)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant OPHost
+    participant IBC Escrow
+    
+    Note over User, IBC Escrow: In-Flight Withdrawal Request Handling
+    User->>OPHost: MsgFinalizeTokenWithdrawal (initiated before migration)
+    OPHost->>OPHost: Check migration info
+    alt Token is migrated
+        OPHost->>OPHost: Get IBC escrow address
+        OPHost->>IBC Escrow: Transfer tokens
+        IBC Escrow->>User: L1 tokens
+        Note over User: Withdrawal from IBC escrow
+    else Token is not migrated
+        OPHost->>OPHost: Bridge account withdrawal
+        OPHost->>User: L1 tokens
+        Note over User: Normal bridge withdrawal
+    end
+```
