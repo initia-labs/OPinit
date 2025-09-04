@@ -43,7 +43,7 @@ type MigrationInfo struct {
 
 ```go
 type MigrationInfo struct {
-    BridgeId     string // Bridge ID
+    BridgeId     uint64 // Bridge ID
     L1Denom      string // L1 denom (e.g., "uinit")
     IbcChannelId string // IBC channel ID
     IbcPortId    string // IBC port ID
