@@ -127,13 +127,14 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 
 ```go
 func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgInitiateTokenDeposit) (handled bool, err error) {
-    // 1. Get migration info for this bridge and L1 denom
+    l1Denom := msg.Amount.Denom
     migrationInfo, err := k.GetMigrationInfo(ctx, msg.BridgeId, l1Denom)
     if err != nil && errors.Is(err, collections.ErrNotFound) {
         return false, nil // Not configured for migration
+    } else if err != nil {
+        return false, err
     }
-    
-    // 2. Encode bridge hook data in memo
+
     memo := "forwarded from ophost module"
     if len(msg.Data) > 0 {
         memoBz, err := json.Marshal(&types.MigratedTokenDepositMemo{
@@ -144,8 +145,8 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
         }
         memo = string(memoBz)
     }
-    
-    // 3. Create IBC transfer message
+
+    // Create IBC transfer message
     transferMsg := transfertypes.NewMsgTransfer(
         migrationInfo.IbcPortId,
         migrationInfo.IbcChannelId,
@@ -153,11 +154,11 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
         msg.Sender,
         msg.To,
         clienttypes.NewHeight(0, 0),
-        uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp,
+        uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp, //nolint:gosec
         memo,
     )
-    
-    // 4. Route IBC transfer via message router
+
+    // Route IBC transfer via message router
     sdkCtx := sdk.UnwrapSDKContext(ctx)
     if handler := k.msgRouter.Handler(transferMsg); handler == nil {
         return false, errorsmod.Wrap(sdkerrors.ErrNotFound, sdk.MsgTypeURL(transferMsg))
@@ -166,7 +167,7 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
     } else {
         sdkCtx.EventManager().EmitEvents(res.GetEvents())
     }
-    
+
     return true, nil
 }
 ```
@@ -175,30 +176,25 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
 
 ```go
 func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.MsgFinalizeTokenWithdrawal) (handled bool, err error) {
-    // 1. Get migration info for this bridge and L1 denom
     l1Denom := msg.Amount.Denom
     migrationInfo, err := k.GetMigrationInfo(ctx, msg.BridgeId, l1Denom)
     if err != nil && errors.Is(err, collections.ErrNotFound) {
-        return false, nil // Not configured for migration, fall back to bridge withdrawal
+        return false, nil // Not configured for migration
     } else if err != nil {
         return false, err
     }
-    
-    // 2. Get IBC escrow address from migration info
+
     transferEscrowAddress := transfertypes.GetEscrowAddress(migrationInfo.IbcPortId, migrationInfo.IbcChannelId)
-    
-    // 3. Convert receiver address string to bytes
     receiver, err := k.authKeeper.AddressCodec().StringToBytes(msg.To)
     if err != nil {
         return false, err
     }
-    
-    // 4. Transfer tokens from IBC escrow to receiver
+
     withdrawnFunds := sdk.NewCoins(msg.Amount)
     if err := k.bankKeeper.SendCoins(ctx, transferEscrowAddress, receiver, withdrawnFunds); err != nil {
         return false, err
     }
-    
+
     return true, nil
 }
 ```
