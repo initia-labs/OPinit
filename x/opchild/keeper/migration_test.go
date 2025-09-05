@@ -395,11 +395,15 @@ func Test_MigrateToken_Success(t *testing.T) {
 	input.Faucet.Fund(ctx, sender, sdk.NewCoins(amount)...)
 
 	// Test token migration
-	ibcCoin, err := input.OPChildKeeper.MigrateToken(ctx, migrationInfo, sender, amount)
+	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
+		Sender: sender.String(),
+		Amount: amount,
+	})
 	require.NoError(t, err)
 
 	// Verify the IBC coin was created correctly
 	expectedIBCDenom := transfertypes.GetTransferCoin(migrationInfo.IbcPortId, migrationInfo.IbcChannelId, "test1", amount.Amount)
+	ibcCoin := input.BankKeeper.GetBalance(ctx, sender, expectedIBCDenom.Denom)
 	require.Equal(t, expectedIBCDenom, ibcCoin)
 
 	// Verify sender balance is now 0 for the original token
@@ -437,22 +441,28 @@ func Test_MigrateToken_InvalidAmount(t *testing.T) {
 
 	// Test with zero amount
 	zeroAmount := sdk.NewCoin("test1", math.NewInt(0))
-	_, err = input.OPChildKeeper.MigrateToken(ctx, migrationInfo, addrs[0], zeroAmount)
+	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
+		Sender: addrs[0].String(),
+		Amount: zeroAmount,
+	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "amount is not positive")
+	require.Contains(t, err.Error(), "invalid amount")
 
 	// Test with negative amount - create coin directly to avoid panic
 	negativeAmount := sdk.Coin{
 		Denom:  "test1",
 		Amount: math.NewInt(-100),
 	}
-	_, err = input.OPChildKeeper.MigrateToken(ctx, migrationInfo, addrs[0], negativeAmount)
+	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
+		Sender: addrs[0].String(),
+		Amount: negativeAmount,
+	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "amount is not positive")
+	require.Contains(t, err.Error(), "invalid amount")
 }
 
-// Test_MigrateToken_DenomMismatch tests token migration with denom mismatch
-func Test_MigrateToken_DenomMismatch(t *testing.T) {
+// Test_MigrateToken_NotFound tests token migration with not found migration info
+func Test_MigrateToken_NotFound(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	// Set up denom pair first (L1 token)
@@ -477,9 +487,12 @@ func Test_MigrateToken_DenomMismatch(t *testing.T) {
 
 	// Test with mismatched denom
 	wrongDenomAmount := sdk.NewCoin("test2", math.NewInt(100))
-	_, err = input.OPChildKeeper.MigrateToken(ctx, migrationInfo, addrs[0], wrongDenomAmount)
+	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
+		Sender: addrs[0].String(),
+		Amount: wrongDenomAmount,
+	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "migration info denom does not match")
+	require.Contains(t, err.Error(), "migration info not found")
 }
 
 // Test_MigrateToken_InsufficientBalance tests token migration with insufficient balance
@@ -508,7 +521,10 @@ func Test_MigrateToken_InsufficientBalance(t *testing.T) {
 
 	// Test with amount larger than balance
 	largeAmount := sdk.NewCoin("test1", math.NewInt(1000))
-	_, err = input.OPChildKeeper.MigrateToken(ctx, migrationInfo, addrs[0], largeAmount)
+	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
+		Sender: addrs[0].String(),
+		Amount: largeAmount,
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "insufficient funds")
 }

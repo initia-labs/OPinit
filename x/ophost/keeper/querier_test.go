@@ -296,3 +296,20 @@ func Test_QueryBatchInfos(t *testing.T) {
 	}, res.BatchInfos,
 	)
 }
+
+func Test_QueryMigrationInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	q := keeper.NewQuerier(input.OPHostKeeper)
+	_, err := q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{BridgeId: 1, L1Denom: "l1denom"})
+	require.Error(t, err)
+
+	migrationInfo := types.MigrationInfo{
+		BridgeId: 1,
+		L1Denom:  "l1denom",
+	}
+	require.NoError(t, input.OPHostKeeper.SetMigrationInfo(ctx, migrationInfo))
+
+	res, err := q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{BridgeId: 1, L1Denom: "l1denom"})
+	require.NoError(t, err)
+	require.Equal(t, migrationInfo, res.MigrationInfo)
+}
