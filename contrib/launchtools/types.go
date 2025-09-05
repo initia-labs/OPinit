@@ -112,7 +112,8 @@ type Launcher interface {
 var _ Launcher = &LauncherContext{}
 
 type LauncherContext struct {
-	mtx *sync.Mutex
+	mtx        *sync.Mutex
+	appLogFile *os.File
 
 	log            log.Logger
 	defaultGenesis map[string]json.RawMessage
@@ -154,8 +155,14 @@ func NewLauncher(
 	// create a new client context with the keyring
 	nextClientCtx := clientCtx.WithKeyring(kr)
 
-	// mute log output
-	serverCtx.Logger = log.NewNopLogger()
+	// record app logs to file
+	appLogFile, err := os.Create(path.Join(nextClientCtx.HomeDir, "app.log"))
+	if err != nil {
+		panic("failed to create log file")
+	}
+
+	serverCtx.Logger.Info("logging app logs to file", "file", appLogFile.Name())
+	serverCtx.Logger = log.NewLogger(appLogFile, log.OutputJSONOption())
 
 	// make sure to register both ophost and opchild proto
 	// otherwise it fails on creating op bridge on L1
@@ -169,8 +176,9 @@ func NewLauncher(
 	}
 
 	return &LauncherContext{
-		log:            log.NewLogger(os.Stderr),
 		mtx:            new(sync.Mutex),
+		appLogFile:     appLogFile,
+		log:            log.NewLogger(os.Stderr),
 		clientCtx:      &nextClientCtx,
 		serverCtx:      serverCtx,
 		appCreator:     appCreator,
@@ -289,4 +297,12 @@ func (l *LauncherContext) SetErrorGroup(g *errgroup.Group) {
 
 func (l *LauncherContext) GetErrorGroup() *errgroup.Group {
 	return l.errorgroup
+}
+
+func (l *LauncherContext) Close() error {
+	if err := l.appLogFile.Close(); err != nil {
+		return errors.Wrap(err, "failed to close app log file")
+	}
+
+	return nil
 }
