@@ -303,8 +303,10 @@ func (l *LauncherContext) GetErrorGroup() *errgroup.Group {
 }
 
 func (l *LauncherContext) Close() error {
-	if err := l.appLogFile.Close(); err != nil {
-		return errors.Wrap(err, "failed to close app log file")
+	if l.appLogFile != nil {
+		if err := l.appLogFile.Close(); err != nil {
+			return errors.Wrap(err, "failed to close app log file")
+		}
 	}
 
 	return nil
