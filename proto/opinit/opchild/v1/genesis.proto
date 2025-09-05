@@ -38,6 +38,12 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  // migration_infos defines the registered migration infos.
+  repeated MigrationInfo migration_infos = 9 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // LastValidatorPower required for validator set update logic.

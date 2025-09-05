@@ -24,6 +24,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateMetadata{}, "ophost/MsgUpdateMetadata")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateOracleConfig{}, "ophost/MsgUpdateOracleConfig")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateFinalizationPeriod{}, "ophost/MsgUpdateFinalizationPeriod")
+	legacy.RegisterAminoMsg(cdc, &MsgRegisterMigrationInfo{}, "ophost/MsgRegisterMigrationInfo")
 
 	cdc.RegisterConcrete(Params{}, "ophost/Params", nil)
 	cdc.RegisterConcrete(&BridgeAccount{}, "ophost/BridgeAccount", nil)
@@ -45,6 +46,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateMetadata{},
 		&MsgUpdateOracleConfig{},
 		&MsgUpdateFinalizationPeriod{},
+		&MsgRegisterMigrationInfo{},
 	)
 
 	// auth account registration

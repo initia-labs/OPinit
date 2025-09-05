@@ -30,4 +30,7 @@ var (
 	// HostValidatorStore keys
 	HostHeightKey        = []byte{0x51}
 	HostValidatorsPrefix = []byte{0x52}
+
+	MigrationInfoPrefix   = []byte{0x61} // prefix for the migration info
+	IBCToL2DenomMapPrefix = []byte{0x62} // prefix for the ibc to l2 denom map
 )

@@ -7,6 +7,7 @@ import (
 	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,6 +17,7 @@ import (
 type Keeper struct {
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
+	msgRouter    baseapp.MessageRouter
 
 	authKeeper          types.AccountKeeper
 	bankKeeper          types.BankKeeper
@@ -36,11 +38,13 @@ type Keeper struct {
 	OutputProposals   collections.Map[collections.Pair[uint64, uint64], types.Output]
 	NextOutputIndexes collections.Map[uint64, uint64]
 	ProvenWithdrawals collections.Map[collections.Pair[uint64, []byte], bool]
+	MigrationInfos    collections.Map[collections.Pair[uint64, string], types.MigrationInfo]
 }
 
 func NewKeeper(
 	cdc codec.Codec,
 	storeService corestoretypes.KVStoreService,
+	msgRouter baseapp.MessageRouter,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	ck types.CommunityPoolKeeper,
@@ -57,6 +61,7 @@ func NewKeeper(
 	k := &Keeper{
 		cdc:          cdc,
 		storeService: storeService,
+		msgRouter:    msgRouter,
 
 		authKeeper:          ak,
 		bankKeeper:          bk,
@@ -74,6 +79,7 @@ func NewKeeper(
 		OutputProposals:   collections.NewMap(sb, types.OutputProposalPrefix, "output_proposals", collections.PairKeyCodec(collections.Uint64Key, collections.Uint64Key), codec.CollValue[types.Output](cdc)),
 		NextOutputIndexes: collections.NewMap(sb, types.NextOutputIndexPrefix, "next_output_indexes", collections.Uint64Key, collections.Uint64Value),
 		ProvenWithdrawals: collections.NewMap(sb, types.ProvenWithdrawalPrefix, "proven_withdrawals", collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey), collections.BoolValue),
+		MigrationInfos:    collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), codec.CollValue[types.MigrationInfo](cdc)),
 	}
 
 	schema, err := sb.Build()

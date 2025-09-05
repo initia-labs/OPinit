@@ -26,6 +26,8 @@ var (
 	_ sdk.Msg = &MsgSetBridgeInfo{}
 	_ sdk.Msg = &MsgFinalizeTokenDeposit{}
 	_ sdk.Msg = &MsgInitiateTokenWithdrawal{}
+	_ sdk.Msg = &MsgRegisterMigrationInfo{}
+	_ sdk.Msg = &MsgMigrateToken{}
 
 	_ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}
 )
@@ -494,5 +496,51 @@ func (msg MsgUpdateOracle) Validate(ac address.Codec) error {
 	if msg.Height == 0 {
 		return ErrInvalidHeight
 	}
+	return nil
+}
+
+/* MsgRegisterMigrationInfo */
+
+// NewMsgRegisterMigrationInfo creates a new MsgRegisterMigrationInfo instance.
+func NewMsgRegisterMigrationInfo(authority string, migrationInfo MigrationInfo) *MsgRegisterMigrationInfo {
+	return &MsgRegisterMigrationInfo{
+		Authority:     authority,
+		MigrationInfo: migrationInfo,
+	}
+}
+
+// Validate performs basic MsgRegisterMigrationInfo message validation.
+func (msg MsgRegisterMigrationInfo) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if err := msg.MigrationInfo.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* MsgMigrateToken */
+
+// NewMsgMigrateToken creates a new MsgMigrateToken instance.
+func NewMsgMigrateToken(sender string, amount sdk.Coin) *MsgMigrateToken {
+	return &MsgMigrateToken{
+		Sender: sender,
+		Amount: amount,
+	}
+}
+
+// Validate performs basic MsgMigrateToken message validation.
+func (msg MsgMigrateToken) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
+	}
+
+	if !msg.Amount.IsValid() || !msg.Amount.IsPositive() {
+		return ErrInvalidAmount
+	}
+
 	return nil
 }

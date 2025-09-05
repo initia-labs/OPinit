@@ -17,6 +17,8 @@ const (
 	EventTypeParams                  = "params"
 	EventTypeUpdateOracle            = "update_oracle"
 	EventTypeSetBridgeInfo           = "set_bridge_info"
+	EventTypeRegisterMigrationInfo   = "register_migration_info"
+	EventTypeMigrateToken            = "migrate_token"
 
 	AttributeKeySender         = "sender"
 	AttributeKeyBridgeId       = "bridge_id"
@@ -41,4 +43,8 @@ const (
 	AttributeKeyTo             = "to"
 	AttributeKeyL2Sequence     = "l2_sequence"
 	AttributeKeyHeight         = "height"
+	AttributeKeyIbcChannelId   = "ibc_channel_id"
+	AttributeKeyIbcPortId      = "ibc_port_id"
+	AttributeKeyIbcDenom       = "ibc_denom"
+	AttributeKeyMigratedCoin   = "migrated_coin"
 )

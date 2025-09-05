@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 	"testing"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -44,6 +46,8 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
@@ -212,6 +216,7 @@ type TestKeepers struct {
 	EncodingConfig       EncodingConfig
 	Faucet               *TestFaucet
 	TokenCreationFactory *TestTokenCreationFactory
+	MockRouter           *MockRouter
 }
 
 // createDefaultTestInput common settings for createTestInput
@@ -304,11 +309,11 @@ func _createTestInput(
 	)
 	require.NoError(t, bankKeeper.SetParams(ctx, banktypes.DefaultParams()))
 
-	msgRouter := baseapp.NewMsgServiceRouter()
-	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
-
-	// register bank message service to the router
-	banktypes.RegisterMsgServer(msgRouter, bankkeeper.NewMsgServerImpl(bankKeeper))
+	originMessageRouter := baseapp.NewMsgServiceRouter()
+	originMessageRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
+	mockRouter := &MockRouter{
+		originMessageRouter: originMessageRouter,
+	}
 
 	oracleKeeper := oraclekeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
@@ -332,7 +337,7 @@ func _createTestInput(
 			authante.NewIncrementSequenceDecorator(accountKeeper),
 		),
 		txDecoder,
-		msgRouter,
+		mockRouter,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
@@ -346,7 +351,8 @@ func _createTestInput(
 	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
-	opchildtypes.RegisterMsgServer(msgRouter, opchildkeeper.NewMsgServerImpl(opchildKeeper))
+	banktypes.RegisterMsgServer(originMessageRouter, bankkeeper.NewMsgServerImpl(bankKeeper))
+	opchildtypes.RegisterMsgServer(originMessageRouter, opchildkeeper.NewMsgServerImpl(opchildKeeper))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
@@ -359,6 +365,7 @@ func _createTestInput(
 		EncodingConfig:       encodingConfig,
 		Faucet:               faucet,
 		TokenCreationFactory: tokenCreationFactory,
+		MockRouter:           mockRouter,
 	}
 	return ctx, keepers
 }
@@ -425,4 +432,59 @@ type TestTokenCreationFactory struct {
 func (t *TestTokenCreationFactory) TokenCreationFn(ctx context.Context, denom string, decimals uint8) error {
 	t.created[denom] = true
 	return nil
+}
+
+// MockRouter handles IBC transfer messages for testing
+type MockRouter struct {
+	originMessageRouter baseapp.MessageRouter
+	handledMsgs         []*transfertypes.MsgTransfer
+	shouldFail          bool
+}
+
+func (router *MockRouter) Handler(msg sdk.Msg) baseapp.MsgServiceHandler {
+	return router.HandlerByTypeURL(sdk.MsgTypeURL(msg))
+}
+
+func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHandler {
+	switch typeURL {
+	case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+		return func(ctx sdk.Context, _msg sdk.Msg) (*sdk.Result, error) {
+			if router.shouldFail {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
+
+			msg := _msg.(*transfertypes.MsgTransfer)
+
+			// Store the handled message for verification
+			router.handledMsgs = append(router.handledMsgs, msg)
+
+			// Emit an event to track the transfer
+			ctx.EventManager().EmitEvent(sdk.NewEvent("ibc_transfer",
+				sdk.NewAttribute("sender", msg.Sender),
+				sdk.NewAttribute("receiver", msg.Receiver),
+				sdk.NewAttribute("token", msg.Token.String()),
+				sdk.NewAttribute("source_port", msg.SourcePort),
+				sdk.NewAttribute("source_channel", msg.SourceChannel),
+				sdk.NewAttribute("timeout_height", msg.TimeoutHeight.String()),
+				sdk.NewAttribute("timeout_timestamp", fmt.Sprintf("%d", msg.TimeoutTimestamp)),
+				sdk.NewAttribute("memo", msg.Memo),
+			))
+
+			return &sdk.Result{}, nil
+		}
+	}
+
+	return router.originMessageRouter.HandlerByTypeURL(typeURL)
+}
+
+func (router *MockRouter) GetHandledMsgs() []*transfertypes.MsgTransfer {
+	return router.handledMsgs
+}
+
+func (router *MockRouter) Reset() {
+	router.handledMsgs = nil
+}
+
+func (router *MockRouter) SetShouldFail(shouldFail bool) {
+	router.shouldFail = shouldFail
 }

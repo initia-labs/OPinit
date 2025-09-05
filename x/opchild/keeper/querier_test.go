@@ -11,6 +11,8 @@ import (
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
@@ -138,4 +140,40 @@ func Test_QueryBaseDenom(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, types.QueryBaseDenomResponse{BaseDenom: "base_denom"}, *res)
+}
+
+func Test_QueryMigrationInfo(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	q := keeper.NewQuerier(&input.OPChildKeeper)
+
+	denom := "l2/denom"
+	port := "transfer"
+	channel := "channel-0"
+	migrationInfo := types.MigrationInfo{
+		Denom:        denom,
+		IbcChannelId: channel,
+		IbcPortId:    port,
+	}
+
+	_, err := q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{Denom: denom})
+	require.Error(t, err) // migration info not found
+
+	// register migration info
+	require.NoError(t, input.OPChildKeeper.SetMigrationInfo(ctx, migrationInfo))
+
+	_, err = q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{Denom: denom})
+	require.Error(t, err) // base denom not found
+
+	// set base denom
+	require.NoError(t, input.OPChildKeeper.DenomPairs.Set(ctx, denom, "test1"))
+
+	res, err := q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{Denom: denom})
+	require.NoError(t, err)
+
+	ibcDenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(migrationInfo.IbcPortId, migrationInfo.IbcChannelId, "test1")).IBCDenom()
+	require.Equal(t, types.QueryMigrationInfoResponse{MigrationInfo: types.MigrationInfo{
+		Denom:        denom,
+		IbcChannelId: channel,
+		IbcPortId:    port,
+	}, IbcDenom: ibcDenom}, *res)
 }

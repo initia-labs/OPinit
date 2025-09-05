@@ -11,20 +11,22 @@ const (
 )
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64) *GenesisState {
+func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64, migrationInfos []MigrationInfo) *GenesisState {
 	return &GenesisState{
-		Params:       params,
-		Bridges:      bridges,
-		NextBridgeId: nextBridgeId,
+		Params:         params,
+		Bridges:        bridges,
+		NextBridgeId:   nextBridgeId,
+		MigrationInfos: migrationInfos,
 	}
 }
 
 // DefaultGenesisState gets the raw genesis raw message for testing
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:       DefaultParams(),
-		Bridges:      []Bridge{},
-		NextBridgeId: DefaultBridgeIdStart,
+		Params:         DefaultParams(),
+		Bridges:        []Bridge{},
+		NextBridgeId:   DefaultBridgeIdStart,
+		MigrationInfos: []MigrationInfo{},
 	}
 }
 
@@ -82,6 +84,12 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 
 	if data.NextBridgeId < DefaultBridgeIdStart {
 		return ErrInvalidBridgeId
+	}
+
+	for _, migrationInfo := range data.MigrationInfos {
+		if err := migrationInfo.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return data.Params.Validate()

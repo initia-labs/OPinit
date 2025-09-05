@@ -52,7 +52,7 @@ func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte, hookMaxGas uint64
 	// use cache context from here to avoid resetting sequencer number on failure
 	cacheCtx, commit := ctx.CacheContext()
 	for _, msg := range tx.GetMsgs() {
-		handler := k.router.Handler(msg)
+		handler := k.msgRouter.Handler(msg)
 		if handler == nil {
 			reason = fmt.Sprintf("Unrecognized Msg type: %s", sdk.MsgTypeURL(msg))
 			return

@@ -23,6 +23,12 @@ message GenesisState {
 
   // the id will be asisgned to a new bridge.
   uint64 next_bridge_id = 3;
+
+  // migration_infos defines the registered migration infos.
+  repeated MigrationInfo migration_infos = 4 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // Bridge defeins a bridge state.

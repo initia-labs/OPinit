@@ -26,7 +26,32 @@ func Test_GenesisImportExport(t *testing.T) {
 	_, err = input.OPChildKeeper.IncreaseNextL1Sequence(ctx) // 3
 	require.NoError(t, err)
 
-	err = input.OPChildKeeper.DenomPairs.Set(ctx, "foo", "bar")
+	// set denom pairs
+	l2DenomFoo := ophosttypes.L2Denom(1, "foo")
+	l2DenomBar := ophosttypes.L2Denom(1, "bar")
+	err = input.OPChildKeeper.DenomPairs.Set(ctx, l2DenomFoo, "foo")
+	require.NoError(t, err)
+	err = input.OPChildKeeper.DenomPairs.Set(ctx, l2DenomBar, "bar")
+	require.NoError(t, err)
+
+	// set migration info
+	err = input.OPChildKeeper.SetMigrationInfo(ctx, types.MigrationInfo{
+		Denom:        l2DenomFoo,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+	})
+	require.NoError(t, err)
+	err = input.OPChildKeeper.SetMigrationInfo(ctx, types.MigrationInfo{
+		Denom:        l2DenomBar,
+		IbcChannelId: "channel-1",
+		IbcPortId:    "transfer",
+	})
+	require.NoError(t, err)
+
+	// set ibc to l2 denom map
+	err = input.OPChildKeeper.SetIBCToL2DenomMap(ctx, "ibc/foo", l2DenomFoo)
+	require.NoError(t, err)
+	err = input.OPChildKeeper.SetIBCToL2DenomMap(ctx, "ibc/bar", l2DenomBar)
 	require.NoError(t, err)
 
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
@@ -47,6 +72,18 @@ func Test_GenesisImportExport(t *testing.T) {
 			FinalizationPeriod:    time.Hour,
 			SubmissionStartHeight: 1,
 			Metadata:              []byte("metadata"),
+		},
+	}
+	genState.MigrationInfos = []types.MigrationInfo{
+		{
+			Denom:        l2DenomFoo,
+			IbcChannelId: "channel-0",
+			IbcPortId:    "transfer",
+		},
+		{
+			Denom:        l2DenomBar,
+			IbcChannelId: "channel-1",
+			IbcPortId:    "transfer",
 		},
 	}
 

@@ -3,15 +3,19 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -117,7 +121,7 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 			return nil, errorsmod.Wrap(types.ErrInvalidSigner, signer)
 		}
 
-		handler := ms.Router().Handler(msg)
+		handler := ms.MsgRouter().Handler(msg)
 		if handler == nil {
 			return nil, errorsmod.Wrap(types.ErrUnroutableExecuteMsg, sdk.MsgTypeURL(msg))
 		}
@@ -748,6 +752,13 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 		return nil, err
 	}
 
+	// if the token is migrated, handle the withdrawal by the migration info
+	if handled, err := ms.Keeper.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
+		return nil, err
+	} else if handled {
+		return &types.MsgInitiateTokenWithdrawalResponse{}, nil
+	}
+
 	// send coins to the module account only if the amount is positive
 	if err := ms.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, burnCoins); err != nil {
 		return nil, err
@@ -826,4 +837,89 @@ func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle
 	))
 
 	return &types.MsgUpdateOracleResponse{}, nil
+}
+
+/////////////////////////////////////////////////////
+// The messages for Migration
+
+// RegisterMigrationInfo implements registering a migration info
+func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgRegisterMigrationInfo) (*types.MsgRegisterMigrationInfoResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	// check if the migration info is already registered
+	if migrationInfo, err := ms.Keeper.GetMigrationInfo(ctx, req.MigrationInfo.Denom); err == nil {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "migration info already registered: %s", migrationInfo.String())
+	}
+
+	// load the base denom from the denom pair
+	baseDenom, err := ms.GetBaseDenom(ctx, req.MigrationInfo.Denom)
+	if err != nil {
+		return nil, err
+	}
+
+	// set migration info
+	if err := ms.Keeper.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
+		return nil, err
+	}
+
+	// set the ibc to l2 denom map
+	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	if err := ms.Keeper.SetIBCToL2DenomMap(ctx, ibcDenom, req.MigrationInfo.Denom); err != nil {
+		return nil, err
+	}
+
+	// compute the ibc denom
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterMigrationInfo,
+		sdk.NewAttribute(types.AttributeKeyFrom, req.Authority),
+		sdk.NewAttribute(types.AttributeKeyBaseDenom, baseDenom),
+		sdk.NewAttribute(types.AttributeKeyDenom, req.MigrationInfo.Denom),
+		sdk.NewAttribute(types.AttributeKeyIbcDenom, ibcDenom),
+		sdk.NewAttribute(types.AttributeKeyIbcChannelId, req.MigrationInfo.IbcChannelId),
+		sdk.NewAttribute(types.AttributeKeyIbcPortId, req.MigrationInfo.IbcPortId),
+	))
+
+	return &types.MsgRegisterMigrationInfoResponse{}, nil
+}
+
+// MigrateToken implements migrating a token from the OP token to the IBC token
+func (ms MsgServer) MigrateToken(ctx context.Context, req *types.MsgMigrateToken) (*types.MsgMigrateTokenResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	migrationInfo, err := ms.Keeper.GetMigrationInfo(ctx, req.Amount.Denom)
+	if err != nil && errors.Is(err, collections.ErrNotFound) {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "migration info not found")
+	} else if err != nil {
+		return nil, err
+	}
+
+	senderAddr, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	ibcCoin, err := ms.Keeper.MigrateToken(ctx, migrationInfo, senderAddr, req.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeMigrateToken,
+		sdk.NewAttribute(types.AttributeKeySender, req.Sender),
+		sdk.NewAttribute(types.AttributeKeyDenom, req.Amount.Denom),
+		sdk.NewAttribute(types.AttributeKeyAmount, req.Amount.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyMigratedCoin, ibcCoin.String()),
+	))
+
+	return &types.MsgMigrateTokenResponse{}, nil
 }
