@@ -71,7 +71,6 @@ func establishIBCChannels(
 
 		relayer := NewRelayer(ctx.Context(), relayerPath, ctx.Logger())
 		ctx.SetRelayer(relayer)
-
 		return runLifecycle(relayer)
 	}
 }

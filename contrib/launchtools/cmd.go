@@ -73,6 +73,7 @@ $ launchtools launch --artifacts-dir ./ --with-config ./config.json
 				defaultGenesisGetter(config.L2Config.Denom),
 				artifactsDir,
 			)
+			defer launcher.Close()
 
 			stepFns := make([]LauncherStepFunc, len(steps))
 
