@@ -43,6 +43,9 @@ type ExpectedApp interface {
 	GetIBCKeeper() *ibckeeper.Keeper
 }
 
+// PostAction is a function that is called after the app is created.
+type PostAction func(app ExpectedApp, svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error
+
 type AppCreator interface {
 	AppCreator() servertypes.AppCreator
 	App() servertypes.Application

@@ -22,7 +22,7 @@ func RunApp(cfg *launchtools.Config) launchtools.LauncherStepFunc {
 }
 
 // RunAppWithPostAction runs the in-process application with a post action.
-func RunAppWithPostAction(postAction func(app launchtools.ExpectedApp, svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error) func(cfg *launchtools.Config) launchtools.LauncherStepFunc {
+func RunAppWithPostAction(postAction launchtools.PostAction) func(cfg *launchtools.Config) launchtools.LauncherStepFunc {
 	return func(cfg *launchtools.Config) launchtools.LauncherStepFunc {
 		return func(ctx launchtools.Launcher) error {
 			// temporarily allow creation of empty blocks
