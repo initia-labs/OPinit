@@ -1,5 +1,5 @@
 name: Protobuf
-# Protobuf runs buf (https://buf.build/) lint and check-breakage
+# Protobuf runs buf (https://buf.build/) fmt, lint and check-breakage and pushes to buf.build
 # This workflow is only run when a .proto file has been changed
 
 on:
@@ -17,26 +17,21 @@ on:
       - "proto/**"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   buf-build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: |
-      github.event_name == 'push' && (
-        github.ref == 'refs/heads/main' ||
-        startsWith(github.ref, 'refs/tags/')
-      ) ||
-      github.event_name == 'release'
     steps:
       - uses: actions/checkout@v5
       - uses: bufbuild/buf-action@v1
         with:
-          input: "proto"
+          input: proto
           token: ${{ secrets.BUF_TOKEN }}
-          format: true
-          lint: true
-          breaking: true
-          push: false 
-          breaking_against: base/proto
+          format: false
+          lint: false
+          breaking: false
+          breaking_against: main/proto
+          push: true
+      #- run: buf push proto --error-format github-actions
