@@ -1,6 +1,6 @@
-# This module represents buf.build/initia-labs/OPinit
+# This module represents buf.build/initia-labs/opinit
 version: v1
-name: buf.build/initia-labs/OPinit
+name: buf.build/initia-labs/opinit
 deps:
   - buf.build/cosmos/cosmos-sdk:v0.50.0
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
