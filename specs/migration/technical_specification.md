@@ -86,22 +86,28 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
         return im.app.OnRecvPacket(ctx, packet, relayer)
     }
     
-    // 5. Record balance before IBC processing
+    // 5. Resolve receiver address
+    receiver, err := im.ac.StringToBytes(data.Receiver)
+    if err != nil {
+        return newEmitErrorAcknowledgement(err)
+    }
+
+    // 6. Record balance before IBC processing
     beforeBalance := im.bankKeeper.GetBalance(ctx, receiver, ibcDenom)
     
-    // 6. Process IBC packet normally
+    // 7. Process IBC packet normally
     ack := im.app.OnRecvPacket(ctx, packet, relayer)
     if !ack.Success() {
         return ack
     }
     
-    // 7. Check if balance increased
+    // 8. Check if balance increased
     afterBalance := im.bankKeeper.GetBalance(ctx, receiver, ibcDenom)
     if afterBalance.Amount.LTE(beforeBalance.Amount) {
         return ack
     }
     
-    // 8. Trigger IBC→L2 conversion
+    // 9. Trigger IBC→L2 conversion
     diff := afterBalance.Amount.Sub(beforeBalance.Amount)
     ibcCoin := sdk.NewCoin(ibcDenom, diff)
     l2Coin, err := im.opChildKeeper.HandleMigratedTokenDeposit(ctx, receiver, ibcCoin, data.Memo)
@@ -109,7 +115,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
         return newEmitErrorAcknowledgement(err)
     }
     
-    // 9. Emit conversion event
+    // 10. Emit conversion event
     ctx.EventManager().EmitEvent(sdk.NewEvent(
         EventTypeHandleMigratedTokenDeposit,
         sdk.NewAttribute(AttributeKeyReceiver, data.Receiver),
