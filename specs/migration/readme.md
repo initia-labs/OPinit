@@ -25,31 +25,31 @@ Replace OP Bridge with IBC Bridge infrastructure while maintaining backward comp
 
 #### L1 → L2 Flow (Two Options)
 
-**Option A: Bridge Replacement (User Experience Preserved)**
+- Option A: Bridge Replacement (User Experience Preserved)
 
-```plaintext
-User calls MsgInitiateTokenDeposit → Receives OP tokens on L2
-```
+   ```plaintext
+   User calls MsgInitiateTokenDeposit → Receives OP tokens on L2
+   ```
 
-**Option B: Normal IBC Bridge**
+- Option B: Normal IBC Bridge
 
-```plaintext
-User calls MsgTransfer → IBC transfer → L2 receives IBC tokens
-```
+   ```plaintext
+   User calls MsgTransfer → IBC transfer → L2 receives IBC tokens → (opchild) convert IBC token to OP token on L2
+   ```
 
 #### L2 → L1 Flow (Two Options)
 
-**Option A: Bridge Replacement (User Experience Preserved)**
+- Option A: Bridge Replacement (User Experience Preserved)
 
-```plaintext
-User calls MsgInitiateTokenWithdrawal → Receives L1 tokens
-```
+   ```plaintext
+   User calls MsgInitiateTokenWithdrawal → Receives L1 tokens
+   ```
 
-**Option B: Explicit Migration**
+- Option B: Explicit Migration
 
-```plaintext
-User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
-```
+   ```plaintext
+   User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
+   ```
 
 #### Bridge Hook Preservation
 
@@ -88,9 +88,9 @@ User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
 
 The IBC middleware intercepts incoming IBC transfer packets and automatically triggers IBC→L2 conversion when:
 
-1. IBC tokens are received for registered denoms
-2. Balance increases after IBC processing
-3. Migration info exists for the IBC denom
+1. The IBC denom is registered in the IBC→L2 denom map
+2. The underlying `OnRecvPacket` call succeeds
+3. The receiver's balance for the IBC denom increases after processing (i.e. additional IBC tokens arrived)
 
 ### OPHost IBC Transfer Integration
 
