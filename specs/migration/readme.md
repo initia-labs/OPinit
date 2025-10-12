@@ -41,15 +41,17 @@ Replace OP Bridge with IBC Bridge infrastructure while maintaining backward comp
 
 - Option A: Bridge Replacement (User Experience Preserved)
 
-   ```plaintext
-   User calls MsgInitiateTokenWithdrawal → Receives L1 tokens
-   ```
+```plaintext
+User calls MsgInitiateTokenWithdrawal → Receives L1 tokens
+```
 
 - Option B: Explicit Migration
 
-   ```plaintext
-   User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
-   ```
+```plaintext
+User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
+```
+
+- **Failure handling (applies to both options)**: If the outbound IBC transfer fails or times out, the middleware detects the refund packet and converts the returned IBC vouchers back into OP tokens for the user. For the explicit migration path, the user can re-run `MsgMigrateToken` to obtain IBC vouchers again before retrying.
 
 #### Bridge Hook Preservation
 

@@ -25,7 +25,9 @@
 #### IBC Middleware
 
 - **Purpose**: Intercepts incoming IBC transfer packets and triggers IBC→L2 conversion
-- **Key Function**: `OnRecvPacket` - automatically calls `HandleMigratedTokenDeposit`
+- **Key Functions**:
+  - `OnRecvPacket` - automatically calls `HandleMigratedTokenDeposit`
+  - `OnAcknowledgementPacket` / `OnTimeoutPacket` - refund failed transfers back into OP tokens
 
 ### Data Structures
 
@@ -126,6 +128,15 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
     return ack
 }
 ```
+
+#### Failure Handling (Acknowledgements & Timeouts)
+
+- The middleware inspects failed acknowledgements and timeout callbacks for packets originating from migrated denoms.
+- When the underlying transfer module mints/refunds IBC vouchers to the sender (following ibc-go’s `refundPacketToken` flow), the middleware:
+  1. Detects the balance increase on the sender in the hashed IBC denom.
+  2. Calls `HandleMigratedTokenDeposit` to burn the refunded voucher and mint OP tokens back to the user.
+  3. Emits `EventTypeHandleMigratedTokenRefund` capturing the receiver, IBC denom, and OP refund amount.
+- This logic ensures L2 users never retain stranded IBC vouchers when a withdrawal attempt fails.
 
 ### OPHost IBC Transfer Integration
 
