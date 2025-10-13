@@ -212,33 +212,6 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID string, channe
 	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 }
 
-func lookupPacket(packet channeltypes.Packet, receive bool) (data transfertypes.FungibleTokenPacketData, ibcDenom string, ok bool) {
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return data, "", false
-	}
-
-	// if the token is originated from the receiving chain, do nothing
-	if receive && transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
-		return data, "", false
-	}
-
-	// if the token is originated from the sending chain, do nothing
-	if !receive && transfertypes.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
-		return data, "", false
-	}
-
-	// compute the ibc denom, if receiving
-	if receive {
-		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-		prefixedDenom := sourcePrefix + data.Denom
-		denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
-		return data, denomTrace.IBCDenom(), true
-	}
-
-	// else sending, just parse the denom and return IBCDenom()
-	return data, transfertypes.ParseDenomTrace(data.Denom).IBCDenom(), true
-}
-
 // OnRecvPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
@@ -418,6 +391,37 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	))
 
 	return nil
+}
+
+// lookupPacket checks if the packet is a fungible token transfer packet and not originated from the
+// receiving chain (if receive=true) or sending chain (if receive=false). If so, it computes the IBC denom
+// and returns it along with the parsed packet data. Otherwise, it returns ok=false.
+func lookupPacket(packet channeltypes.Packet, receive bool) (data transfertypes.FungibleTokenPacketData, ibcDenom string, needCheck bool) {
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return data, "", false
+	}
+
+	// if the token is originated from the receiving chain, do nothing
+	if receive && transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		return data, "", false
+	}
+
+	// if the token is originated from the sending chain, do nothing
+	if !receive && transfertypes.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		return data, "", false
+	}
+
+	// compute the prefixed ibc denom
+	prefixedDenom := data.Denom
+	if receive {
+		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
+		prefixedDenom = sourcePrefix + data.Denom
+	}
+
+	// parse the denom and return IBCDenom()
+	ibcDenom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
+
+	return data, ibcDenom, true
 }
 
 // newEmitErrorAcknowledgement creates a new error acknowledgement after having emitted an event with the

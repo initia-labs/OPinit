@@ -26,7 +26,7 @@
 
 - **Purpose**: Intercepts incoming IBC transfer packets and triggers IBC→L2 conversion
 - **Key Functions**:
-  - `OnRecvPacket` - automatically calls `HandleMigratedTokenDeposit`
+  - `OnRecvPacket` - convert IBC voucher to OP token by calling `HandleMigratedTokenDeposit`
   - `OnAcknowledgementPacket` / `OnTimeoutPacket` - refund failed transfers back into OP tokens
 
 ### Data Structures
