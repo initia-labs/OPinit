@@ -213,6 +213,9 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 		return nil, err
 	}
 
+	// attestor consensus power is always 3
+	validator.ConsPower = types.AttestorConsPower
+
 	if err := ms.SetValidator(ctx, validator); err != nil {
 		return nil, err
 	}
@@ -249,7 +252,10 @@ func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveVal
 	val, found := ms.Keeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
+	} else if val.ConsPower != types.AttestorConsPower {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "only attestor can be removed")
 	}
+
 	val.ConsPower = 0
 
 	// set validator consensus power `0`,

@@ -53,3 +53,4 @@ dependency-graph.png
 
 # Go
 go.work.sum
+.gocache/

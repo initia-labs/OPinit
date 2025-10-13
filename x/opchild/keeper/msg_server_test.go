@@ -68,18 +68,18 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	addMsg, err := types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
 	require.NoError(t, err)
 
-	removeMsg, err := types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
+	removeMsg, err := types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[1])
 	require.NoError(t, err)
 
 	// should failed with unauthorized
-	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg, removeMsg})
+	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
 	require.Error(t, err)
 
 	// success
-	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
@@ -91,8 +91,23 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 
 	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
+	require.Len(t, vals, 2)
+
+	// remove validator
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{removeMsg})
+	require.NoError(t, err)
+
+	_, err = ms.ExecuteMessages(ctx, msg)
+	require.NoError(t, err)
+
+	// apply validator updates
+	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
+
+	vals, err = input.OPChildKeeper.GetAllValidators(ctx)
+	require.NoError(t, err)
 	require.Len(t, vals, 1)
-	require.Equal(t, vals[0].Moniker, "val2")
+	require.Equal(t, vals[0].Moniker, "val1")
 
 	// should failed with err (denom not sorted)
 	params.MinGasPrices = sdk.DecCoins{{
@@ -208,8 +223,23 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	)
 	require.Error(t, err)
 
-	// valid remove validator
+	// remove sequencer should fail
 	msg, err = types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
+	require.NoError(t, err)
+
+	_, err = ms.RemoveValidator(ctx, msg)
+	require.Error(t, err)
+
+	// register attestor
+	val, err = types.NewValidator(valAddrs[1], valPubKeys[1], "val2")
+	require.NoError(t, err)
+	val.ConsPower = types.AttestorConsPower // only attestor can be removed
+
+	err = input.OPChildKeeper.SetValidator(ctx, val)
+	require.NoError(t, err)
+
+	// valid remove validator
+	msg, err = types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[1])
 	require.NoError(t, err)
 
 	_, err = ms.RemoveValidator(
