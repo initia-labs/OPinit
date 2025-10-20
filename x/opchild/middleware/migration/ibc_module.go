@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/core/address"
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -28,7 +29,9 @@ var _ porttypes.UpgradableModule = &IBCMiddleware{}
 // It acts as a compatibility layer that ensures upgrade functionality is available even when the underlying
 // IBC module doesn't support it directly.
 type IBCMiddleware struct {
-	ac address.Codec
+	ac  address.Codec
+	cdc codec.Codec
+
 	// app is the underlying IBC module that handles standard IBC operations
 	app porttypes.IBCModule
 	// ics4Wrapper provides packet sending/receiving capabilities for the middleware
@@ -50,6 +53,7 @@ type IBCMiddleware struct {
 //   - IBCMiddleware: A configured middleware instance
 func NewIBCMiddleware(
 	ac address.Codec,
+	cdc codec.Codec,
 	app porttypes.IBCModule,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	bankKeeper BankKeeper,
@@ -57,6 +61,7 @@ func NewIBCMiddleware(
 ) IBCMiddleware {
 	return IBCMiddleware{
 		ac:            ac,
+		cdc:           cdc,
 		app:           app,
 		ics4Wrapper:   ics4Wrapper,
 		bankKeeper:    bankKeeper,
@@ -128,25 +133,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-}
-
-// OnAcknowledgementPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
-) error {
-	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-}
-
-// OnTimeoutPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnTimeoutPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) error {
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
 // SendPacket implements the ICS4 Wrapper interface
@@ -232,22 +218,12 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	// if it is not a transfer packet, do nothing
-	var data transfertypes.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	// if it is not a transfer packet or receiver chain is source, then execute inner app
+	// without any further checks
+	data, ibcDenom, ok := lookupPacket(packet, true)
+	if !ok {
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
-
-	// if the token is originated from the receiving chain, do nothing
-	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	// compute the ibc denom
-	sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-	prefixedDenom := sourcePrefix + data.Denom
-	denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
-	ibcDenom := denomTrace.IBCDenom()
 
 	// if the token is not registered for migration, do nothing
 	if hasMigration, err := im.opChildKeeper.HasIBCToL2DenomMap(ctx, ibcDenom); err != nil || !hasMigration {
@@ -295,6 +271,159 @@ func (im IBCMiddleware) OnRecvPacket(
 	return ack
 }
 
+// OnAcknowledgementPacket implements the IBCMiddleware interface
+func (im IBCMiddleware) OnAcknowledgementPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	acknowledgement []byte,
+	relayer sdk.AccAddress,
+) error {
+	// if it is not an error ack, just pass through
+	if !isAckError(im.cdc, acknowledgement) {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	// if it is not a transfer packet or sender chain is source, then execute inner app
+	// without any further checks
+	data, ibcDenom, ok := lookupPacket(packet, false)
+	if !ok {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	// if the token is not registered for migration, just pass through
+	if hasMigration, err := im.opChildKeeper.HasIBCToL2DenomMap(ctx, ibcDenom); err != nil || !hasMigration {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	// get the sender address
+	sender, err := im.ac.StringToBytes(data.Sender)
+	if err != nil {
+		return err
+	}
+
+	// get the before balance
+	beforeBalance := im.bankKeeper.GetBalance(ctx, sender, ibcDenom)
+
+	// call the underlying IBC module
+	if err := im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer); err != nil {
+		return err
+	}
+
+	// if the balance is not changed, do nothing
+	afterBalance := im.bankKeeper.GetBalance(ctx, sender, ibcDenom)
+	if afterBalance.Amount.LTE(beforeBalance.Amount) {
+		return nil
+	}
+
+	// compute the difference
+	diff := afterBalance.Amount.Sub(beforeBalance.Amount)
+
+	// burn IBC token and mint L2 token
+	ibcCoin := sdk.NewCoin(ibcDenom, diff)
+	l2Coin, err := im.opChildKeeper.HandleMigratedTokenDeposit(ctx, sender, ibcCoin, "")
+	if err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		EventTypeHandleMigratedTokenRefund,
+		sdk.NewAttribute(AttributeKeyReceiver, data.Sender),
+		sdk.NewAttribute(AttributeKeyIbcDenom, ibcDenom),
+		sdk.NewAttribute(AttributeKeyAmount, l2Coin.String()),
+	))
+
+	return nil
+}
+
+// OnTimeoutPacket implements the IBCMiddleware interface
+func (im IBCMiddleware) OnTimeoutPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	relayer sdk.AccAddress,
+) error {
+	// if it is not a transfer packet or sender chain is source, then execute inner app
+	// without any further checks
+	data, ibcDenom, ok := lookupPacket(packet, false)
+	if !ok {
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	// if the token is not registered for migration, just pass through
+	if hasMigration, err := im.opChildKeeper.HasIBCToL2DenomMap(ctx, ibcDenom); err != nil || !hasMigration {
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	// get the sender address
+	sender, err := im.ac.StringToBytes(data.Sender)
+	if err != nil {
+		return err
+	}
+
+	// get the before balance
+	beforeBalance := im.bankKeeper.GetBalance(ctx, sender, ibcDenom)
+
+	// call the underlying IBC module
+	if err := im.app.OnTimeoutPacket(ctx, packet, relayer); err != nil {
+		return err
+	}
+
+	// if the balance is not changed, do nothing
+	afterBalance := im.bankKeeper.GetBalance(ctx, sender, ibcDenom)
+	if afterBalance.Amount.LTE(beforeBalance.Amount) {
+		return nil
+	}
+
+	// compute the difference
+	diff := afterBalance.Amount.Sub(beforeBalance.Amount)
+
+	// burn IBC token and mint L2 token
+	ibcCoin := sdk.NewCoin(ibcDenom, diff)
+	l2Coin, err := im.opChildKeeper.HandleMigratedTokenDeposit(ctx, sender, ibcCoin, "")
+	if err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		EventTypeHandleMigratedTokenRefund,
+		sdk.NewAttribute(AttributeKeyReceiver, data.Sender),
+		sdk.NewAttribute(AttributeKeyIbcDenom, ibcDenom),
+		sdk.NewAttribute(AttributeKeyAmount, l2Coin.String()),
+	))
+
+	return nil
+}
+
+// lookupPacket checks if the packet is a fungible token transfer packet and not originated from the
+// receiving chain (if receive=true) or sending chain (if receive=false). If so, it computes the IBC denom
+// and returns it along with the parsed packet data. Otherwise, it returns ok=false.
+func lookupPacket(packet channeltypes.Packet, receive bool) (data transfertypes.FungibleTokenPacketData, ibcDenom string, needCheck bool) {
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return data, "", false
+	}
+
+	// if the token is originated from the receiving chain, do nothing
+	if receive && transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		return data, "", false
+	}
+
+	// if the token is originated from the sending chain, do nothing
+	if !receive && transfertypes.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		return data, "", false
+	}
+
+	// compute the prefixed ibc denom
+	prefixedDenom := data.Denom
+	if receive {
+		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
+		prefixedDenom = sourcePrefix + data.Denom
+	}
+
+	// parse the denom and return IBCDenom()
+	ibcDenom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
+
+	return data, ibcDenom, true
+}
+
 // newEmitErrorAcknowledgement creates a new error acknowledgement after having emitted an event with the
 // details of the error.
 func newEmitErrorAcknowledgement(err error) channeltypes.Acknowledgement {
@@ -303,4 +432,14 @@ func newEmitErrorAcknowledgement(err error) channeltypes.Acknowledgement {
 			Error: fmt.Sprintf("ibc middleware migration error: %s", err.Error()),
 		},
 	}
+}
+
+// isAckError checks an IBC acknowledgement to see if it's an error.
+func isAckError(appCodec codec.Codec, acknowledgement []byte) bool {
+	var ack channeltypes.Acknowledgement
+	if err := appCodec.UnmarshalJSON(acknowledgement, &ack); err == nil && !ack.Success() {
+		return true
+	}
+
+	return false
 }
