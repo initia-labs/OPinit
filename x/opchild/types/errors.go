@@ -33,6 +33,7 @@ var (
 	ErrInvalidOracleTimestamp          = errorsmod.Register(ModuleName, 26, "oracle timestamp is old")
 	ErrBridgeInfoNotExists             = errorsmod.Register(ModuleName, 27, "bridge info does not exist")
 	ErrOracleDisabled                  = errorsmod.Register(ModuleName, 28, "oracle is disabled")
+	ErrValidatorNotAttestor            = errorsmod.Register(ModuleName, 30, "validator is not an attestor")
 
 	// AnteHandler error
 	ErrRedundantTx = errorsmod.Register(ModuleName, 29, "tx messages are all redundant")
