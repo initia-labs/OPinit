@@ -51,6 +51,10 @@ Replace OP Bridge with IBC Bridge infrastructure while maintaining backward comp
    User calls MsgMigrateToken → Gets IBC tokens → Manual IBC transfer
    ```
 
+- Failure handling (applies to both options)
+
+   If the outbound IBC transfer fails or times out, the middleware detects the refund packet and converts the returned IBC vouchers back into OP tokens for the user. For the explicit migration path, the user can re-run `MsgMigrateToken` to obtain IBC vouchers again before retrying.
+
 #### Bridge Hook Preservation
 
 ```plaintext

@@ -92,8 +92,10 @@ func (m MockOPChildKeeper) HandleMigratedTokenDeposit(ctx context.Context, sende
 }
 
 type MockTransferApp struct {
-	ac         address.Codec
-	bankKeeper BankKeeper
+	ac                address.Codec
+	bankKeeper        BankKeeper
+	onAcknowledgement func(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error
+	onTimeout         func(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error
 }
 
 // OnChanOpenInit implements the IBCMiddleware interface
@@ -169,6 +171,9 @@ func (im MockTransferApp) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	if im.onAcknowledgement != nil {
+		return im.onAcknowledgement(ctx, packet, acknowledgement, relayer)
+	}
 	return nil
 }
 
@@ -178,6 +183,9 @@ func (im MockTransferApp) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	if im.onTimeout != nil {
+		return im.onTimeout(ctx, packet, relayer)
+	}
 	return nil
 }
 
