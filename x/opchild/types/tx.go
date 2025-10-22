@@ -87,12 +87,12 @@ func (msg MsgExecuteMessages) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 func NewMsgUpdateSequencer(
 	moniker string, authority string, seqAddr string, pubKey cryptotypes.PubKey,
 ) (*MsgUpdateSequencer, error) {
-	var pkAny *codectypes.Any
-	if pubKey != nil {
-		var err error
-		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
-			return nil, err
-		}
+	if pubKey == nil {
+		return nil, ErrEmptyValidatorPubKey
+	}
+	pkAny, err := codectypes.NewAnyWithValue(pubKey)
+	if err != nil {
+		return nil, err
 	}
 	return &MsgUpdateSequencer{
 		Moniker:          moniker,

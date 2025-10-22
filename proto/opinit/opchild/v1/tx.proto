@@ -202,6 +202,8 @@ message MsgInitiateTokenWithdrawalResponse {
 ///////////////////////////
 // Authority Messages
 
+// MsgUpdateSequencer is a message to update the sequencer role in validator set
+// by removing the old sequencer and adding a new one.
 message MsgUpdateSequencer {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "opchild/MsgUpdateSequencer";
@@ -244,7 +246,7 @@ message MsgAddAttestor {
 // MsgAddAttestorResponse returns add result data
 message MsgAddAttestorResponse {}
 
-// MsgAddAttestor is a message to remove a validator from designated list
+// MsgRemoveAttestor is a message to remove a attestor from the validator set.
 message MsgRemoveAttestor {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "opchild/MsgRemoveAttestor";
@@ -260,7 +262,7 @@ message MsgRemoveAttestor {
   string attestor_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-// MsgAddAttestorResponse returns remove result data
+// MsgRemoveAttestorResponse returns remove result data
 message MsgRemoveAttestorResponse {}
 
 // MsgAddFeeWhitelistAddresses is a message to add addresses to the x/opchild fee whitelist
