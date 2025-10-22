@@ -364,28 +364,27 @@ func (m *MsgInitiateTokenWithdrawalResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgInitiateTokenWithdrawalResponse proto.InternalMessageInfo
 
-// MsgAddValidator defines a SDK message for adding a new validator.
-type MsgAddValidator struct {
+type MsgUpdateSequencer struct {
 	// authority is the address that controls the module
 	// (defaults to x/opchild unless overwritten).
 	Authority        string     `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
 	Moniker          string     `protobuf:"bytes,2,opt,name=moniker,proto3" json:"moniker,omitempty"`
-	ValidatorAddress string     `protobuf:"bytes,3,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	SequencerAddress string     `protobuf:"bytes,3,opt,name=sequencer_address,json=sequencerAddress,proto3" json:"sequencer_address,omitempty"`
 	Pubkey           *types.Any `protobuf:"bytes,4,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
 }
 
-func (m *MsgAddValidator) Reset()         { *m = MsgAddValidator{} }
-func (m *MsgAddValidator) String() string { return proto.CompactTextString(m) }
-func (*MsgAddValidator) ProtoMessage()    {}
-func (*MsgAddValidator) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateSequencer) Reset()         { *m = MsgUpdateSequencer{} }
+func (m *MsgUpdateSequencer) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateSequencer) ProtoMessage()    {}
+func (*MsgUpdateSequencer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1ee96a503651b6e4, []int{8}
 }
-func (m *MsgAddValidator) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateSequencer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAddValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateSequencer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAddValidator.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateSequencer.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -395,34 +394,34 @@ func (m *MsgAddValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *MsgAddValidator) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAddValidator.Merge(m, src)
+func (m *MsgUpdateSequencer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateSequencer.Merge(m, src)
 }
-func (m *MsgAddValidator) XXX_Size() int {
+func (m *MsgUpdateSequencer) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAddValidator) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAddValidator.DiscardUnknown(m)
+func (m *MsgUpdateSequencer) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateSequencer.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAddValidator proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateSequencer proto.InternalMessageInfo
 
-// MsgAddValidatorResponse returns add result data
-type MsgAddValidatorResponse struct {
+// MsgUpdateSequencerResponse returns update sequencer result data
+type MsgUpdateSequencerResponse struct {
 }
 
-func (m *MsgAddValidatorResponse) Reset()         { *m = MsgAddValidatorResponse{} }
-func (m *MsgAddValidatorResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgAddValidatorResponse) ProtoMessage()    {}
-func (*MsgAddValidatorResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateSequencerResponse) Reset()         { *m = MsgUpdateSequencerResponse{} }
+func (m *MsgUpdateSequencerResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateSequencerResponse) ProtoMessage()    {}
+func (*MsgUpdateSequencerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1ee96a503651b6e4, []int{9}
 }
-func (m *MsgAddValidatorResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateSequencerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAddValidatorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateSequencerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAddValidatorResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateSequencerResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -432,39 +431,119 @@ func (m *MsgAddValidatorResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *MsgAddValidatorResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAddValidatorResponse.Merge(m, src)
+func (m *MsgUpdateSequencerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateSequencerResponse.Merge(m, src)
 }
-func (m *MsgAddValidatorResponse) XXX_Size() int {
+func (m *MsgUpdateSequencerResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAddValidatorResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAddValidatorResponse.DiscardUnknown(m)
+func (m *MsgUpdateSequencerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateSequencerResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAddValidatorResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateSequencerResponse proto.InternalMessageInfo
 
-// MsgAddValidator is a message to remove a validator from designated list
-type MsgRemoveValidator struct {
+// MsgAddAttestor defines a SDK message for adding a new attestor.
+type MsgAddAttestor struct {
+	// authority is the address that controls the module
+	// (defaults to x/opchild unless overwritten).
+	Authority       string     `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
+	Moniker         string     `protobuf:"bytes,2,opt,name=moniker,proto3" json:"moniker,omitempty"`
+	AttestorAddress string     `protobuf:"bytes,3,opt,name=attestor_address,json=attestorAddress,proto3" json:"attestor_address,omitempty"`
+	Pubkey          *types.Any `protobuf:"bytes,4,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+}
+
+func (m *MsgAddAttestor) Reset()         { *m = MsgAddAttestor{} }
+func (m *MsgAddAttestor) String() string { return proto.CompactTextString(m) }
+func (*MsgAddAttestor) ProtoMessage()    {}
+func (*MsgAddAttestor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{10}
+}
+func (m *MsgAddAttestor) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgAddAttestor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgAddAttestor.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgAddAttestor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddAttestor.Merge(m, src)
+}
+func (m *MsgAddAttestor) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgAddAttestor) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddAttestor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgAddAttestor proto.InternalMessageInfo
+
+// MsgAddAttestorResponse returns add result data
+type MsgAddAttestorResponse struct {
+}
+
+func (m *MsgAddAttestorResponse) Reset()         { *m = MsgAddAttestorResponse{} }
+func (m *MsgAddAttestorResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddAttestorResponse) ProtoMessage()    {}
+func (*MsgAddAttestorResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{11}
+}
+func (m *MsgAddAttestorResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgAddAttestorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgAddAttestorResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgAddAttestorResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddAttestorResponse.Merge(m, src)
+}
+func (m *MsgAddAttestorResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgAddAttestorResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddAttestorResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgAddAttestorResponse proto.InternalMessageInfo
+
+// MsgAddAttestor is a message to remove a validator from designated list
+type MsgRemoveAttestor struct {
 	// authority is the address that controls the module
 	// (defaults to x/opchild unless overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
-	// validator is the validator to remove.
-	ValidatorAddress string `protobuf:"bytes,2,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	// attestor_address is the address of the attestor to be removed.
+	AttestorAddress string `protobuf:"bytes,2,opt,name=attestor_address,json=attestorAddress,proto3" json:"attestor_address,omitempty"`
 }
 
-func (m *MsgRemoveValidator) Reset()         { *m = MsgRemoveValidator{} }
-func (m *MsgRemoveValidator) String() string { return proto.CompactTextString(m) }
-func (*MsgRemoveValidator) ProtoMessage()    {}
-func (*MsgRemoveValidator) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{10}
+func (m *MsgRemoveAttestor) Reset()         { *m = MsgRemoveAttestor{} }
+func (m *MsgRemoveAttestor) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveAttestor) ProtoMessage()    {}
+func (*MsgRemoveAttestor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{12}
 }
-func (m *MsgRemoveValidator) XXX_Unmarshal(b []byte) error {
+func (m *MsgRemoveAttestor) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRemoveValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRemoveAttestor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRemoveValidator.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRemoveAttestor.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -474,34 +553,34 @@ func (m *MsgRemoveValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgRemoveValidator) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRemoveValidator.Merge(m, src)
+func (m *MsgRemoveAttestor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveAttestor.Merge(m, src)
 }
-func (m *MsgRemoveValidator) XXX_Size() int {
+func (m *MsgRemoveAttestor) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRemoveValidator) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRemoveValidator.DiscardUnknown(m)
+func (m *MsgRemoveAttestor) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveAttestor.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRemoveValidator proto.InternalMessageInfo
+var xxx_messageInfo_MsgRemoveAttestor proto.InternalMessageInfo
 
-// MsgAddValidatorResponse returns remove result data
-type MsgRemoveValidatorResponse struct {
+// MsgAddAttestorResponse returns remove result data
+type MsgRemoveAttestorResponse struct {
 }
 
-func (m *MsgRemoveValidatorResponse) Reset()         { *m = MsgRemoveValidatorResponse{} }
-func (m *MsgRemoveValidatorResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRemoveValidatorResponse) ProtoMessage()    {}
-func (*MsgRemoveValidatorResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{11}
+func (m *MsgRemoveAttestorResponse) Reset()         { *m = MsgRemoveAttestorResponse{} }
+func (m *MsgRemoveAttestorResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveAttestorResponse) ProtoMessage()    {}
+func (*MsgRemoveAttestorResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1ee96a503651b6e4, []int{13}
 }
-func (m *MsgRemoveValidatorResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRemoveAttestorResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRemoveValidatorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRemoveAttestorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRemoveValidatorResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRemoveAttestorResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -511,17 +590,17 @@ func (m *MsgRemoveValidatorResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgRemoveValidatorResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRemoveValidatorResponse.Merge(m, src)
+func (m *MsgRemoveAttestorResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveAttestorResponse.Merge(m, src)
 }
-func (m *MsgRemoveValidatorResponse) XXX_Size() int {
+func (m *MsgRemoveAttestorResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRemoveValidatorResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRemoveValidatorResponse.DiscardUnknown(m)
+func (m *MsgRemoveAttestorResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveAttestorResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRemoveValidatorResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRemoveAttestorResponse proto.InternalMessageInfo
 
 // MsgAddFeeWhitelistAddresses is a message to add addresses to the x/opchild fee whitelist
 type MsgAddFeeWhitelistAddresses struct {
@@ -535,7 +614,7 @@ func (m *MsgAddFeeWhitelistAddresses) Reset()         { *m = MsgAddFeeWhitelistA
 func (m *MsgAddFeeWhitelistAddresses) String() string { return proto.CompactTextString(m) }
 func (*MsgAddFeeWhitelistAddresses) ProtoMessage()    {}
 func (*MsgAddFeeWhitelistAddresses) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{12}
+	return fileDescriptor_1ee96a503651b6e4, []int{14}
 }
 func (m *MsgAddFeeWhitelistAddresses) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -572,7 +651,7 @@ func (m *MsgAddFeeWhitelistAddressesResponse) Reset()         { *m = MsgAddFeeWh
 func (m *MsgAddFeeWhitelistAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgAddFeeWhitelistAddressesResponse) ProtoMessage()    {}
 func (*MsgAddFeeWhitelistAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{13}
+	return fileDescriptor_1ee96a503651b6e4, []int{15}
 }
 func (m *MsgAddFeeWhitelistAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -613,7 +692,7 @@ func (m *MsgRemoveFeeWhitelistAddresses) Reset()         { *m = MsgRemoveFeeWhit
 func (m *MsgRemoveFeeWhitelistAddresses) String() string { return proto.CompactTextString(m) }
 func (*MsgRemoveFeeWhitelistAddresses) ProtoMessage()    {}
 func (*MsgRemoveFeeWhitelistAddresses) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{14}
+	return fileDescriptor_1ee96a503651b6e4, []int{16}
 }
 func (m *MsgRemoveFeeWhitelistAddresses) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -652,7 +731,7 @@ func (m *MsgRemoveFeeWhitelistAddressesResponse) Reset() {
 func (m *MsgRemoveFeeWhitelistAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRemoveFeeWhitelistAddressesResponse) ProtoMessage()    {}
 func (*MsgRemoveFeeWhitelistAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{15}
+	return fileDescriptor_1ee96a503651b6e4, []int{17}
 }
 func (m *MsgRemoveFeeWhitelistAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -693,7 +772,7 @@ func (m *MsgAddBridgeExecutor) Reset()         { *m = MsgAddBridgeExecutor{} }
 func (m *MsgAddBridgeExecutor) String() string { return proto.CompactTextString(m) }
 func (*MsgAddBridgeExecutor) ProtoMessage()    {}
 func (*MsgAddBridgeExecutor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{16}
+	return fileDescriptor_1ee96a503651b6e4, []int{18}
 }
 func (m *MsgAddBridgeExecutor) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -730,7 +809,7 @@ func (m *MsgAddBridgeExecutorResponse) Reset()         { *m = MsgAddBridgeExecut
 func (m *MsgAddBridgeExecutorResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgAddBridgeExecutorResponse) ProtoMessage()    {}
 func (*MsgAddBridgeExecutorResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{17}
+	return fileDescriptor_1ee96a503651b6e4, []int{19}
 }
 func (m *MsgAddBridgeExecutorResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -771,7 +850,7 @@ func (m *MsgRemoveBridgeExecutor) Reset()         { *m = MsgRemoveBridgeExecutor
 func (m *MsgRemoveBridgeExecutor) String() string { return proto.CompactTextString(m) }
 func (*MsgRemoveBridgeExecutor) ProtoMessage()    {}
 func (*MsgRemoveBridgeExecutor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{18}
+	return fileDescriptor_1ee96a503651b6e4, []int{20}
 }
 func (m *MsgRemoveBridgeExecutor) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -808,7 +887,7 @@ func (m *MsgRemoveBridgeExecutorResponse) Reset()         { *m = MsgRemoveBridge
 func (m *MsgRemoveBridgeExecutorResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRemoveBridgeExecutorResponse) ProtoMessage()    {}
 func (*MsgRemoveBridgeExecutorResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{19}
+	return fileDescriptor_1ee96a503651b6e4, []int{21}
 }
 func (m *MsgRemoveBridgeExecutorResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -849,7 +928,7 @@ func (m *MsgUpdateMinGasPrices) Reset()         { *m = MsgUpdateMinGasPrices{} }
 func (m *MsgUpdateMinGasPrices) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateMinGasPrices) ProtoMessage()    {}
 func (*MsgUpdateMinGasPrices) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{20}
+	return fileDescriptor_1ee96a503651b6e4, []int{22}
 }
 func (m *MsgUpdateMinGasPrices) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -886,7 +965,7 @@ func (m *MsgUpdateMinGasPricesResponse) Reset()         { *m = MsgUpdateMinGasPr
 func (m *MsgUpdateMinGasPricesResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateMinGasPricesResponse) ProtoMessage()    {}
 func (*MsgUpdateMinGasPricesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{21}
+	return fileDescriptor_1ee96a503651b6e4, []int{23}
 }
 func (m *MsgUpdateMinGasPricesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -927,7 +1006,7 @@ func (m *MsgUpdateAdmin) Reset()         { *m = MsgUpdateAdmin{} }
 func (m *MsgUpdateAdmin) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateAdmin) ProtoMessage()    {}
 func (*MsgUpdateAdmin) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{22}
+	return fileDescriptor_1ee96a503651b6e4, []int{24}
 }
 func (m *MsgUpdateAdmin) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -964,7 +1043,7 @@ func (m *MsgUpdateAdminResponse) Reset()         { *m = MsgUpdateAdminResponse{}
 func (m *MsgUpdateAdminResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateAdminResponse) ProtoMessage()    {}
 func (*MsgUpdateAdminResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{23}
+	return fileDescriptor_1ee96a503651b6e4, []int{25}
 }
 func (m *MsgUpdateAdminResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1006,7 +1085,7 @@ func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
 func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParams) ProtoMessage()    {}
 func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{24}
+	return fileDescriptor_1ee96a503651b6e4, []int{26}
 }
 func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1043,7 +1122,7 @@ func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse
 func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParamsResponse) ProtoMessage()    {}
 func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{25}
+	return fileDescriptor_1ee96a503651b6e4, []int{27}
 }
 func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1088,7 +1167,7 @@ func (m *MsgSpendFeePool) Reset()         { *m = MsgSpendFeePool{} }
 func (m *MsgSpendFeePool) String() string { return proto.CompactTextString(m) }
 func (*MsgSpendFeePool) ProtoMessage()    {}
 func (*MsgSpendFeePool) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{26}
+	return fileDescriptor_1ee96a503651b6e4, []int{28}
 }
 func (m *MsgSpendFeePool) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1125,7 +1204,7 @@ func (m *MsgSpendFeePoolResponse) Reset()         { *m = MsgSpendFeePoolResponse
 func (m *MsgSpendFeePoolResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSpendFeePoolResponse) ProtoMessage()    {}
 func (*MsgSpendFeePoolResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{27}
+	return fileDescriptor_1ee96a503651b6e4, []int{29}
 }
 func (m *MsgSpendFeePoolResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1168,7 +1247,7 @@ func (m *MsgUpdateOracle) Reset()         { *m = MsgUpdateOracle{} }
 func (m *MsgUpdateOracle) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateOracle) ProtoMessage()    {}
 func (*MsgUpdateOracle) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{28}
+	return fileDescriptor_1ee96a503651b6e4, []int{30}
 }
 func (m *MsgUpdateOracle) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1205,7 +1284,7 @@ func (m *MsgUpdateOracleResponse) Reset()         { *m = MsgUpdateOracleResponse
 func (m *MsgUpdateOracleResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateOracleResponse) ProtoMessage()    {}
 func (*MsgUpdateOracleResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{29}
+	return fileDescriptor_1ee96a503651b6e4, []int{31}
 }
 func (m *MsgUpdateOracleResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1246,7 +1325,7 @@ func (m *MsgRegisterMigrationInfo) Reset()         { *m = MsgRegisterMigrationIn
 func (m *MsgRegisterMigrationInfo) String() string { return proto.CompactTextString(m) }
 func (*MsgRegisterMigrationInfo) ProtoMessage()    {}
 func (*MsgRegisterMigrationInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{30}
+	return fileDescriptor_1ee96a503651b6e4, []int{32}
 }
 func (m *MsgRegisterMigrationInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1283,7 +1362,7 @@ func (m *MsgRegisterMigrationInfoResponse) Reset()         { *m = MsgRegisterMig
 func (m *MsgRegisterMigrationInfoResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRegisterMigrationInfoResponse) ProtoMessage()    {}
 func (*MsgRegisterMigrationInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{31}
+	return fileDescriptor_1ee96a503651b6e4, []int{33}
 }
 func (m *MsgRegisterMigrationInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1324,7 +1403,7 @@ func (m *MsgMigrateToken) Reset()         { *m = MsgMigrateToken{} }
 func (m *MsgMigrateToken) String() string { return proto.CompactTextString(m) }
 func (*MsgMigrateToken) ProtoMessage()    {}
 func (*MsgMigrateToken) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{32}
+	return fileDescriptor_1ee96a503651b6e4, []int{34}
 }
 func (m *MsgMigrateToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1361,7 +1440,7 @@ func (m *MsgMigrateTokenResponse) Reset()         { *m = MsgMigrateTokenResponse
 func (m *MsgMigrateTokenResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgMigrateTokenResponse) ProtoMessage()    {}
 func (*MsgMigrateTokenResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1ee96a503651b6e4, []int{33}
+	return fileDescriptor_1ee96a503651b6e4, []int{35}
 }
 func (m *MsgMigrateTokenResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1399,10 +1478,12 @@ func init() {
 	proto.RegisterType((*MsgFinalizeTokenDepositResponse)(nil), "opinit.opchild.v1.MsgFinalizeTokenDepositResponse")
 	proto.RegisterType((*MsgInitiateTokenWithdrawal)(nil), "opinit.opchild.v1.MsgInitiateTokenWithdrawal")
 	proto.RegisterType((*MsgInitiateTokenWithdrawalResponse)(nil), "opinit.opchild.v1.MsgInitiateTokenWithdrawalResponse")
-	proto.RegisterType((*MsgAddValidator)(nil), "opinit.opchild.v1.MsgAddValidator")
-	proto.RegisterType((*MsgAddValidatorResponse)(nil), "opinit.opchild.v1.MsgAddValidatorResponse")
-	proto.RegisterType((*MsgRemoveValidator)(nil), "opinit.opchild.v1.MsgRemoveValidator")
-	proto.RegisterType((*MsgRemoveValidatorResponse)(nil), "opinit.opchild.v1.MsgRemoveValidatorResponse")
+	proto.RegisterType((*MsgUpdateSequencer)(nil), "opinit.opchild.v1.MsgUpdateSequencer")
+	proto.RegisterType((*MsgUpdateSequencerResponse)(nil), "opinit.opchild.v1.MsgUpdateSequencerResponse")
+	proto.RegisterType((*MsgAddAttestor)(nil), "opinit.opchild.v1.MsgAddAttestor")
+	proto.RegisterType((*MsgAddAttestorResponse)(nil), "opinit.opchild.v1.MsgAddAttestorResponse")
+	proto.RegisterType((*MsgRemoveAttestor)(nil), "opinit.opchild.v1.MsgRemoveAttestor")
+	proto.RegisterType((*MsgRemoveAttestorResponse)(nil), "opinit.opchild.v1.MsgRemoveAttestorResponse")
 	proto.RegisterType((*MsgAddFeeWhitelistAddresses)(nil), "opinit.opchild.v1.MsgAddFeeWhitelistAddresses")
 	proto.RegisterType((*MsgAddFeeWhitelistAddressesResponse)(nil), "opinit.opchild.v1.MsgAddFeeWhitelistAddressesResponse")
 	proto.RegisterType((*MsgRemoveFeeWhitelistAddresses)(nil), "opinit.opchild.v1.MsgRemoveFeeWhitelistAddresses")
@@ -1430,114 +1511,118 @@ func init() {
 func init() { proto.RegisterFile("opinit/opchild/v1/tx.proto", fileDescriptor_1ee96a503651b6e4) }
 
 var fileDescriptor_1ee96a503651b6e4 = []byte{
-	// 1707 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x59, 0xd1, 0x6f, 0x13, 0x47,
-	0x1a, 0xcf, 0x3a, 0xc1, 0xc4, 0x13, 0x08, 0x64, 0x15, 0xc8, 0x66, 0x49, 0x6c, 0xb3, 0x08, 0x30,
-	0xe1, 0x62, 0x27, 0x46, 0x87, 0x84, 0xa5, 0x93, 0x2e, 0x3e, 0xc8, 0x29, 0xc7, 0x59, 0x44, 0x86,
-	0x3b, 0xa4, 0x3b, 0xe9, 0x72, 0x6b, 0x7b, 0xb2, 0x19, 0xc5, 0xbb, 0xe3, 0xee, 0xae, 0x03, 0xee,
-	0x4b, 0x2b, 0x9e, 0xaa, 0xb6, 0x0f, 0xfc, 0x09, 0x3c, 0xf4, 0x01, 0xf1, 0xc4, 0x43, 0x9f, 0xda,
-	0xbe, 0x17, 0xa1, 0x56, 0x42, 0x48, 0xad, 0x2a, 0x55, 0x0a, 0x05, 0x1e, 0xe8, 0x5b, 0x25, 0xfe,
-	0x82, 0x6a, 0x67, 0xc6, 0xe3, 0x59, 0xef, 0xac, 0x93, 0x20, 0x57, 0xe2, 0x05, 0xb2, 0xf3, 0xfd,
-	0xe6, 0x9b, 0xef, 0xf7, 0x7d, 0xdf, 0xec, 0xf7, 0x7d, 0x6b, 0xa0, 0xe3, 0x16, 0x72, 0x90, 0x5f,
-	0xc0, 0xad, 0xfa, 0x16, 0x6a, 0x36, 0x0a, 0x3b, 0xcb, 0x05, 0xff, 0x6e, 0xbe, 0xe5, 0x62, 0x1f,
-	0xab, 0x53, 0x54, 0x96, 0x67, 0xb2, 0xfc, 0xce, 0xb2, 0x3e, 0x65, 0xda, 0xc8, 0xc1, 0x05, 0xf2,
-	0x2f, 0x45, 0xe9, 0xe9, 0x3a, 0xf6, 0x6c, 0xec, 0x15, 0x6a, 0xa6, 0x07, 0x0b, 0x3b, 0xcb, 0x35,
-	0xe8, 0x9b, 0xcb, 0x85, 0x3a, 0x46, 0x0e, 0x93, 0xcf, 0x30, 0xb9, 0xed, 0x59, 0x81, 0x76, 0xdb,
-	0xb3, 0x98, 0x60, 0x96, 0x0a, 0x36, 0xc8, 0x53, 0x81, 0x3e, 0x30, 0xd1, 0xb4, 0x85, 0x2d, 0x4c,
-	0xd7, 0x83, 0xbf, 0xba, 0x1b, 0x2c, 0x8c, 0xad, 0x26, 0x2c, 0x90, 0xa7, 0x5a, 0x7b, 0xb3, 0x60,
-	0x3a, 0x1d, 0x26, 0x9a, 0x97, 0xd0, 0xe8, 0xb4, 0x20, 0xd3, 0x67, 0x7c, 0xa1, 0x00, 0xb5, 0xe2,
-	0x59, 0xd7, 0xee, 0xc2, 0x7a, 0xdb, 0x87, 0x15, 0xe8, 0x79, 0xa6, 0x05, 0x3d, 0x75, 0x09, 0x24,
-	0x3d, 0xe8, 0x34, 0xa0, 0xab, 0x29, 0x59, 0x25, 0x97, 0x2a, 0x6b, 0xcf, 0xbf, 0x5c, 0x9c, 0x66,
-	0x86, 0xac, 0x34, 0x1a, 0x2e, 0xf4, 0xbc, 0x9b, 0xbe, 0x8b, 0x1c, 0xab, 0xca, 0x70, 0xea, 0x12,
-	0x18, 0xb7, 0xd9, 0x6e, 0x2d, 0x91, 0x1d, 0xcd, 0x4d, 0x14, 0xa7, 0xf3, 0xd4, 0xaa, 0x7c, 0xd7,
-	0xaa, 0xfc, 0x8a, 0xd3, 0xa9, 0x72, 0x54, 0x69, 0xe1, 0xde, 0x9b, 0xc7, 0x0b, 0x6c, 0xfb, 0xa7,
-	0x6f, 0x1e, 0x2f, 0xe8, 0x5d, 0x13, 0xa3, 0xf6, 0x18, 0x73, 0x40, 0x8f, 0xae, 0x56, 0xa1, 0xd7,
-	0xc2, 0x8e, 0x07, 0x8d, 0xa7, 0x0a, 0x38, 0x5e, 0xf1, 0xac, 0x9b, 0xd0, 0x2f, 0xbb, 0xa8, 0x61,
-	0xc1, 0x35, 0x67, 0x13, 0xab, 0x2b, 0x7d, 0x14, 0x2e, 0xbc, 0xdd, 0xcd, 0x1c, 0xed, 0x98, 0x76,
-	0xb3, 0x64, 0xd0, 0x75, 0x63, 0x4f, 0x4e, 0x6b, 0x60, 0xa2, 0x46, 0x14, 0x6e, 0x20, 0x67, 0x13,
-	0x6b, 0x89, 0xac, 0x92, 0x9b, 0x28, 0xce, 0xe7, 0x23, 0xc1, 0xcf, 0xf7, 0x8e, 0x2d, 0xa7, 0x9e,
-	0xec, 0x66, 0x46, 0x1e, 0xbe, 0x79, 0xbc, 0xa0, 0x54, 0x41, 0x8d, 0x2f, 0x97, 0x72, 0x7d, 0x64,
-	0x35, 0x81, 0x6c, 0xc8, 0x6e, 0x43, 0x07, 0x5a, 0xff, 0x1a, 0x27, 0xfa, 0xf9, 0x28, 0x98, 0xa9,
-	0x78, 0xd6, 0x2a, 0x72, 0xcc, 0x26, 0xfa, 0x10, 0xde, 0xc2, 0xdb, 0xd0, 0xb9, 0x0a, 0x5b, 0xd8,
-	0x43, 0xfe, 0x30, 0xf8, 0xaa, 0x60, 0x6c, 0xd3, 0xc5, 0x36, 0x21, 0x9a, 0xaa, 0x92, 0xbf, 0xd5,
-	0x1c, 0x48, 0xf8, 0x58, 0x1b, 0xdd, 0x23, 0x0b, 0x12, 0x3e, 0x56, 0x2b, 0x20, 0x69, 0xda, 0xb8,
-	0xed, 0xf8, 0xda, 0x18, 0x71, 0xd4, 0x6c, 0x9e, 0x41, 0x83, 0xfc, 0xcf, 0xb3, 0xfc, 0xcf, 0xff,
-	0x0d, 0x23, 0xa7, 0xac, 0x07, 0x4e, 0xea, 0xd9, 0x47, 0xb7, 0x19, 0xd4, 0x6b, 0x4c, 0x89, 0xaa,
-	0x83, 0x71, 0x0f, 0x7e, 0xd0, 0x86, 0x4e, 0x1d, 0x6a, 0x87, 0xb2, 0x4a, 0x6e, 0xac, 0xca, 0x9f,
-	0xd5, 0x93, 0x20, 0xb9, 0x05, 0x91, 0xb5, 0xe5, 0x6b, 0x49, 0x22, 0x61, 0x4f, 0xea, 0x3c, 0x00,
-	0xc1, 0x61, 0x1b, 0x0d, 0xe8, 0x60, 0x5b, 0x3b, 0x4c, 0x68, 0xa4, 0x82, 0x95, 0xab, 0xc1, 0x82,
-	0x3a, 0x0f, 0xc6, 0x1a, 0xa6, 0x6f, 0x6a, 0xe3, 0x59, 0x25, 0x77, 0x84, 0x44, 0x4a, 0xa1, 0x67,
-	0x92, 0xe5, 0x52, 0xa1, 0x2f, 0x46, 0x19, 0x21, 0x46, 0x32, 0x97, 0x1b, 0xff, 0x07, 0x99, 0x18,
-	0x51, 0x37, 0x62, 0xea, 0x5f, 0x40, 0xd2, 0x85, 0x5e, 0xbb, 0xe9, 0x93, 0xa8, 0x4c, 0x16, 0xcf,
-	0x4a, 0xb2, 0xa7, 0x0b, 0xae, 0x12, 0xe0, 0xad, 0x4e, 0x0b, 0x56, 0xd9, 0x26, 0xe3, 0xa5, 0x42,
-	0x12, 0x7f, 0xcd, 0x41, 0x3e, 0x32, 0x7d, 0x7a, 0xc4, 0x6d, 0xe4, 0x6f, 0x35, 0x5c, 0xf3, 0x8e,
-	0xd9, 0x7c, 0x87, 0x6b, 0x3a, 0x49, 0xc2, 0x49, 0x03, 0x3c, 0xfc, 0xa0, 0x95, 0x8a, 0x7d, 0x2e,
-	0x34, 0x04, 0x17, 0xc6, 0x90, 0x30, 0xfe, 0x0a, 0x8c, 0x78, 0x29, 0x77, 0xa4, 0x98, 0x0e, 0x4a,
-	0x38, 0x1d, 0x8c, 0xaf, 0x12, 0xe0, 0x58, 0xc5, 0xb3, 0x56, 0x1a, 0x8d, 0x7f, 0x9b, 0x4d, 0xd4,
-	0x30, 0x7d, 0xec, 0xaa, 0xff, 0x00, 0x29, 0xb3, 0xed, 0x6f, 0x61, 0x17, 0xf9, 0x1d, 0xe6, 0x9d,
-	0x3f, 0xbd, 0xdd, 0xcd, 0x1c, 0x67, 0xc6, 0x77, 0x45, 0xf1, 0x97, 0xa2, 0xb7, 0x5d, 0xd5, 0xc0,
-	0x61, 0x1b, 0x3b, 0x68, 0x1b, 0xba, 0xcc, 0x73, 0xdd, 0x47, 0xf5, 0x1a, 0x98, 0xda, 0xe9, 0x1e,
-	0xb9, 0x61, 0xd2, 0xfd, 0x7b, 0x5e, 0x96, 0xe3, 0x7c, 0x0b, 0x5b, 0x57, 0x57, 0x41, 0xb2, 0xd5,
-	0xae, 0x6d, 0xc3, 0x0e, 0x8b, 0x82, 0xf4, 0xd5, 0x59, 0xd6, 0x9e, 0xf6, 0x34, 0xd6, 0xdd, 0x4e,
-	0xcb, 0xc7, 0xf9, 0xf5, 0x76, 0xed, 0x3a, 0xec, 0x54, 0xd9, 0xee, 0x52, 0xf1, 0x93, 0x07, 0x99,
-	0x91, 0x5f, 0x1f, 0x64, 0x46, 0x82, 0x30, 0xf4, 0x08, 0x04, 0x91, 0x98, 0x11, 0x22, 0x21, 0x3a,
-	0xca, 0x98, 0x25, 0xaf, 0x14, 0x71, 0x89, 0xbf, 0x6e, 0x7e, 0xa4, 0xc5, 0xa1, 0x0a, 0x6d, 0xbc,
-	0x03, 0xff, 0x18, 0xd7, 0x4a, 0x1d, 0x98, 0x38, 0xa8, 0x03, 0x4b, 0x8b, 0x51, 0xc2, 0x62, 0x39,
-	0xe9, 0x63, 0xc0, 0xca, 0x49, 0xdf, 0x2a, 0xa7, 0xfd, 0x83, 0x02, 0x4e, 0x51, 0x97, 0xac, 0x42,
-	0x78, 0x7b, 0x0b, 0xf9, 0xb0, 0x89, 0x3c, 0x9f, 0x1d, 0x05, 0xbd, 0xa1, 0xf2, 0x2f, 0x82, 0x94,
-	0xd9, 0x55, 0x4c, 0xea, 0x66, 0xaa, 0x3c, 0x2d, 0xe8, 0xea, 0x8a, 0x8c, 0x6a, 0x0f, 0x56, 0xba,
-	0x1c, 0x25, 0x7b, 0x26, 0x1c, 0x5d, 0xa9, 0xdd, 0xc6, 0x59, 0x70, 0x66, 0x80, 0x98, 0xd3, 0xff,
-	0x59, 0x01, 0x69, 0xee, 0x9d, 0xf7, 0xd3, 0x03, 0x57, 0xa2, 0x1e, 0x38, 0x17, 0x09, 0xb7, 0xdc,
-	0x09, 0x39, 0x70, 0x6e, 0x30, 0x82, 0xfb, 0xe1, 0x5b, 0x05, 0x4c, 0x53, 0x7f, 0xd1, 0x4a, 0x4c,
-	0xbb, 0x8f, 0x21, 0xe7, 0xff, 0xbb, 0xb0, 0x2f, 0x44, 0xd9, 0xcf, 0x85, 0xe3, 0x1f, 0x36, 0xd8,
-	0x48, 0x83, 0x39, 0xd9, 0x3a, 0x67, 0xfa, 0xbd, 0x42, 0xde, 0x01, 0xd4, 0x29, 0xef, 0x19, 0xd9,
-	0x62, 0x94, 0x6c, 0x26, 0x12, 0xea, 0x3e, 0xbe, 0xa7, 0x49, 0x5d, 0x96, 0x89, 0x38, 0xe5, 0x87,
-	0x09, 0x70, 0xa2, 0xe2, 0x59, 0xff, 0x6a, 0x35, 0x4c, 0x1f, 0x56, 0x90, 0xf3, 0x77, 0xd3, 0x5b,
-	0x77, 0x51, 0x7d, 0xc8, 0xb9, 0x7d, 0x5f, 0x01, 0x93, 0x36, 0x72, 0x36, 0x2c, 0x33, 0x68, 0xe6,
-	0x03, 0xf5, 0xac, 0x37, 0x9e, 0x93, 0x96, 0xd9, 0xab, 0xb0, 0x4e, 0x2a, 0xed, 0x3f, 0x59, 0xa5,
-	0x3d, 0x41, 0xcf, 0x0c, 0x6b, 0x30, 0x1e, 0xbd, 0xc8, 0x5c, 0xb4, 0x90, 0xbf, 0xd5, 0xae, 0xe5,
-	0xeb, 0xd8, 0x66, 0xe3, 0x01, 0xfb, 0x6f, 0xd1, 0x6b, 0x6c, 0xb3, 0xfe, 0x9e, 0x29, 0xf3, 0xaa,
-	0x47, 0x6c, 0x81, 0x5e, 0x69, 0x29, 0xea, 0xcf, 0x79, 0xc1, 0x9f, 0x51, 0x87, 0x18, 0x19, 0x30,
-	0x2f, 0x15, 0x70, 0x5f, 0x3e, 0x57, 0xc0, 0x24, 0x47, 0xac, 0x34, 0x6c, 0xe4, 0x0c, 0xd5, 0x89,
-	0x6b, 0x20, 0xe5, 0xc0, 0x3b, 0x1b, 0x66, 0xa0, 0x98, 0x95, 0x06, 0x41, 0x17, 0x17, 0xc5, 0xeb,
-	0x1a, 0x77, 0xe0, 0x1d, 0x62, 0x56, 0xe9, 0x42, 0x94, 0xfc, 0xc9, 0x08, 0x79, 0x02, 0x35, 0x34,
-	0x70, 0x32, 0xbc, 0xc2, 0xe9, 0x7e, 0xa3, 0x90, 0x6e, 0x83, 0x8a, 0xd6, 0x4d, 0xd7, 0xb4, 0x87,
-	0x9b, 0x34, 0xcb, 0x20, 0xd9, 0x22, 0x5a, 0xd9, 0xc0, 0x31, 0x2b, 0x69, 0x19, 0xe9, 0xb1, 0x55,
-	0x06, 0xa4, 0xa3, 0x54, 0x7c, 0xbd, 0x17, 0x4d, 0x65, 0xf5, 0x5e, 0x5c, 0xea, 0x31, 0xa3, 0x7d,
-	0xd4, 0xcd, 0x16, 0x74, 0x82, 0x1a, 0xb1, 0x8e, 0x71, 0x73, 0xa8, 0xcc, 0x2e, 0x83, 0x94, 0x0b,
-	0xeb, 0xa8, 0x85, 0xa0, 0xe3, 0xef, 0x59, 0xe4, 0x7b, 0x50, 0xb5, 0xc3, 0x9b, 0xd4, 0x51, 0x72,
-	0x7b, 0x06, 0x34, 0xa9, 0xab, 0xd2, 0x26, 0xf5, 0xd1, 0x8b, 0x4c, 0x6e, 0x1f, 0x57, 0x86, 0xdc,
-	0x97, 0x70, 0x43, 0xbb, 0x87, 0x67, 0x45, 0x57, 0x31, 0xcf, 0x8a, 0x4b, 0xdc, 0xb3, 0x5f, 0x8b,
-	0x39, 0x73, 0xc3, 0x35, 0xeb, 0x4d, 0x38, 0x8c, 0x81, 0x6d, 0x9e, 0xcf, 0x41, 0x81, 0x37, 0xc7,
-	0xca, 0x87, 0x98, 0xf1, 0x7c, 0x1c, 0xa2, 0xf3, 0xce, 0xa8, 0x7c, 0xde, 0x39, 0xdf, 0xd7, 0xac,
-	0x47, 0x53, 0x86, 0x5a, 0x1a, 0x4a, 0x19, 0xba, 0xc4, 0x89, 0xfd, 0xa6, 0x90, 0x71, 0xb5, 0x0a,
-	0x2d, 0xe4, 0xf9, 0xd0, 0xad, 0x20, 0xcb, 0x35, 0x7d, 0x84, 0x1d, 0x32, 0x82, 0x0f, 0x33, 0x77,
-	0xaa, 0xc1, 0x9b, 0x94, 0x29, 0x17, 0xc7, 0xf1, 0xac, 0xe4, 0x76, 0x84, 0xac, 0x10, 0x27, 0xf2,
-	0xa3, 0xb6, 0x28, 0x29, 0x5d, 0x8a, 0x06, 0x37, 0x1b, 0xaa, 0x2d, 0x12, 0x52, 0x86, 0x01, 0xb2,
-	0x71, 0x32, 0xee, 0x95, 0xef, 0x68, 0xb8, 0xa9, 0x90, 0x8e, 0x34, 0xc3, 0x08, 0x77, 0x6f, 0x58,
-	0x4b, 0x0c, 0x63, 0x58, 0x1b, 0x14, 0x7f, 0xd1, 0x74, 0x16, 0x7f, 0x71, 0xa9, 0xcb, 0xb4, 0xb8,
-	0x3b, 0x09, 0x46, 0x2b, 0x9e, 0xa5, 0x5a, 0xe0, 0x58, 0xff, 0x37, 0x24, 0xd9, 0xa8, 0x1b, 0xfd,
-	0x88, 0xa3, 0x2f, 0xee, 0x0b, 0xc6, 0xe7, 0x40, 0x13, 0x1c, 0x0d, 0x7f, 0xe7, 0x39, 0x23, 0xdf,
-	0x1f, 0x02, 0xe9, 0x17, 0xf7, 0x01, 0xe2, 0x47, 0xec, 0x80, 0x69, 0xe9, 0x17, 0x96, 0x05, 0xb9,
-	0x12, 0x19, 0x56, 0x2f, 0xee, 0x1f, 0xcb, 0xcf, 0xfd, 0x08, 0xcc, 0xc4, 0x0d, 0xfa, 0x31, 0x4e,
-	0x8a, 0x81, 0xeb, 0x7f, 0x3e, 0x10, 0x9c, 0x1b, 0xf0, 0x3f, 0x70, 0x24, 0x34, 0x43, 0x1b, 0x72,
-	0x35, 0x22, 0x46, 0x5f, 0xd8, 0x1b, 0xc3, 0xf5, 0x5b, 0xe0, 0x58, 0xff, 0x2c, 0x19, 0x93, 0x24,
-	0x7d, 0xb0, 0xb8, 0x24, 0x89, 0x99, 0xe0, 0xd4, 0x7b, 0x0a, 0xd0, 0x62, 0xc7, 0xb7, 0x7c, 0xac,
-	0xc5, 0x52, 0xbc, 0x7e, 0xf9, 0x60, 0x78, 0x6e, 0xc4, 0x67, 0x0a, 0x38, 0x35, 0x68, 0x88, 0x5a,
-	0x1e, 0xc4, 0x49, 0x6e, 0xca, 0x95, 0x03, 0x6f, 0xe1, 0xd6, 0xd8, 0x60, 0x2a, 0x3a, 0xc9, 0x9c,
-	0x8f, 0xa5, 0x16, 0x06, 0xea, 0x85, 0x7d, 0x02, 0xc5, 0x3b, 0x24, 0x1d, 0x27, 0x16, 0x06, 0x31,
-	0xe8, 0x3b, 0xb4, 0xb8, 0x7f, 0x2c, 0x3f, 0xb7, 0x05, 0x54, 0x49, 0x4f, 0x9f, 0x93, 0x6b, 0x8a,
-	0x22, 0xf5, 0xa5, 0xfd, 0x22, 0xf9, 0x89, 0xff, 0x05, 0x13, 0x62, 0xe7, 0x7b, 0x7a, 0x90, 0x02,
-	0x02, 0xd1, 0x2f, 0xec, 0x09, 0x11, 0x6f, 0x64, 0xa8, 0xcf, 0x34, 0x06, 0x6d, 0xa5, 0x98, 0xb8,
-	0x1b, 0x29, 0xeb, 0xf8, 0x02, 0xfd, 0xa1, 0x6e, 0x2f, 0x46, 0xbf, 0x88, 0x89, 0xd3, 0x2f, 0xeb,
-	0x7b, 0x7a, 0xf6, 0xb3, 0x9e, 0x67, 0xa0, 0xfd, 0x14, 0x33, 0xd8, 0xfe, 0x70, 0xfb, 0xa1, 0x76,
-	0xc0, 0x09, 0x79, 0xeb, 0x71, 0x31, 0x2e, 0x77, 0x24, 0x60, 0xfd, 0xd2, 0x01, 0xc0, 0x22, 0xb5,
-	0x50, 0x7d, 0x8f, 0xa1, 0x26, 0x62, 0xe2, 0xa8, 0xc9, 0x2a, 0xab, 0x7e, 0xe8, 0xe3, 0xa0, 0x58,
-	0x97, 0xaf, 0x3f, 0x79, 0x99, 0x1e, 0x79, 0xf2, 0x2a, 0xad, 0x3c, 0x7b, 0x95, 0x56, 0x7e, 0x79,
-	0x95, 0x56, 0xee, 0xbf, 0x4e, 0x8f, 0x3c, 0x7b, 0x9d, 0x1e, 0xf9, 0xe9, 0x75, 0x7a, 0xe4, 0x3f,
-	0x8b, 0x42, 0x57, 0x8b, 0xc8, 0xdb, 0x7d, 0xb1, 0x69, 0xd6, 0xbc, 0xc2, 0x8d, 0x75, 0xf2, 0xa3,
-	0xcf, 0x5d, 0xfe, 0xb3, 0x0f, 0x69, 0x70, 0x6b, 0x49, 0xf2, 0x3d, 0xf1, 0xd2, 0xef, 0x01, 0x00,
-	0x00, 0xff, 0xff, 0xaa, 0x01, 0x70, 0xd4, 0xdc, 0x1a, 0x00, 0x00,
+	// 1763 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x59, 0xcf, 0x6f, 0x13, 0x47,
+	0x1b, 0xce, 0x3a, 0xc1, 0xc4, 0x13, 0xc8, 0x8f, 0x55, 0x20, 0x9b, 0x25, 0xb1, 0xcd, 0xf2, 0x01,
+	0x26, 0x10, 0x3b, 0x31, 0xfa, 0x90, 0xb0, 0xf4, 0x49, 0x5f, 0x0c, 0xe4, 0x53, 0x3e, 0x6a, 0x11,
+	0x39, 0x54, 0x48, 0xad, 0xd4, 0x74, 0x6d, 0x4f, 0x36, 0xa3, 0x78, 0x77, 0xdc, 0xdd, 0x75, 0xc0,
+	0xbd, 0xb4, 0xe2, 0x54, 0xb5, 0x3d, 0xf0, 0x27, 0x70, 0xe8, 0x01, 0x71, 0xe2, 0x50, 0x55, 0x95,
+	0xda, 0x4b, 0x4f, 0x45, 0xa8, 0x95, 0x10, 0x52, 0xa5, 0x4a, 0x95, 0xa0, 0xc0, 0x81, 0xde, 0x2a,
+	0xf1, 0x17, 0x54, 0x9e, 0x1d, 0x8f, 0x67, 0x77, 0x67, 0x1d, 0x07, 0xb9, 0x15, 0x17, 0xc8, 0xce,
+	0xfb, 0xcc, 0x3b, 0xef, 0xf3, 0xbc, 0x33, 0xbb, 0xef, 0x3b, 0x06, 0x2a, 0x6e, 0x20, 0x0b, 0xb9,
+	0x39, 0xdc, 0xa8, 0x6e, 0xa3, 0x7a, 0x2d, 0xb7, 0xbb, 0x9c, 0x73, 0x6f, 0x65, 0x1b, 0x36, 0x76,
+	0xb1, 0x3c, 0xe5, 0xd9, 0xb2, 0xd4, 0x96, 0xdd, 0x5d, 0x56, 0xa7, 0x74, 0x13, 0x59, 0x38, 0x47,
+	0xfe, 0xf5, 0x50, 0x6a, 0xb2, 0x8a, 0x1d, 0x13, 0x3b, 0xb9, 0x8a, 0xee, 0xc0, 0xdc, 0xee, 0x72,
+	0x05, 0xba, 0xfa, 0x72, 0xae, 0x8a, 0x91, 0x45, 0xed, 0x33, 0xd4, 0x6e, 0x3a, 0x46, 0xdb, 0xbb,
+	0xe9, 0x18, 0xd4, 0x30, 0xeb, 0x19, 0x36, 0xc9, 0x53, 0xce, 0x7b, 0xa0, 0xa6, 0x69, 0x03, 0x1b,
+	0xd8, 0x1b, 0x6f, 0xff, 0xd5, 0x99, 0x60, 0x60, 0x6c, 0xd4, 0x61, 0x8e, 0x3c, 0x55, 0x9a, 0x5b,
+	0x39, 0xdd, 0x6a, 0x51, 0xd3, 0xbc, 0x80, 0x46, 0xab, 0x01, 0xa9, 0x3f, 0xed, 0x2b, 0x09, 0xc8,
+	0x25, 0xc7, 0xb8, 0x72, 0x0b, 0x56, 0x9b, 0x2e, 0x2c, 0x41, 0xc7, 0xd1, 0x0d, 0xe8, 0xc8, 0x4b,
+	0x20, 0xee, 0x40, 0xab, 0x06, 0x6d, 0x45, 0x4a, 0x4b, 0x99, 0x44, 0x51, 0x79, 0xf2, 0xf5, 0xe2,
+	0x34, 0x0d, 0x64, 0xa5, 0x56, 0xb3, 0xa1, 0xe3, 0x6c, 0xb8, 0x36, 0xb2, 0x8c, 0x32, 0xc5, 0xc9,
+	0x4b, 0x60, 0xd4, 0xa4, 0xb3, 0x95, 0x58, 0x7a, 0x38, 0x33, 0x96, 0x9f, 0xce, 0x7a, 0x51, 0x65,
+	0x3b, 0x51, 0x65, 0x57, 0xac, 0x56, 0x99, 0xa1, 0x0a, 0x0b, 0xb7, 0x5f, 0x3d, 0x58, 0xa0, 0xd3,
+	0x3f, 0x7f, 0xf5, 0x60, 0x41, 0xed, 0x84, 0x18, 0x8e, 0x47, 0x9b, 0x03, 0x6a, 0x78, 0xb4, 0x0c,
+	0x9d, 0x06, 0xb6, 0x1c, 0xa8, 0x3d, 0x92, 0xc0, 0x64, 0xc9, 0x31, 0x36, 0xa0, 0x5b, 0xb4, 0x51,
+	0xcd, 0x80, 0x6b, 0xd6, 0x16, 0x96, 0x57, 0x02, 0x14, 0xce, 0xbc, 0x7e, 0x9a, 0x3a, 0xdc, 0xd2,
+	0xcd, 0x7a, 0x41, 0xf3, 0xc6, 0xb5, 0x3d, 0x39, 0xad, 0x81, 0xb1, 0x0a, 0x71, 0xb8, 0x89, 0xac,
+	0x2d, 0xac, 0xc4, 0xd2, 0x52, 0x66, 0x2c, 0x3f, 0x9f, 0x0d, 0x25, 0x3f, 0xdb, 0x5d, 0xb6, 0x98,
+	0x78, 0xf8, 0x34, 0x35, 0x74, 0xef, 0xd5, 0x83, 0x05, 0xa9, 0x0c, 0x2a, 0x6c, 0xb8, 0x90, 0x09,
+	0x90, 0x55, 0x38, 0xb2, 0xbe, 0xb8, 0x35, 0x15, 0x28, 0xc1, 0x31, 0x46, 0xf4, 0xcb, 0x61, 0x30,
+	0x53, 0x72, 0x8c, 0x55, 0x64, 0xe9, 0x75, 0xf4, 0x31, 0xbc, 0x8e, 0x77, 0xa0, 0x75, 0x19, 0x36,
+	0xb0, 0x83, 0xdc, 0x41, 0xf0, 0x95, 0xc1, 0xc8, 0x96, 0x8d, 0x4d, 0x42, 0x34, 0x51, 0x26, 0x7f,
+	0xcb, 0x19, 0x10, 0x73, 0xb1, 0x32, 0xbc, 0xc7, 0x2e, 0x88, 0xb9, 0x58, 0x2e, 0x81, 0xb8, 0x6e,
+	0xe2, 0xa6, 0xe5, 0x2a, 0x23, 0x44, 0xa8, 0xd9, 0x2c, 0x85, 0xb6, 0xf7, 0x7f, 0x96, 0xee, 0xff,
+	0xec, 0x25, 0x8c, 0xac, 0xa2, 0xda, 0x16, 0xa9, 0x1b, 0x9f, 0x37, 0x4d, 0xf3, 0x54, 0xa3, 0x4e,
+	0x64, 0x15, 0x8c, 0x3a, 0xf0, 0xa3, 0x26, 0xb4, 0xaa, 0x50, 0x39, 0x90, 0x96, 0x32, 0x23, 0x65,
+	0xf6, 0x2c, 0x1f, 0x05, 0xf1, 0x6d, 0x88, 0x8c, 0x6d, 0x57, 0x89, 0x13, 0x0b, 0x7d, 0x92, 0xe7,
+	0x01, 0x68, 0x2f, 0xb6, 0x59, 0x83, 0x16, 0x36, 0x95, 0x83, 0x84, 0x46, 0xa2, 0x3d, 0x72, 0xb9,
+	0x3d, 0x20, 0xcf, 0x83, 0x91, 0x9a, 0xee, 0xea, 0xca, 0x68, 0x5a, 0xca, 0x1c, 0x22, 0x99, 0x92,
+	0xbc, 0x35, 0xc9, 0x70, 0x21, 0x17, 0xc8, 0x51, 0x8a, 0xcb, 0x91, 0x48, 0x72, 0xed, 0x43, 0x90,
+	0x8a, 0x30, 0x75, 0x32, 0x26, 0xff, 0x07, 0xc4, 0x6d, 0xe8, 0x34, 0xeb, 0x2e, 0xc9, 0xca, 0x78,
+	0xfe, 0xa4, 0x60, 0xf7, 0x74, 0xc0, 0x65, 0x02, 0xbc, 0xde, 0x6a, 0xc0, 0x32, 0x9d, 0xa4, 0x3d,
+	0x97, 0xc8, 0xc6, 0x5f, 0xb3, 0x90, 0x8b, 0x74, 0xd7, 0x5b, 0xe2, 0x06, 0x72, 0xb7, 0x6b, 0xb6,
+	0x7e, 0x53, 0xaf, 0xbf, 0xc1, 0x31, 0x1d, 0x27, 0xe9, 0xf4, 0x12, 0x3c, 0xf8, 0xa4, 0x15, 0xf2,
+	0x01, 0x09, 0x35, 0x4e, 0xc2, 0x08, 0x12, 0xda, 0x7f, 0x81, 0x16, 0x6d, 0x65, 0x42, 0xf2, 0xdb,
+	0x41, 0xf2, 0x6f, 0x07, 0xed, 0xdb, 0x18, 0x79, 0x89, 0xbd, 0xdb, 0xa8, 0xe9, 0x2e, 0xdc, 0xa0,
+	0xa3, 0xb6, 0xfc, 0x7f, 0x90, 0xd0, 0x9b, 0xee, 0x36, 0xb6, 0x91, 0xdb, 0xa2, 0x02, 0x9d, 0x7b,
+	0xfd, 0x34, 0x35, 0x49, 0xe3, 0xef, 0x98, 0xa2, 0xcf, 0x45, 0x77, 0xba, 0xac, 0x80, 0x83, 0x26,
+	0xb6, 0xd0, 0x0e, 0xb4, 0xa9, 0x78, 0x9d, 0x47, 0xf9, 0x0a, 0x98, 0xea, 0x04, 0x62, 0x6f, 0xea,
+	0xde, 0xfc, 0x3d, 0xcf, 0xcb, 0x24, 0x9b, 0x42, 0xc7, 0xe5, 0x55, 0x10, 0x6f, 0x34, 0x2b, 0x3b,
+	0xb0, 0x45, 0x13, 0x21, 0x7c, 0x7b, 0x16, 0x95, 0x47, 0x5d, 0x8f, 0x55, 0xbb, 0xd5, 0x70, 0x71,
+	0x76, 0xbd, 0x59, 0xb9, 0x0a, 0x5b, 0x65, 0x3a, 0xbb, 0xb0, 0xd8, 0xce, 0x40, 0x37, 0xf0, 0xe0,
+	0x8b, 0x35, 0xa0, 0x11, 0x7d, 0xb1, 0x06, 0x46, 0xd9, 0xfb, 0xe6, 0x9b, 0x18, 0x18, 0x2f, 0x39,
+	0xc6, 0x4a, 0xad, 0xb6, 0xe2, 0xba, 0xd0, 0x71, 0xf1, 0x3f, 0x25, 0xea, 0x25, 0x30, 0xa9, 0xd3,
+	0x15, 0xfb, 0xd6, 0x74, 0xa2, 0x33, 0x63, 0xd0, 0x92, 0x2e, 0x7f, 0x76, 0x37, 0x35, 0xf4, 0xc7,
+	0xdd, 0xd4, 0x50, 0x58, 0xda, 0xa3, 0x9c, 0xb4, 0x9c, 0x4a, 0x9a, 0x02, 0x8e, 0xfa, 0x47, 0x98,
+	0xa4, 0x4f, 0x24, 0x30, 0x55, 0x72, 0x8c, 0x32, 0x34, 0xf1, 0x2e, 0xfc, 0x5b, 0x54, 0x15, 0x69,
+	0x17, 0xdb, 0xa7, 0x76, 0x85, 0x73, 0x61, 0xae, 0xb3, 0x1c, 0x57, 0x7f, 0xf8, 0xda, 0x31, 0x30,
+	0x1b, 0x1a, 0x64, 0x8c, 0x7f, 0x91, 0xc0, 0x31, 0x4f, 0x8c, 0x55, 0x08, 0x6f, 0x6c, 0x23, 0x17,
+	0xd6, 0x91, 0xe3, 0xd2, 0x85, 0xa0, 0x33, 0x50, 0xee, 0x79, 0x90, 0xd0, 0x3b, 0x8e, 0x49, 0x19,
+	0x92, 0x28, 0x4e, 0x73, 0xbe, 0x3a, 0x26, 0xad, 0xdc, 0x85, 0x15, 0x2e, 0x84, 0xa9, 0x9e, 0xf0,
+	0xa7, 0x55, 0x18, 0xb7, 0x76, 0x12, 0x9c, 0xe8, 0x61, 0x66, 0xf4, 0x7f, 0x93, 0x40, 0x92, 0x89,
+	0xf3, 0x76, 0x2a, 0x70, 0x31, 0xac, 0xc0, 0xa9, 0x50, 0xb2, 0xc5, 0x22, 0x64, 0xc0, 0xa9, 0xde,
+	0x08, 0xa6, 0xc3, 0x8f, 0x12, 0x98, 0xf6, 0xf4, 0xf2, 0x0a, 0x1b, 0xaf, 0x98, 0x1b, 0xf0, 0xde,
+	0x7f, 0x13, 0xf6, 0xb9, 0x30, 0xfb, 0x39, 0x7f, 0xfe, 0xfd, 0x01, 0x6b, 0x49, 0x30, 0x27, 0x1a,
+	0x67, 0x4c, 0x7f, 0x96, 0x48, 0x95, 0xe6, 0x89, 0xf2, 0x96, 0x91, 0xcd, 0x87, 0xc9, 0xa6, 0x42,
+	0xa9, 0x0e, 0xf0, 0x3d, 0x4e, 0xca, 0x1c, 0x91, 0x89, 0x51, 0xbe, 0x17, 0x03, 0x47, 0xd8, 0x77,
+	0xa4, 0x84, 0xac, 0xff, 0xe9, 0xce, 0xba, 0x8d, 0xaa, 0x03, 0xde, 0xdb, 0x77, 0x24, 0x30, 0x6e,
+	0x22, 0x6b, 0xd3, 0xd0, 0xdb, 0xbd, 0x51, 0xdb, 0x3d, 0x6d, 0x35, 0xe6, 0x84, 0x55, 0xcb, 0x65,
+	0x58, 0x25, 0x85, 0xcb, 0x3b, 0xb4, 0x70, 0x39, 0xe2, 0xad, 0xe9, 0xf7, 0xa0, 0xdd, 0x7f, 0x96,
+	0x3a, 0x6b, 0x20, 0x77, 0xbb, 0x59, 0xc9, 0x56, 0xb1, 0x49, 0xbb, 0x2d, 0xfa, 0xdf, 0xa2, 0x53,
+	0xdb, 0xa1, 0xed, 0x12, 0x75, 0xe6, 0x94, 0x0f, 0x99, 0x1c, 0xbd, 0xc2, 0x52, 0x58, 0xcf, 0xf9,
+	0xd0, 0xe7, 0x96, 0x17, 0x44, 0x4b, 0x81, 0x79, 0xa1, 0x81, 0xff, 0x42, 0x8c, 0x33, 0xc4, 0x4a,
+	0xcd, 0x44, 0xd6, 0x40, 0x45, 0x5c, 0x03, 0x09, 0x0b, 0xde, 0xdc, 0xd4, 0xdb, 0x8e, 0xe9, 0x77,
+	0x81, 0xf3, 0xc5, 0x4c, 0xd1, 0xbe, 0x46, 0x2d, 0x78, 0x93, 0x84, 0x55, 0x38, 0xd3, 0xfb, 0x83,
+	0xc8, 0x31, 0xa0, 0x1f, 0x44, 0x6e, 0x84, 0xd1, 0xfd, 0x5e, 0x02, 0x13, 0xcc, 0xb4, 0xae, 0xdb,
+	0xba, 0x39, 0xd8, 0x4d, 0xb3, 0x0c, 0xe2, 0x0d, 0xe2, 0x95, 0xf6, 0x6f, 0xb3, 0x82, 0x0a, 0xdc,
+	0x5b, 0xb6, 0x4c, 0x81, 0x5e, 0x67, 0xea, 0xe7, 0x35, 0x13, 0xe2, 0xe5, 0xcd, 0xd1, 0x66, 0xc9,
+	0x59, 0xe7, 0x87, 0xba, 0xcc, 0x62, 0x84, 0xd9, 0x46, 0x03, 0x5a, 0xed, 0x6f, 0xc4, 0x3a, 0xc6,
+	0xf5, 0x81, 0x32, 0xbb, 0x00, 0x12, 0x36, 0xac, 0xa2, 0x06, 0x82, 0x96, 0xbb, 0xe7, 0x17, 0xbe,
+	0x0b, 0x95, 0x5b, 0xac, 0xe6, 0x1f, 0x26, 0xa7, 0xa7, 0x47, 0xcd, 0xbf, 0x2a, 0xac, 0xf9, 0xef,
+	0x3f, 0x4b, 0x65, 0xfa, 0x38, 0x32, 0xe4, 0xbc, 0xf8, 0xfb, 0x83, 0x3d, 0x94, 0xe5, 0xa5, 0xa2,
+	0xca, 0xf2, 0x43, 0x4c, 0xd9, 0xef, 0xf8, 0x3d, 0x73, 0xcd, 0xd6, 0xab, 0x75, 0x38, 0x88, 0xfe,
+	0x77, 0x9e, 0xb5, 0x95, 0x6d, 0x35, 0x47, 0x8a, 0x07, 0x68, 0xf0, 0xac, 0xbb, 0xf4, 0xda, 0xc7,
+	0x61, 0x71, 0xfb, 0x78, 0x3a, 0xd0, 0xfb, 0x84, 0xb7, 0x8c, 0x17, 0xa9, 0x6f, 0xcb, 0x78, 0x43,
+	0x8c, 0xd8, 0x9f, 0x12, 0xe9, 0xfe, 0xcb, 0xd0, 0x40, 0x8e, 0x0b, 0xed, 0x12, 0x32, 0x6c, 0xdd,
+	0x45, 0xd8, 0x22, 0x37, 0x1a, 0x83, 0xdc, 0x3b, 0xe5, 0xf6, 0x9b, 0x94, 0x3a, 0xe7, 0x6f, 0x37,
+	0xd2, 0x82, 0xd3, 0xe1, 0x8b, 0x82, 0xbf, 0xe0, 0x38, 0x6c, 0xf2, 0x96, 0xc2, 0xf9, 0x70, 0x72,
+	0xd3, 0xbe, 0x6f, 0x8b, 0x80, 0x94, 0xa6, 0x81, 0x74, 0x94, 0x8d, 0xa9, 0xf2, 0x93, 0x97, 0x6e,
+	0xcf, 0xe8, 0x75, 0x88, 0x83, 0x48, 0x77, 0xb7, 0xf7, 0x8d, 0x0d, 0xa2, 0xf7, 0xed, 0x95, 0x7f,
+	0x3e, 0x74, 0x9a, 0x7f, 0x7e, 0xa8, 0xc3, 0x34, 0xff, 0xc3, 0x04, 0x18, 0x2e, 0x39, 0x86, 0x6c,
+	0x80, 0x89, 0xe0, 0x95, 0x9c, 0xe8, 0xe6, 0x20, 0x7c, 0x27, 0xa6, 0x2e, 0xf6, 0x05, 0x63, 0x6d,
+	0xb5, 0x0e, 0x0e, 0xfb, 0xaf, 0xcd, 0x4e, 0x88, 0xe7, 0xfb, 0x40, 0xea, 0xd9, 0x3e, 0x40, 0x6c,
+	0x89, 0x5d, 0x30, 0x2d, 0xbc, 0xb0, 0x5a, 0x10, 0x3b, 0x11, 0x61, 0xd5, 0x7c, 0xff, 0x58, 0xb6,
+	0xee, 0x27, 0x60, 0x26, 0xea, 0xde, 0x24, 0x42, 0xa4, 0x08, 0xb8, 0xfa, 0xef, 0x7d, 0xc1, 0x59,
+	0x00, 0x06, 0x98, 0x08, 0x5e, 0x49, 0x44, 0x24, 0x31, 0x00, 0x8b, 0x4a, 0x62, 0x44, 0x9b, 0x2e,
+	0xbf, 0x0f, 0xc6, 0xf8, 0x16, 0xfd, 0xb8, 0x78, 0x36, 0x07, 0x51, 0xcf, 0xec, 0x09, 0x61, 0xce,
+	0x6b, 0x60, 0x3c, 0xd0, 0xac, 0xfe, 0x4b, 0x3c, 0xd9, 0x8f, 0x52, 0xcf, 0xf5, 0x83, 0x62, 0xab,
+	0xdc, 0x96, 0x80, 0x12, 0xd9, 0x21, 0x66, 0x23, 0xa3, 0x15, 0xe2, 0xd5, 0x0b, 0xfb, 0xc3, 0xb3,
+	0x20, 0xbe, 0x90, 0xc0, 0xb1, 0x5e, 0x7d, 0xda, 0x72, 0x2f, 0x4a, 0xe2, 0x50, 0x2e, 0xee, 0x7b,
+	0x0a, 0x8b, 0xc6, 0x04, 0x53, 0xe1, 0x66, 0xe9, 0x74, 0x24, 0x35, 0x3f, 0x50, 0xcd, 0xf5, 0x09,
+	0xe4, 0x8f, 0xa9, 0xb0, 0x63, 0x59, 0xe8, 0xc5, 0x20, 0xb0, 0x68, 0xbe, 0x7f, 0x2c, 0x5b, 0xb7,
+	0x01, 0x64, 0x41, 0xdb, 0x90, 0xe9, 0x75, 0x02, 0x78, 0xa4, 0xba, 0xd4, 0x2f, 0x92, 0x3f, 0x2e,
+	0x7c, 0x71, 0x7d, 0xbc, 0x97, 0x03, 0x02, 0x89, 0x3a, 0x2e, 0x82, 0x72, 0x56, 0xfe, 0x00, 0x1c,
+	0xf2, 0x95, 0xb2, 0x5a, 0xaf, 0xa9, 0x1e, 0x46, 0x5d, 0xd8, 0x1b, 0xc3, 0xfb, 0xf7, 0x15, 0x94,
+	0x11, 0xfe, 0x79, 0x4c, 0x94, 0x7f, 0x51, 0x69, 0xd5, 0x8d, 0x9f, 0x96, 0x55, 0x3d, 0xe3, 0xf7,
+	0x30, 0xbd, 0xe3, 0xf7, 0x57, 0x38, 0x72, 0x0b, 0x1c, 0x11, 0x57, 0x37, 0x67, 0xa3, 0xf6, 0x8e,
+	0x00, 0xac, 0x9e, 0xdf, 0x07, 0x98, 0xa7, 0xe6, 0x2b, 0x21, 0x22, 0xa8, 0xf1, 0x98, 0x28, 0x6a,
+	0xa2, 0x8f, 0xb7, 0x7a, 0xe0, 0xd3, 0x76, 0x3d, 0x50, 0xbc, 0xfa, 0xf0, 0x79, 0x72, 0xe8, 0xe1,
+	0x8b, 0xa4, 0xf4, 0xf8, 0x45, 0x52, 0xfa, 0xfd, 0x45, 0x52, 0xba, 0xf3, 0x32, 0x39, 0xf4, 0xf8,
+	0x65, 0x72, 0xe8, 0xd7, 0x97, 0xc9, 0xa1, 0xf7, 0x16, 0xb9, 0xc2, 0x19, 0x91, 0x0f, 0xc8, 0x62,
+	0x5d, 0xaf, 0x38, 0xb9, 0x6b, 0xeb, 0xe4, 0x67, 0xba, 0x5b, 0xec, 0x87, 0x3a, 0x52, 0x43, 0x57,
+	0xe2, 0xe4, 0xae, 0xf2, 0xfc, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x62, 0xc4, 0x5d, 0xea, 0x8e,
+	0x1c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1560,10 +1645,12 @@ type MsgClient interface {
 	FinalizeTokenDeposit(ctx context.Context, in *MsgFinalizeTokenDeposit, opts ...grpc.CallOption) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	InitiateTokenWithdrawal(ctx context.Context, in *MsgInitiateTokenWithdrawal, opts ...grpc.CallOption) (*MsgInitiateTokenWithdrawalResponse, error)
-	// AddValidator defines a rpc handler method for MsgAddValidator.
-	AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error)
-	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
-	RemoveValidator(ctx context.Context, in *MsgRemoveValidator, opts ...grpc.CallOption) (*MsgRemoveValidatorResponse, error)
+	// UpdateSequencer defines a rpc handler method for MsgUpdateSequencer.
+	UpdateSequencer(ctx context.Context, in *MsgUpdateSequencer, opts ...grpc.CallOption) (*MsgUpdateSequencerResponse, error)
+	// AddAttestor defines a rpc handler method for MsgAddAttestor.
+	AddAttestor(ctx context.Context, in *MsgAddAttestor, opts ...grpc.CallOption) (*MsgAddAttestorResponse, error)
+	// RemoveAttestor defines a rpc handler method for MsgRemoveAttestor.
+	RemoveAttestor(ctx context.Context, in *MsgRemoveAttestor, opts ...grpc.CallOption) (*MsgRemoveAttestorResponse, error)
 	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
 	AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error)
 	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
@@ -1635,18 +1722,27 @@ func (c *msgClient) InitiateTokenWithdrawal(ctx context.Context, in *MsgInitiate
 	return out, nil
 }
 
-func (c *msgClient) AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error) {
-	out := new(MsgAddValidatorResponse)
-	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/AddValidator", in, out, opts...)
+func (c *msgClient) UpdateSequencer(ctx context.Context, in *MsgUpdateSequencer, opts ...grpc.CallOption) (*MsgUpdateSequencerResponse, error) {
+	out := new(MsgUpdateSequencerResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/UpdateSequencer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) RemoveValidator(ctx context.Context, in *MsgRemoveValidator, opts ...grpc.CallOption) (*MsgRemoveValidatorResponse, error) {
-	out := new(MsgRemoveValidatorResponse)
-	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/RemoveValidator", in, out, opts...)
+func (c *msgClient) AddAttestor(ctx context.Context, in *MsgAddAttestor, opts ...grpc.CallOption) (*MsgAddAttestorResponse, error) {
+	out := new(MsgAddAttestorResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/AddAttestor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveAttestor(ctx context.Context, in *MsgRemoveAttestor, opts ...grpc.CallOption) (*MsgRemoveAttestorResponse, error) {
+	out := new(MsgRemoveAttestorResponse)
+	err := c.cc.Invoke(ctx, "/opinit.opchild.v1.Msg/RemoveAttestor", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1762,10 +1858,12 @@ type MsgServer interface {
 	FinalizeTokenDeposit(context.Context, *MsgFinalizeTokenDeposit) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	InitiateTokenWithdrawal(context.Context, *MsgInitiateTokenWithdrawal) (*MsgInitiateTokenWithdrawalResponse, error)
-	// AddValidator defines a rpc handler method for MsgAddValidator.
-	AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error)
-	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
-	RemoveValidator(context.Context, *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error)
+	// UpdateSequencer defines a rpc handler method for MsgUpdateSequencer.
+	UpdateSequencer(context.Context, *MsgUpdateSequencer) (*MsgUpdateSequencerResponse, error)
+	// AddAttestor defines a rpc handler method for MsgAddAttestor.
+	AddAttestor(context.Context, *MsgAddAttestor) (*MsgAddAttestorResponse, error)
+	// RemoveAttestor defines a rpc handler method for MsgRemoveAttestor.
+	RemoveAttestor(context.Context, *MsgRemoveAttestor) (*MsgRemoveAttestorResponse, error)
 	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
 	AddFeeWhitelistAddresses(context.Context, *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error)
 	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
@@ -1809,11 +1907,14 @@ func (*UnimplementedMsgServer) FinalizeTokenDeposit(ctx context.Context, req *Ms
 func (*UnimplementedMsgServer) InitiateTokenWithdrawal(ctx context.Context, req *MsgInitiateTokenWithdrawal) (*MsgInitiateTokenWithdrawalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitiateTokenWithdrawal not implemented")
 }
-func (*UnimplementedMsgServer) AddValidator(ctx context.Context, req *MsgAddValidator) (*MsgAddValidatorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddValidator not implemented")
+func (*UnimplementedMsgServer) UpdateSequencer(ctx context.Context, req *MsgUpdateSequencer) (*MsgUpdateSequencerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSequencer not implemented")
 }
-func (*UnimplementedMsgServer) RemoveValidator(ctx context.Context, req *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveValidator not implemented")
+func (*UnimplementedMsgServer) AddAttestor(ctx context.Context, req *MsgAddAttestor) (*MsgAddAttestorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddAttestor not implemented")
+}
+func (*UnimplementedMsgServer) RemoveAttestor(ctx context.Context, req *MsgRemoveAttestor) (*MsgRemoveAttestorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveAttestor not implemented")
 }
 func (*UnimplementedMsgServer) AddFeeWhitelistAddresses(ctx context.Context, req *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddFeeWhitelistAddresses not implemented")
@@ -1925,38 +2026,56 @@ func _Msg_InitiateTokenWithdrawal_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_AddValidator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAddValidator)
+func _Msg_UpdateSequencer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateSequencer)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).AddValidator(ctx, in)
+		return srv.(MsgServer).UpdateSequencer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/opinit.opchild.v1.Msg/AddValidator",
+		FullMethod: "/opinit.opchild.v1.Msg/UpdateSequencer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AddValidator(ctx, req.(*MsgAddValidator))
+		return srv.(MsgServer).UpdateSequencer(ctx, req.(*MsgUpdateSequencer))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RemoveValidator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRemoveValidator)
+func _Msg_AddAttestor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddAttestor)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RemoveValidator(ctx, in)
+		return srv.(MsgServer).AddAttestor(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/opinit.opchild.v1.Msg/RemoveValidator",
+		FullMethod: "/opinit.opchild.v1.Msg/AddAttestor",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RemoveValidator(ctx, req.(*MsgRemoveValidator))
+		return srv.(MsgServer).AddAttestor(ctx, req.(*MsgAddAttestor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveAttestor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveAttestor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveAttestor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/opinit.opchild.v1.Msg/RemoveAttestor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveAttestor(ctx, req.(*MsgRemoveAttestor))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2180,12 +2299,16 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_InitiateTokenWithdrawal_Handler,
 		},
 		{
-			MethodName: "AddValidator",
-			Handler:    _Msg_AddValidator_Handler,
+			MethodName: "UpdateSequencer",
+			Handler:    _Msg_UpdateSequencer_Handler,
 		},
 		{
-			MethodName: "RemoveValidator",
-			Handler:    _Msg_RemoveValidator_Handler,
+			MethodName: "AddAttestor",
+			Handler:    _Msg_AddAttestor_Handler,
+		},
+		{
+			MethodName: "RemoveAttestor",
+			Handler:    _Msg_RemoveAttestor_Handler,
 		},
 		{
 			MethodName: "AddFeeWhitelistAddresses",
@@ -2547,7 +2670,7 @@ func (m *MsgInitiateTokenWithdrawalResponse) MarshalToSizedBuffer(dAtA []byte) (
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAddValidator) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateSequencer) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2557,12 +2680,12 @@ func (m *MsgAddValidator) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAddValidator) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateSequencer) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAddValidator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateSequencer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2579,10 +2702,10 @@ func (m *MsgAddValidator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.ValidatorAddress) > 0 {
-		i -= len(m.ValidatorAddress)
-		copy(dAtA[i:], m.ValidatorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ValidatorAddress)))
+	if len(m.SequencerAddress) > 0 {
+		i -= len(m.SequencerAddress)
+		copy(dAtA[i:], m.SequencerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.SequencerAddress)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -2603,7 +2726,7 @@ func (m *MsgAddValidator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAddValidatorResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateSequencerResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2613,12 +2736,12 @@ func (m *MsgAddValidatorResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAddValidatorResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateSequencerResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAddValidatorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateSequencerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2626,7 +2749,7 @@ func (m *MsgAddValidatorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRemoveValidator) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddAttestor) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2636,20 +2759,39 @@ func (m *MsgRemoveValidator) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRemoveValidator) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddAttestor) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRemoveValidator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddAttestor) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.ValidatorAddress) > 0 {
-		i -= len(m.ValidatorAddress)
-		copy(dAtA[i:], m.ValidatorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ValidatorAddress)))
+	if m.Pubkey != nil {
+		{
+			size, err := m.Pubkey.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.AttestorAddress) > 0 {
+		i -= len(m.AttestorAddress)
+		copy(dAtA[i:], m.AttestorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AttestorAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Moniker) > 0 {
+		i -= len(m.Moniker)
+		copy(dAtA[i:], m.Moniker)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Moniker)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2663,7 +2805,7 @@ func (m *MsgRemoveValidator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRemoveValidatorResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddAttestorResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2673,12 +2815,72 @@ func (m *MsgRemoveValidatorResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRemoveValidatorResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddAttestorResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRemoveValidatorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddAttestorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveAttestor) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveAttestor) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveAttestor) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AttestorAddress) > 0 {
+		i -= len(m.AttestorAddress)
+		copy(dAtA[i:], m.AttestorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AttestorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveAttestorResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveAttestorResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveAttestorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3534,7 +3736,7 @@ func (m *MsgInitiateTokenWithdrawalResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgAddValidator) Size() (n int) {
+func (m *MsgUpdateSequencer) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3548,7 +3750,7 @@ func (m *MsgAddValidator) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.ValidatorAddress)
+	l = len(m.SequencerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3559,7 +3761,7 @@ func (m *MsgAddValidator) Size() (n int) {
 	return n
 }
 
-func (m *MsgAddValidatorResponse) Size() (n int) {
+func (m *MsgUpdateSequencerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3568,7 +3770,7 @@ func (m *MsgAddValidatorResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRemoveValidator) Size() (n int) {
+func (m *MsgAddAttestor) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3578,14 +3780,48 @@ func (m *MsgRemoveValidator) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.ValidatorAddress)
+	l = len(m.Moniker)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AttestorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Pubkey != nil {
+		l = m.Pubkey.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgAddAttestorResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRemoveAttestor) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AttestorAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
 
-func (m *MsgRemoveValidatorResponse) Size() (n int) {
+func (m *MsgRemoveAttestorResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4800,7 +5036,7 @@ func (m *MsgInitiateTokenWithdrawalResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAddValidator) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateSequencer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4823,10 +5059,10 @@ func (m *MsgAddValidator) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAddValidator: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateSequencer: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAddValidator: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateSequencer: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4895,7 +5131,7 @@ func (m *MsgAddValidator) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SequencerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4923,7 +5159,7 @@ func (m *MsgAddValidator) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			m.SequencerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -4982,7 +5218,7 @@ func (m *MsgAddValidator) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAddValidatorResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateSequencerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5005,10 +5241,10 @@ func (m *MsgAddValidatorResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAddValidatorResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateSequencerResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAddValidatorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateSequencerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -5032,7 +5268,7 @@ func (m *MsgAddValidatorResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRemoveValidator) Unmarshal(dAtA []byte) error {
+func (m *MsgAddAttestor) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5055,10 +5291,10 @@ func (m *MsgRemoveValidator) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRemoveValidator: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddAttestor: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRemoveValidator: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddAttestor: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5095,7 +5331,7 @@ func (m *MsgRemoveValidator) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Moniker", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5123,7 +5359,75 @@ func (m *MsgRemoveValidator) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Moniker = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AttestorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AttestorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pubkey == nil {
+				m.Pubkey = &types.Any{}
+			}
+			if err := m.Pubkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -5146,7 +5450,7 @@ func (m *MsgRemoveValidator) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRemoveValidatorResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAddAttestorResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5169,10 +5473,174 @@ func (m *MsgRemoveValidatorResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRemoveValidatorResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddAttestorResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRemoveValidatorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddAttestorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveAttestor) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveAttestor: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveAttestor: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AttestorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AttestorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveAttestorResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveAttestorResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveAttestorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

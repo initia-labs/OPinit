@@ -65,21 +65,21 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	addMsg, err := types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
+	addMsg, err := types.NewMsgAddAttestor("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
 	require.NoError(t, err)
 
-	removeMsg, err := types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
+	removeMsg, err := types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[1])
 	require.NoError(t, err)
 
 	// should failed with unauthorized
-	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg, removeMsg})
+	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
 	require.Error(t, err)
 
 	// success
-	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg, removeMsg})
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
@@ -91,8 +91,23 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 
 	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
+	require.Len(t, vals, 2)
+
+	// remove attestor
+	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{removeMsg})
+	require.NoError(t, err)
+
+	_, err = ms.ExecuteMessages(ctx, msg)
+	require.NoError(t, err)
+
+	// apply validator updates
+	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
+	require.NoError(t, err)
+
+	vals, err = input.OPChildKeeper.GetAllValidators(ctx)
+	require.NoError(t, err)
 	require.Len(t, vals, 1)
-	require.Equal(t, vals[0].Moniker, "val2")
+	require.Equal(t, vals[0].Moniker, "val1")
 
 	// should failed with err (denom not sorted)
 	params.MinGasPrices = sdk.DecCoins{{
@@ -113,7 +128,7 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 /////////////////////////////////////////
 // The messages for Authority
 
-func Test_MsgServer_AddValidator(t *testing.T) {
+func Test_MsgServer_AddAttestor(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
@@ -122,31 +137,31 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	msg, err := types.NewMsgAddValidator("val1", moduleAddr, valAddrsStr[0], valPubKeys[0])
+	msg, err := types.NewMsgAddAttestor("val1", moduleAddr, valAddrsStr[0], valPubKeys[0])
 	require.NoError(t, err)
 
-	_, err = ms.AddValidator(ctx, msg)
+	_, err = ms.AddAttestor(ctx, msg)
 	require.NoError(t, err)
 
 	// invalid signer
-	msg, err = types.NewMsgAddValidator("val1", addrsStr[0], valAddrsStr[0], valPubKeys[0])
+	msg, err = types.NewMsgAddAttestor("val1", addrsStr[0], valAddrsStr[0], valPubKeys[0])
 	require.NoError(t, err)
 
-	_, err = ms.AddValidator(ctx, msg)
+	_, err = ms.AddAttestor(ctx, msg)
 	require.Error(t, err)
 
-	// duplicate add validator
-	msg, err = types.NewMsgAddValidator("val1", moduleAddr, valAddrsStr[0], valPubKeys[1])
+	// duplicate add attestor
+	msg, err = types.NewMsgAddAttestor("val1", moduleAddr, valAddrsStr[0], valPubKeys[1])
 	require.NoError(t, err)
 
-	_, err = ms.AddValidator(ctx, msg)
+	_, err = ms.AddAttestor(ctx, msg)
 	require.Error(t, err)
 
 	// duplicate cons pubkey
-	msg, err = types.NewMsgAddValidator("val1", moduleAddr, valAddrsStr[1], valPubKeys[0])
+	msg, err = types.NewMsgAddAttestor("val1", moduleAddr, valAddrsStr[1], valPubKeys[0])
 	require.NoError(t, err)
 
-	_, err = ms.AddValidator(ctx, msg)
+	_, err = ms.AddAttestor(ctx, msg)
 	require.Error(t, err)
 
 	params, err := ms.GetParams(ctx)
@@ -155,11 +170,11 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	err = ms.SetParams(ctx, params)
 	require.NoError(t, err)
 
-	msg, err = types.NewMsgAddValidator("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
+	msg, err = types.NewMsgAddAttestor("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
 	require.NoError(t, err)
 
 	// max validators reached
-	_, err = ms.AddValidator(ctx, msg)
+	_, err = ms.AddAttestor(ctx, msg)
 	require.Error(t, err)
 
 	params, err = ms.GetParams(ctx)
@@ -168,11 +183,11 @@ func Test_MsgServer_AddValidator(t *testing.T) {
 	err = ms.SetParams(ctx, params)
 	require.NoError(t, err)
 
-	_, err = ms.AddValidator(ctx, msg)
+	_, err = ms.AddAttestor(ctx, msg)
 	require.NoError(t, err)
 }
 
-func Test_MsgServer_RemoveValidator(t *testing.T) {
+func Test_MsgServer_RemoveAttestor(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
@@ -186,10 +201,10 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	// invalid signer
-	msg, err := types.NewMsgRemoveValidator(addrsStr[0], valAddrsStr[0])
+	msg, err := types.NewMsgRemoveAttestor(addrsStr[0], valAddrsStr[0])
 	require.NoError(t, err)
 
-	_, err = ms.RemoveValidator(
+	_, err = ms.RemoveAttestor(
 		ctx,
 		msg,
 	)
@@ -199,24 +214,101 @@ func Test_MsgServer_RemoveValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	// remove not existing validator
-	msg, err = types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[1])
+	msg, err = types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[1])
 	require.NoError(t, err)
 
-	_, err = ms.RemoveValidator(
+	_, err = ms.RemoveAttestor(
 		ctx,
 		msg,
 	)
 	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrNoValidatorFound)
 
-	// valid remove validator
-	msg, err = types.NewMsgRemoveValidator(moduleAddr, valAddrsStr[0])
+	// remove sequencer should fail
+	msg, err = types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[0])
 	require.NoError(t, err)
 
-	_, err = ms.RemoveValidator(
+	_, err = ms.RemoveAttestor(ctx, msg)
+	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrValidatorNotAttestor)
+
+	// register attestor
+	addMsg, err := types.NewMsgAddAttestor("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
+	require.NoError(t, err)
+
+	_, err = ms.AddAttestor(ctx, addMsg)
+	require.NoError(t, err)
+
+	// valid remove validator
+	msg, err = types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[1])
+	require.NoError(t, err)
+
+	_, err = ms.RemoveAttestor(
 		ctx,
 		msg,
 	)
 	require.NoError(t, err)
+}
+
+func Test_MsgServer_UpdateSequencer(t *testing.T) {
+	t.Run("successfully replaces sequencer", func(t *testing.T) {
+		ctx, input := createDefaultTestInput(t)
+		ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+		valPubKeys := testutilsims.CreateTestPubKeys(2)
+
+		currentSeq, err := types.NewValidator(valAddrs[0], valPubKeys[0], "current-sequencer")
+		require.NoError(t, err)
+		require.NoError(t, input.OPChildKeeper.SetValidator(ctx, currentSeq))
+
+		moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+		require.NoError(t, err)
+
+		msg, err := types.NewMsgUpdateSequencer("next-sequencer", moduleAddr, valAddrsStr[1], valPubKeys[1])
+		require.NoError(t, err)
+
+		_, err = ms.UpdateSequencer(ctx, msg)
+		require.NoError(t, err)
+
+		newSeq, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
+		require.True(t, found)
+		require.Equal(t, "next-sequencer", newSeq.Moniker)
+		require.Equal(t, int64(types.SequencerConsPower), newSeq.ConsPower)
+
+		oldSeq, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[0])
+		require.True(t, found)
+		require.Zero(t, oldSeq.ConsPower)
+	})
+
+	t.Run("fails with unauthorized signer", func(t *testing.T) {
+		ctx, input := createDefaultTestInput(t)
+		ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+		valPubKeys := testutilsims.CreateTestPubKeys(2)
+
+		msg, err := types.NewMsgUpdateSequencer("next-sequencer", addrsStr[0], valAddrsStr[1], valPubKeys[1])
+		require.NoError(t, err)
+
+		_, err = ms.UpdateSequencer(ctx, msg)
+		require.Error(t, err)
+	})
+
+	t.Run("fails when current sequencer missing", func(t *testing.T) {
+		ctx, input := createDefaultTestInput(t)
+		ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+
+		valPubKeys := testutilsims.CreateTestPubKeys(1)
+
+		moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
+		require.NoError(t, err)
+
+		msg, err := types.NewMsgUpdateSequencer("next-sequencer", moduleAddr, valAddrsStr[0], valPubKeys[0])
+		require.NoError(t, err)
+
+		_, err = ms.UpdateSequencer(ctx, msg)
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrNoValidatorFound)
+	})
 }
 
 func Test_MsgServer_AddFeeWhitelistAddresses(t *testing.T) {
