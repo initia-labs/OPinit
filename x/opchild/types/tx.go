@@ -31,6 +31,8 @@ var (
 	_ sdk.Msg = &MsgMigrateToken{}
 
 	_ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}
+	_ codectypes.UnpackInterfacesMessage = &MsgUpdateSequencer{}
+	_ codectypes.UnpackInterfacesMessage = &MsgAddAttestor{}
 )
 
 // should refer initiavm/precompile/modules/minlib/sources/coin.move
