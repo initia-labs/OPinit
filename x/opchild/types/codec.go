@@ -12,8 +12,9 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	legacy.RegisterAminoMsg(cdc, &MsgExecuteMessages{}, "opchild/MsgExecuteMessages")
-	legacy.RegisterAminoMsg(cdc, &MsgAddValidator{}, "opchild/MsgAddValidator")
-	legacy.RegisterAminoMsg(cdc, &MsgRemoveValidator{}, "opchild/MsgRemoveAddValidator")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateSequencer{}, "opchild/MsgUpdateSequencer")
+	legacy.RegisterAminoMsg(cdc, &MsgAddAttestor{}, "opchild/MsgAddAttestor")
+	legacy.RegisterAminoMsg(cdc, &MsgRemoveAttestor{}, "opchild/MsgRemoveAttestor")
 	legacy.RegisterAminoMsg(cdc, &MsgAddFeeWhitelistAddresses{}, "opchild/MsgAddFeeWhitelistAddresses")
 	legacy.RegisterAminoMsg(cdc, &MsgRemoveFeeWhitelistAddresses{}, "opchild/MsgRemoveFeeWhitelistAddresses")
 	legacy.RegisterAminoMsg(cdc, &MsgAddBridgeExecutor{}, "opchild/MsgAddBridgeExecutor")
@@ -36,8 +37,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgExecuteMessages{},
-		&MsgAddValidator{},
-		&MsgRemoveValidator{},
+		&MsgUpdateSequencer{},
+		&MsgAddAttestor{},
+		&MsgRemoveAttestor{},
 		&MsgAddFeeWhitelistAddresses{},
 		&MsgRemoveFeeWhitelistAddresses{},
 		&MsgAddBridgeExecutor{},

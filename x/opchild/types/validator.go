@@ -26,6 +26,11 @@ const (
 	MaxWebsiteLength         = 140
 	MaxSecurityContactLength = 140
 	MaxDetailsLength         = 280
+
+	// AttestorConsPower is the consensus power for attestors
+	AttestorConsPower = 3
+	// SequencerConsPower is the consensus power for sequencers
+	SequencerConsPower = 1
 )
 
 var _ ValidatorI = Validator{}
@@ -43,7 +48,7 @@ func NewValidator(operator sdk.ValAddress, pubKey cryptotypes.PubKey, moniker st
 		Moniker:         moniker,
 		OperatorAddress: operator.String(),
 		ConsensusPubkey: pkAny,
-		ConsPower:       1,
+		ConsPower:       SequencerConsPower,
 	}, nil
 }
 

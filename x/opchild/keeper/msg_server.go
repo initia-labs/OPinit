@@ -5,10 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -146,8 +148,8 @@ func (ms MsgServer) ExecuteMessages(ctx context.Context, req *types.MsgExecuteMe
 //////////////////////////////////////////////
 // Authority messages
 
-// AddValidator implements adding a validator to the designated validator set
-func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator) (*types.MsgAddValidatorResponse, error) {
+// UpdateSequencer implements updating the sequencer validator
+func (ms MsgServer) UpdateSequencer(ctx context.Context, req *types.MsgUpdateSequencer) (*types.MsgUpdateSequencerResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
 		return nil, err
 	}
@@ -156,116 +158,184 @@ func (ms MsgServer) AddValidator(ctx context.Context, req *types.MsgAddValidator
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	allValidators, err := ms.GetAllValidators(ctx)
+	// find the existing sequencer and remove it
+	var seqAddr sdk.ValAddress
+	if err := ms.IterateValidators(ctx, func(validator types.ValidatorI) (stop bool, err error) {
+		if validator.GetConsensusPower() == types.SequencerConsPower {
+			seqAddr, err = ms.validatorAddressCodec.StringToBytes(validator.GetOperator())
+			if err != nil {
+				return true, err
+			}
+			return true, nil
+		}
+		return false, nil
+	}); err != nil {
+		return nil, err
+	} else if seqAddr == nil {
+		return nil, errorsmod.Wrapf(types.ErrNoValidatorFound, "no sequencer found with consensus power %d", types.SequencerConsPower)
+	}
+	if err := ms.removeValidator(ctx, seqAddr); err != nil {
+		return nil, err
+	}
+
+	// add the new sequencer
+	newSeqAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.SequencerAddress)
 	if err != nil {
 		return nil, err
+	}
+	if err := ms.addValidator(ctx, req.Moniker, sdk.ValAddress(newSeqAddr), req.Pubkey, types.SequencerConsPower); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateSequencerResponse{}, nil
+}
+
+// AddAttestor implements adding an attestor to the validator set
+func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) (*types.MsgAddAttestorResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
+		return nil, err
+	}
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	attestorAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.AttestorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ms.addValidator(ctx, req.Moniker, sdk.ValAddress(attestorAddr), req.Pubkey, types.AttestorConsPower); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgAddAttestorResponse{}, nil
+}
+
+// RemoveAttestor implements removing an attestor from the validator set
+func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAttestor) (*types.MsgRemoveAttestorResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	attestorAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.AttestorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	valAddr := sdk.ValAddress(attestorAddr)
+
+	validator, found := ms.Keeper.GetValidator(ctx, valAddr)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrNoValidatorFound, req.AttestorAddress)
+	}
+
+	if validator.ConsPower != types.AttestorConsPower {
+		return nil, errorsmod.Wrapf(types.ErrValidatorNotAttestor, "address %s has consensus power %d", req.AttestorAddress, validator.ConsPower)
+	}
+
+	if err := ms.removeValidator(ctx, valAddr); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRemoveAttestorResponse{}, nil
+}
+
+// addValidator implements adding a validator to the designated validator set
+func (ms MsgServer) addValidator(ctx context.Context, moniker string, valAddr sdk.ValAddress, pubkey *codectypes.Any, vp int64) error {
+	allValidators, err := ms.GetAllValidators(ctx)
+	if err != nil {
+		return err
 	}
 
 	numMaxValidators, err := ms.MaxValidators(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if int(numMaxValidators) <= len(allValidators) {
-		return nil, types.ErrMaxValidatorsExceeded
+		return types.ErrMaxValidatorsExceeded
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	valAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.ValidatorAddress)
-	if err != nil {
-		return nil, err
-	}
 
 	// check to see if the pubkey or sender has been registered before
 	if _, found := ms.GetValidator(ctx, valAddr); found {
-		return nil, types.ErrValidatorOwnerExists
+		return types.ErrValidatorOwnerExists
 	}
 
-	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
+	pk, ok := pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
 	}
 
 	if _, found := ms.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
-		return nil, types.ErrValidatorPubKeyExists
+		return types.ErrValidatorPubKeyExists
 	}
 
 	cp := sdkCtx.ConsensusParams()
 	if cp.Validator != nil {
 		pkType := pk.Type()
-		hasKeyType := false
-		for _, keyType := range cp.Validator.PubKeyTypes {
-			if pkType == keyType {
-				hasKeyType = true
-				break
-			}
-		}
-		if !hasKeyType {
-			return nil, errorsmod.Wrapf(
+		if !slices.Contains(cp.Validator.PubKeyTypes, pkType) {
+			return errorsmod.Wrapf(
 				types.ErrValidatorPubKeyTypeNotSupported,
 				"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
 			)
 		}
 	}
 
-	validator, err := types.NewValidator(valAddr, pk, req.Moniker)
+	validator, err := types.NewValidator(valAddr, pk, moniker)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
+	// attestor consensus power is always 3
+	validator.ConsPower = vp
+
 	if err := ms.SetValidator(ctx, validator); err != nil {
-		return nil, err
+		return err
 	}
 	if err = ms.SetValidatorByConsAddr(ctx, validator); err != nil {
-		return nil, err
+		return err
 	}
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAddValidator,
-			sdk.NewAttribute(types.AttributeKeyValidator, req.ValidatorAddress),
+			sdk.NewAttribute(types.AttributeKeyValidator, validator.OperatorAddress),
 		),
 	})
 
-	return &types.MsgAddValidatorResponse{}, nil
+	return nil
 }
 
-// RemoveValidator implements removing a validator from the designated validator set
-func (ms MsgServer) RemoveValidator(ctx context.Context, req *types.MsgRemoveValidator) (*types.MsgRemoveValidatorResponse, error) {
-	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
-		return nil, err
-	}
-
-	if ms.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
-	}
-
+// removeValidator implements removing a validator from the designated validator set
+func (ms MsgServer) removeValidator(ctx context.Context, valAddr sdk.ValAddress) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	valAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.ValidatorAddress)
-	if err != nil {
-		return nil, err
-	}
-
 	val, found := ms.Keeper.GetValidator(ctx, valAddr)
 	if !found {
-		return nil, errorsmod.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
+		return errorsmod.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
 	}
+
 	val.ConsPower = 0
 
 	// set validator consensus power `0`,
 	// then `val_state_change` will execute `k.RemoveValidator`.
 	if err := ms.Keeper.SetValidator(ctx, val); err != nil {
-		return nil, err
+		return err
 	}
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRemoveValidator,
-			sdk.NewAttribute(types.AttributeKeyValidator, req.ValidatorAddress),
+			sdk.NewAttribute(types.AttributeKeyValidator, val.OperatorAddress),
 		),
 	})
 
-	return &types.MsgRemoveValidatorResponse{}, nil
+	return nil
 }
 
 // AddFeeWhitelistAddresses implements adding addresses to the fee whitelist addresses parameter
