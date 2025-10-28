@@ -89,3 +89,67 @@ func TestShutdown(t *testing.T) {
 	balances = keepers.BankKeeper.GetAllBalances(ctx, account2)
 	require.Equal(t, sdk.NewCoins(sdk.NewCoin(testDenoms[2], math.NewInt(300))), balances)
 }
+
+func TestShutdown_BridgeDisabled(t *testing.T) {
+	ctx, keepers := createTestInput(t, false)
+
+	disabled, err := keepers.OPChildKeeper.IsBridgeDisabled(ctx)
+	require.NoError(t, err)
+	require.False(t, disabled)
+
+	info := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			BridgeDisabled:        false,
+		},
+	}
+
+	ms := keeper.NewMsgServerImpl(&keepers.OPChildKeeper)
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	disabled, err = keepers.OPChildKeeper.IsBridgeDisabled(ctx)
+	require.NoError(t, err)
+	require.False(t, disabled)
+
+	info = types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[1],
+		L1ChainId:  "test-chain-id",
+		L1ClientId: "test-client-id",
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger: addrsStr[2],
+			Proposer:   addrsStr[3],
+			BatchInfo: ophosttypes.BatchInfo{
+				Submitter: addrsStr[4],
+				ChainType: ophosttypes.BatchInfo_INITIA,
+			},
+			SubmissionInterval:    time.Minute,
+			FinalizationPeriod:    time.Hour,
+			SubmissionStartHeight: 1,
+			Metadata:              []byte("metadata"),
+			BridgeDisabled:        true,
+			BridgeDisabledAt:      time.Now(),
+		},
+	}
+
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	require.NoError(t, err)
+
+	disabled, err = keepers.OPChildKeeper.IsBridgeDisabled(ctx)
+	require.NoError(t, err)
+	require.True(t, disabled)
+}

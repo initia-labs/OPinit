@@ -2,14 +2,18 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 func (k Keeper) IsBridgeDisabled(ctx context.Context) (bool, error) {
 	bridgeConfig, err := k.BridgeInfo.Get(ctx)
-	if err != nil {
+	if errors.Is(err, collections.ErrNotFound) {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
 	return bridgeConfig.BridgeConfig.BridgeDisabled, nil
