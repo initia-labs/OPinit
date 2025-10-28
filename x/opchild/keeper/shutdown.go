@@ -35,10 +35,12 @@ func (k *Keeper) Shutdown(ctx context.Context) error {
 		}
 
 		_, err = ms.GetBaseDenom(ctx, coin.Denom)
-		if err != nil {
+		if errors.Is(err, types.ErrNonL1Token) {
 			// when the coin is not from the bridge, skip
 			err = nil
 			return false
+		} else if err != nil {
+			return true
 		}
 
 		// Only withdraw spendable amount for this denom
