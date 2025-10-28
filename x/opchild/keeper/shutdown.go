@@ -27,10 +27,23 @@ func (k *Keeper) Shutdown(ctx context.Context) error {
 	ms := NewMsgServerImpl(k)
 	var err error
 	k.bankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, coin sdk.Coin) bool {
+		// Skip module accounts - they can't sign L1 transactions
+		if acc := k.authKeeper.GetAccount(ctx, addr); acc != nil {
+			if _, ok := acc.(sdk.ModuleAccountI); ok {
+				return false
+			}
+		}
+
 		_, err = ms.GetBaseDenom(ctx, coin.Denom)
 		if err != nil {
 			// when the coin is not from the bridge, skip
 			err = nil
+			return false
+		}
+
+		// Only withdraw spendable amount for this denom
+		spendable := k.bankKeeper.SpendableCoins(ctx, addr).AmountOf(coin.Denom)
+		if !spendable.IsPositive() {
 			return false
 		}
 
@@ -45,7 +58,7 @@ func (k *Keeper) Shutdown(ctx context.Context) error {
 			return true
 		}
 
-		_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, coin))
+		_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
 		return err != nil
 	})
 	if err != nil {

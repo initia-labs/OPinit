@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
@@ -42,7 +43,7 @@ func TestShutdown(t *testing.T) {
 	baseDenom := "test_token"
 	denom := ophosttypes.L2Denom(1, baseDenom)
 
-	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, baseDenom, nil))
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(200)), 1, 1, baseDenom, nil))
 	require.NoError(t, err)
 
 	baseDenom2 := "test_token2"
@@ -63,14 +64,34 @@ func TestShutdown(t *testing.T) {
 	require.NoError(t, keepers.OPChildKeeper.SetValidator(ctx, val1))
 	require.NoError(t, keepers.OPChildKeeper.SetValidatorByConsAddr(ctx, val1))
 
+	macc := keepers.AccountKeeper.GetModuleAccount(ctx, "fee_collector")
+	require.NotNil(t, macc)
+
+	err = keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, addrs[1], "fee_collector", sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))))
+	require.NoError(t, err)
+
+	balances := keepers.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
+	require.Equal(t, sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))), balances)
+
 	err = keepers.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
 
 	vals, err := keepers.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
-	require.Len(t, vals, 0)
+	require.Len(t, vals, 2)
 
-	balances := keepers.BankKeeper.GetAllBalances(ctx, addrs[1])
+	cnt := 0
+	for _, val := range vals {
+		if val.ConsPower == 1 {
+			valPubKey, err := val.ConsPubKey()
+			require.NoError(t, err)
+			require.Equal(t, &ed25519.PubKey{Key: make([]byte, ed25519.PubKeySize)}, valPubKey)
+			cnt++
+		}
+	}
+	require.Equal(t, 1, cnt)
+
+	balances = keepers.BankKeeper.GetAllBalances(ctx, addrs[1])
 	require.Len(t, balances, 0)
 
 	balances = keepers.BankKeeper.GetAllBalances(ctx, addrs[2])
@@ -88,6 +109,9 @@ func TestShutdown(t *testing.T) {
 
 	balances = keepers.BankKeeper.GetAllBalances(ctx, account2)
 	require.Equal(t, sdk.NewCoins(sdk.NewCoin(testDenoms[2], math.NewInt(300))), balances)
+
+	balances = keepers.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
+	require.Equal(t, sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))), balances)
 }
 
 func TestShutdown_BridgeDisabled(t *testing.T) {
