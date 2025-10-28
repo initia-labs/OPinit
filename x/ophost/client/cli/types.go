@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"time"
+
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
@@ -15,4 +17,6 @@ type BridgeCliConfig struct {
 	Metadata              string          `json:"metadata"`
 	BatchInfo             types.BatchInfo `json:"batch_info"`
 	OracleEnabled         bool            `json:"oracle_enabled"`
+	BridgeDisabled        bool            `json:"bridge_disabled"`
+	BridgeDisabledAt      time.Time       `json:"bridge_disabled_at"`
 }
