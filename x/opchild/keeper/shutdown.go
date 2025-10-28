@@ -13,6 +13,8 @@ import (
 var dummyValAddr = sdk.ValAddress(make([]byte, 20))
 var dummyPubKey = &ed25519.PubKey{Key: make([]byte, ed25519.PubKeySize)}
 
+const MaxWithdrawCount = 100
+
 func (k Keeper) IsBridgeDisabled(ctx context.Context) (bool, error) {
 	bridgeConfig, err := k.BridgeInfo.Get(ctx)
 	if errors.Is(err, collections.ErrNotFound) {
@@ -23,8 +25,9 @@ func (k Keeper) IsBridgeDisabled(ctx context.Context) (bool, error) {
 	return bridgeConfig.BridgeConfig.BridgeDisabled, nil
 }
 
-func (k *Keeper) Shutdown(ctx context.Context) error {
+func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	ms := NewMsgServerImpl(k)
+	withdrawCount := 0
 	var err error
 	k.bankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, coin sdk.Coin) bool {
 		// Skip module accounts - they can't sign L1 transactions
@@ -61,17 +64,25 @@ func (k *Keeper) Shutdown(ctx context.Context) error {
 		}
 
 		_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
-		return err != nil
+		if err != nil {
+			return true
+		}
+
+		withdrawCount++
+		return withdrawCount == MaxWithdrawCount
 	})
 	if err != nil {
-		return err
+		return false, err
+	}
+	if withdrawCount == MaxWithdrawCount {
+		return false, nil
 	}
 
 	dummyVal, err := types.NewValidator(dummyValAddr, dummyPubKey, "")
 	if err != nil {
-		return err
+		return false, err
 	}
-	return k.ChangeExecutor(ctx, types.ExecutorChangePlan{
+	return true, k.ChangeExecutor(ctx, types.ExecutorChangePlan{
 		NextValidator: dummyVal,
 	})
 }

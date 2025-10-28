@@ -73,8 +73,17 @@ func TestShutdown(t *testing.T) {
 	balances := keepers.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	require.Equal(t, sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))), balances)
 
-	err = keepers.OPChildKeeper.Shutdown(ctx)
+	for range 100 {
+		keepers.Faucet.NewFundedAccount(ctx, sdk.NewCoin(denom, math.NewInt(100)))
+	}
+
+	end, err := keepers.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
+	require.False(t, end)
+
+	end, err = keepers.OPChildKeeper.Shutdown(ctx)
+	require.NoError(t, err)
+	require.True(t, end)
 
 	vals, err := keepers.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
@@ -99,7 +108,7 @@ func TestShutdown(t *testing.T) {
 
 	nextL2Sequence, err := keepers.OPChildKeeper.NextL2Sequence.Peek(ctx)
 	require.NoError(t, err)
-	require.Equal(t, uint64(3), nextL2Sequence)
+	require.Equal(t, uint64(103), nextL2Sequence)
 
 	balances = keepers.BankKeeper.GetAllBalances(ctx, account0)
 	require.Equal(t, sdk.NewCoins(sdk.NewCoin(testDenoms[0], math.NewInt(100))), balances)
