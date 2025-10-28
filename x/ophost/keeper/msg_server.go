@@ -123,6 +123,10 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 		return nil, err
 	}
 
+	if bridgeConfig.BridgeDisabled {
+		return nil, types.ErrBridgeDisabled
+	}
+
 	// permission check
 	if proposer != bridgeConfig.Proposer {
 		return nil, sdkerrors.ErrUnauthorized.Wrap("invalid proposer")
@@ -228,10 +232,14 @@ func (ms MsgServer) InitiateTokenDeposit(ctx context.Context, req *types.MsgInit
 
 	coin := req.Amount
 	bridgeId := req.BridgeId
-	if ok, err := ms.BridgeConfigs.Has(ctx, bridgeId); err != nil {
+
+	bridgeConfig, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
 		return nil, err
-	} else if !ok {
-		return nil, types.ErrBridgeNotFound
+	}
+
+	if bridgeConfig.BridgeDisabled {
+		return nil, types.ErrBridgeDisabled
 	}
 
 	sender, err := ms.authKeeper.AddressCodec().StringToBytes(req.Sender)
@@ -626,6 +634,36 @@ func (ms MsgServer) UpdateFinalizationPeriod(ctx context.Context, req *types.Msg
 	}
 
 	return &types.MsgUpdateFinalizationPeriodResponse{}, nil
+}
+
+func (ms MsgServer) DisableBridge(ctx context.Context, req *types.MsgDisableBridge) (*types.MsgDisableBridgeResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.BridgeDisabled {
+		return nil, types.ErrBridgeAlreadyDisabled
+	}
+
+	config.BridgeDisabled = true
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	config.BridgeDisabledAt = sdkCtx.BlockTime()
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgDisableBridgeResponse{}, nil
 }
 
 // RegisterMigrationInfo implements registering the migration info

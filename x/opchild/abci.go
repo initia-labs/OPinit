@@ -35,5 +35,14 @@ func EndBlocker(ctx context.Context, k *keeper.Keeper) ([]abci.ValidatorUpdate, 
 		}
 	}
 
+	if disabled, err := k.IsBridgeDisabled(ctx); err != nil {
+		return nil, err
+	} else if disabled {
+		// when the bridge is disabled, shutdown the validator set
+		err := k.Shutdown(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return k.BlockValidatorUpdates(ctx)
 }

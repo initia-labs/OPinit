@@ -364,6 +364,8 @@ func (m *MsgInitiateTokenWithdrawalResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgInitiateTokenWithdrawalResponse proto.InternalMessageInfo
 
+// MsgUpdateSequencer is a message to update the sequencer role in validator set
+// by removing the old sequencer and adding a new one.
 type MsgUpdateSequencer struct {
 	// authority is the address that controls the module
 	// (defaults to x/opchild unless overwritten).
@@ -523,7 +525,7 @@ func (m *MsgAddAttestorResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgAddAttestorResponse proto.InternalMessageInfo
 
-// MsgAddAttestor is a message to remove a validator from designated list
+// MsgRemoveAttestor is a message to remove a attestor from the validator set.
 type MsgRemoveAttestor struct {
 	// authority is the address that controls the module
 	// (defaults to x/opchild unless overwritten).
@@ -565,7 +567,7 @@ func (m *MsgRemoveAttestor) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveAttestor proto.InternalMessageInfo
 
-// MsgAddAttestorResponse returns remove result data
+// MsgRemoveAttestorResponse returns remove result data
 type MsgRemoveAttestorResponse struct {
 }
 

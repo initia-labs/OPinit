@@ -309,6 +309,7 @@ func _createTestInput(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		authcodec.NewBech32Codec("init"),
 		ctx.Logger(),
 	)
 

@@ -5823,6 +5823,925 @@ func (x *fastReflection_QueryBaseDenomResponse) ProtoMethods() *protoiface.Metho
 	}
 }
 
+var (
+	md_QueryMigrationInfoRequest       protoreflect.MessageDescriptor
+	fd_QueryMigrationInfoRequest_denom protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_opinit_opchild_v1_query_proto_init()
+	md_QueryMigrationInfoRequest = File_opinit_opchild_v1_query_proto.Messages().ByName("QueryMigrationInfoRequest")
+	fd_QueryMigrationInfoRequest_denom = md_QueryMigrationInfoRequest.Fields().ByName("denom")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryMigrationInfoRequest)(nil)
+
+type fastReflection_QueryMigrationInfoRequest QueryMigrationInfoRequest
+
+func (x *QueryMigrationInfoRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryMigrationInfoRequest)(x)
+}
+
+func (x *QueryMigrationInfoRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_opinit_opchild_v1_query_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryMigrationInfoRequest_messageType fastReflection_QueryMigrationInfoRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryMigrationInfoRequest_messageType{}
+
+type fastReflection_QueryMigrationInfoRequest_messageType struct{}
+
+func (x fastReflection_QueryMigrationInfoRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryMigrationInfoRequest)(nil)
+}
+func (x fastReflection_QueryMigrationInfoRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryMigrationInfoRequest)
+}
+func (x fastReflection_QueryMigrationInfoRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryMigrationInfoRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryMigrationInfoRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryMigrationInfoRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryMigrationInfoRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryMigrationInfoRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryMigrationInfoRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryMigrationInfoRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryMigrationInfoRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryMigrationInfoRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryMigrationInfoRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Denom != "" {
+		value := protoreflect.ValueOfString(x.Denom)
+		if !f(fd_QueryMigrationInfoRequest_denom, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryMigrationInfoRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoRequest.denom":
+		return x.Denom != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoRequest"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoRequest.denom":
+		x.Denom = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoRequest"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryMigrationInfoRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoRequest.denom":
+		value := x.Denom
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoRequest"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoRequest.denom":
+		x.Denom = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoRequest"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoRequest.denom":
+		panic(fmt.Errorf("field denom of message opinit.opchild.v1.QueryMigrationInfoRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoRequest"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryMigrationInfoRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoRequest.denom":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoRequest"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryMigrationInfoRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in opinit.opchild.v1.QueryMigrationInfoRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryMigrationInfoRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryMigrationInfoRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryMigrationInfoRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryMigrationInfoRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Denom)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryMigrationInfoRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Denom) > 0 {
+			i -= len(x.Denom)
+			copy(dAtA[i:], x.Denom)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Denom)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryMigrationInfoRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryMigrationInfoRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryMigrationInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Denom = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryMigrationInfoResponse                protoreflect.MessageDescriptor
+	fd_QueryMigrationInfoResponse_migration_info protoreflect.FieldDescriptor
+	fd_QueryMigrationInfoResponse_ibc_denom      protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_opinit_opchild_v1_query_proto_init()
+	md_QueryMigrationInfoResponse = File_opinit_opchild_v1_query_proto.Messages().ByName("QueryMigrationInfoResponse")
+	fd_QueryMigrationInfoResponse_migration_info = md_QueryMigrationInfoResponse.Fields().ByName("migration_info")
+	fd_QueryMigrationInfoResponse_ibc_denom = md_QueryMigrationInfoResponse.Fields().ByName("ibc_denom")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryMigrationInfoResponse)(nil)
+
+type fastReflection_QueryMigrationInfoResponse QueryMigrationInfoResponse
+
+func (x *QueryMigrationInfoResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryMigrationInfoResponse)(x)
+}
+
+func (x *QueryMigrationInfoResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_opinit_opchild_v1_query_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryMigrationInfoResponse_messageType fastReflection_QueryMigrationInfoResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryMigrationInfoResponse_messageType{}
+
+type fastReflection_QueryMigrationInfoResponse_messageType struct{}
+
+func (x fastReflection_QueryMigrationInfoResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryMigrationInfoResponse)(nil)
+}
+func (x fastReflection_QueryMigrationInfoResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryMigrationInfoResponse)
+}
+func (x fastReflection_QueryMigrationInfoResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryMigrationInfoResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryMigrationInfoResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryMigrationInfoResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryMigrationInfoResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryMigrationInfoResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryMigrationInfoResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryMigrationInfoResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryMigrationInfoResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryMigrationInfoResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryMigrationInfoResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.MigrationInfo != nil {
+		value := protoreflect.ValueOfMessage(x.MigrationInfo.ProtoReflect())
+		if !f(fd_QueryMigrationInfoResponse_migration_info, value) {
+			return
+		}
+	}
+	if x.IbcDenom != "" {
+		value := protoreflect.ValueOfString(x.IbcDenom)
+		if !f(fd_QueryMigrationInfoResponse_ibc_denom, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryMigrationInfoResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.migration_info":
+		return x.MigrationInfo != nil
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.ibc_denom":
+		return x.IbcDenom != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoResponse"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.migration_info":
+		x.MigrationInfo = nil
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.ibc_denom":
+		x.IbcDenom = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoResponse"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryMigrationInfoResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.migration_info":
+		value := x.MigrationInfo
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.ibc_denom":
+		value := x.IbcDenom
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoResponse"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.migration_info":
+		x.MigrationInfo = value.Message().Interface().(*MigrationInfo)
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.ibc_denom":
+		x.IbcDenom = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoResponse"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.migration_info":
+		if x.MigrationInfo == nil {
+			x.MigrationInfo = new(MigrationInfo)
+		}
+		return protoreflect.ValueOfMessage(x.MigrationInfo.ProtoReflect())
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.ibc_denom":
+		panic(fmt.Errorf("field ibc_denom of message opinit.opchild.v1.QueryMigrationInfoResponse is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoResponse"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryMigrationInfoResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.migration_info":
+		m := new(MigrationInfo)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "opinit.opchild.v1.QueryMigrationInfoResponse.ibc_denom":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.QueryMigrationInfoResponse"))
+		}
+		panic(fmt.Errorf("message opinit.opchild.v1.QueryMigrationInfoResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryMigrationInfoResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in opinit.opchild.v1.QueryMigrationInfoResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryMigrationInfoResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryMigrationInfoResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryMigrationInfoResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryMigrationInfoResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryMigrationInfoResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.MigrationInfo != nil {
+			l = options.Size(x.MigrationInfo)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.IbcDenom)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryMigrationInfoResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.IbcDenom) > 0 {
+			i -= len(x.IbcDenom)
+			copy(dAtA[i:], x.IbcDenom)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.IbcDenom)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if x.MigrationInfo != nil {
+			encoded, err := options.Marshal(x.MigrationInfo)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryMigrationInfoResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryMigrationInfoResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryMigrationInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MigrationInfo", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.MigrationInfo == nil {
+					x.MigrationInfo = &MigrationInfo{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.MigrationInfo); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field IbcDenom", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.IbcDenom = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -6321,6 +7240,86 @@ func (x *QueryBaseDenomResponse) GetBaseDenom() string {
 	return ""
 }
 
+// QueryMigrationInfoRequest is request type for the Query/MigrationInfo RPC method.
+type QueryMigrationInfoRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
+}
+
+func (x *QueryMigrationInfoRequest) Reset() {
+	*x = QueryMigrationInfoRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_opinit_opchild_v1_query_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryMigrationInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryMigrationInfoRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryMigrationInfoRequest.ProtoReflect.Descriptor instead.
+func (*QueryMigrationInfoRequest) Descriptor() ([]byte, []int) {
+	return file_opinit_opchild_v1_query_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *QueryMigrationInfoRequest) GetDenom() string {
+	if x != nil {
+		return x.Denom
+	}
+	return ""
+}
+
+// QueryMigrationInfoResponse is response type for the Query/MigrationInfo RPC method.
+type QueryMigrationInfoResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	MigrationInfo *MigrationInfo `protobuf:"bytes,1,opt,name=migration_info,json=migrationInfo,proto3" json:"migration_info,omitempty"`
+	IbcDenom      string         `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
+}
+
+func (x *QueryMigrationInfoResponse) Reset() {
+	*x = QueryMigrationInfoResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_opinit_opchild_v1_query_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryMigrationInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryMigrationInfoResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryMigrationInfoResponse.ProtoReflect.Descriptor instead.
+func (*QueryMigrationInfoResponse) Descriptor() ([]byte, []int) {
+	return file_opinit_opchild_v1_query_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *QueryMigrationInfoResponse) GetMigrationInfo() *MigrationInfo {
+	if x != nil {
+		return x.MigrationInfo
+	}
+	return nil
+}
+
+func (x *QueryMigrationInfoResponse) GetIbcDenom() string {
+	if x != nil {
+		return x.IbcDenom
+	}
+	return ""
+}
+
 var File_opinit_opchild_v1_query_proto protoreflect.FileDescriptor
 
 var file_opinit_opchild_v1_query_proto_rawDesc = []byte{
@@ -6402,87 +7401,109 @@ var file_opinit_opchild_v1_query_proto_rawDesc = []byte{
 	0x37, 0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f,
 	0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x62, 0x61, 0x73,
 	0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x62,
-	0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x32, 0xa3, 0x08, 0x0a, 0x05, 0x51, 0x75, 0x65,
-	0x72, 0x79, 0x12, 0x8f, 0x01, 0x0a, 0x0a, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72,
-	0x73, 0x12, 0x29, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69,
-	0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64,
-	0x61, 0x74, 0x6f, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x6f,
-	0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31,
-	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x12, 0x1d, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f,
-	0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61,
-	0x74, 0x6f, 0x72, 0x73, 0x12, 0x9c, 0x01, 0x0a, 0x09, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
-	0x6f, 0x72, 0x12, 0x28, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68,
-	0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69,
-	0x64, 0x61, 0x74, 0x6f, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x6f,
-	0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31,
-	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x3a, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3,
-	0xe4, 0x93, 0x02, 0x2f, 0x12, 0x2d, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70,
-	0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
-	0x6f, 0x72, 0x2f, 0x7b, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x61, 0x64,
-	0x64, 0x72, 0x7d, 0x12, 0x90, 0x01, 0x0a, 0x0a, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x49, 0x6e,
-	0x66, 0x6f, 0x12, 0x29, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68,
-	0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e,
-	0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x49, 0x6e, 0x66,
-	0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2b, 0x88, 0xe7, 0xb0, 0x2a, 0x01,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x20, 0x12, 0x1e, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f,
-	0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x62, 0x72, 0x69, 0x64, 0x67,
-	0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x12, 0x7f, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x12, 0x25, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c,
-	0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74,
-	0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x26, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x12, 0x19, 0x2f, 0x6f,
-	0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31,
-	0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0xa1, 0x01, 0x0a, 0x0e, 0x4e, 0x65, 0x78, 0x74,
-	0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x2d, 0x2e, 0x6f, 0x70, 0x69,
+	0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0x31, 0x0a, 0x19, 0x51, 0x75, 0x65, 0x72,
+	0x79, 0x4d, 0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0x8d, 0x01, 0x0a, 0x1a,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x4d, 0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e,
+	0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x52, 0x0a, 0x0e, 0x6d, 0x69,
+	0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68,
+	0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x49, 0x6e, 0x66, 0x6f, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52,
+	0x0d, 0x6d, 0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x1b,
+	0x0a, 0x09, 0x69, 0x62, 0x63, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x08, 0x69, 0x62, 0x63, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x32, 0xcb, 0x09, 0x0a, 0x05,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x8f, 0x01, 0x0a, 0x0a, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61,
+	0x74, 0x6f, 0x72, 0x73, 0x12, 0x29, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70,
+	0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61,
+	0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x2a, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
+	0x6f, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x88, 0xe7, 0xb0,
+	0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x12, 0x1d, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69,
+	0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x61, 0x6c,
+	0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x9c, 0x01, 0x0a, 0x09, 0x56, 0x61, 0x6c, 0x69,
+	0x64, 0x61, 0x74, 0x6f, 0x72, 0x12, 0x28, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f,
+	0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56,
+	0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x29, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
+	0x6f, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x3a, 0x88, 0xe7, 0xb0, 0x2a,
+	0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2f, 0x12, 0x2d, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74,
+	0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x61, 0x6c, 0x69,
+	0x64, 0x61, 0x74, 0x6f, 0x72, 0x2f, 0x7b, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x6f, 0x72,
+	0x5f, 0x61, 0x64, 0x64, 0x72, 0x7d, 0x12, 0x90, 0x01, 0x0a, 0x0a, 0x42, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x29, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f,
+	0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42,
+	0x72, 0x69, 0x64, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x2a, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c,
+	0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2b, 0x88, 0xe7,
+	0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x20, 0x12, 0x1e, 0x2f, 0x6f, 0x70, 0x69, 0x6e,
+	0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x62, 0x72,
+	0x69, 0x64, 0x67, 0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x12, 0x7f, 0x0a, 0x06, 0x50, 0x61, 0x72,
+	0x61, 0x6d, 0x73, 0x12, 0x25, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63,
+	0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72,
+	0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x6f, 0x70, 0x69,
 	0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e,
-	0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x6f, 0x70, 0x69, 0x6e,
-	0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x30, 0x88, 0xe7, 0xb0, 0x2a, 0x01,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x25, 0x12, 0x23, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f,
-	0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x6e, 0x65, 0x78, 0x74, 0x5f,
-	0x6c, 0x31, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0xa1, 0x01, 0x0a, 0x0e,
-	0x4e, 0x65, 0x78, 0x74, 0x4c, 0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x2d,
-	0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e,
-	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x32, 0x53, 0x65,
-	0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e,
+	0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x26, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x12,
+	0x19, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0xa1, 0x01, 0x0a, 0x0e, 0x4e,
+	0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x2d, 0x2e,
 	0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x32, 0x53, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x30, 0x88,
-	0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x25, 0x12, 0x23, 0x2f, 0x6f, 0x70, 0x69,
-	0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x6e,
-	0x65, 0x78, 0x74, 0x5f, 0x6c, 0x32, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12,
-	0x8c, 0x01, 0x0a, 0x09, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x28, 0x2e,
-	0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74,
-	0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x2a, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x12,
-	0x1d, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
-	0x2f, 0x76, 0x31, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x42, 0xc8,
-	0x01, 0x0a, 0x15, 0x63, 0x6f, 0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70,
-	0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50,
-	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
-	0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f,
-	0x50, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74,
-	0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x63, 0x68,
-	0x69, 0x6c, 0x64, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x11, 0x4f, 0x70,
-	0x69, 0x6e, 0x69, 0x74, 0x2e, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x56, 0x31, 0xca,
-	0x02, 0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
-	0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1d, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63,
-	0x68, 0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
-	0x61, 0x74, 0x61, 0xea, 0x02, 0x13, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70,
-	0x63, 0x68, 0x69, 0x6c, 0x64, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71,
+	0x75, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x6f,
+	0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x31, 0x53, 0x65, 0x71, 0x75,
+	0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x30, 0x88, 0xe7,
+	0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x25, 0x12, 0x23, 0x2f, 0x6f, 0x70, 0x69, 0x6e,
+	0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x6e, 0x65,
+	0x78, 0x74, 0x5f, 0x6c, 0x31, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0xa1,
+	0x01, 0x0a, 0x0e, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x12, 0x2d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69,
+	0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c,
+	0x32, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x2e, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c,
+	0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x4c, 0x32,
+	0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x30, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x25, 0x12, 0x23, 0x2f,
+	0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76,
+	0x31, 0x2f, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x6c, 0x32, 0x5f, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e,
+	0x63, 0x65, 0x12, 0x8c, 0x01, 0x0a, 0x09, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d,
+	0x12, 0x28, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c,
+	0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65,
+	0x6e, 0x6f, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x6f, 0x70, 0x69,
+	0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x42, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93,
+	0x02, 0x1f, 0x12, 0x1d, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68,
+	0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f,
+	0x6d, 0x12, 0xa5, 0x01, 0x0a, 0x0d, 0x4d, 0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49,
+	0x6e, 0x66, 0x6f, 0x12, 0x2c, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63,
+	0x68, 0x69, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4d, 0x69, 0x67,
+	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x2d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69,
+	0x6c, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4d, 0x69, 0x67, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x37, 0x88, 0xe7, 0xb0, 0x2a, 0x01, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2c, 0x12, 0x2a, 0x2f,
+	0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2f, 0x76,
+	0x31, 0x2f, 0x6d, 0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x6e, 0x66, 0x6f,
+	0x2f, 0x62, 0x79, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x42, 0xc8, 0x01, 0x0a, 0x15, 0x63, 0x6f,
+	0x6d, 0x2e, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
+	0x01, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e,
+	0x69, 0x74, 0x69, 0x61, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x4f, 0x50, 0x69, 0x6e, 0x69, 0x74,
+	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x6f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2f, 0x6f, 0x70, 0x63, 0x68,
+	0x69, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x3b, 0x6f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x76, 0x31,
+	0xa2, 0x02, 0x03, 0x4f, 0x4f, 0x58, 0xaa, 0x02, 0x11, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x2e,
+	0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x11, 0x4f, 0x70, 0x69,
+	0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x5c, 0x56, 0x31, 0xe2, 0x02,
+	0x1d, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x5c, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64, 0x5c,
+	0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
+	0x13, 0x4f, 0x70, 0x69, 0x6e, 0x69, 0x74, 0x3a, 0x3a, 0x4f, 0x70, 0x63, 0x68, 0x69, 0x6c, 0x64,
+	0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -6497,7 +7518,7 @@ func file_opinit_opchild_v1_query_proto_rawDescGZIP() []byte {
 	return file_opinit_opchild_v1_query_proto_rawDescData
 }
 
-var file_opinit_opchild_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_opinit_opchild_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_opinit_opchild_v1_query_proto_goTypes = []interface{}{
 	(*QueryValidatorsRequest)(nil),      // 0: opinit.opchild.v1.QueryValidatorsRequest
 	(*QueryValidatorsResponse)(nil),     // 1: opinit.opchild.v1.QueryValidatorsResponse
@@ -6513,38 +7534,44 @@ var file_opinit_opchild_v1_query_proto_goTypes = []interface{}{
 	(*QueryNextL2SequenceResponse)(nil), // 11: opinit.opchild.v1.QueryNextL2SequenceResponse
 	(*QueryBaseDenomRequest)(nil),       // 12: opinit.opchild.v1.QueryBaseDenomRequest
 	(*QueryBaseDenomResponse)(nil),      // 13: opinit.opchild.v1.QueryBaseDenomResponse
-	(*v1beta1.PageRequest)(nil),         // 14: cosmos.base.query.v1beta1.PageRequest
-	(*Validator)(nil),                   // 15: opinit.opchild.v1.Validator
-	(*v1beta1.PageResponse)(nil),        // 16: cosmos.base.query.v1beta1.PageResponse
-	(*BridgeInfo)(nil),                  // 17: opinit.opchild.v1.BridgeInfo
-	(*Params)(nil),                      // 18: opinit.opchild.v1.Params
+	(*QueryMigrationInfoRequest)(nil),   // 14: opinit.opchild.v1.QueryMigrationInfoRequest
+	(*QueryMigrationInfoResponse)(nil),  // 15: opinit.opchild.v1.QueryMigrationInfoResponse
+	(*v1beta1.PageRequest)(nil),         // 16: cosmos.base.query.v1beta1.PageRequest
+	(*Validator)(nil),                   // 17: opinit.opchild.v1.Validator
+	(*v1beta1.PageResponse)(nil),        // 18: cosmos.base.query.v1beta1.PageResponse
+	(*BridgeInfo)(nil),                  // 19: opinit.opchild.v1.BridgeInfo
+	(*Params)(nil),                      // 20: opinit.opchild.v1.Params
+	(*MigrationInfo)(nil),               // 21: opinit.opchild.v1.MigrationInfo
 }
 var file_opinit_opchild_v1_query_proto_depIdxs = []int32{
-	14, // 0: opinit.opchild.v1.QueryValidatorsRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
-	15, // 1: opinit.opchild.v1.QueryValidatorsResponse.validators:type_name -> opinit.opchild.v1.Validator
-	16, // 2: opinit.opchild.v1.QueryValidatorsResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
-	15, // 3: opinit.opchild.v1.QueryValidatorResponse.validator:type_name -> opinit.opchild.v1.Validator
-	17, // 4: opinit.opchild.v1.QueryBridgeInfoResponse.bridge_info:type_name -> opinit.opchild.v1.BridgeInfo
-	18, // 5: opinit.opchild.v1.QueryParamsResponse.params:type_name -> opinit.opchild.v1.Params
-	0,  // 6: opinit.opchild.v1.Query.Validators:input_type -> opinit.opchild.v1.QueryValidatorsRequest
-	2,  // 7: opinit.opchild.v1.Query.Validator:input_type -> opinit.opchild.v1.QueryValidatorRequest
-	4,  // 8: opinit.opchild.v1.Query.BridgeInfo:input_type -> opinit.opchild.v1.QueryBridgeInfoRequest
-	6,  // 9: opinit.opchild.v1.Query.Params:input_type -> opinit.opchild.v1.QueryParamsRequest
-	8,  // 10: opinit.opchild.v1.Query.NextL1Sequence:input_type -> opinit.opchild.v1.QueryNextL1SequenceRequest
-	10, // 11: opinit.opchild.v1.Query.NextL2Sequence:input_type -> opinit.opchild.v1.QueryNextL2SequenceRequest
-	12, // 12: opinit.opchild.v1.Query.BaseDenom:input_type -> opinit.opchild.v1.QueryBaseDenomRequest
-	1,  // 13: opinit.opchild.v1.Query.Validators:output_type -> opinit.opchild.v1.QueryValidatorsResponse
-	3,  // 14: opinit.opchild.v1.Query.Validator:output_type -> opinit.opchild.v1.QueryValidatorResponse
-	5,  // 15: opinit.opchild.v1.Query.BridgeInfo:output_type -> opinit.opchild.v1.QueryBridgeInfoResponse
-	7,  // 16: opinit.opchild.v1.Query.Params:output_type -> opinit.opchild.v1.QueryParamsResponse
-	9,  // 17: opinit.opchild.v1.Query.NextL1Sequence:output_type -> opinit.opchild.v1.QueryNextL1SequenceResponse
-	11, // 18: opinit.opchild.v1.Query.NextL2Sequence:output_type -> opinit.opchild.v1.QueryNextL2SequenceResponse
-	13, // 19: opinit.opchild.v1.Query.BaseDenom:output_type -> opinit.opchild.v1.QueryBaseDenomResponse
-	13, // [13:20] is the sub-list for method output_type
-	6,  // [6:13] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	16, // 0: opinit.opchild.v1.QueryValidatorsRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	17, // 1: opinit.opchild.v1.QueryValidatorsResponse.validators:type_name -> opinit.opchild.v1.Validator
+	18, // 2: opinit.opchild.v1.QueryValidatorsResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	17, // 3: opinit.opchild.v1.QueryValidatorResponse.validator:type_name -> opinit.opchild.v1.Validator
+	19, // 4: opinit.opchild.v1.QueryBridgeInfoResponse.bridge_info:type_name -> opinit.opchild.v1.BridgeInfo
+	20, // 5: opinit.opchild.v1.QueryParamsResponse.params:type_name -> opinit.opchild.v1.Params
+	21, // 6: opinit.opchild.v1.QueryMigrationInfoResponse.migration_info:type_name -> opinit.opchild.v1.MigrationInfo
+	0,  // 7: opinit.opchild.v1.Query.Validators:input_type -> opinit.opchild.v1.QueryValidatorsRequest
+	2,  // 8: opinit.opchild.v1.Query.Validator:input_type -> opinit.opchild.v1.QueryValidatorRequest
+	4,  // 9: opinit.opchild.v1.Query.BridgeInfo:input_type -> opinit.opchild.v1.QueryBridgeInfoRequest
+	6,  // 10: opinit.opchild.v1.Query.Params:input_type -> opinit.opchild.v1.QueryParamsRequest
+	8,  // 11: opinit.opchild.v1.Query.NextL1Sequence:input_type -> opinit.opchild.v1.QueryNextL1SequenceRequest
+	10, // 12: opinit.opchild.v1.Query.NextL2Sequence:input_type -> opinit.opchild.v1.QueryNextL2SequenceRequest
+	12, // 13: opinit.opchild.v1.Query.BaseDenom:input_type -> opinit.opchild.v1.QueryBaseDenomRequest
+	14, // 14: opinit.opchild.v1.Query.MigrationInfo:input_type -> opinit.opchild.v1.QueryMigrationInfoRequest
+	1,  // 15: opinit.opchild.v1.Query.Validators:output_type -> opinit.opchild.v1.QueryValidatorsResponse
+	3,  // 16: opinit.opchild.v1.Query.Validator:output_type -> opinit.opchild.v1.QueryValidatorResponse
+	5,  // 17: opinit.opchild.v1.Query.BridgeInfo:output_type -> opinit.opchild.v1.QueryBridgeInfoResponse
+	7,  // 18: opinit.opchild.v1.Query.Params:output_type -> opinit.opchild.v1.QueryParamsResponse
+	9,  // 19: opinit.opchild.v1.Query.NextL1Sequence:output_type -> opinit.opchild.v1.QueryNextL1SequenceResponse
+	11, // 20: opinit.opchild.v1.Query.NextL2Sequence:output_type -> opinit.opchild.v1.QueryNextL2SequenceResponse
+	13, // 21: opinit.opchild.v1.Query.BaseDenom:output_type -> opinit.opchild.v1.QueryBaseDenomResponse
+	15, // 22: opinit.opchild.v1.Query.MigrationInfo:output_type -> opinit.opchild.v1.QueryMigrationInfoResponse
+	15, // [15:23] is the sub-list for method output_type
+	7,  // [7:15] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_opinit_opchild_v1_query_proto_init() }
@@ -6722,6 +7749,30 @@ func file_opinit_opchild_v1_query_proto_init() {
 				return nil
 			}
 		}
+		file_opinit_opchild_v1_query_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryMigrationInfoRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_opinit_opchild_v1_query_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryMigrationInfoResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -6729,7 +7780,7 @@ func file_opinit_opchild_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_opinit_opchild_v1_query_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

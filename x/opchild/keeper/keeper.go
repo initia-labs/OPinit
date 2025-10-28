@@ -42,6 +42,8 @@ type Keeper struct {
 	validatorAddressCodec address.Codec
 	consensusAddressCodec address.Codec
 
+	l1AddressCodec address.Codec
+
 	Schema               collections.Schema
 	NextL1Sequence       collections.Sequence
 	NextL2Sequence       collections.Sequence
@@ -87,6 +89,7 @@ func NewKeeper(
 	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
 	consensusAddressCodec address.Codec,
+	l1AddressCodec address.Codec,
 	logger log.Logger,
 ) *Keeper {
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -118,6 +121,7 @@ func NewKeeper(
 		addressCodec:          addressCodec,
 		validatorAddressCodec: validatorAddressCodec,
 		consensusAddressCodec: consensusAddressCodec,
+		l1AddressCodec:        l1AddressCodec,
 		NextL1Sequence:        collections.NewSequence(sb, types.NextL1SequenceKey, "finalized_l1_sequence"),
 		NextL2Sequence:        collections.NewSequence(sb, types.NextL2SequenceKey, "next_l2_sequence"),
 		Params:                collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
