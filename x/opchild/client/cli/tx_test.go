@@ -498,6 +498,76 @@ func (s *CLITestSuite) TestNewSetBridgeInfo() {
 	}
 }
 
+func (s *CLITestSuite) TestNewMigrateTokenCmd() {
+	require := s.Require()
+	cmd := cli.NewMigrateTokenCmd(addresscodec.NewBech32Codec("init"))
+
+	consPrivKey := ed25519.GenPrivKey()
+	consPubKeyBz, err := s.encCfg.Codec.MarshalInterfaceJSON(consPrivKey.PubKey())
+	require.NoError(err)
+	require.NotNil(consPubKeyBz)
+
+	testCases := []struct {
+		name         string
+		args         []string
+		expectErr    bool
+		expectedCode uint32
+		respType     proto.Message
+	}{
+		{
+			"valid transaction",
+			[]string{
+				"100umin",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false, 0, &sdk.TxResponse{},
+		},
+		{
+			"invalid transaction (invalid amount)",
+			[]string{
+				"-1umin",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true, 0, &sdk.TxResponse{},
+		},
+		{
+			"invalid transaction (malformed amount)",
+			[]string{
+				"invalid_amount",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, s.addrs[0]),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true, 0, &sdk.TxResponse{},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
+			if tc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err, "test: %s\noutput: %s", tc.name, out.String())
+				err = s.clientCtx.Codec.UnmarshalJSON(out.Bytes(), tc.respType)
+				require.NoError(err, out.String(), "test: %s, output\n:", tc.name, out.String())
+
+				txResp := tc.respType.(*sdk.TxResponse)
+				require.Equal(tc.expectedCode, txResp.Code,
+					"test: %s, output\n:", tc.name, out.String())
+			}
+		})
+	}
+}
+
 func TestCLITestSuite(t *testing.T) {
 	suite.Run(t, new(CLITestSuite))
 }

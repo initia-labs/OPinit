@@ -40,6 +40,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewWithdrawCmd(ac),
 		NewSetBridgeInfoCmd(ac),
 		NewUpdateOracleCmd(ac),
+		NewMigrateTokenCmd(ac),
 	)
 
 	return opchildTxCmd
@@ -193,6 +194,42 @@ func NewUpdateOracleCmd(ac address.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgUpdateOracle(fromAddr, height, data)
+			if err := msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewMigrateTokenCmd returns a CLI command handler for the transaction manually migrating a L2 token to IBC token.
+func NewMigrateTokenCmd(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "migrate-token [amount]",
+		Short: "migrate a L2 token to IBC token",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMigrateToken(fromAddr, amount)
 			if err := msg.Validate(ac); err != nil {
 				return err
 			}
