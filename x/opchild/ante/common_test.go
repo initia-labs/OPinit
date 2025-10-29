@@ -293,7 +293,7 @@ func _createTestInput(
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
-		accountKeeper,
+		&accountKeeper,
 		bankKeeper,
 		&oracleKeeper,
 		sdk.ChainAnteDecorators(

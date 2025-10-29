@@ -1,13 +1,14 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 	"errors"
 
 	"cosmossdk.io/collections"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -36,19 +37,35 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	} else if err != nil {
 		return false, err
 	}
+
+	// get the auth keeper
+	authKeeper, ok := k.authKeeper.(*authkeeper.AccountKeeper)
+	if !ok {
+		return false, errors.New("unexpected auth keeper type")
+	}
+
+	// iterate all accounts from the last processed address
+	iter, err := authKeeper.Accounts.Iterate(ctx, new(collections.Range[sdk.AccAddress]).StartInclusive(shutdownInfo))
+	if err != nil {
+		return false, err
+	}
+	defer iter.Close()
+
 	var lastAddr sdk.AccAddress
+	for ; iter.Valid(); iter.Next() {
+		var addr sdk.AccAddress
+		addr, err = iter.Key()
+		if err != nil {
+			return false, err
+		}
+		acc, err := iter.Value()
+		if err != nil {
+			return false, err
+		}
+		lastAddr = addr
 
-	k.authKeeper.IterateAccounts(ctx, func(acc sdk.AccountI) bool {
-		addr := acc.GetAddress()
-
-		defer func() {
-			lastAddr = addr
-		}()
-
-		if bytes.Compare(shutdownInfo, addr.Bytes()) >= 0 {
-			return false
-		} else if _, ok := acc.(sdk.ModuleAccountI); ok {
-			return false
+		if _, ok := acc.(sdk.ModuleAccountI); ok {
+			continue
 		}
 
 		k.bankKeeper.IterateAccountBalances(ctx, addr, func(coin sdk.Coin) bool {
@@ -87,10 +104,9 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 			return withdrawCount == MaxWithdrawCount
 		})
 		if err != nil || withdrawCount == MaxWithdrawCount {
-			return true
+			break
 		}
-		return false
-	})
+	}
 
 	if err != nil {
 		return false, err
