@@ -502,6 +502,32 @@ func (msg MsgUpdateFinalizationPeriod) Validate(ac address.Codec) error {
 	return nil
 }
 
+/* MsgDisableBridge */
+
+// NewMsgDisableBridge creates a new MsgDisableBridge instance.
+func NewMsgDisableBridge(
+	authority string,
+	bridgeId uint64,
+) *MsgDisableBridge {
+	return &MsgDisableBridge{
+		Authority: authority,
+		BridgeId:  bridgeId,
+	}
+}
+
+// Validate performs basic MsgDisableBridge message validation.
+func (msg MsgDisableBridge) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	return nil
+}
+
 /* MsgRegisterMigrationInfo */
 
 // NewMsgRegisterMigrationInfo creates a new MsgRegisterMigrationInfo instance.

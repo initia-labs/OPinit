@@ -326,7 +326,7 @@ func _createTestInput(
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
-		accountKeeper,
+		&accountKeeper,
 		bankKeeper,
 		&oracleKeeper,
 		sdk.ChainAnteDecorators(
@@ -342,6 +342,7 @@ func _createTestInput(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		authcodec.NewBech32Codec("init"),
 		ctx.Logger(),
 	).WithTokenCreationFn(tokenCreationFactory.TokenCreationFn)
 

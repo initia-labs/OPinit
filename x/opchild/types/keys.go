@@ -33,4 +33,5 @@ var (
 
 	MigrationInfoPrefix   = []byte{0x61} // prefix for the migration info
 	IBCToL2DenomMapPrefix = []byte{0x62} // prefix for the ibc to l2 denom map
+	ShutdownInfoPrefix    = []byte{0x63} // prefix for the shutdown info
 )

@@ -31,6 +31,7 @@ const (
 	Query_Claimed_FullMethodName             = "/opinit.ophost.v1.Query/Claimed"
 	Query_NextL1Sequence_FullMethodName      = "/opinit.ophost.v1.Query/NextL1Sequence"
 	Query_BatchInfos_FullMethodName          = "/opinit.ophost.v1.Query/BatchInfos"
+	Query_MigrationInfo_FullMethodName       = "/opinit.ophost.v1.Query/MigrationInfo"
 )
 
 // QueryClient is the client API for Query service.
@@ -61,6 +62,8 @@ type QueryClient interface {
 	NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error)
 	// BatchInfos queries all batch infos.
 	BatchInfos(ctx context.Context, in *QueryBatchInfosRequest, opts ...grpc.CallOption) (*QueryBatchInfosResponse, error)
+	// MigrationInfo queries the migration info.
+	MigrationInfo(ctx context.Context, in *QueryMigrationInfoRequest, opts ...grpc.CallOption) (*QueryMigrationInfoResponse, error)
 }
 
 type queryClient struct {
@@ -179,6 +182,15 @@ func (c *queryClient) BatchInfos(ctx context.Context, in *QueryBatchInfosRequest
 	return out, nil
 }
 
+func (c *queryClient) MigrationInfo(ctx context.Context, in *QueryMigrationInfoRequest, opts ...grpc.CallOption) (*QueryMigrationInfoResponse, error) {
+	out := new(QueryMigrationInfoResponse)
+	err := c.cc.Invoke(ctx, Query_MigrationInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -207,6 +219,8 @@ type QueryServer interface {
 	NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error)
 	// BatchInfos queries all batch infos.
 	BatchInfos(context.Context, *QueryBatchInfosRequest) (*QueryBatchInfosResponse, error)
+	// MigrationInfo queries the migration info.
+	MigrationInfo(context.Context, *QueryMigrationInfoRequest) (*QueryMigrationInfoResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -249,6 +263,9 @@ func (UnimplementedQueryServer) NextL1Sequence(context.Context, *QueryNextL1Sequ
 }
 func (UnimplementedQueryServer) BatchInfos(context.Context, *QueryBatchInfosRequest) (*QueryBatchInfosResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchInfos not implemented")
+}
+func (UnimplementedQueryServer) MigrationInfo(context.Context, *QueryMigrationInfoRequest) (*QueryMigrationInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MigrationInfo not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -479,6 +496,24 @@ func _Query_BatchInfos_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_MigrationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryMigrationInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).MigrationInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_MigrationInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).MigrationInfo(ctx, req.(*QueryMigrationInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -533,6 +568,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchInfos",
 			Handler:    _Query_BatchInfos_Handler,
+		},
+		{
+			MethodName: "MigrationInfo",
+			Handler:    _Query_MigrationInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

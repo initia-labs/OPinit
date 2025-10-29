@@ -23,4 +23,6 @@ var (
 	ErrEmptyBatchBytes            = errorsmod.Register(ModuleName, 16, "empty batch bytes")
 	ErrBridgeNotFound             = errorsmod.Register(ModuleName, 17, "bridge not found")
 	ErrInvalidData                = errorsmod.Register(ModuleName, 18, "invalid data")
+	ErrBridgeAlreadyDisabled      = errorsmod.Register(ModuleName, 19, "bridge already disabled")
+	ErrBridgeDisabled             = errorsmod.Register(ModuleName, 20, "bridge disabled")
 )

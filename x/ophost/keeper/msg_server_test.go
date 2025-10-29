@@ -88,7 +88,7 @@ func Test_ProposeOutput(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, types.Output{
 		OutputRoot:    []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		L1BlockNumber: uint64(ctx.BlockHeight()),
+		L1BlockNumber: uint64(ctx.BlockHeight()), //nolint:gosec
 		L1BlockTime:   blockTime,
 		L2BlockNumber: 100,
 	}, output)
@@ -190,6 +190,14 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 		types.NewMsgInitiateTokenDeposit(addrsStr[1], 2, "l2_addr", amount, []byte("messages")),
 	)
 	require.Error(t, err)
+
+	// bridge disabled
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	_, err = ms.DisableBridge(ctx, types.NewMsgDisableBridge(govAddr, 1))
+	require.NoError(t, err)
+	_, err = ms.InitiateTokenDeposit(ctx, types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, "l2_addr", amount, []byte("messages")))
+	require.ErrorIs(t, err, types.ErrBridgeDisabled)
 }
 
 func Test_FinalizeTokenWithdrawal(t *testing.T) {
@@ -241,7 +249,6 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
 
-	require.NoError(t, err)
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
 		addrsStr[3], // any address can execute this
 		1, 1, 1, proofs,
@@ -603,6 +610,46 @@ func Test_UpdateMetadata(t *testing.T) {
 	)
 	require.Error(t, err)
 
+}
+
+func Test_MsgServer_DisableBridge(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	config := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challenger:            addrsStr[1],
+		SubmissionInterval:    time.Second * 10,
+		FinalizationPeriod:    time.Second * 60,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte{1, 2, 3},
+		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		OracleEnabled:         true,
+	}
+
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	require.NoError(t, err)
+
+	// gov signer
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
+	require.NoError(t, err)
+	msg := types.NewMsgDisableBridge(govAddr, 1)
+	_, err = ms.DisableBridge(ctx, msg)
+	require.NoError(t, err)
+	_config, err := ms.GetBridgeConfig(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, true, _config.BridgeDisabled)
+	require.Equal(t, ctx.BlockTime(), _config.BridgeDisabledAt)
+
+	// already disabled
+	msg = types.NewMsgDisableBridge(govAddr, 1)
+	_, err = ms.DisableBridge(ctx, msg)
+	require.Error(t, err)
+
+	// current proposer signer
+	msg = types.NewMsgDisableBridge(addrsStr[0], 1)
+	_, err = ms.DisableBridge(ctx, msg)
+	require.Error(t, err)
 }
 
 func Test_MsgServer_UpdateParams(t *testing.T) {

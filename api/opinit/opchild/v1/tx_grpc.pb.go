@@ -19,15 +19,24 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_ExecuteMessages_FullMethodName         = "/opinit.opchild.v1.Msg/ExecuteMessages"
-	Msg_SetBridgeInfo_FullMethodName           = "/opinit.opchild.v1.Msg/SetBridgeInfo"
-	Msg_FinalizeTokenDeposit_FullMethodName    = "/opinit.opchild.v1.Msg/FinalizeTokenDeposit"
-	Msg_InitiateTokenWithdrawal_FullMethodName = "/opinit.opchild.v1.Msg/InitiateTokenWithdrawal"
-	Msg_AddValidator_FullMethodName            = "/opinit.opchild.v1.Msg/AddValidator"
-	Msg_RemoveValidator_FullMethodName         = "/opinit.opchild.v1.Msg/RemoveValidator"
-	Msg_UpdateParams_FullMethodName            = "/opinit.opchild.v1.Msg/UpdateParams"
-	Msg_SpendFeePool_FullMethodName            = "/opinit.opchild.v1.Msg/SpendFeePool"
-	Msg_UpdateOracle_FullMethodName            = "/opinit.opchild.v1.Msg/UpdateOracle"
+	Msg_ExecuteMessages_FullMethodName             = "/opinit.opchild.v1.Msg/ExecuteMessages"
+	Msg_SetBridgeInfo_FullMethodName               = "/opinit.opchild.v1.Msg/SetBridgeInfo"
+	Msg_FinalizeTokenDeposit_FullMethodName        = "/opinit.opchild.v1.Msg/FinalizeTokenDeposit"
+	Msg_InitiateTokenWithdrawal_FullMethodName     = "/opinit.opchild.v1.Msg/InitiateTokenWithdrawal"
+	Msg_UpdateSequencer_FullMethodName             = "/opinit.opchild.v1.Msg/UpdateSequencer"
+	Msg_AddAttestor_FullMethodName                 = "/opinit.opchild.v1.Msg/AddAttestor"
+	Msg_RemoveAttestor_FullMethodName              = "/opinit.opchild.v1.Msg/RemoveAttestor"
+	Msg_AddFeeWhitelistAddresses_FullMethodName    = "/opinit.opchild.v1.Msg/AddFeeWhitelistAddresses"
+	Msg_RemoveFeeWhitelistAddresses_FullMethodName = "/opinit.opchild.v1.Msg/RemoveFeeWhitelistAddresses"
+	Msg_AddBridgeExecutor_FullMethodName           = "/opinit.opchild.v1.Msg/AddBridgeExecutor"
+	Msg_RemoveBridgeExecutor_FullMethodName        = "/opinit.opchild.v1.Msg/RemoveBridgeExecutor"
+	Msg_UpdateMinGasPrices_FullMethodName          = "/opinit.opchild.v1.Msg/UpdateMinGasPrices"
+	Msg_UpdateAdmin_FullMethodName                 = "/opinit.opchild.v1.Msg/UpdateAdmin"
+	Msg_UpdateParams_FullMethodName                = "/opinit.opchild.v1.Msg/UpdateParams"
+	Msg_SpendFeePool_FullMethodName                = "/opinit.opchild.v1.Msg/SpendFeePool"
+	Msg_UpdateOracle_FullMethodName                = "/opinit.opchild.v1.Msg/UpdateOracle"
+	Msg_RegisterMigrationInfo_FullMethodName       = "/opinit.opchild.v1.Msg/RegisterMigrationInfo"
+	Msg_MigrateToken_FullMethodName                = "/opinit.opchild.v1.Msg/MigrateToken"
 )
 
 // MsgClient is the client API for Msg service.
@@ -42,10 +51,26 @@ type MsgClient interface {
 	FinalizeTokenDeposit(ctx context.Context, in *MsgFinalizeTokenDeposit, opts ...grpc.CallOption) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	InitiateTokenWithdrawal(ctx context.Context, in *MsgInitiateTokenWithdrawal, opts ...grpc.CallOption) (*MsgInitiateTokenWithdrawalResponse, error)
-	// AddValidator defines a rpc handler method for MsgAddValidator.
-	AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error)
-	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
-	RemoveValidator(ctx context.Context, in *MsgRemoveValidator, opts ...grpc.CallOption) (*MsgRemoveValidatorResponse, error)
+	// UpdateSequencer defines a rpc handler method for MsgUpdateSequencer.
+	UpdateSequencer(ctx context.Context, in *MsgUpdateSequencer, opts ...grpc.CallOption) (*MsgUpdateSequencerResponse, error)
+	// AddAttestor defines a rpc handler method for MsgAddAttestor.
+	AddAttestor(ctx context.Context, in *MsgAddAttestor, opts ...grpc.CallOption) (*MsgAddAttestorResponse, error)
+	// RemoveAttestor defines a rpc handler method for MsgRemoveAttestor.
+	RemoveAttestor(ctx context.Context, in *MsgRemoveAttestor, opts ...grpc.CallOption) (*MsgRemoveAttestorResponse, error)
+	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
+	AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error)
+	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
+	// fee whitelist.
+	RemoveFeeWhitelistAddresses(ctx context.Context, in *MsgRemoveFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgRemoveFeeWhitelistAddressesResponse, error)
+	// AddBridgeExecutor defines an authorized operation for adding addresses to x/opchild bridge executors
+	AddBridgeExecutor(ctx context.Context, in *MsgAddBridgeExecutor, opts ...grpc.CallOption) (*MsgAddBridgeExecutorResponse, error)
+	// RemoveBridgeExecutor defines an authorized operation for removing addresses from x/opchild
+	// bridge executors.
+	RemoveBridgeExecutor(ctx context.Context, in *MsgRemoveBridgeExecutor, opts ...grpc.CallOption) (*MsgRemoveBridgeExecutorResponse, error)
+	// UpdateMinGasPrices defines an authorized operation for updating the min gas prices parameter
+	UpdateMinGasPrices(ctx context.Context, in *MsgUpdateMinGasPrices, opts ...grpc.CallOption) (*MsgUpdateMinGasPricesResponse, error)
+	// UpdateAdmin defines an authorized operation for updating the x/opchild admin
+	UpdateAdmin(ctx context.Context, in *MsgUpdateAdmin, opts ...grpc.CallOption) (*MsgUpdateAdminResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -53,6 +78,10 @@ type MsgClient interface {
 	SpendFeePool(ctx context.Context, in *MsgSpendFeePool, opts ...grpc.CallOption) (*MsgSpendFeePoolResponse, error)
 	// UpdateOracle defines an operation that update oracle prices.
 	UpdateOracle(ctx context.Context, in *MsgUpdateOracle, opts ...grpc.CallOption) (*MsgUpdateOracleResponse, error)
+	// RegisterMigrationInfo defines an operation that register the migration information.
+	RegisterMigrationInfo(ctx context.Context, in *MsgRegisterMigrationInfo, opts ...grpc.CallOption) (*MsgRegisterMigrationInfoResponse, error)
+	// MigrateToken defines an operation that migrate the origin OP token to registered IBC token.
+	MigrateToken(ctx context.Context, in *MsgMigrateToken, opts ...grpc.CallOption) (*MsgMigrateTokenResponse, error)
 }
 
 type msgClient struct {
@@ -99,18 +128,81 @@ func (c *msgClient) InitiateTokenWithdrawal(ctx context.Context, in *MsgInitiate
 	return out, nil
 }
 
-func (c *msgClient) AddValidator(ctx context.Context, in *MsgAddValidator, opts ...grpc.CallOption) (*MsgAddValidatorResponse, error) {
-	out := new(MsgAddValidatorResponse)
-	err := c.cc.Invoke(ctx, Msg_AddValidator_FullMethodName, in, out, opts...)
+func (c *msgClient) UpdateSequencer(ctx context.Context, in *MsgUpdateSequencer, opts ...grpc.CallOption) (*MsgUpdateSequencerResponse, error) {
+	out := new(MsgUpdateSequencerResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateSequencer_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) RemoveValidator(ctx context.Context, in *MsgRemoveValidator, opts ...grpc.CallOption) (*MsgRemoveValidatorResponse, error) {
-	out := new(MsgRemoveValidatorResponse)
-	err := c.cc.Invoke(ctx, Msg_RemoveValidator_FullMethodName, in, out, opts...)
+func (c *msgClient) AddAttestor(ctx context.Context, in *MsgAddAttestor, opts ...grpc.CallOption) (*MsgAddAttestorResponse, error) {
+	out := new(MsgAddAttestorResponse)
+	err := c.cc.Invoke(ctx, Msg_AddAttestor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveAttestor(ctx context.Context, in *MsgRemoveAttestor, opts ...grpc.CallOption) (*MsgRemoveAttestorResponse, error) {
+	out := new(MsgRemoveAttestorResponse)
+	err := c.cc.Invoke(ctx, Msg_RemoveAttestor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) AddFeeWhitelistAddresses(ctx context.Context, in *MsgAddFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgAddFeeWhitelistAddressesResponse, error) {
+	out := new(MsgAddFeeWhitelistAddressesResponse)
+	err := c.cc.Invoke(ctx, Msg_AddFeeWhitelistAddresses_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveFeeWhitelistAddresses(ctx context.Context, in *MsgRemoveFeeWhitelistAddresses, opts ...grpc.CallOption) (*MsgRemoveFeeWhitelistAddressesResponse, error) {
+	out := new(MsgRemoveFeeWhitelistAddressesResponse)
+	err := c.cc.Invoke(ctx, Msg_RemoveFeeWhitelistAddresses_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) AddBridgeExecutor(ctx context.Context, in *MsgAddBridgeExecutor, opts ...grpc.CallOption) (*MsgAddBridgeExecutorResponse, error) {
+	out := new(MsgAddBridgeExecutorResponse)
+	err := c.cc.Invoke(ctx, Msg_AddBridgeExecutor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveBridgeExecutor(ctx context.Context, in *MsgRemoveBridgeExecutor, opts ...grpc.CallOption) (*MsgRemoveBridgeExecutorResponse, error) {
+	out := new(MsgRemoveBridgeExecutorResponse)
+	err := c.cc.Invoke(ctx, Msg_RemoveBridgeExecutor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateMinGasPrices(ctx context.Context, in *MsgUpdateMinGasPrices, opts ...grpc.CallOption) (*MsgUpdateMinGasPricesResponse, error) {
+	out := new(MsgUpdateMinGasPricesResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateMinGasPrices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateAdmin(ctx context.Context, in *MsgUpdateAdmin, opts ...grpc.CallOption) (*MsgUpdateAdminResponse, error) {
+	out := new(MsgUpdateAdminResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateAdmin_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -144,6 +236,24 @@ func (c *msgClient) UpdateOracle(ctx context.Context, in *MsgUpdateOracle, opts 
 	return out, nil
 }
 
+func (c *msgClient) RegisterMigrationInfo(ctx context.Context, in *MsgRegisterMigrationInfo, opts ...grpc.CallOption) (*MsgRegisterMigrationInfoResponse, error) {
+	out := new(MsgRegisterMigrationInfoResponse)
+	err := c.cc.Invoke(ctx, Msg_RegisterMigrationInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) MigrateToken(ctx context.Context, in *MsgMigrateToken, opts ...grpc.CallOption) (*MsgMigrateTokenResponse, error) {
+	out := new(MsgMigrateTokenResponse)
+	err := c.cc.Invoke(ctx, Msg_MigrateToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -156,10 +266,26 @@ type MsgServer interface {
 	FinalizeTokenDeposit(context.Context, *MsgFinalizeTokenDeposit) (*MsgFinalizeTokenDepositResponse, error)
 	// InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
 	InitiateTokenWithdrawal(context.Context, *MsgInitiateTokenWithdrawal) (*MsgInitiateTokenWithdrawalResponse, error)
-	// AddValidator defines a rpc handler method for MsgAddValidator.
-	AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error)
-	// RemoveValidator defines a rpc handler method for MsgRemoveValidator.
-	RemoveValidator(context.Context, *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error)
+	// UpdateSequencer defines a rpc handler method for MsgUpdateSequencer.
+	UpdateSequencer(context.Context, *MsgUpdateSequencer) (*MsgUpdateSequencerResponse, error)
+	// AddAttestor defines a rpc handler method for MsgAddAttestor.
+	AddAttestor(context.Context, *MsgAddAttestor) (*MsgAddAttestorResponse, error)
+	// RemoveAttestor defines a rpc handler method for MsgRemoveAttestor.
+	RemoveAttestor(context.Context, *MsgRemoveAttestor) (*MsgRemoveAttestorResponse, error)
+	// AddFeeWhitelistAddresses defines an authorized operation for adding addresses to x/opchild fee whitelist.
+	AddFeeWhitelistAddresses(context.Context, *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error)
+	// RemoveFeeWhitelistAddresses defines an authorized operation for removing addresses from x/opchild
+	// fee whitelist.
+	RemoveFeeWhitelistAddresses(context.Context, *MsgRemoveFeeWhitelistAddresses) (*MsgRemoveFeeWhitelistAddressesResponse, error)
+	// AddBridgeExecutor defines an authorized operation for adding addresses to x/opchild bridge executors
+	AddBridgeExecutor(context.Context, *MsgAddBridgeExecutor) (*MsgAddBridgeExecutorResponse, error)
+	// RemoveBridgeExecutor defines an authorized operation for removing addresses from x/opchild
+	// bridge executors.
+	RemoveBridgeExecutor(context.Context, *MsgRemoveBridgeExecutor) (*MsgRemoveBridgeExecutorResponse, error)
+	// UpdateMinGasPrices defines an authorized operation for updating the min gas prices parameter
+	UpdateMinGasPrices(context.Context, *MsgUpdateMinGasPrices) (*MsgUpdateMinGasPricesResponse, error)
+	// UpdateAdmin defines an authorized operation for updating the x/opchild admin
+	UpdateAdmin(context.Context, *MsgUpdateAdmin) (*MsgUpdateAdminResponse, error)
 	// UpdateParams defines an operation for updating the
 	// x/opchild module parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -167,6 +293,10 @@ type MsgServer interface {
 	SpendFeePool(context.Context, *MsgSpendFeePool) (*MsgSpendFeePoolResponse, error)
 	// UpdateOracle defines an operation that update oracle prices.
 	UpdateOracle(context.Context, *MsgUpdateOracle) (*MsgUpdateOracleResponse, error)
+	// RegisterMigrationInfo defines an operation that register the migration information.
+	RegisterMigrationInfo(context.Context, *MsgRegisterMigrationInfo) (*MsgRegisterMigrationInfoResponse, error)
+	// MigrateToken defines an operation that migrate the origin OP token to registered IBC token.
+	MigrateToken(context.Context, *MsgMigrateToken) (*MsgMigrateTokenResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -186,11 +316,32 @@ func (UnimplementedMsgServer) FinalizeTokenDeposit(context.Context, *MsgFinalize
 func (UnimplementedMsgServer) InitiateTokenWithdrawal(context.Context, *MsgInitiateTokenWithdrawal) (*MsgInitiateTokenWithdrawalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitiateTokenWithdrawal not implemented")
 }
-func (UnimplementedMsgServer) AddValidator(context.Context, *MsgAddValidator) (*MsgAddValidatorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddValidator not implemented")
+func (UnimplementedMsgServer) UpdateSequencer(context.Context, *MsgUpdateSequencer) (*MsgUpdateSequencerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSequencer not implemented")
 }
-func (UnimplementedMsgServer) RemoveValidator(context.Context, *MsgRemoveValidator) (*MsgRemoveValidatorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveValidator not implemented")
+func (UnimplementedMsgServer) AddAttestor(context.Context, *MsgAddAttestor) (*MsgAddAttestorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddAttestor not implemented")
+}
+func (UnimplementedMsgServer) RemoveAttestor(context.Context, *MsgRemoveAttestor) (*MsgRemoveAttestorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveAttestor not implemented")
+}
+func (UnimplementedMsgServer) AddFeeWhitelistAddresses(context.Context, *MsgAddFeeWhitelistAddresses) (*MsgAddFeeWhitelistAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddFeeWhitelistAddresses not implemented")
+}
+func (UnimplementedMsgServer) RemoveFeeWhitelistAddresses(context.Context, *MsgRemoveFeeWhitelistAddresses) (*MsgRemoveFeeWhitelistAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveFeeWhitelistAddresses not implemented")
+}
+func (UnimplementedMsgServer) AddBridgeExecutor(context.Context, *MsgAddBridgeExecutor) (*MsgAddBridgeExecutorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBridgeExecutor not implemented")
+}
+func (UnimplementedMsgServer) RemoveBridgeExecutor(context.Context, *MsgRemoveBridgeExecutor) (*MsgRemoveBridgeExecutorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBridgeExecutor not implemented")
+}
+func (UnimplementedMsgServer) UpdateMinGasPrices(context.Context, *MsgUpdateMinGasPrices) (*MsgUpdateMinGasPricesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMinGasPrices not implemented")
+}
+func (UnimplementedMsgServer) UpdateAdmin(context.Context, *MsgUpdateAdmin) (*MsgUpdateAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAdmin not implemented")
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -200,6 +351,12 @@ func (UnimplementedMsgServer) SpendFeePool(context.Context, *MsgSpendFeePool) (*
 }
 func (UnimplementedMsgServer) UpdateOracle(context.Context, *MsgUpdateOracle) (*MsgUpdateOracleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOracle not implemented")
+}
+func (UnimplementedMsgServer) RegisterMigrationInfo(context.Context, *MsgRegisterMigrationInfo) (*MsgRegisterMigrationInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterMigrationInfo not implemented")
+}
+func (UnimplementedMsgServer) MigrateToken(context.Context, *MsgMigrateToken) (*MsgMigrateTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MigrateToken not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -286,38 +443,164 @@ func _Msg_InitiateTokenWithdrawal_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_AddValidator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAddValidator)
+func _Msg_UpdateSequencer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateSequencer)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).AddValidator(ctx, in)
+		return srv.(MsgServer).UpdateSequencer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Msg_AddValidator_FullMethodName,
+		FullMethod: Msg_UpdateSequencer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AddValidator(ctx, req.(*MsgAddValidator))
+		return srv.(MsgServer).UpdateSequencer(ctx, req.(*MsgUpdateSequencer))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RemoveValidator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRemoveValidator)
+func _Msg_AddAttestor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddAttestor)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RemoveValidator(ctx, in)
+		return srv.(MsgServer).AddAttestor(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Msg_RemoveValidator_FullMethodName,
+		FullMethod: Msg_AddAttestor_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RemoveValidator(ctx, req.(*MsgRemoveValidator))
+		return srv.(MsgServer).AddAttestor(ctx, req.(*MsgAddAttestor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveAttestor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveAttestor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveAttestor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RemoveAttestor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveAttestor(ctx, req.(*MsgRemoveAttestor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_AddFeeWhitelistAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddFeeWhitelistAddresses)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).AddFeeWhitelistAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_AddFeeWhitelistAddresses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).AddFeeWhitelistAddresses(ctx, req.(*MsgAddFeeWhitelistAddresses))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveFeeWhitelistAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveFeeWhitelistAddresses)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveFeeWhitelistAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RemoveFeeWhitelistAddresses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveFeeWhitelistAddresses(ctx, req.(*MsgRemoveFeeWhitelistAddresses))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_AddBridgeExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddBridgeExecutor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).AddBridgeExecutor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_AddBridgeExecutor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).AddBridgeExecutor(ctx, req.(*MsgAddBridgeExecutor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveBridgeExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveBridgeExecutor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveBridgeExecutor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RemoveBridgeExecutor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveBridgeExecutor(ctx, req.(*MsgRemoveBridgeExecutor))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateMinGasPrices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMinGasPrices)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateMinGasPrices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateMinGasPrices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateMinGasPrices(ctx, req.(*MsgUpdateMinGasPrices))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateAdmin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateAdmin(ctx, req.(*MsgUpdateAdmin))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -376,6 +659,42 @@ func _Msg_UpdateOracle_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_RegisterMigrationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterMigrationInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterMigrationInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RegisterMigrationInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterMigrationInfo(ctx, req.(*MsgRegisterMigrationInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_MigrateToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgMigrateToken)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).MigrateToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_MigrateToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).MigrateToken(ctx, req.(*MsgMigrateToken))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -400,12 +719,40 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_InitiateTokenWithdrawal_Handler,
 		},
 		{
-			MethodName: "AddValidator",
-			Handler:    _Msg_AddValidator_Handler,
+			MethodName: "UpdateSequencer",
+			Handler:    _Msg_UpdateSequencer_Handler,
 		},
 		{
-			MethodName: "RemoveValidator",
-			Handler:    _Msg_RemoveValidator_Handler,
+			MethodName: "AddAttestor",
+			Handler:    _Msg_AddAttestor_Handler,
+		},
+		{
+			MethodName: "RemoveAttestor",
+			Handler:    _Msg_RemoveAttestor_Handler,
+		},
+		{
+			MethodName: "AddFeeWhitelistAddresses",
+			Handler:    _Msg_AddFeeWhitelistAddresses_Handler,
+		},
+		{
+			MethodName: "RemoveFeeWhitelistAddresses",
+			Handler:    _Msg_RemoveFeeWhitelistAddresses_Handler,
+		},
+		{
+			MethodName: "AddBridgeExecutor",
+			Handler:    _Msg_AddBridgeExecutor_Handler,
+		},
+		{
+			MethodName: "RemoveBridgeExecutor",
+			Handler:    _Msg_RemoveBridgeExecutor_Handler,
+		},
+		{
+			MethodName: "UpdateMinGasPrices",
+			Handler:    _Msg_UpdateMinGasPrices_Handler,
+		},
+		{
+			MethodName: "UpdateAdmin",
+			Handler:    _Msg_UpdateAdmin_Handler,
 		},
 		{
 			MethodName: "UpdateParams",
@@ -418,6 +765,14 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateOracle",
 			Handler:    _Msg_UpdateOracle_Handler,
+		},
+		{
+			MethodName: "RegisterMigrationInfo",
+			Handler:    _Msg_RegisterMigrationInfo_Handler,
+		},
+		{
+			MethodName: "MigrateToken",
+			Handler:    _Msg_MigrateToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -60,6 +60,16 @@ message BridgeConfig {
 
   // Normally it is IBC channelID for permissioned IBC relayer.
   bytes metadata = 8;
+
+  // bridge_disabled is a flag to disable the bridge.
+  bool bridge_disabled = 9;
+
+  // bridge_disabled_at is the timestamp when the bridge is disabled.
+  google.protobuf.Timestamp bridge_disabled_at = 10 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
 }
 
 // BatchInfo defines the set of batch information.

@@ -42,6 +42,8 @@ type Keeper struct {
 	validatorAddressCodec address.Codec
 	consensusAddressCodec address.Codec
 
+	l1AddressCodec address.Codec
+
 	Schema               collections.Schema
 	NextL1Sequence       collections.Sequence
 	NextL2Sequence       collections.Sequence
@@ -54,6 +56,7 @@ type Keeper struct {
 	DenomPairs           collections.Map[string, string]
 	MigrationInfos       collections.Map[string, types.MigrationInfo] // l2 denom -> migration info
 	IBCToL2DenomMap      collections.Map[string, string]              // ibc denom -> l2 denom
+	ShutdownInfo         collections.Item[[]byte]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -87,6 +90,7 @@ func NewKeeper(
 	addressCodec address.Codec,
 	validatorAddressCodec address.Codec,
 	consensusAddressCodec address.Codec,
+	l1AddressCodec address.Codec,
 	logger log.Logger,
 ) *Keeper {
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -118,6 +122,7 @@ func NewKeeper(
 		addressCodec:          addressCodec,
 		validatorAddressCodec: validatorAddressCodec,
 		consensusAddressCodec: consensusAddressCodec,
+		l1AddressCodec:        l1AddressCodec,
 		NextL1Sequence:        collections.NewSequence(sb, types.NextL1SequenceKey, "finalized_l1_sequence"),
 		NextL2Sequence:        collections.NewSequence(sb, types.NextL2SequenceKey, "next_l2_sequence"),
 		Params:                collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
@@ -129,6 +134,7 @@ func NewKeeper(
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		MigrationInfos:        collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.StringKey, codec.CollValue[types.MigrationInfo](cdc)),
 		IBCToL2DenomMap:       collections.NewMap(sb, types.IBCToL2DenomMapPrefix, "ibc_to_l2_denom_map", collections.StringKey, collections.StringValue),
+		ShutdownInfo:          collections.NewItem(sb, types.ShutdownInfoPrefix, "shutdown_info", collections.BytesValue),
 		ExecutorChangePlans:   make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:    hostValidatorStore,
 	}

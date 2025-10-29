@@ -32,6 +32,8 @@ const (
 	Msg_UpdateOracleConfig_FullMethodName       = "/opinit.ophost.v1.Msg/UpdateOracleConfig"
 	Msg_UpdateParams_FullMethodName             = "/opinit.ophost.v1.Msg/UpdateParams"
 	Msg_UpdateFinalizationPeriod_FullMethodName = "/opinit.ophost.v1.Msg/UpdateFinalizationPeriod"
+	Msg_DisableBridge_FullMethodName            = "/opinit.ophost.v1.Msg/DisableBridge"
+	Msg_RegisterMigrationInfo_FullMethodName    = "/opinit.ophost.v1.Msg/RegisterMigrationInfo"
 )
 
 // MsgClient is the client API for Msg service.
@@ -65,6 +67,10 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// UpdateFinalizationPeriod defines a rpc handler method for MsgUpdateFinalizationPeriod.
 	UpdateFinalizationPeriod(ctx context.Context, in *MsgUpdateFinalizationPeriod, opts ...grpc.CallOption) (*MsgUpdateFinalizationPeriodResponse, error)
+	// DisableBridge defines a rpc handler method for MsgDisableBridge.
+	DisableBridge(ctx context.Context, in *MsgDisableBridge, opts ...grpc.CallOption) (*MsgDisableBridgeResponse, error)
+	// RegisterMigrationInfo defines a rpc handler method for MsgRegisterMigrationInfo.
+	RegisterMigrationInfo(ctx context.Context, in *MsgRegisterMigrationInfo, opts ...grpc.CallOption) (*MsgRegisterMigrationInfoResponse, error)
 }
 
 type msgClient struct {
@@ -192,6 +198,24 @@ func (c *msgClient) UpdateFinalizationPeriod(ctx context.Context, in *MsgUpdateF
 	return out, nil
 }
 
+func (c *msgClient) DisableBridge(ctx context.Context, in *MsgDisableBridge, opts ...grpc.CallOption) (*MsgDisableBridgeResponse, error) {
+	out := new(MsgDisableBridgeResponse)
+	err := c.cc.Invoke(ctx, Msg_DisableBridge_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RegisterMigrationInfo(ctx context.Context, in *MsgRegisterMigrationInfo, opts ...grpc.CallOption) (*MsgRegisterMigrationInfoResponse, error) {
+	out := new(MsgRegisterMigrationInfoResponse)
+	err := c.cc.Invoke(ctx, Msg_RegisterMigrationInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -223,6 +247,10 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// UpdateFinalizationPeriod defines a rpc handler method for MsgUpdateFinalizationPeriod.
 	UpdateFinalizationPeriod(context.Context, *MsgUpdateFinalizationPeriod) (*MsgUpdateFinalizationPeriodResponse, error)
+	// DisableBridge defines a rpc handler method for MsgDisableBridge.
+	DisableBridge(context.Context, *MsgDisableBridge) (*MsgDisableBridgeResponse, error)
+	// RegisterMigrationInfo defines a rpc handler method for MsgRegisterMigrationInfo.
+	RegisterMigrationInfo(context.Context, *MsgRegisterMigrationInfo) (*MsgRegisterMigrationInfoResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -268,6 +296,12 @@ func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*
 }
 func (UnimplementedMsgServer) UpdateFinalizationPeriod(context.Context, *MsgUpdateFinalizationPeriod) (*MsgUpdateFinalizationPeriodResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateFinalizationPeriod not implemented")
+}
+func (UnimplementedMsgServer) DisableBridge(context.Context, *MsgDisableBridge) (*MsgDisableBridgeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableBridge not implemented")
+}
+func (UnimplementedMsgServer) RegisterMigrationInfo(context.Context, *MsgRegisterMigrationInfo) (*MsgRegisterMigrationInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterMigrationInfo not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -516,6 +550,42 @@ func _Msg_UpdateFinalizationPeriod_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_DisableBridge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDisableBridge)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DisableBridge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_DisableBridge_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DisableBridge(ctx, req.(*MsgDisableBridge))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RegisterMigrationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterMigrationInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterMigrationInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RegisterMigrationInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterMigrationInfo(ctx, req.(*MsgRegisterMigrationInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -574,6 +644,14 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateFinalizationPeriod",
 			Handler:    _Msg_UpdateFinalizationPeriod_Handler,
+		},
+		{
+			MethodName: "DisableBridge",
+			Handler:    _Msg_DisableBridge_Handler,
+		},
+		{
+			MethodName: "RegisterMigrationInfo",
+			Handler:    _Msg_RegisterMigrationInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
