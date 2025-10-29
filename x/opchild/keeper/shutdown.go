@@ -32,9 +32,7 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	withdrawCount := 0
 
 	shutdownInfo, err := k.ShutdownInfo.Get(ctx)
-	if errors.Is(err, collections.ErrNotFound) {
-		err = nil
-	} else if err != nil {
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
 		return false, err
 	}
 
