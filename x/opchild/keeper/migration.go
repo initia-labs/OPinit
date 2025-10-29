@@ -150,6 +150,10 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, sender sdk.AccAd
 
 	// if the OPinit is not empty, handle the deposit hook
 	if len(migratedTokenDepositMemo.OPinit) > 0 {
+		if len(migratedTokenDepositMemo.OPinit) > ophosttypes.MaxDataLength {
+			return sdk.Coin{}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "hook data size exceeds maximum limit")
+		}
+
 		params, err := k.GetParams(ctx)
 		if err != nil {
 			return sdk.Coin{}, err
