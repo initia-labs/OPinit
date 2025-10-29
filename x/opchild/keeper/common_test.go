@@ -330,6 +330,7 @@ func _createTestInput(
 		bankKeeper,
 		&oracleKeeper,
 		sdk.ChainAnteDecorators(
+			authante.NewValidateBasicDecorator(),
 			authante.NewSetPubKeyDecorator(accountKeeper),
 			authante.NewValidateSigCountDecorator(accountKeeper),
 			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
