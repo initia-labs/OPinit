@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"errors"
 
@@ -43,7 +44,7 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	}
 
 	// iterate all accounts from the last processed address
-	iter, err := authKeeper.Accounts.Iterate(ctx, new(collections.Range[sdk.AccAddress]).StartInclusive(shutdownInfo))
+	iter, err := authKeeper.Accounts.Iterate(ctx, new(collections.Range[sdk.AccAddress]).StartExclusive(shutdownInfo))
 	if err != nil {
 		return false, err
 	}
@@ -60,9 +61,9 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		lastAddr = addr
 
 		if _, ok := acc.(sdk.ModuleAccountI); ok {
+			lastAddr = addr
 			continue
 		}
 
@@ -99,7 +100,11 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 			}
 
 			withdrawCount++
-			return withdrawCount == MaxWithdrawCount
+			if withdrawCount == MaxWithdrawCount {
+				return true
+			}
+			lastAddr = addr
+			return false
 		})
 		if err != nil || withdrawCount == MaxWithdrawCount {
 			break
@@ -108,11 +113,14 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 
 	if err != nil {
 		return false, err
-	} else if withdrawCount == MaxWithdrawCount {
+	} else if !bytes.Equal(shutdownInfo, lastAddr.Bytes()) {
 		err := k.ShutdownInfo.Set(ctx, lastAddr.Bytes())
 		if err != nil {
 			return false, err
 		}
+	}
+
+	if withdrawCount == MaxWithdrawCount {
 		return false, nil
 	}
 
