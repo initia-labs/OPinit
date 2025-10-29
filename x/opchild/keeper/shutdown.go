@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"errors"
 
@@ -28,53 +29,76 @@ func (k Keeper) IsBridgeDisabled(ctx context.Context) (bool, error) {
 func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	ms := NewMsgServerImpl(k)
 	withdrawCount := 0
-	var err error
-	k.bankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, coin sdk.Coin) bool {
-		// Skip module accounts - they can't sign L1 transactions
-		if acc := k.authKeeper.GetAccount(ctx, addr); acc != nil {
-			if _, ok := acc.(sdk.ModuleAccountI); ok {
-				return false
-			}
-		}
 
-		_, err = ms.GetBaseDenom(ctx, coin.Denom)
-		if errors.Is(err, types.ErrNonL1Token) {
-			// when the coin is not from the bridge, skip
-			err = nil
-			return false
-		} else if err != nil {
-			return true
-		}
-
-		// Only withdraw spendable amount for this denom
-		spendable := k.bankKeeper.SpendableCoins(ctx, addr).AmountOf(coin.Denom)
-		if !spendable.IsPositive() {
-			return false
-		}
-
-		var from, to string
-		from, err = k.addressCodec.BytesToString(addr)
-		if err != nil {
-			return true
-		}
-
-		to, err = k.l1AddressCodec.BytesToString(addr)
-		if err != nil {
-			return true
-		}
-
-		_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
-		if err != nil {
-			return true
-		}
-
-		withdrawCount++
-		return withdrawCount == MaxWithdrawCount
-	})
-	if err != nil {
+	shutdownInfo, err := k.ShutdownInfo.Get(ctx)
+	if errors.Is(err, collections.ErrNotFound) {
+		err = nil
+	} else if err != nil {
 		return false, err
 	}
-	if withdrawCount == MaxWithdrawCount {
+	var lastAddr sdk.AccAddress
+
+	k.authKeeper.IterateAccounts(ctx, func(acc sdk.AccountI) bool {
+		addr := acc.GetAddress()
+
+		defer func() {
+			lastAddr = addr
+		}()
+
+		if bytes.Compare(shutdownInfo, addr.Bytes()) >= 0 {
+			return false
+		} else if _, ok := acc.(sdk.ModuleAccountI); ok {
+			return false
+		}
+
+		k.bankKeeper.IterateAccountBalances(ctx, addr, func(coin sdk.Coin) bool {
+			_, err = ms.GetBaseDenom(ctx, coin.Denom)
+			if errors.Is(err, types.ErrNonL1Token) {
+				// when the coin is not from the bridge, skip
+				err = nil
+				return false
+			} else if err != nil {
+				return true
+			}
+
+			// Only withdraw spendable amount for this denom
+			spendable := k.bankKeeper.SpendableCoins(ctx, addr).AmountOf(coin.Denom)
+			if !spendable.IsPositive() {
+				return false
+			}
+
+			var from, to string
+			from, err = k.addressCodec.BytesToString(addr)
+			if err != nil {
+				return true
+			}
+
+			to, err = k.l1AddressCodec.BytesToString(addr)
+			if err != nil {
+				return true
+			}
+
+			_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
+			if err != nil {
+				return true
+			}
+
+			withdrawCount++
+			return withdrawCount == MaxWithdrawCount
+		})
+		if err != nil || withdrawCount == MaxWithdrawCount {
+			return true
+		}
+		return false
+	})
+
+	if err != nil {
+		return false, err
+	} else if withdrawCount == MaxWithdrawCount {
+		err := k.ShutdownInfo.Set(ctx, lastAddr.Bytes())
+		if err != nil {
+			return false, err
+		}
 		return false, nil
 	}
 

@@ -52,7 +52,7 @@ type BankKeeper interface {
 	SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata)
 	GetDenomMetaData(ctx context.Context, denom string) (banktypes.Metadata, bool)
 
-	IterateAllBalances(ctx context.Context, cb func(sdk.AccAddress, sdk.Coin) bool)
+	IterateAccountBalances(ctx context.Context, addr sdk.AccAddress, cb func(sdk.Coin) bool)
 }
 
 type OracleKeeper interface {
