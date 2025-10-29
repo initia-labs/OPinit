@@ -112,14 +112,14 @@ func (q Querier) BaseDenom(ctx context.Context, req *types.QueryBaseDenomRequest
 // MigrationInfo implements the Query/MigrationInfo RPC method
 func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInfoRequest) (*types.QueryMigrationInfoResponse, error) {
 	migrationInfo, err := q.GetMigrationInfo(ctx, req.Denom)
-	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+	if err != nil && errors.Is(err, collections.ErrNotFound) {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	baseDenom, err := q.GetBaseDenom(ctx, req.Denom)
-	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+	if err != nil && errors.Is(err, collections.ErrNotFound) {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
