@@ -179,7 +179,7 @@ func (ms MsgServer) UpdateSequencer(ctx context.Context, req *types.MsgUpdateSeq
 	}
 
 	// add the new sequencer
-	newSeqAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.SequencerAddress)
+	newSeqAddr, err := ms.validatorAddressCodec.StringToBytes(req.SequencerAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) 
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	attestorAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.AttestorAddress)
+	attestorAddr, err := ms.validatorAddressCodec.StringToBytes(req.AttestorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -221,14 +221,14 @@ func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAtte
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	attestorAddr, err := ms.Keeper.validatorAddressCodec.StringToBytes(req.AttestorAddress)
+	attestorAddr, err := ms.validatorAddressCodec.StringToBytes(req.AttestorAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	valAddr := sdk.ValAddress(attestorAddr)
 
-	validator, found := ms.Keeper.GetValidator(ctx, valAddr)
+	validator, found := ms.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrNoValidatorFound, req.AttestorAddress)
 	}
@@ -315,7 +315,7 @@ func (ms MsgServer) addValidator(ctx context.Context, moniker string, valAddr sd
 // removeValidator implements removing a validator from the designated validator set
 func (ms MsgServer) removeValidator(ctx context.Context, valAddr sdk.ValAddress) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	val, found := ms.Keeper.GetValidator(ctx, valAddr)
+	val, found := ms.GetValidator(ctx, valAddr)
 	if !found {
 		return errorsmod.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
 	}
@@ -324,7 +324,7 @@ func (ms MsgServer) removeValidator(ctx context.Context, valAddr sdk.ValAddress)
 
 	// set validator consensus power `0`,
 	// then `val_state_change` will execute `k.RemoveValidator`.
-	if err := ms.Keeper.SetValidator(ctx, val); err != nil {
+	if err := ms.SetValidator(ctx, val); err != nil {
 		return err
 	}
 
@@ -823,7 +823,7 @@ func (ms MsgServer) InitiateTokenWithdrawal(ctx context.Context, req *types.MsgI
 	}
 
 	// if the token is migrated, handle the withdrawal by the migration info
-	if handled, err := ms.Keeper.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
+	if handled, err := ms.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
 		return nil, err
 	} else if handled {
 		return &types.MsgInitiateTokenWithdrawalResponse{}, nil
@@ -886,7 +886,7 @@ func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle
 	}
 
 	// config check
-	info, err := ms.Keeper.BridgeInfo.Get(ctx)
+	info, err := ms.BridgeInfo.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -894,7 +894,7 @@ func (ms MsgServer) UpdateOracle(ctx context.Context, req *types.MsgUpdateOracle
 		return nil, types.ErrOracleDisabled
 	}
 
-	err = ms.Keeper.ApplyOracleUpdate(ctx, req.Height, req.Data)
+	err = ms.ApplyOracleUpdate(ctx, req.Height, req.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -923,7 +923,7 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	}
 
 	// check if the migration info is already registered
-	if migrationInfo, err := ms.Keeper.GetMigrationInfo(ctx, req.MigrationInfo.Denom); err == nil {
+	if migrationInfo, err := ms.GetMigrationInfo(ctx, req.MigrationInfo.Denom); err == nil {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "migration info already registered: %s", migrationInfo.String())
 	}
 
@@ -934,13 +934,13 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	}
 
 	// set migration info
-	if err := ms.Keeper.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
+	if err := ms.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
 		return nil, err
 	}
 
 	// set the ibc to l2 denom map
 	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
-	if err := ms.Keeper.SetIBCToL2DenomMap(ctx, ibcDenom, req.MigrationInfo.Denom); err != nil {
+	if err := ms.SetIBCToL2DenomMap(ctx, ibcDenom, req.MigrationInfo.Denom); err != nil {
 		return nil, err
 	}
 
@@ -965,7 +965,7 @@ func (ms MsgServer) MigrateToken(ctx context.Context, req *types.MsgMigrateToken
 		return nil, err
 	}
 
-	migrationInfo, err := ms.Keeper.GetMigrationInfo(ctx, req.Amount.Denom)
+	migrationInfo, err := ms.GetMigrationInfo(ctx, req.Amount.Denom)
 	if err != nil && errors.Is(err, collections.ErrNotFound) {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "migration info not found")
 	} else if err != nil {

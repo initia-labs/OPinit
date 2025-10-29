@@ -345,7 +345,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	}
 
 	// if the token is migrated, handle the withdrawal by the migration info
-	if handled, err := ms.Keeper.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
+	if handled, err := ms.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
 		return nil, err
 	} else if handled {
 		return &types.MsgFinalizeTokenWithdrawalResponse{}, nil
@@ -399,7 +399,7 @@ func (ms MsgServer) UpdateProposer(ctx context.Context, req *types.MsgUpdateProp
 	}
 
 	config.Proposer = req.NewProposer
-	if err := ms.Keeper.bridgeHook.BridgeProposerUpdated(ctx, bridgeId, config); err != nil {
+	if err := ms.bridgeHook.BridgeProposerUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
@@ -445,7 +445,7 @@ func (ms MsgServer) UpdateChallenger(ctx context.Context, req *types.MsgUpdateCh
 	}
 
 	config.Challenger = req.Challenger
-	if err := ms.Keeper.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
+	if err := ms.bridgeHook.BridgeChallengerUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
@@ -488,7 +488,7 @@ func (ms MsgServer) UpdateBatchInfo(ctx context.Context, req *types.MsgUpdateBat
 	}
 
 	config.BatchInfo = req.NewBatchInfo
-	if err := ms.Keeper.bridgeHook.BridgeBatchInfoUpdated(ctx, bridgeId, config); err != nil {
+	if err := ms.bridgeHook.BridgeBatchInfoUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
@@ -568,7 +568,7 @@ func (ms MsgServer) UpdateMetadata(ctx context.Context, req *types.MsgUpdateMeta
 	}
 
 	config.Metadata = req.Metadata
-	if err := ms.Keeper.bridgeHook.BridgeMetadataUpdated(ctx, bridgeId, config); err != nil {
+	if err := ms.bridgeHook.BridgeMetadataUpdated(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
@@ -693,7 +693,7 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	}
 
 	// register the migration info
-	if err := ms.Keeper.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
+	if err := ms.SetMigrationInfo(ctx, req.MigrationInfo); err != nil {
 		return nil, err
 	}
 
