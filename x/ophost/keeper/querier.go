@@ -38,7 +38,7 @@ func (q Querier) Bridge(ctx context.Context, req *types.QueryBridgeRequest) (*ty
 }
 
 func (q Querier) Bridges(ctx context.Context, req *types.QueryBridgesRequest) (*types.QueryBridgesResponse, error) {
-	bridges, pageRes, err := query.CollectionPaginate(ctx, q.Keeper.BridgeConfigs, req.Pagination, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (types.QueryBridgeResponse, error) {
+	bridges, pageRes, err := query.CollectionPaginate(ctx, q.BridgeConfigs, req.Pagination, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (types.QueryBridgeResponse, error) {
 		return types.QueryBridgeResponse{
 			BridgeId:     bridgeId,
 			BridgeAddr:   types.BridgeAddress(bridgeId).String(),
