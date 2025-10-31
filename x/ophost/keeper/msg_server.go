@@ -347,9 +347,7 @@ func (ms MsgServer) FinalizeTokenWithdrawal(ctx context.Context, req *types.MsgF
 	// if the token is migrated, handle the withdrawal by the migration info
 	if handled, err := ms.Keeper.HandleMigratedTokenWithdrawal(ctx, req); err != nil {
 		return nil, err
-	} else if handled {
-		return &types.MsgFinalizeTokenWithdrawalResponse{}, nil
-	} else {
+	} else if !handled {
 		// if the token is not migrated, transfer asset to a user from the bridge account
 
 		// compute receiver address
