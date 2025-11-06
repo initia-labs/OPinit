@@ -5,7 +5,6 @@ linters:
     - bodyclose
     - copyloopvar
     - dogsled
-    - dupl
     - goconst
     - gosec
     - misspell

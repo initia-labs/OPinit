@@ -230,6 +230,318 @@ func (s *CLITestSuite) TestNewCreateBridge() {
 	}
 }
 
+func (s *CLITestSuite) TestNewUpdateProposer() {
+	require := s.Require()
+	cmd := cli.NewUpdateProposer(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	require.NoError(err)
+	newProposer, err := s.ac.BytesToString(s.addrs[1])
+	require.NoError(err)
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+	}{
+		{
+			"invalid bridge-id",
+			[]string{
+				"0",
+				newProposer,
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"invalid new proposer",
+			[]string{
+				"1",
+				"not-an-address",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"valid transaction",
+			[]string{
+				"1",
+				newProposer,
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		ctc := tc
+		s.Run(ctc.name, func() {
+			_, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, ctc.args)
+			if ctc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+			}
+		})
+	}
+}
+
+func (s *CLITestSuite) TestNewUpdateChallenger() {
+	require := s.Require()
+	cmd := cli.NewUpdateChallenger(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	require.NoError(err)
+	newChallenger, err := s.ac.BytesToString(s.addrs[2])
+	require.NoError(err)
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+	}{
+		{
+			"invalid bridge-id",
+			[]string{
+				"0",
+				newChallenger,
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"invalid challenger address",
+			[]string{
+				"1",
+				"cosmos1invalid",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"valid transaction",
+			[]string{
+				"1",
+				newChallenger,
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		ctc := tc
+		s.Run(ctc.name, func() {
+			_, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, ctc.args)
+			if ctc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+			}
+		})
+	}
+}
+
+func (s *CLITestSuite) TestNewUpdateBatchInfo() {
+	require := s.Require()
+	cmd := cli.NewUpdateBatchInfo(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	require.NoError(err)
+	submitter, err := s.ac.BytesToString(s.addrs[1])
+	require.NoError(err)
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+	}{
+		{
+			"invalid bridge-id",
+			[]string{
+				"0",
+				submitter,
+				"INITIA",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"invalid chain type",
+			[]string{
+				"1",
+				submitter,
+				"UNKNOWN",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"valid transaction",
+			[]string{
+				"1",
+				submitter,
+				"CELESTIA",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		ctc := tc
+		s.Run(ctc.name, func() {
+			_, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, ctc.args)
+			if ctc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+			}
+		})
+	}
+}
+
+func (s *CLITestSuite) TestNewUpdateMetadata() {
+	require := s.Require()
+	cmd := cli.NewUpdateMetadata(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	require.NoError(err)
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+	}{
+		{
+			"invalid bridge-id",
+			[]string{
+				"0",
+				"{}",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"valid transaction",
+			[]string{
+				"1",
+				"{\\\"foo\\\":\\\"bar\\\"}",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		ctc := tc
+		s.Run(ctc.name, func() {
+			_, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, ctc.args)
+			if ctc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+			}
+		})
+	}
+}
+
+func (s *CLITestSuite) TestNewUpdateOracleConfig() {
+	require := s.Require()
+	cmd := cli.NewUpdateOracleConfig(s.ac)
+
+	addr0, err := s.ac.BytesToString(s.addrs[0])
+	require.NoError(err)
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+	}{
+		{
+			"invalid bridge-id",
+			[]string{
+				"0",
+				"true",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"invalid oracle flag",
+			[]string{
+				"1",
+				"not-bool",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			true,
+		},
+		{
+			"valid transaction",
+			[]string{
+				"1",
+				"false",
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, addr0),
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(10))).String()),
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		ctc := tc
+		s.Run(ctc.name, func() {
+			_, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, ctc.args)
+			if ctc.expectErr {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+			}
+		})
+	}
+}
+
 func (s *CLITestSuite) TestNewProposeOutput() {
 	require := s.Require()
 	cmd := cli.NewProposeOutput(s.ac)
