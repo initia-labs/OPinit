@@ -2,7 +2,7 @@
 
 ## Overview
 
-The OPinit system implements a **bridge replacement mechanism** that switches from OP Bridge to IBC Bridge while preserving user experience. Users continue using existing `MsgInitiateTokenDeposit` and `MsgInitiateTokenWithdrawal` messages, but receive OP tokens instead of IBC tokens. The system automatically handles IBC → L2 conversion via middleware and supports bridge hook preservation through IBC transfer memos.
+The OPinit system implements a **bridge replacement mechanism** that deprecates the legacy OP Bridge backend in favor of an IBC Bridge while preserving the familiar OP Bridge interface. Users can keep calling the existing `MsgInitiateTokenDeposit` and `MsgInitiateTokenWithdrawal` messages and still receive OP tokens (not IBC vouchers), even though the underlying transport now relies on IBC. The system automatically handles IBC → L2 conversion via middleware and supports bridge hook preservation through IBC transfer memos.
 
 **Additionally, users can use normal IBC bridge functionality directly** for standard cross-chain transfers without the bridge replacement features.
 
