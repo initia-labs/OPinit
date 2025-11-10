@@ -38,6 +38,11 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewDeleteOutput(ac),
 		NewInitiateTokenDeposit(ac),
 		NewFinalizeTokenWithdrawal(ac),
+		NewUpdateProposer(ac),
+		NewUpdateChallenger(ac),
+		NewUpdateBatchInfo(ac),
+		NewUpdateMetadata(ac),
+		NewUpdateOracleConfig(ac),
 	)
 
 	return ophostTxCmd
@@ -377,6 +382,212 @@ func NewFinalizeTokenWithdrawal(ac address.Codec) *cobra.Command {
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewUpdateProposer(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-proposer [bridge-id] [new-proposer]",
+		Short: "send a tx to update bridge proposer",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateProposer(fromAddr, bridgeId, args[1])
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewUpdateChallenger(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-challenger [bridge-id] [new-challenger]",
+		Short: "send a tx to update bridge challenger",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateChallenger(fromAddr, bridgeId, args[1])
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewUpdateBatchInfo(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-batch-info [bridge-id] [batch-submitter] [chain-type]",
+		Short: "send a tx to update bridge batch info",
+		Long: strings.TrimSpace(
+			`send a tx to update bridge batch info.
+
+		batch submitter must be a bech32 account address and chain-type must be INITIA or CELESTIA`,
+		),
+		Args: cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			chainType, err := parseBatchChainType(args[2])
+			if err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			batchInfo := types.BatchInfo{
+				Submitter: args[1],
+				ChainType: chainType,
+			}
+
+			msg := types.NewMsgUpdateBatchInfo(fromAddr, bridgeId, batchInfo)
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewUpdateMetadata(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-metadata [bridge-id] [metadata]",
+		Short: "send a tx to update bridge metadata",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateMetadata(fromAddr, bridgeId, []byte(args[1]))
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func parseBatchChainType(chain string) (types.BatchInfo_ChainType, error) {
+	switch strings.ToUpper(chain) {
+	case "INITIA":
+		return types.BatchInfo_INITIA, nil
+	case "CELESTIA":
+		return types.BatchInfo_CELESTIA, nil
+	default:
+		return types.BatchInfo_UNSPECIFIED, fmt.Errorf("invalid chain type %q, expected INITIA or CELESTIA", chain)
+	}
+}
+
+func NewUpdateOracleConfig(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-oracle-config [bridge-id] [oracle-enabled:true|false]",
+		Short: "send a tx to update oracle config",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			oracleEnabled, err := strconv.ParseBool(args[1])
+			if err != nil {
+				return err
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateOracleConfig(fromAddr, bridgeId, oracleEnabled)
+			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
