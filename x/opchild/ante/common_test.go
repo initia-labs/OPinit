@@ -325,7 +325,7 @@ func _createTestInput(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		nil, // we don't need migration
-		nil,
+		ibcKeeper.ChannelKeeper,
 		ibcKeeper.ChannelKeeper,
 		ibcKeeper.PortKeeper,
 		&accountKeeper,
@@ -407,7 +407,7 @@ func (m *MockStakingKeeper) GetHistoricalInfo(ctx context.Context, height int64)
 
 // UnbondingTime implements types.StakingKeeper.
 func (m *MockStakingKeeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
-	return time.Duration(0), nil
+	return m.unbondingTime, nil
 }
 
 type MockUpgradeKeeper struct {

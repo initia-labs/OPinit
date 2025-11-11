@@ -523,7 +523,11 @@ func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHan
 					return nil, err
 				}
 			} else {
-				if err := router.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.NewCoins(msg.Token)); err != nil {
+				coins := sdk.NewCoins(msg.Token)
+				if err := router.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, ibctransfertypes.ModuleName, coins); err != nil {
+					return nil, err
+				}
+				if err := router.bankKeeper.BurnCoins(ctx, ibctransfertypes.ModuleName, coins); err != nil {
 					return nil, err
 				}
 			}
@@ -573,7 +577,7 @@ func (m *MockStakingKeeper) GetHistoricalInfo(ctx context.Context, height int64)
 
 // UnbondingTime implements types.StakingKeeper.
 func (m *MockStakingKeeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
-	return time.Duration(0), nil
+	return m.unbondingTime, nil
 }
 
 type MockUpgradeKeeper struct {
