@@ -4,12 +4,20 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"math"
+	"strings"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -53,11 +61,12 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	var lastAddr sdk.AccAddress
 	for ; iter.Valid(); iter.Next() {
 		var addr sdk.AccAddress
+		var acc sdk.AccountI
 		addr, err = iter.Key()
 		if err != nil {
 			return false, err
 		}
-		acc, err := iter.Value()
+		acc, err = iter.Value()
 		if err != nil {
 			return false, err
 		}
@@ -68,21 +77,6 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 		}
 
 		k.bankKeeper.IterateAccountBalances(ctx, addr, func(coin sdk.Coin) bool {
-			_, err = ms.GetBaseDenom(ctx, coin.Denom)
-			if errors.Is(err, types.ErrNonL1Token) {
-				// when the coin is not from the bridge, skip
-				err = nil
-				return false
-			} else if err != nil {
-				return true
-			}
-
-			// Only withdraw spendable amount for this denom
-			spendable := k.bankKeeper.SpendableCoins(ctx, addr).AmountOf(coin.Denom)
-			if !spendable.IsPositive() {
-				return false
-			}
-
 			var from, to string
 			from, err = k.addressCodec.BytesToString(addr)
 			if err != nil {
@@ -94,23 +88,100 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 				return true
 			}
 
-			_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
-			if err != nil {
+			_, err = ms.GetBaseDenom(ctx, coin.Denom)
+			if err == nil {
+				// Only withdraw spendable amount for this denom
+				spendable := k.bankKeeper.SpendableCoins(ctx, addr).AmountOf(coin.Denom)
+				if !spendable.IsPositive() {
+					return false
+				}
+
+				_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
+				if err != nil {
+					return true
+				}
+
+				withdrawCount++
+				if withdrawCount == MaxWithdrawCount {
+					return true
+				}
+			} else if errors.Is(err, types.ErrNonL1Token) {
+				err = nil
+			} else {
 				return true
 			}
 
-			withdrawCount++
-			if withdrawCount == MaxWithdrawCount {
-				return true
+			if strings.HasPrefix(coin.Denom, "ibc/") {
+				var fullDenomPath string
+				fullDenomPath, err = k.transferKeeper.DenomPathFromHash(sdk.UnwrapSDKContext(ctx), coin.Denom)
+				if err != nil {
+					return true
+				}
+
+				parts := strings.Split(fullDenomPath, "/")
+				if len(parts) < 3 {
+					return false
+				}
+
+				sourcePort := parts[0]
+				sourceChannel := parts[1]
+
+				var connection exported.ConnectionI
+				_, connection, err = k.channelKeeper.GetChannelConnection(sdk.UnwrapSDKContext(ctx), sourcePort, sourceChannel)
+				if err != nil {
+					return true
+				}
+
+				var l1ClientId string
+				l1ClientId, err = k.L1ClientId(ctx)
+				if err != nil {
+					return true
+				}
+				// check if the connection is the same as the l1 client id
+				if connection.GetClientID() != l1ClientId {
+					return false
+				}
+
+				transferMsg := transfertypes.NewMsgTransfer(
+					sourcePort,
+					sourceChannel,
+					coin,
+					from,
+					to,
+					clienttypes.NewHeight(0, 0),
+					math.MaxUint64,
+					"",
+				)
+
+				// handle the transfer message
+				sdkCtx := sdk.UnwrapSDKContext(ctx)
+				handler := k.msgRouter.Handler(transferMsg)
+				if handler == nil {
+					err = errorsmod.Wrap(sdkerrors.ErrNotFound, sdk.MsgTypeURL(transferMsg))
+					return true
+				}
+				var res *sdk.Result
+				res, err = handler(sdkCtx, transferMsg)
+				if errors.Is(err, transfertypes.ErrSendDisabled) || errors.Is(err, ibcerrors.ErrUnauthorized) {
+					err = nil
+					return false
+				} else if err != nil {
+					return true
+				}
+				sdkCtx.EventManager().EmitEvents(res.GetEvents())
+
+				withdrawCount++
+				if withdrawCount == MaxWithdrawCount {
+					return true
+				}
 			}
-			lastAddr = addr
 			return false
 		})
 		if err != nil || withdrawCount == MaxWithdrawCount {
 			break
 		}
+		lastAddr = addr
 	}
-
 	if err != nil {
 		return false, err
 	} else if !bytes.Equal(shutdownInfo, lastAddr.Bytes()) {

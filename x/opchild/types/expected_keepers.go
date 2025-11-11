@@ -10,6 +10,8 @@ import (
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+
 	"github.com/skip-mev/connect/v2/abci/strategies/currencypair"
 )
 
@@ -58,6 +60,14 @@ type BankKeeper interface {
 type OracleKeeper interface {
 	currencypair.OracleKeeper
 	SetPriceForCurrencyPair(ctx context.Context, cp connecttypes.CurrencyPair, qp oracletypes.QuotePrice) error
+}
+
+type TransferKeeper interface {
+	DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
+}
+
+type ChannelKeeper interface {
+	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
 }
 
 // ValidatorSet expected properties for the set of all validators (noalias)
