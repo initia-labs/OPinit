@@ -88,14 +88,14 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 				return true
 			}
 
+			// Only withdraw spendable amount for this denom
+			spendable := k.bankKeeper.SpendableCoin(ctx, addr, coin.Denom)
+			if !spendable.IsPositive() {
+				return false
+			}
+
 			_, err = ms.GetBaseDenom(ctx, coin.Denom)
 			if err == nil {
-				// Only withdraw spendable amount for this denom
-				spendable := k.bankKeeper.SpendableCoin(ctx, addr, coin.Denom)
-				if !spendable.IsPositive() {
-					return false
-				}
-
 				_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, spendable))
 				if err != nil {
 					return true
@@ -145,7 +145,7 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 				transferMsg := transfertypes.NewMsgTransfer(
 					sourcePort,
 					sourceChannel,
-					coin,
+					spendable,
 					from,
 					to,
 					clienttypes.NewHeight(0, 0),
