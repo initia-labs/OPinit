@@ -333,6 +333,7 @@ func _createTestInput(
 		scopedTransferKeeper,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 	)
+	transferKeeper.SetParams(sdk.UnwrapSDKContext(ctx), ibctransfertypes.DefaultParams())
 
 	bridgeHook := &bridgeHook{}
 	opchildKeeper := opchildkeeper.NewKeeper(
