@@ -91,12 +91,12 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 			_, err = ms.GetBaseDenom(ctx, coin.Denom)
 			if err == nil {
 				// Only withdraw spendable amount for this denom
-				spendable := k.bankKeeper.SpendableCoins(ctx, addr).AmountOf(coin.Denom)
+				spendable := k.bankKeeper.SpendableCoin(ctx, addr, coin.Denom)
 				if !spendable.IsPositive() {
 					return false
 				}
 
-				_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(coin.Denom, spendable)))
+				_, err = ms.InitiateTokenWithdrawal(ctx, types.NewMsgInitiateTokenWithdrawal(from, to, spendable))
 				if err != nil {
 					return true
 				}
