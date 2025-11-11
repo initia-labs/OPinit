@@ -26,9 +26,10 @@ type Keeper struct {
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
 
-	authKeeper types.AccountKeeper
-	bankKeeper types.BankKeeper
-
+	authKeeper     types.AccountKeeper
+	bankKeeper     types.BankKeeper
+	transferKeeper types.TransferKeeper
+	channelKeeper  types.ChannelKeeper
 	// sig verify and sequence increment decorators
 	decorators sdk.AnteHandler
 	txDecoder  sdk.TxDecoder
@@ -73,6 +74,8 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	ok types.OracleKeeper,
+	tk types.TransferKeeper,
+	ck types.ChannelKeeper,
 	/*
 		Should provide the following decorators
 		sdk.ChainAnteDecorators(
@@ -116,6 +119,8 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
+		transferKeeper:        tk,
+		channelKeeper:         ck,
 		decorators:            decorators,
 		txDecoder:             txDecoder,
 		msgRouter:             msgRouter,

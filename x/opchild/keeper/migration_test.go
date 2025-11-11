@@ -577,7 +577,7 @@ func Test_HandleMigratedTokenWithdrawal_Success(t *testing.T) {
 
 	// Verify the token was migrated and IBC token was created
 	ibcBalance := input.BankKeeper.GetBalance(ctx, sender, expectedIBCDenom.Denom)
-	require.Equal(t, amount.Amount, ibcBalance.Amount)
+	require.Equal(t, math.NewInt(0), ibcBalance.Amount)
 
 	// Verify original token balance is 0
 	originalBalance := input.BankKeeper.GetBalance(ctx, sender, "test1")

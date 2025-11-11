@@ -12,6 +12,10 @@ import (
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 func TestShutdown(t *testing.T) {
@@ -77,6 +81,38 @@ func TestShutdown(t *testing.T) {
 		keepers.Faucet.NewFundedAccount(ctx, sdk.NewCoin(denom, math.NewInt(100)))
 	}
 
+	keepers.IBCKeeper.ConnectionKeeper.SetClientConnectionPaths(sdk.UnwrapSDKContext(ctx), "test-client-id", []string{"test-connection-id"})
+	keepers.IBCKeeper.ConnectionKeeper.SetConnection(sdk.UnwrapSDKContext(ctx), "test-connection-id", connectiontypes.ConnectionEnd{
+		State:    connectiontypes.OPEN,
+		ClientId: "test-client-id",
+	})
+	keepers.IBCKeeper.ChannelKeeper.SetChannel(sdk.UnwrapSDKContext(ctx), "transfer", "test-channel-id", channeltypes.Channel{
+		State: channeltypes.OPEN,
+		Counterparty: channeltypes.Counterparty{
+			PortId:    "transfer",
+			ChannelId: "test-channel-id",
+		},
+		ConnectionHops: []string{"test-connection-id"},
+	})
+
+	denomTrace := transfertypes.DenomTrace{
+		Path:      "transfer/test-channel-id",
+		BaseDenom: "denom1",
+	}
+	keepers.TransferKeeper.SetDenomTrace(sdk.UnwrapSDKContext(ctx), denomTrace)
+
+	denomTrace2 := transfertypes.DenomTrace{
+		Path:      "transfer/test-channel-id",
+		BaseDenom: "denom2",
+	}
+	keepers.TransferKeeper.SetDenomTrace(sdk.UnwrapSDKContext(ctx), denomTrace2)
+
+	ibcDenom := "ibc/" + denomTrace.Hash().String()
+	ibcDenom2 := "ibc/" + denomTrace2.Hash().String()
+
+	ibcAccount0 := keepers.Faucet.NewFundedAccount(ctx, sdk.NewCoin(ibcDenom, math.NewInt(100)))
+	ibcAccount1 := keepers.Faucet.NewFundedAccount(ctx, sdk.NewCoin(ibcDenom2, math.NewInt(100)))
+
 	end, err := keepers.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
 	require.False(t, end)
@@ -121,6 +157,12 @@ func TestShutdown(t *testing.T) {
 
 	balances = keepers.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	require.Equal(t, sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))), balances)
+
+	balances = keepers.BankKeeper.GetAllBalances(ctx, ibcAccount0)
+	require.Equal(t, sdk.NewCoins(), balances)
+
+	balances = keepers.BankKeeper.GetAllBalances(ctx, ibcAccount1)
+	require.Equal(t, sdk.NewCoins(), balances)
 }
 
 func TestShutdown_BridgeDisabled(t *testing.T) {
