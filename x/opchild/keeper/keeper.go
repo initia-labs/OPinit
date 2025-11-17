@@ -76,7 +76,8 @@ func NewKeeper(
 	/*
 		Should provide the following decorators
 		sdk.ChainAnteDecorators(
-			ante.NewValidateBasicDecorator(),
+			authante.NewValidateBasicDecorator(),
+			authante.NewTxTimeoutHeightDecorator(),
 			authante.NewSetPubKeyDecorator(accountKeeper),
 			authante.NewValidateSigCountDecorator(accountKeeper),
 			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
