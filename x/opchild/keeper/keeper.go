@@ -74,8 +74,6 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	ok types.OracleKeeper,
-	tk types.TransferKeeper,
-	ck types.ChannelKeeper,
 	/*
 		Should provide the following decorators
 		sdk.ChainAnteDecorators(
@@ -120,8 +118,6 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
-		transferKeeper:        tk,
-		channelKeeper:         ck,
 		decorators:            decorators,
 		txDecoder:             txDecoder,
 		msgRouter:             msgRouter,
@@ -159,6 +155,18 @@ func NewKeeper(
 // WithTokenCreationFn sets the token creation function.
 func (k *Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, decimals uint8) error) *Keeper {
 	k.tokenCreationFn = fn
+	return k
+}
+
+// WithTransferKeeper sets the transfer keeper.
+func (k *Keeper) WithTransferKeeper(tk types.TransferKeeper) *Keeper {
+	k.transferKeeper = tk
+	return k
+}
+
+// WithChannelKeeper sets the channel keeper.
+func (k *Keeper) WithChannelKeeper(ck types.ChannelKeeper) *Keeper {
+	k.channelKeeper = ck
 	return k
 }
 

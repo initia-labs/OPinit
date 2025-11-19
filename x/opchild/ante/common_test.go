@@ -342,8 +342,6 @@ func _createTestInput(
 		&accountKeeper,
 		bankKeeper,
 		&oracleKeeper,
-		transferKeeper,
-		ibcKeeper.ChannelKeeper,
 		sdk.ChainAnteDecorators(
 			authante.NewValidateBasicDecorator(),
 			authante.NewSetPubKeyDecorator(accountKeeper),
@@ -360,7 +358,7 @@ func _createTestInput(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 		authcodec.NewBech32Codec("init"),
 		ctx.Logger(),
-	)
+	).WithChannelKeeper(ibcKeeper.ChannelKeeper).WithTransferKeeper(transferKeeper)
 
 	opchildParams := opchildtypes.DefaultParams()
 	opchildParams.Admin = addrs[0].String()
