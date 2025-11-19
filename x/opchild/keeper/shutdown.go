@@ -45,6 +45,16 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
+	if shutdownInfo.LastBlock {
+		dummyVal, err := types.NewValidator(dummyValAddr, dummyPubKey, "")
+		if err != nil {
+			return false, err
+		}
+		return true, k.ChangeExecutor(ctx, types.ExecutorChangePlan{
+			NextValidator: dummyVal,
+		})
+	}
+
 	// get the auth keeper
 	authKeeper, ok := k.authKeeper.(*authkeeper.AccountKeeper)
 	if !ok {
@@ -52,7 +62,7 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	}
 
 	// iterate all accounts from the last processed address
-	iter, err := authKeeper.Accounts.Iterate(ctx, new(collections.Range[sdk.AccAddress]).StartExclusive(shutdownInfo))
+	iter, err := authKeeper.Accounts.Iterate(ctx, new(collections.Range[sdk.AccAddress]).StartExclusive(shutdownInfo.LastAddr))
 	if err != nil {
 		return false, err
 	}
@@ -184,8 +194,9 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 	}
 	if err != nil {
 		return false, err
-	} else if !bytes.Equal(shutdownInfo, lastAddr.Bytes()) {
-		err := k.ShutdownInfo.Set(ctx, lastAddr.Bytes())
+	} else if !bytes.Equal(shutdownInfo.LastAddr, lastAddr.Bytes()) {
+		shutdownInfo.LastAddr = lastAddr.Bytes()
+		err := k.ShutdownInfo.Set(ctx, shutdownInfo)
 		if err != nil {
 			return false, err
 		}
@@ -195,11 +206,10 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 		return false, nil
 	}
 
-	dummyVal, err := types.NewValidator(dummyValAddr, dummyPubKey, "")
+	shutdownInfo.LastBlock = true
+	err = k.ShutdownInfo.Set(ctx, shutdownInfo)
 	if err != nil {
 		return false, err
 	}
-	return true, k.ChangeExecutor(ctx, types.ExecutorChangePlan{
-		NextValidator: dummyVal,
-	})
+	return false, nil
 }
