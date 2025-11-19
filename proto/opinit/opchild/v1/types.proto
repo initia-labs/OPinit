@@ -148,3 +148,12 @@ message MigrationInfo {
   // ibc_port_id is the IBC port ID, which is allocated for l1 chain, in l2 chain state.
   string ibc_port_id = 3;
 }
+
+// ShutdownInfo defines the information of the shutdown.
+message ShutdownInfo {
+  // last_addr is the last address that was processed.
+  bytes last_addr = 1;
+
+  // last_block indicates if this block is the last block of the chain.
+  bool last_block = 2;
+}

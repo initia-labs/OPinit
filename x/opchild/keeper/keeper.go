@@ -57,7 +57,7 @@ type Keeper struct {
 	DenomPairs           collections.Map[string, string]
 	MigrationInfos       collections.Map[string, types.MigrationInfo] // l2 denom -> migration info
 	IBCToL2DenomMap      collections.Map[string, string]              // ibc denom -> l2 denom
-	ShutdownInfo         collections.Item[[]byte]
+	ShutdownInfo         collections.Item[types.ShutdownInfo]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -141,7 +141,7 @@ func NewKeeper(
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		MigrationInfos:        collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.StringKey, codec.CollValue[types.MigrationInfo](cdc)),
 		IBCToL2DenomMap:       collections.NewMap(sb, types.IBCToL2DenomMapPrefix, "ibc_to_l2_denom_map", collections.StringKey, collections.StringValue),
-		ShutdownInfo:          collections.NewItem(sb, types.ShutdownInfoPrefix, "shutdown_info", collections.BytesValue),
+		ShutdownInfo:          collections.NewItem(sb, types.ShutdownInfoPrefix, "shutdown_info", codec.CollValue[types.ShutdownInfo](cdc)),
 		ExecutorChangePlans:   make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:    hostValidatorStore,
 	}

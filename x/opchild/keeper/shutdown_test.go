@@ -117,6 +117,18 @@ func TestShutdown(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, end)
 
+	shutdownInfo, err := keepers.OPChildKeeper.ShutdownInfo.Get(ctx)
+	require.NoError(t, err)
+	require.False(t, shutdownInfo.LastBlock)
+
+	end, err = keepers.OPChildKeeper.Shutdown(ctx)
+	require.NoError(t, err)
+	require.False(t, end)
+
+	shutdownInfo, err = keepers.OPChildKeeper.ShutdownInfo.Get(ctx)
+	require.NoError(t, err)
+	require.True(t, shutdownInfo.LastBlock)
+
 	end, err = keepers.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
 	require.True(t, end)
