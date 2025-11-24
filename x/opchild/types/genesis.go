@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 )
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo, migrationInfos []MigrationInfo) *GenesisState {
+func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo, migrationInfos []MigrationInfo, portID string) *GenesisState {
 	return &GenesisState{
 		Params:              params,
 		LastValidatorPowers: []LastValidatorPower{},
@@ -25,6 +26,7 @@ func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeIn
 		BridgeInfo:          bridgeInfo,
 		DenomPairs:          []DenomPair{},
 		MigrationInfos:      migrationInfos,
+		PortId:              portID,
 	}
 }
 
@@ -40,6 +42,7 @@ func DefaultGenesisState() *GenesisState {
 		Exported:            false,
 		DenomPairs:          []DenomPair{},
 		MigrationInfos:      []MigrationInfo{},
+		PortId:              PortID,
 	}
 }
 
@@ -70,6 +73,10 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 		if err := migrationInfo.Validate(); err != nil {
 			return err
 		}
+	}
+
+	if err := host.PortIdentifierValidator(data.PortId); err != nil {
+		return err
 	}
 
 	return data.Params.Validate(ac)

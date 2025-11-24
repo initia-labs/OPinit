@@ -16,6 +16,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -26,8 +28,11 @@ type Keeper struct {
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
 
-	authKeeper types.AccountKeeper
-	bankKeeper types.BankKeeper
+	authKeeper      types.AccountKeeper
+	bankKeeper      types.BankKeeper
+	ibcClientKeeper types.ClientKeeper
+	portKeeper      types.PortKeeper
+	scopedKeeper    types.ScopedKeeper
 
 	// sig verify and sequence increment decorators
 	decorators sdk.AnteHandler
@@ -57,6 +62,7 @@ type Keeper struct {
 	MigrationInfos       collections.Map[string, types.MigrationInfo] // l2 denom -> migration info
 	IBCToL2DenomMap      collections.Map[string, string]              // ibc denom -> l2 denom
 	ShutdownInfo         collections.Item[[]byte]
+	PortID               collections.Item[string]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -116,6 +122,9 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
+		ibcClientKeeper:       nil,
+		portKeeper:            nil,
+		scopedKeeper:          nil,
 		decorators:            decorators,
 		txDecoder:             txDecoder,
 		msgRouter:             msgRouter,
@@ -136,6 +145,7 @@ func NewKeeper(
 		MigrationInfos:        collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.StringKey, codec.CollValue[types.MigrationInfo](cdc)),
 		IBCToL2DenomMap:       collections.NewMap(sb, types.IBCToL2DenomMapPrefix, "ibc_to_l2_denom_map", collections.StringKey, collections.StringValue),
 		ShutdownInfo:          collections.NewItem(sb, types.ShutdownInfoPrefix, "shutdown_info", collections.BytesValue),
+		PortID:                collections.NewItem(sb, types.PortKey, "port_id", collections.StringValue),
 		ExecutorChangePlans:   make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:    hostValidatorStore,
 	}
@@ -154,6 +164,29 @@ func NewKeeper(
 func (k *Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, decimals uint8) error) *Keeper {
 	k.tokenCreationFn = fn
 	return k
+}
+
+// SetIBCKeepers sets the IBC keepers after initialization.
+// This must be called before the keeper is used, and can only be called once.
+func (k *Keeper) SetIBCKeepers(ibcClientKeeper types.ClientKeeper, portKeeper types.PortKeeper, scopedKeeper types.ScopedKeeper) {
+	if k.ibcClientKeeper != nil || k.portKeeper != nil || k.scopedKeeper != nil {
+		panic("opchild: IBC keepers already set - can only be called once")
+	}
+
+	if ibcClientKeeper == nil || portKeeper == nil || scopedKeeper == nil {
+		panic("opchild: all IBC keepers must be non-nil")
+	}
+
+	k.ibcClientKeeper = ibcClientKeeper
+	k.portKeeper = portKeeper
+	k.scopedKeeper = scopedKeeper
+}
+
+// ensureIBCKeepersSet panics if IBC keepers have not been set via SetIBCKeepers.
+func (k Keeper) ensureIBCKeepersSet() {
+	if k.ibcClientKeeper == nil || k.portKeeper == nil || k.scopedKeeper == nil {
+		panic("opchild: IBC keepers not initialized - call SetIBCKeepers before using IBC functionality")
+	}
 }
 
 // GetAuthority returns the x/move module's authority.
@@ -239,4 +272,33 @@ func (k Keeper) L1ChainId(ctx context.Context) (string, error) {
 	}
 
 	return info.L1ChainId, nil
+}
+
+// IsBound checks if the ophost module is already bound to the desired port
+func (k Keeper) IsBound(ctx context.Context, portID string) bool {
+	k.ensureIBCKeepersSet()
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
+
+	return ok
+}
+
+// BindPort defines a wrapper function for the Keeper's function to expose it to module's InitGenesis function
+func (k Keeper) BindPort(ctx context.Context, portID string) error {
+	k.ensureIBCKeepersSet()
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	capability := k.portKeeper.BindPort(sdkCtx, portID)
+
+	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
+}
+
+// ClaimCapability claims a channel capability for the ophost module
+func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
+}
+
+func (k Keeper) Codec() codec.Codec {
+	return k.cdc
 }

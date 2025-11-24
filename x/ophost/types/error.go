@@ -25,4 +25,5 @@ var (
 	ErrInvalidData                = errorsmod.Register(ModuleName, 18, "invalid data")
 	ErrBridgeAlreadyDisabled      = errorsmod.Register(ModuleName, 19, "bridge already disabled")
 	ErrBridgeDisabled             = errorsmod.Register(ModuleName, 20, "bridge disabled")
+	ErrInvalidIBCChannelID        = errorsmod.Register(ModuleName, 21, "invalid IBC channel ID")
 )

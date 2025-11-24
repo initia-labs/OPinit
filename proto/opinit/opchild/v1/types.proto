@@ -6,6 +6,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "ibc/core/client/v1/client.proto";
 import "opinit/ophost/v1/types.proto";
 import "tendermint/abci/types.proto";
 
@@ -147,4 +148,46 @@ message MigrationInfo {
 
   // ibc_port_id is the IBC port ID, which is allocated for l1 chain, in l2 chain state.
   string ibc_port_id = 3;
+}
+
+// OracleData defines the oracle price data relayed from L1.
+// The relayer must provide oracle price data with a Merkle proof that the data exists in
+// L1's oracle module state. L2 verifies the proof against L1's state root, updated by IBC light client.
+message OracleData {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // bridge_id is the unique identifier of the bridge.
+  uint64 bridge_id = 1 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+
+  // currency_pair is the currency pair being relayed.
+  string currency_pair = 2 [(gogoproto.moretags) = "yaml:\"currency_pair\""];
+
+  // price is the oracle price from L1.
+  string price = 3 [(gogoproto.moretags) = "yaml:\"price\""];
+
+  // decimals is the number of decimals for the price.
+  uint64 decimals = 4 [(gogoproto.moretags) = "yaml:\"decimals\""];
+
+  // l1_block_height is the L1 block height at which this oracle data was recorded.
+  uint64 l1_block_height = 5 [(gogoproto.moretags) = "yaml:\"l1_block_height\""];
+
+  // l1_block_time is the L1 block timestamp, in unix nanoseconds.
+  int64 l1_block_time = 6 [(gogoproto.moretags) = "yaml:\"l1_block_time\""];
+
+  // proof is the Merkle proof from ABCI query that verifies the oracle data exists
+  // in L1's oracle module state at the specified height.
+  bytes proof = 7 [(gogoproto.moretags) = "yaml:\"proof\""];
+
+  // proof_height is the L1 height at which the proof was generated.
+  ibc.core.client.v1.Height proof_height = 8 [
+    (gogoproto.moretags) = "yaml:\"proof_height\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // nonce is the nonce from L1 oracle module.
+  uint64 nonce = 9 [(gogoproto.moretags) = "yaml:\"nonce\""];
+
+  // currency_pair_id is the ID of the currency pair in L1's oracle module.
+  uint64 currency_pair_id = 10 [(gogoproto.moretags) = "yaml:\"currency_pair_id\""];
 }

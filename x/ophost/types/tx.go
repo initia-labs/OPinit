@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -23,6 +24,14 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgUpdateFinalizationPeriod{}
 	_ sdk.Msg = &MsgRegisterMigrationInfo{}
+	_ sdk.Msg = &MsgRegisterAttestorSet{}
+	_ sdk.Msg = &MsgAddAttestor{}
+	_ sdk.Msg = &MsgRemoveAttestor{}
+
+	_ codectypes.UnpackInterfacesMessage = &MsgCreateBridge{}
+	_ codectypes.UnpackInterfacesMessage = &MsgRegisterAttestorSet{}
+	_ codectypes.UnpackInterfacesMessage = &MsgAddAttestor{}
+	_ codectypes.UnpackInterfacesMessage = &Attestor{}
 )
 
 const (
@@ -76,12 +85,12 @@ func NewMsgCreateBridge(
 }
 
 // Validate performs basic MsgCreateBridge message validation.
-func (msg MsgCreateBridge) Validate(ac address.Codec) error {
+func (msg MsgCreateBridge) Validate(ac address.Codec, vc address.Codec) error {
 	if _, err := ac.StringToBytes(msg.Creator); err != nil {
 		return err
 	}
 
-	if err := msg.Config.Validate(ac); err != nil {
+	if err := msg.Config.Validate(ac, vc); err != nil {
 		return err
 	}
 
@@ -90,6 +99,11 @@ func (msg MsgCreateBridge) Validate(ac address.Codec) error {
 	}
 
 	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateBridge) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return msg.Config.UnpackInterfaces(unpacker)
 }
 
 /* MsgProposeOutput */
@@ -549,4 +563,133 @@ func (msg MsgRegisterMigrationInfo) Validate(ac address.Codec) error {
 	}
 
 	return msg.MigrationInfo.Validate()
+}
+
+/* MsgRegisterAttestorSet */
+
+// NewMsgRegisterAttestorSet creates a new MsgRegisterAttestorSet instance.
+func NewMsgRegisterAttestorSet(
+	authority string,
+	bridgeId uint64,
+	attestorSet []Attestor,
+	ibcChannelId string,
+) *MsgRegisterAttestorSet {
+	return &MsgRegisterAttestorSet{
+		Authority:    authority,
+		BridgeId:     bridgeId,
+		AttestorSet:  attestorSet,
+		IbcChannelId: ibcChannelId,
+	}
+}
+
+// Validate performs basic MsgRegisterAttestorSet message validation.
+func (msg MsgRegisterAttestorSet) Validate(ac address.Codec, vc address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if err := ValidateAttestorSet(msg.AttestorSet, vc); err != nil {
+		return err
+	}
+
+	if msg.IbcChannelId == "" {
+		return ErrInvalidIBCChannelID
+	}
+
+	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgRegisterAttestorSet) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	for i := range msg.AttestorSet {
+		if err := msg.AttestorSet[i].UnpackInterfaces(unpacker); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+/* MsgAddAttestor */
+
+// NewMsgAddAttestor creates a new MsgAddAttestor instance.
+func NewMsgAddAttestor(
+	authority string,
+	bridgeId uint64,
+	attestor Attestor,
+	ibcChannelId string,
+) *MsgAddAttestor {
+	return &MsgAddAttestor{
+		Authority:    authority,
+		BridgeId:     bridgeId,
+		Attestor:     attestor,
+		IbcChannelId: ibcChannelId,
+	}
+}
+
+// Validate performs basic MsgAddAttestor message validation.
+func (msg MsgAddAttestor) Validate(ac address.Codec, vc address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if err := ValidateAttestor(msg.Attestor, vc); err != nil {
+		return err
+	}
+
+	if msg.IbcChannelId == "" {
+		return ErrInvalidIBCChannelID
+	}
+
+	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgAddAttestor) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return msg.Attestor.UnpackInterfaces(unpacker)
+}
+
+/* MsgRemoveAttestor */
+
+// NewMsgRemoveAttestor creates a new MsgRemoveAttestor instance.
+func NewMsgRemoveAttestor(
+	authority string,
+	bridgeId uint64,
+	operatorAddress string,
+	ibcChannelId string,
+) *MsgRemoveAttestor {
+	return &MsgRemoveAttestor{
+		Authority:       authority,
+		BridgeId:        bridgeId,
+		OperatorAddress: operatorAddress,
+		IbcChannelId:    ibcChannelId,
+	}
+}
+
+// Validate performs basic MsgRemoveAttestor message validation.
+func (msg MsgRemoveAttestor) Validate(ac address.Codec, vc address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if _, err := vc.StringToBytes(msg.OperatorAddress); err != nil {
+		return errors.Wrapf(err, "invalid operator address")
+	}
+
+	if msg.IbcChannelId == "" {
+		return ErrInvalidIBCChannelID
+	}
+
+	return nil
 }

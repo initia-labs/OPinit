@@ -67,12 +67,12 @@ func (b AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client
 		return err
 	}
 
-	return types.ValidateGenesis(&genState, b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
+	return types.ValidateGenesis(&genState, b.cdc.InterfaceRegistry().SigningContext().AddressCodec(), b.cdc.InterfaceRegistry().SigningContext().ValidatorAddressCodec())
 }
 
 // GetTxCmd returns the root tx command for the move module.
 func (b AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
+	return cli.GetTxCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec(), b.cdc.InterfaceRegistry().SigningContext().ValidatorAddressCodec())
 }
 
 // RegisterInterfaces implements InterfaceModule

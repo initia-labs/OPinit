@@ -32,6 +32,12 @@ service Msg {
   rpc FinalizeTokenDeposit(MsgFinalizeTokenDeposit) returns (MsgFinalizeTokenDepositResponse);
 
   ////////////////////////////
+  // Relayer Messages
+
+  // RelayOracleData defines a rpc handler method for MsgRelayOracleData.
+  rpc RelayOracleData(MsgRelayOracleData) returns (MsgRelayOracleDataResponse);
+
+  ////////////////////////////
   // User Messages
 
   // InitiateTokenWithdrawal defines a user facing l2 => l1 token transfer interface.
@@ -173,6 +179,27 @@ message MsgFinalizeTokenDeposit {
 message MsgFinalizeTokenDepositResponse {
   ResponseResultType result = 1;
 }
+
+///////////////////////////
+// Relayer Messages
+
+// MsgRelayOracleData is a message for relayers to submit oracle data from L1 along with proof.
+message MsgRelayOracleData {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "opchild/MsgRelayOracleData";
+
+  // sender is the relayer address submitting the oracle data.
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // oracle_data contains the oracle price update data with proof.
+  OracleData oracle_data = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgRelayOracleDataResponse returns relay oracle data result
+message MsgRelayOracleDataResponse {}
 
 // MsgInitiateTokenWithdrawal is a message to withdraw a new token from L2 to L1.
 message MsgInitiateTokenWithdrawal {

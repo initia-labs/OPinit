@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophostcli "github.com/initia-labs/OPinit/x/ophost/client/cli"
@@ -41,6 +42,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewSetBridgeInfoCmd(ac),
 		NewUpdateOracleCmd(ac),
 		NewMigrateTokenCmd(ac),
+		NewRelayOracleDataCmd(ac),
 	)
 
 	return opchildTxCmd
@@ -403,6 +405,121 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				BridgeConfig: bridgeConfig,
 			})
 			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewRelayOracleDataCmd returns a CLI command handler for relayers to submit oracle data from L1.
+func NewRelayOracleDataCmd(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "relay-oracle-data [bridge-id] [currency-pair] [price] [decimals] [l1-height] [l1-time] [proof] [proof-height] [nonce] [currency-pair-id]",
+		Short: "relay oracle price data from L1 with state proof",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`relay oracle price data from L1 to L2 with a Merkle proof.
+						Example:
+						$ %s tx opchild relay-oracle-data 1 "BTC/USD" "10177449000" 5 9666412 1699999999000000000 0xabcd... 1/9666412 123 4 --from relayer
+
+						Note: IBC proof height should be in format "revision-number/revision-height" (e.g., "1/9666412")
+						Note: currency-pair-id is the ID assigned to the currency pair in L1's oracle module (query via: initiad query oracle price <base> <quote>)
+						`, version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(10),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid bridge-id: %w", err)
+			}
+
+			currencyPair := args[1]
+			price := args[2]
+
+			decimals, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid decimals: %w", err)
+			}
+
+			l1Height, err := strconv.ParseUint(args[4], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid l1-height: %w", err)
+			}
+
+			l1Time, err := strconv.ParseInt(args[5], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid l1-time: %w", err)
+			}
+
+			// support both hex with and without 0x prefix here
+			proofHex := strings.TrimPrefix(args[6], "0x")
+			proof, err := hex.DecodeString(proofHex)
+			if err != nil {
+				return fmt.Errorf("invalid proof hex: %w", err)
+			}
+
+			proofHeightParts := strings.Split(args[7], "/")
+			if len(proofHeightParts) != 2 {
+				return fmt.Errorf("invalid proof-height format, expected 'revision-number/revision-height'")
+			}
+
+			revisionNumber, err := strconv.ParseUint(proofHeightParts[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid proof-height revision-number: %w", err)
+			}
+
+			revisionHeight, err := strconv.ParseUint(proofHeightParts[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid proof-height revision-height: %w", err)
+			}
+
+			nonce, err := strconv.ParseUint(args[8], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid nonce: %w", err)
+			}
+
+			currencyPairId, err := strconv.ParseUint(args[9], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid currency-pair-id: %w", err)
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRelayOracleData(
+				fromAddr,
+				types.OracleData{
+					BridgeId:      bridgeId,
+					CurrencyPair:  currencyPair,
+					Price:         price,
+					Decimals:      decimals,
+					L1BlockHeight: l1Height,
+					L1BlockTime:   l1Time,
+					Proof:         proof,
+					ProofHeight: clienttypes.Height{
+						RevisionNumber: revisionNumber,
+						RevisionHeight: revisionHeight,
+					},
+					Nonce:          nonce,
+					CurrencyPairId: currencyPairId,
+				},
+			)
+
+			if err := msg.Validate(ac); err != nil {
 				return err
 			}
 

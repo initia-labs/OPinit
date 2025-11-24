@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -44,4 +46,29 @@ type BankKeeper interface {
 
 type CommunityPoolKeeper interface {
 	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
+}
+
+// ChannelKeeper defines the expected IBC channel keeper for sending packets
+type ChannelKeeper interface {
+	SendPacket(
+		ctx sdk.Context,
+		channelCap *capabilitytypes.Capability,
+		sourcePort string,
+		sourceChannel string,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		data []byte,
+	) (sequence uint64, err error)
+	HasChannel(ctx sdk.Context, portID, channelID string) bool
+}
+
+// PortKeeper defines the expected IBC port keeper
+type PortKeeper interface {
+	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+}
+
+// ScopedKeeper defines the expected IBC scoped keeper for managing channel capabilities
+type ScopedKeeper interface {
+	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
+	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
 }

@@ -35,6 +35,7 @@ type CLITestSuite struct {
 	suite.Suite
 
 	ac        address.Codec
+	vc        address.Codec
 	kr        keyring.Keyring
 	encCfg    testutilmod.TestEncodingConfig
 	baseCtx   client.Context
@@ -46,6 +47,7 @@ func (s *CLITestSuite) SetupSuite() {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("init", "initpub")
 	s.ac = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	s.vc = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
 	s.encCfg = testutilmod.MakeTestEncodingConfig(ophost.AppModuleBasic{}, bank.AppModuleBasic{})
 	s.kr = keyring.NewInMemory(s.encCfg.Codec)
 	s.baseCtx = client.Context{}.
@@ -151,7 +153,7 @@ func (s *CLITestSuite) TestNewRecordBatchCmd() {
 //nolint:dupl
 func (s *CLITestSuite) TestNewCreateBridge() {
 	require := s.Require()
-	cmd := cli.NewCreateBridge(s.ac)
+	cmd := cli.NewCreateBridge(s.ac, s.vc)
 
 	addr0, err := s.ac.BytesToString(s.addrs[0])
 	s.NoError(err)

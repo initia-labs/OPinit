@@ -5,6 +5,12 @@ const (
 	// module addr: init1gz9n8jnu9fgqw7vem9ud67gqjk5q4m2w0aejne
 	ModuleName = "opchild"
 
+	// Version defines the current version for opchild IBC module
+	Version = "opinit-1"
+
+	// PortID is the default port id for opchild IBC module
+	PortID = "opinit"
+
 	// StoreKey is the string store representation
 	StoreKey = ModuleName
 
@@ -13,6 +19,9 @@ const (
 )
 
 var (
+	// PortKey defines the key to store the port ID in store
+	PortKey = []byte{0x01}
+
 	// Keys for store prefixes
 	ParamsKey         = []byte{0x11} // prefix for parameters for module x/opchild
 	NextL2SequenceKey = []byte{0x12} // key for the outbound sequence number

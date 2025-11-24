@@ -3,6 +3,7 @@ package types
 import (
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 const (
@@ -11,12 +12,13 @@ const (
 )
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64, migrationInfos []MigrationInfo) *GenesisState {
+func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64, migrationInfos []MigrationInfo, portID string) *GenesisState {
 	return &GenesisState{
 		Params:         params,
 		Bridges:        bridges,
 		NextBridgeId:   nextBridgeId,
 		MigrationInfos: migrationInfos,
+		PortId:         portID,
 	}
 }
 
@@ -27,14 +29,15 @@ func DefaultGenesisState() *GenesisState {
 		Bridges:        []Bridge{},
 		NextBridgeId:   DefaultBridgeIdStart,
 		MigrationInfos: []MigrationInfo{},
+		PortId:         PortID,
 	}
 }
 
 // ValidateGenesis performs basic validation of rollup genesis data returning an
 // error for any failed validation criteria.
-func ValidateGenesis(data *GenesisState, ac address.Codec) error {
+func ValidateGenesis(data *GenesisState, ac address.Codec, vc address.Codec) error {
 	for _, bridge := range data.Bridges {
-		if err := bridge.BridgeConfig.Validate(ac); err != nil {
+		if err := bridge.BridgeConfig.Validate(ac, vc); err != nil {
 			return err
 		}
 
@@ -90,6 +93,10 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 		if err := migrationInfo.Validate(); err != nil {
 			return err
 		}
+	}
+
+	if err := host.PortIdentifierValidator(data.PortId); err != nil {
+		return err
 	}
 
 	return data.Params.Validate()

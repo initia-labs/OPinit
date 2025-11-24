@@ -44,7 +44,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	ophost "github.com/initia-labs/OPinit/x/ophost"
 	ophostkeeper "github.com/initia-labs/OPinit/x/ophost/keeper"
@@ -293,6 +295,9 @@ func _createTestInput(
 	}
 	bridgeHook := &bridgeHook{}
 	communityPoolKeeper := &MockCommunityPoolKeeper{}
+	channelKeeper := &MockChannelKeeper{}
+	portKeeper := &MockPortKeeper{}
+	scopedKeeper := &MockScopedKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
@@ -300,8 +305,12 @@ func _createTestInput(
 		accountKeeper,
 		bankKeeper,
 		communityPoolKeeper,
+		channelKeeper,
+		portKeeper,
+		scopedKeeper,
 		bridgeHook,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 	)
 
 	ophostParams := ophosttypes.DefaultParams()
@@ -415,6 +424,43 @@ type MockCommunityPoolKeeper struct {
 func (k *MockCommunityPoolKeeper) FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error {
 	k.CommunityPool = k.CommunityPool.Add(amount...)
 
+	return nil
+}
+
+// MockChannelKeeper is a mock IBC channel keeper for testing
+type MockChannelKeeper struct{}
+
+func (k *MockChannelKeeper) SendPacket(
+	ctx sdk.Context,
+	channelCap *capabilitytypes.Capability,
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) (sequence uint64, err error) {
+	return 1, nil
+}
+
+func (k *MockChannelKeeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
+	return true
+}
+
+// MockPortKeeper is a mock IBC port keeper for testing
+type MockPortKeeper struct{}
+
+func (k *MockPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+	return &capabilitytypes.Capability{}
+}
+
+// MockScopedKeeper is a mock IBC scoped keeper for testing
+type MockScopedKeeper struct{}
+
+func (k *MockScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool) {
+	return &capabilitytypes.Capability{}, true
+}
+
+func (k *MockScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return nil
 }
 

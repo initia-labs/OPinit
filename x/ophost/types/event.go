@@ -13,6 +13,12 @@ const (
 	EventTypeUpdateMetadata          = "update_metadata"
 	EventTypeUpdateOracle            = "update_oracle"
 	EventTypeRegisterMigrationInfo   = "register_migration_info"
+	EventTypeRegisterAttestorSet     = "register_attestor_set"
+	EventTypeAddAttestor             = "add_attestor"
+	EventTypeRemoveAttestor          = "remove_attestor"
+	EventTypeAttestorSetPacketSent   = "attestor_set_packet_sent"
+	EventTypePacket                  = "ophost_packet"
+	EventTypeTimeout                 = "timeout"
 
 	AttributeKeySubmitter              = "submitter"
 	AttributeKeyCreator                = "creator"
@@ -37,4 +43,9 @@ const (
 	AttributeKeyOracleEnabled          = "oracle_enabled"
 	AttributeKeyIbcChannelId           = "ibc_channel_id"
 	AttributeKeyIbcPortId              = "ibc_port_id"
+	AttributeKeyAttestorAddress        = "attestor_address"
+	AttributeKeyAttestorSetSize        = "attestor_set_size"
+	AttributeKeyL1BlockHeight          = "l1_block_height"
+	AttributeKeyAck                    = "acknowledgement"
+	AttributeKeyAckError               = "error"
 )

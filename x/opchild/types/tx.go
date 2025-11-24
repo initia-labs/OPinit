@@ -29,6 +29,7 @@ var (
 	_ sdk.Msg = &MsgInitiateTokenWithdrawal{}
 	_ sdk.Msg = &MsgRegisterMigrationInfo{}
 	_ sdk.Msg = &MsgMigrateToken{}
+	_ sdk.Msg = &MsgRelayOracleData{}
 
 	_ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}
 	_ codectypes.UnpackInterfacesMessage = &MsgUpdateSequencer{}
@@ -587,6 +588,28 @@ func (msg MsgMigrateToken) Validate(ac address.Codec) error {
 
 	if !msg.Amount.IsValid() || !msg.Amount.IsPositive() {
 		return ErrInvalidAmount
+	}
+
+	return nil
+}
+
+/* MsgRelayOracleData */
+
+// NewMsgRelayOracleData creates a new MsgRelayOracleData instance.
+func NewMsgRelayOracleData(sender string, oracleData OracleData) *MsgRelayOracleData {
+	return &MsgRelayOracleData{
+		Sender:     sender,
+		OracleData: oracleData,
+	}
+}
+
+func (msg MsgRelayOracleData) Validate(ac address.Codec) error {
+	if _, err := ac.StringToBytes(msg.Sender); err != nil {
+		return err
+	}
+
+	if err := msg.OracleData.Validate(); err != nil {
+		return err
 	}
 
 	return nil

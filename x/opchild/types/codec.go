@@ -4,8 +4,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 // RegisterLegacyAminoCodec registers the move types and interface
@@ -29,6 +31,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgSpendFeePool{}, "opchild/MsgSpendFeePool")
 	legacy.RegisterAminoMsg(cdc, &MsgRegisterMigrationInfo{}, "opchild/MsgRegisterMigrationInfo")
 	legacy.RegisterAminoMsg(cdc, &MsgMigrateToken{}, "opchild/MsgMigrateToken")
+	legacy.RegisterAminoMsg(cdc, &MsgRelayOracleData{}, "opchild/MsgRelayOracleData")
 
 	cdc.RegisterConcrete(Params{}, "opchild/Params", nil)
 }
@@ -54,7 +57,23 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgSpendFeePool{},
 		&MsgRegisterMigrationInfo{},
 		&MsgMigrateToken{},
+		&MsgRelayOracleData{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+}
+
+var (
+	anyResolver codectypes.InterfaceRegistry
+	protoCodec  = codec.NewProtoCodec(anyResolver)
+)
+
+func init() {
+	anyResolver = codectypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(anyResolver)
+}
+
+// unmarshalProtoJSON unmarshals JSON-encoded bytes into a protobuf message.
+func unmarshalProtoJSON(bz []byte, ptr proto.Message) error {
+	return protoCodec.UnmarshalJSON(bz, ptr)
 }

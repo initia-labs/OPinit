@@ -5,6 +5,7 @@ import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -67,6 +68,12 @@ message BridgeConfig {
   // bridge_disabled_at is the timestamp when the bridge is disabled.
   google.protobuf.Timestamp bridge_disabled_at = 10 [
     (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+
+  // attestor_set is the set of attestors.
+  repeated Attestor attestor_set = 11 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
@@ -135,4 +142,16 @@ message MigrationInfo {
   string ibc_port_id = 3;
   // L1Denom is the denom of the l1.
   string l1_denom = 4;
+}
+
+// Attestor defines an attestor in the bridge.
+message Attestor {
+  option (amino.name) = "ophost/Attestor";
+
+  // The validator operator address of the attestor.
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.ValidatorAddressString"];
+  // The consensus pubkey of the attestor.
+  google.protobuf.Any consensus_pubkey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  // The moniker of the attestor.
+  string moniker = 3;
 }

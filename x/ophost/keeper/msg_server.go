@@ -6,9 +6,11 @@ import (
 	"encoding/hex"
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
@@ -49,7 +51,7 @@ func (ms MsgServer) RecordBatch(ctx context.Context, req *types.MsgRecordBatch) 
 // The messages for Bridge Creator
 
 func (ms MsgServer) CreateBridge(ctx context.Context, req *types.MsgCreateBridge) (*types.MsgCreateBridgeResponse, error) {
-	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
 		return nil, err
 	}
 
@@ -663,6 +665,173 @@ func (ms MsgServer) DisableBridge(ctx context.Context, req *types.MsgDisableBrid
 
 	return &types.MsgDisableBridgeResponse{}, nil
 }
+
+/////////////////////////////////////////////////////
+// Attestor Messages
+
+// RegisterAttestorSet implements registering/replacing the entire attestor set
+func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegisterAttestorSet) (*types.MsgRegisterAttestorSetResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// only gov is permitted to register
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	config.AttestorSet = req.AttestorSet
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	portID, err := ms.Keeper.PortID.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, portID, req.IbcChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, req.IbcChannelId)
+	}
+
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, portID, req.IbcChannelId); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterAttestorSet,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyAttestorSetSize, strconv.Itoa(len(req.AttestorSet))),
+	))
+
+	return &types.MsgRegisterAttestorSetResponse{}, nil
+}
+
+// AddAttestor implements adding a single attestor to the set
+func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) (*types.MsgAddAttestorResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// only gov is permitted to add
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, attestor := range config.AttestorSet {
+		if attestor.OperatorAddress == req.Attestor.OperatorAddress {
+			return nil, sdkerrors.ErrInvalidRequest.Wrapf("attestor already exists: %s", req.Attestor.OperatorAddress)
+		}
+	}
+
+	config.AttestorSet = append(config.AttestorSet, req.Attestor)
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	portID, err := ms.Keeper.PortID.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, portID, req.IbcChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, req.IbcChannelId)
+	}
+
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, portID, req.IbcChannelId); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeAddAttestor,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyAttestorAddress, req.Attestor.OperatorAddress),
+	))
+
+	return &types.MsgAddAttestorResponse{}, nil
+}
+
+// RemoveAttestor implements removing a single attestor from the set
+func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAttestor) (*types.MsgRemoveAttestorResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
+		return nil, err
+	}
+
+	// only gov is permitted to add
+	if ms.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	found := false
+	newAttestorSet := make([]types.Attestor, 0, len(config.AttestorSet))
+	for _, attestor := range config.AttestorSet {
+		if attestor.OperatorAddress == req.OperatorAddress {
+			found = true
+			continue
+		}
+		newAttestorSet = append(newAttestorSet, attestor)
+	}
+
+	if !found {
+		return nil, sdkerrors.ErrInvalidRequest.Wrapf("attestor not found: %s", req.OperatorAddress)
+	}
+
+	config.AttestorSet = newAttestorSet
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	portID, err := ms.Keeper.PortID.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	foundChannel := ms.Keeper.channelKeeper.HasChannel(sdkCtx, portID, req.IbcChannelId)
+	if !foundChannel {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, req.IbcChannelId)
+	}
+
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, portID, req.IbcChannelId); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRemoveAttestor,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyAttestorAddress, req.OperatorAddress),
+	))
+
+	return &types.MsgRemoveAttestorResponse{}, nil
+}
+
+/////////////////////////////////////////////////////
+// Migration Messages
 
 // RegisterMigrationInfo implements registering the migration info
 func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgRegisterMigrationInfo) (*types.MsgRegisterMigrationInfoResponse, error) {

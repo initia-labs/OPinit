@@ -29,6 +29,8 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  string port_id = 5 [(gogoproto.moretags) = "yaml:\"port_id\""];
 }
 
 // Bridge defeins a bridge state.

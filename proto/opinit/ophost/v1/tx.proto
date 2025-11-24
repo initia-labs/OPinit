@@ -79,6 +79,18 @@ service Msg {
   rpc DisableBridge(MsgDisableBridge) returns (MsgDisableBridgeResponse);
 
   ////////////////////////////
+  // Attestor Messages
+
+  // RegisterAttestorSet defines a rpc handler method for MsgRegisterAttestorSet.
+  rpc RegisterAttestorSet(MsgRegisterAttestorSet) returns (MsgRegisterAttestorSetResponse);
+
+  // AddAttestor defines a rpc handler method for MsgAddAttestor.
+  rpc AddAttestor(MsgAddAttestor) returns (MsgAddAttestorResponse);
+
+  // RemoveAttestor defines a rpc handler method for MsgRemoveAttestor.
+  rpc RemoveAttestor(MsgRemoveAttestor) returns (MsgRemoveAttestorResponse);
+
+  ////////////////////////////
   // Migration Messages
 
   // RegisterMigrationInfo defines a rpc handler method for MsgRegisterMigrationInfo.
@@ -433,6 +445,77 @@ message MsgDisableBridge {
 
 // MsgDisableBridgeResponse returns a message handle result.
 message MsgDisableBridgeResponse {}
+
+////////////////////////////
+// Attestor Messages
+
+// MsgRegisterAttestorSet is a message to register/replace the entire attestor set
+message MsgRegisterAttestorSet {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "ophost/MsgRegisterAttestorSet";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten)
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  repeated Attestor attestor_set = 3 [
+    (gogoproto.moretags) = "yaml:\"attestor_set\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  // ibc_channel_id is the IBC channel ID to send the attestor set update packet to L2
+  string ibc_channel_id = 4 [(gogoproto.moretags) = "yaml:\"ibc_channel_id\""];
+}
+
+// MsgRegisterAttestorSetResponse returns a message handle result.
+message MsgRegisterAttestorSetResponse {}
+
+// MsgAddAttestor is a message to add a single attestor to the set
+message MsgAddAttestor {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "ophost/MsgAddAttestor";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten)
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  Attestor attestor = 3 [
+    (gogoproto.moretags) = "yaml:\"attestor\"",
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  // ibc_channel_id is the IBC channel ID to send the attestor set update packet to L2
+  string ibc_channel_id = 4 [(gogoproto.moretags) = "yaml:\"ibc_channel_id\""];
+}
+
+// MsgAddAttestorResponse returns a message handle result.
+message MsgAddAttestorResponse {}
+
+// MsgRemoveAttestor is a message to remove a single attestor from the set
+message MsgRemoveAttestor {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "ophost/MsgRemoveAttestor";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten)
+  string authority = 1 [
+    (gogoproto.moretags) = "yaml:\"authority\"",
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+  uint64 bridge_id = 2 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+  string operator_address = 3 [
+    (gogoproto.moretags) = "yaml:\"operator_address\"",
+    (cosmos_proto.scalar) = "cosmos.ValidatorAddressString"
+  ];
+  // ibc_channel_id is the IBC channel ID to send the attestor set update packet to L2
+  string ibc_channel_id = 4 [(gogoproto.moretags) = "yaml:\"ibc_channel_id\""];
+}
+
+// MsgRemoveAttestorResponse returns a message handle result.
+message MsgRemoveAttestorResponse {}
 
 ////////////////////////////
 // Migration Messages
