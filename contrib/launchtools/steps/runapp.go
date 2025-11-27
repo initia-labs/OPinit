@@ -28,8 +28,8 @@ func RunAppWithPostAction(postAction launchtools.PostAction) func(cfg *launchtoo
 			// temporarily allow creation of empty blocks
 			// this should help creation of ibc channels.
 			// NOTE: This part is ephemeral only in the context of the launcher.
+			ctx.ServerContext().Config.Sequencing.BlockInterval = CreateEmptyBlocksInterval
 			ctx.ServerContext().Config.Sequencing.CreateEmptyBlocks = true
-			ctx.ServerContext().Config.Sequencing.CreateEmptyBlocksInterval = CreateEmptyBlocksInterval
 
 			// create a channel to synchronize on app creation
 			var syncDone = make(chan any)
