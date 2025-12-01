@@ -1,9 +1,15 @@
 package steps
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -12,6 +18,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -327,6 +334,10 @@ func NewRelayer(
 func (r *Relayer) run(args []string) error {
 	cmdArgs := append(args, "--home", r.home)
 	cmd := exec.CommandContext(r.ctx, r.bin, cmdArgs...) //nolint:gosec // G204: r.bin is a trusted binary path derived from internal logic
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -389,7 +400,6 @@ func ensureRelayerBinary() (string, error) {
 
 	versionNoV := strings.TrimPrefix(types.RlyVersion, "v")
 	downloadURL := fmt.Sprintf("https://github.com/cosmos/relayer/releases/download/%s/Cosmos.Relayer_%s_%s_%s.tar.gz", types.RlyVersion, versionNoV, osName, archName)
-
 	resp, err := http.Get(downloadURL) //nolint:gosec // G107: URL is constructed from constants and system properties
 	if err != nil {
 		return "", errors.Wrap(err, "failed to download rly binary")
@@ -400,10 +410,39 @@ func ensureRelayerBinary() (string, error) {
 		return "", fmt.Errorf("failed to download rly binary: status %d", resp.StatusCode)
 	}
 
-	// Extract tar.gz
-	tarCmd := exec.Command("tar", "-xzf", "-", "-C", destDir)
-	tarCmd.Stdin = resp.Body
-	if err := tarCmd.Run(); err != nil {
+	// Read the body into a buffer to calculate checksum and extract
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read rly binary body")
+	}
+
+	// Verify checksum
+	checksumURL := fmt.Sprintf("https://github.com/cosmos/relayer/releases/download/%s/SHA256SUMS-%s.txt", types.RlyVersion, versionNoV)
+	checksumResp, err := http.Get(checksumURL) //nolint:gosec // G107: URL is constructed from constants and system properties
+	if err != nil {
+		return "", errors.Wrap(err, "failed to download checksum file")
+	}
+	defer checksumResp.Body.Close()
+
+	if checksumResp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to download checksum file: status %d", checksumResp.StatusCode)
+	}
+
+	checksumBody, err := io.ReadAll(checksumResp.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read checksum file body")
+	}
+
+	hasher := sha256.New()
+	hasher.Write(bodyBytes)
+	calculatedChecksum := hex.EncodeToString(hasher.Sum(nil))
+
+	if !verifyChecksum(string(checksumBody), calculatedChecksum, osName, archName) {
+		return "", fmt.Errorf("checksum mismatch for downloaded binary (calculated: %s)", calculatedChecksum)
+	}
+
+	// Extract tar.gz using native Go
+	if err := extractTarGz(bodyBytes, destDir); err != nil {
 		return "", errors.Wrap(err, "failed to extract rly binary")
 	}
 
@@ -454,4 +493,77 @@ func writeJSONConfig(fileName string, v interface{}) error {
 		return err
 	}
 	return os.WriteFile(fileName, bz, 0600)
+}
+
+func verifyChecksum(checksumsContent, calculatedChecksum, osName, archName string) bool {
+	lines := strings.Split(checksumsContent, "\n")
+	for _, line := range lines {
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+		hash := parts[0]
+		filename := strings.Join(parts[1:], " ")
+
+		if hash == calculatedChecksum {
+			// Verify that the filename corresponds to the requested OS and Arch
+			// This handles cases where the filename in checksums differs from the download URL (e.g. spaces, rc versions)
+			if strings.Contains(filename, osName) && strings.Contains(filename, archName) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func extractTarGz(data []byte, destDir string) error {
+	uncompressedStream, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	defer uncompressedStream.Close()
+
+	tarReader := tar.NewReader(uncompressedStream)
+
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		// Zip Slip protection
+		target := filepath.Join(destDir, header.Name) //nolint:gosec // G305: Standard Zip Slip protection is implemented
+		if !strings.HasPrefix(target, filepath.Clean(destDir)+string(os.PathSeparator)) {
+			return fmt.Errorf("illegal file path: %s", target)
+		}
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(target, 0755); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+				return err
+			}
+			outFile, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode)) //nolint: gosec
+			if err != nil {
+				return err
+			}
+			// G110: Potential DoS vulnerability via decompression bomb
+			// Limit the size of the decompressed file to 1GB
+			const maxFileSize = 1 * 1024 * 1024 * 1024 // 1GB
+			limitReader := io.LimitReader(tarReader, maxFileSize)
+
+			if _, err := io.Copy(outFile, limitReader); err != nil {
+				outFile.Close()
+				return err
+			}
+			outFile.Close()
+		}
+	}
+	return nil
 }

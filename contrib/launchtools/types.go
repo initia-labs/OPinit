@@ -105,6 +105,10 @@ type Launcher interface {
 	SetRelayer(relayer Relayer)
 	GetRelayer() Relayer
 
+	// SetAppDone sets the done channel for the app.
+	SetAppDone(done <-chan struct{})
+	WaitApp()
+
 	// WriteOutput writes data to internal artifacts buffer.
 	WriteOutput(name string, data string) error
 
@@ -139,6 +143,9 @@ type LauncherContext struct {
 
 	bridgeId *uint64
 	relayer  Relayer
+	ctx      context.Context
+
+	appDone <-chan struct{}
 }
 
 func NewLauncher(
@@ -148,6 +155,7 @@ func NewLauncher(
 	appCreator AppCreator,
 	defaultGenesis map[string]json.RawMessage,
 	artifactsDir string,
+	ctx context.Context,
 ) *LauncherContext {
 
 	kr, err := keyring.New("minitia", keyring.BackendTest, clientCtx.HomeDir, nil, clientCtx.Codec)
@@ -189,6 +197,7 @@ func NewLauncher(
 		defaultGenesis: defaultGenesis,
 		artifactsDir:   artifactsDirFQ,
 		artifacts:      map[string]string{},
+		ctx:            ctx,
 	}
 }
 
@@ -226,7 +235,7 @@ func (l *LauncherContext) QueryContext() context.Context {
 }
 
 func (l *LauncherContext) Context() context.Context {
-	return l.cmd.Context()
+	return l.ctx
 }
 
 func (l *LauncherContext) DefaultGenesis() map[string]json.RawMessage {
@@ -300,6 +309,16 @@ func (l *LauncherContext) SetErrorGroup(g *errgroup.Group) {
 
 func (l *LauncherContext) GetErrorGroup() *errgroup.Group {
 	return l.errorgroup
+}
+
+func (l *LauncherContext) SetAppDone(done <-chan struct{}) {
+	l.appDone = done
+}
+
+func (l *LauncherContext) WaitApp() {
+	if l.appDone != nil {
+		<-l.appDone
+	}
 }
 
 func (l *LauncherContext) Close() error {

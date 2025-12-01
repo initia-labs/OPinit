@@ -31,6 +31,9 @@ func StopApp(_ *launchertypes.Config) launchertypes.LauncherStepFunc {
 			return err
 		}
 
+		// wait for the app to stop completely (release ports)
+		ctx.WaitApp()
+
 		// close the app
 		if localErr := ctx.App().Close(); localErr != nil {
 			log.Error(localErr.Error())
