@@ -13,9 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/exec"
 	"path"
-	"path/filepath"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -329,8 +327,6 @@ func NewRelayer(
 		home:   home,
 		logger: logger,
 		ctx:    ctx,
-		bin:    bin,
-	}, nil
 		bin:    bin,
 	}, nil
 }
