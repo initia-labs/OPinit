@@ -84,7 +84,11 @@ func RunAppWithPostAction(postAction launchtools.PostAction) func(cfg *launchtoo
 			// Run RunE command - this part fires up the actual chain
 			// Note that the command is run in a separate goroutine, as it is blocking.
 			// App should be later cleaned up in another launcher step
+			done := make(chan struct{})
+			ctx.SetAppDone(done)
+
 			go func() {
+				defer close(done)
 				if err := startCmd.RunE(startCmd, nil); err != nil {
 					panic(errors.Wrapf(err, "failed to run command"))
 				}

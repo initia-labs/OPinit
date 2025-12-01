@@ -4,14 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"reflect"
-	"runtime"
-	"strings"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -23,6 +20,7 @@ import (
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/types"
+	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 )
 
 // EstablishIBCChannelsWithNFTTransfer creates a new IBC channel for fungible transfer, and one with NFT transfer
@@ -134,7 +132,7 @@ func initializeChains(config *launchtools.Config, basePath string) func(*Relayer
 		pathName := fmt.Sprintf("chain%d", i)
 		fileName := fmt.Sprintf("%s/%s.json", basePath, pathName)
 
-		if err := writeJSONConfig(fileName, chainConfig); err != nil {
+		if err := utils.WriteJSONConfig(fileName, chainConfig); err != nil {
 			panic(errors.Wrap(err, "failed to write chain config"))
 		}
 	}
@@ -179,7 +177,7 @@ func initializePaths(config *launchtools.Config, basePath string) func(*Relayer)
 		},
 	}
 
-	if err := writeJSONConfig(fmt.Sprintf("%s/paths.json", basePath), pathConfig); err != nil {
+	if err := utils.WriteJSONConfig(fmt.Sprintf("%s/paths.json", basePath), pathConfig); err != nil {
 		panic(errors.Wrap(err, "failed to write path config"))
 	}
 
@@ -311,7 +309,7 @@ func NewRelayer(
 	home string,
 	logger log.Logger,
 ) (*Relayer, error) {
-	bin, err := ensureRelayerBinary()
+	bin, err := utils.EnsureRelayerBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -327,6 +325,14 @@ func NewRelayer(
 func (r *Relayer) run(args []string) error {
 	cmdArgs := append(args, "--home", r.home)
 	cmd := exec.CommandContext(r.ctx, r.bin, cmdArgs...) //nolint:gosec // G204: r.bin is a trusted binary path derived from internal logic
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		if cmd.Process != nil {
+			return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		}
+
+		return nil
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -339,119 +345,4 @@ func (r *Relayer) UpdateClients() error {
 		"update-clients",
 		RelayerPathName,
 	})
-}
-
-func ensureRelayerBinary() (string, error) {
-	// Check if rly is already in PATH
-	if path, err := exec.LookPath("rly"); err == nil {
-		if checkRelayerVersion(path, types.RlyVersion) {
-			return path, nil
-		}
-	}
-
-	// Download to a temporary directory
-	destDir := filepath.Join(os.TempDir(), "opinit-bin")
-	if err := os.MkdirAll(destDir, 0755); err != nil {
-		return "", errors.Wrap(err, "failed to create binary destination directory")
-	}
-
-	destBin := filepath.Join(destDir, "rly")
-	if _, err := os.Stat(destBin); err == nil {
-		if checkRelayerVersion(destBin, types.RlyVersion) {
-			return destBin, nil
-		}
-		// If version mismatch, remove the old binary
-		_ = os.Remove(destBin)
-	}
-
-	goOS := runtime.GOOS
-	goArch := runtime.GOARCH
-
-	var osName string
-	switch goOS {
-	case "darwin":
-		osName = "darwin"
-	case "linux":
-		osName = "linux"
-	default:
-		return "", fmt.Errorf("unsupported OS for automatic download: %s", goOS)
-	}
-
-	var archName string
-	switch goArch {
-	case "amd64":
-		archName = "amd64"
-	case "arm64":
-		archName = "arm64"
-	default:
-		return "", fmt.Errorf("unsupported architecture for automatic download: %s", goArch)
-	}
-
-	versionNoV := strings.TrimPrefix(types.RlyVersion, "v")
-	downloadURL := fmt.Sprintf("https://github.com/cosmos/relayer/releases/download/%s/Cosmos.Relayer_%s_%s_%s.tar.gz", types.RlyVersion, versionNoV, osName, archName)
-
-	resp, err := http.Get(downloadURL) //nolint:gosec // G107: URL is constructed from constants and system properties
-	if err != nil {
-		return "", errors.Wrap(err, "failed to download rly binary")
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to download rly binary: status %d", resp.StatusCode)
-	}
-
-	// Extract tar.gz
-	tarCmd := exec.Command("tar", "-xzf", "-", "-C", destDir)
-	tarCmd.Stdin = resp.Body
-	if err := tarCmd.Run(); err != nil {
-		return "", errors.Wrap(err, "failed to extract rly binary")
-	}
-
-	// The binary might be in a subdirectory (e.g. "Cosmos Relayer_2.6.0-rc.2_darwin_amd64/rly")
-	// We need to find it and move it to destBin
-	err = filepath.Walk(destDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && info.Name() == "rly" {
-			if path != destBin {
-				return os.Rename(path, destBin)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return "", errors.Wrap(err, "failed to locate rly binary after extraction")
-	}
-
-	if _, err := os.Stat(destBin); err != nil {
-		return "", errors.Wrap(err, "rly binary not found after extraction")
-	}
-
-	return destBin, nil
-}
-
-func checkRelayerVersion(binPath, expectedVersion string) bool {
-	cmd := exec.Command(binPath, "version")
-	out, err := cmd.Output()
-	if err != nil {
-		return false
-	}
-
-	// Expected output format: "version: 2.6.0" or similar
-	// We'll check if the output contains the version string (without 'v' prefix if present in expectedVersion)
-	versionStr := expectedVersion
-	if len(versionStr) > 0 && versionStr[0] == 'v' {
-		versionStr = versionStr[1:]
-	}
-
-	return strings.Contains(string(out), versionStr)
-}
-
-func writeJSONConfig(fileName string, v interface{}) error {
-	bz, err := json.MarshalIndent(v, "", " ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(fileName, bz, 0600)
 }
