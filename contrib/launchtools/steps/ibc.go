@@ -327,7 +327,11 @@ func (r *Relayer) run(args []string) error {
 	cmd := exec.CommandContext(r.ctx, r.bin, cmdArgs...) //nolint:gosec // G204: r.bin is a trusted binary path derived from internal logic
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Cancel = func() error {
-		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		if cmd.Process != nil {
+			return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		}
+
+		return nil
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

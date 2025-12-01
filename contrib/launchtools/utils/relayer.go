@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools/types"
 	"github.com/pkg/errors"
@@ -68,7 +69,8 @@ func EnsureRelayerBinary() (string, error) {
 
 	versionNoV := strings.TrimPrefix(version, "v")
 	downloadURL := fmt.Sprintf("https://github.com/cosmos/relayer/releases/download/%s/Cosmos.Relayer_%s_%s_%s.tar.gz", version, versionNoV, osName, archName)
-	resp, err := http.Get(downloadURL) //nolint:gosec // G107: URL is constructed from constants and system properties
+	httpClient := &http.Client{Timeout: 5 * time.Minute} // Reasonable timeout for binary download
+	resp, err := httpClient.Get(downloadURL)             //nolint:gosec // G107: URL is constructed from constants and system properties
 	if err != nil {
 		return "", errors.Wrap(err, "failed to download rly binary")
 	}
