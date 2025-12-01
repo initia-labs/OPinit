@@ -326,7 +326,7 @@ func NewRelayer(
 
 func (r *Relayer) run(args []string) error {
 	cmdArgs := append(args, "--home", r.home)
-	cmd := exec.CommandContext(r.ctx, r.bin, cmdArgs...)
+	cmd := exec.CommandContext(r.ctx, r.bin, cmdArgs...) //nolint:gosec // G204: r.bin is a trusted binary path derived from internal logic
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
