@@ -47,7 +47,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	exported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
@@ -213,6 +215,7 @@ type TestKeepers struct {
 	BankKeeper           bankkeeper.Keeper
 	OPChildKeeper        opchildkeeper.Keeper
 	OracleKeeper         *oraclekeeper.Keeper
+	ClientKeeper         *MockIBCClientKeeper
 	EncodingConfig       EncodingConfig
 	Faucet               *TestFaucet
 	TokenCreationFactory *TestTokenCreationFactory
@@ -358,11 +361,26 @@ func _createTestInput(
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	consensusParams := tmproto.ConsensusParams{
+		Validator: &tmproto.ValidatorParams{
+			PubKeyTypes: []string{"ed25519", "secp256k1"},
+		},
+	}
+	ctx = sdkCtx.WithConsensusParams(consensusParams)
+
+	// Set IBC keepers for opchild keeper
+	ibcClientKeeper := NewMockIBCClientKeeper()
+	portKeeper := &MockIBCPortKeeper{}
+	scopedKeeper := &MockIBCScopedKeeper{}
+	opchildKeeper.SetIBCKeepers(ibcClientKeeper, portKeeper, scopedKeeper)
+
 	keepers := TestKeepers{
 		Cdc:                  appCodec,
 		AccountKeeper:        accountKeeper,
 		BankKeeper:           bankKeeper,
 		OPChildKeeper:        *opchildKeeper,
+		ClientKeeper:         ibcClientKeeper,
 		OracleKeeper:         &oracleKeeper,
 		EncodingConfig:       encodingConfig,
 		Faucet:               faucet,
@@ -489,4 +507,66 @@ func (router *MockRouter) Reset() {
 
 func (router *MockRouter) SetShouldFail(shouldFail bool) {
 	router.shouldFail = shouldFail
+}
+
+// MockIBCClientKeeper is a mock IBC client keeper for testing
+type MockIBCClientKeeper struct {
+	stores    map[string]storetypes.KVStore
+	states    map[string]exported.ClientState
+	consensus map[string]exported.ConsensusState
+}
+
+func NewMockIBCClientKeeper() *MockIBCClientKeeper {
+	return &MockIBCClientKeeper{
+		stores:    make(map[string]storetypes.KVStore),
+		states:    make(map[string]exported.ClientState),
+		consensus: make(map[string]exported.ConsensusState),
+	}
+}
+
+// SetClientState sets a client state for a given client ID
+func (k *MockIBCClientKeeper) SetClientState(clientID string, cs exported.ClientState) {
+	k.states[clientID] = cs
+}
+
+// SetConsensusState sets a consensus state for a given client ID
+func (k *MockIBCClientKeeper) SetConsensusState(clientID string, cs exported.ConsensusState) {
+	k.consensus[clientID] = cs
+}
+
+// GetClientState returns the client state for a given client ID
+func (k *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+	cs, ok := k.states[clientID]
+	return cs, ok
+}
+
+func (k *MockIBCClientKeeper) SetClientStore(key string, store storetypes.KVStore) {
+	k.stores[key] = store
+}
+
+// ClientStore returns a KVStore for the client
+func (k *MockIBCClientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
+	kvStore, ok := k.stores[clientID]
+	if !ok {
+		panic(fmt.Sprintf("client %s not found in store", clientID))
+	}
+	return kvStore
+}
+
+// MockIBCPortKeeper is a mock IBC port keeper for testing
+type MockIBCPortKeeper struct{}
+
+func (k *MockIBCPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+	return &capabilitytypes.Capability{}
+}
+
+// MockIBCScopedKeeper is a mock IBC scoped keeper for testing
+type MockIBCScopedKeeper struct{}
+
+func (k *MockIBCScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool) {
+	return &capabilitytypes.Capability{}, true
+}
+
+func (k *MockIBCScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+	return nil
 }

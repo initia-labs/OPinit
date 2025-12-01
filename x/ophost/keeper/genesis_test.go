@@ -87,6 +87,9 @@ func Test_GenesisExport(t *testing.T) {
 		L1Denom:      "test2",
 	}))
 
+	// set port id
+	require.NoError(t, input.OPHostKeeper.PortID.Set(ctx, types.PortID))
+
 	genState := input.OPHostKeeper.ExportGenesis(ctx)
 	require.Equal(t, uint64(3), genState.NextBridgeId)
 	require.Equal(t, params, genState.Params)

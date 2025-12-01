@@ -17,6 +17,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	protoio "github.com/cosmos/gogoproto/io"
 	"github.com/cosmos/gogoproto/proto"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -1124,4 +1125,122 @@ func Test_MsgServer_UpdateOracleFail(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
 	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[0], 11, []byte{}))
 	require.EqualError(t, err, types.ErrOracleDisabled.Error())
+}
+
+func Test_MsgServer_RelayOracleData(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	opchildKeeper := input.OPChildKeeper
+
+	bridgeInfo := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[0],
+		L1ChainId:  "test-host-1",
+		L1ClientId: "test-client-id",
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger:            addrsStr[1],
+			Proposer:              addrsStr[2],
+			SubmissionInterval:    100,
+			FinalizationPeriod:    100,
+			SubmissionStartHeight: 1,
+			OracleEnabled:         true,
+			Metadata:              []byte{},
+			BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		},
+	}
+	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
+	require.NoError(t, err)
+
+	// valid oracle data (without proof verification for unit test)
+	oracleData := types.OracleData{
+		BridgeId:       1,
+		CurrencyPair:   "BTC/USD",
+		Price:          "50000000000",
+		Decimals:       8,
+		L1BlockHeight:  100,
+		L1BlockTime:    1000000000,
+		CurrencyPairId: 1,
+		Nonce:          1,
+		Proof:          []byte("test-proof"),
+		ProofHeight: clienttypes.Height{
+			RevisionNumber: 0,
+			RevisionHeight: 100,
+		},
+	}
+
+	ms := keeper.NewMsgServerImpl(&opchildKeeper)
+
+	msg := types.NewMsgRelayOracleData(addrsStr[0], oracleData)
+	_, err = ms.RelayOracleData(ctx, msg)
+	require.Error(t, err) // expected to fail at proof verification
+	require.Contains(t, err.Error(), "failed to handle oracle data")
+}
+
+func Test_MsgServer_RelayOracleData_InvalidMessage(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	opchildKeeper := input.OPChildKeeper
+
+	ms := keeper.NewMsgServerImpl(&opchildKeeper)
+
+	invalidOracleData := types.OracleData{
+		BridgeId:      0, // invalid
+		CurrencyPair:  "BTC/USD",
+		Price:         "50000",
+		L1BlockHeight: 100,
+		L1BlockTime:   1000,
+		Proof:         []byte("proof"),
+		ProofHeight: clienttypes.Height{
+			RevisionHeight: 100,
+		},
+	}
+
+	msg := types.NewMsgRelayOracleData(addrsStr[0], invalidOracleData)
+	_, err := ms.RelayOracleData(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "bridge id cannot be zero")
+}
+
+func Test_MsgServer_RelayOracleData_OracleDisabled(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	opchildKeeper := input.OPChildKeeper
+
+	bridgeInfo := types.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: addrsStr[0],
+		L1ChainId:  "test-host-1",
+		L1ClientId: "test-client-id",
+		BridgeConfig: ophosttypes.BridgeConfig{
+			Challenger:            addrsStr[1],
+			Proposer:              addrsStr[2],
+			SubmissionInterval:    100,
+			FinalizationPeriod:    100,
+			SubmissionStartHeight: 1,
+			OracleEnabled:         false, // disabled
+			Metadata:              []byte{},
+			BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		},
+	}
+	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
+	require.NoError(t, err)
+
+	oracleData := types.OracleData{
+		BridgeId:       1,
+		CurrencyPair:   "BTC/USD",
+		Price:          "50000000000",
+		Decimals:       8,
+		L1BlockHeight:  100,
+		L1BlockTime:    1000000000,
+		CurrencyPairId: 1,
+		Nonce:          1,
+		Proof:          []byte("test-proof"),
+		ProofHeight: clienttypes.Height{
+			RevisionNumber: 0,
+			RevisionHeight: 100,
+		},
+	}
+
+	ms := keeper.NewMsgServerImpl(&opchildKeeper)
+	msg := types.NewMsgRelayOracleData(addrsStr[0], oracleData)
+	_, err = ms.RelayOracleData(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "oracle is disabled")
 }

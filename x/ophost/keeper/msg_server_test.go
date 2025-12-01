@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -736,4 +738,122 @@ func Test_MsgServer_UpdateFinalizationPeriod(t *testing.T) {
 	msg = types.NewMsgUpdateFinalizationPeriod(govAddr, 2, time.Second*10)
 	_, err = ms.UpdateFinalizationPeriod(ctx, msg)
 	require.Error(t, err)
+}
+
+func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challenger:            addrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte("test-metadata"),
+		BatchInfo: types.BatchInfo{
+			Submitter: addrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	err = input.OPHostKeeper.PortID.Set(ctx, types.PortID)
+	require.NoError(t, err)
+
+	// create attestors
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	privKey2 := ed25519.GenPrivKey()
+	pubKey2 := privKey2.PubKey()
+	pkAny2, err := codectypes.NewAnyWithValue(pubKey2)
+	require.NoError(t, err)
+
+	attestorSet := []types.Attestor{
+		{
+			OperatorAddress: valAddrsStr[0],
+			ConsensusPubkey: pkAny1,
+			Moniker:         "attestor1",
+		},
+		{
+			OperatorAddress: valAddrsStr[1],
+			ConsensusPubkey: pkAny2,
+			Moniker:         "attestor2",
+		},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// successful registration
+	msg := types.NewMsgRegisterAttestorSet(govAddr, bridgeId, attestorSet, "channel-0")
+	_, err = ms.RegisterAttestorSet(ctx, msg)
+	require.NoError(t, err)
+
+	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
+	require.NoError(t, err)
+	require.Len(t, config.AttestorSet, 2)
+	require.Equal(t, valAddrsStr[0], config.AttestorSet[0].OperatorAddress)
+	require.Equal(t, valAddrsStr[1], config.AttestorSet[1].OperatorAddress)
+
+	events := sdk.UnwrapSDKContext(ctx).EventManager().Events()
+	found := false
+	for _, event := range events {
+		if event.Type == types.EventTypeRegisterAttestorSet {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "expected register attestor set event")
+}
+
+func Test_MsgServer_RegisterAttestorSet_InvalidSigner(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              addrsStr[0],
+		Challenger:            addrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		Metadata:              []byte("test-metadata"),
+		BatchInfo: types.BatchInfo{
+			Submitter: addrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// invalid authority (not gov)
+	msg := types.NewMsgRegisterAttestorSet(addrsStr[0], bridgeId, []types.Attestor{}, "channel-0")
+	_, err = ms.RegisterAttestorSet(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func Test_MsgServer_RegisterAttestorSet_BridgeNotFound(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// non-existent bridge
+	msg := types.NewMsgRegisterAttestorSet(govAddr, 999, []types.Attestor{}, "channel-0")
+	_, err = ms.RegisterAttestorSet(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found")
 }
