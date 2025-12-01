@@ -70,7 +70,7 @@ func EnsureRelayerBinary() (string, error) {
 	versionNoV := strings.TrimPrefix(version, "v")
 	downloadURL := fmt.Sprintf("https://github.com/cosmos/relayer/releases/download/%s/Cosmos.Relayer_%s_%s_%s.tar.gz", version, versionNoV, osName, archName)
 	httpClient := &http.Client{Timeout: 5 * time.Minute} // Reasonable timeout for binary download
-	resp, err := httpClient.Get(downloadURL)             //nolint:gosec // G107: URL is constructed from constants and system properties
+	resp, err := httpClient.Get(downloadURL)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to download rly binary")
 	}
@@ -88,7 +88,7 @@ func EnsureRelayerBinary() (string, error) {
 
 	// Verify checksum
 	checksumURL := fmt.Sprintf("https://github.com/cosmos/relayer/releases/download/%s/SHA256SUMS-%s.txt", version, versionNoV)
-	checksumResp, err := http.Get(checksumURL) //nolint:gosec // G107: URL is constructed from constants and system properties
+	checksumResp, err := httpClient.Get(checksumURL)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to download checksum file")
 	}
