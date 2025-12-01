@@ -777,7 +777,7 @@ func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAtte
 		return nil, err
 	}
 
-	// only gov is permitted to add
+	// only gov is permitted to remove
 	if ms.authority != req.Authority {
 		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
