@@ -46,6 +46,9 @@ $ launchtools launch --artifacts-dir ./ --with-config ./config.json
 			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer cancel()
 
+			// decorate the command's context with the signal context
+			cmd.SetContext(ctx)
+
 			// use coin type 118 for opinit-bots and relayer
 			cfg := sdk.GetConfig()
 			cfg.SetCoinType(118)
@@ -79,7 +82,6 @@ $ launchtools launch --artifacts-dir ./ --with-config ./config.json
 				appCreator,
 				defaultGenesisGetter(config.L2Config.Denom),
 				artifactsDir,
-				ctx,
 			)
 			defer launcher.Close()
 

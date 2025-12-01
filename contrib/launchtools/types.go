@@ -143,7 +143,6 @@ type LauncherContext struct {
 
 	bridgeId *uint64
 	relayer  Relayer
-	ctx      context.Context
 
 	appDone <-chan struct{}
 }
@@ -155,7 +154,6 @@ func NewLauncher(
 	appCreator AppCreator,
 	defaultGenesis map[string]json.RawMessage,
 	artifactsDir string,
-	ctx context.Context,
 ) *LauncherContext {
 
 	kr, err := keyring.New("minitia", keyring.BackendTest, clientCtx.HomeDir, nil, clientCtx.Codec)
@@ -197,7 +195,6 @@ func NewLauncher(
 		defaultGenesis: defaultGenesis,
 		artifactsDir:   artifactsDirFQ,
 		artifacts:      map[string]string{},
-		ctx:            ctx,
 	}
 }
 
@@ -235,7 +232,7 @@ func (l *LauncherContext) QueryContext() context.Context {
 }
 
 func (l *LauncherContext) Context() context.Context {
-	return l.ctx
+	return l.cmd.Context()
 }
 
 func (l *LauncherContext) DefaultGenesis() map[string]json.RawMessage {

@@ -1,7 +1,8 @@
 package types
 
 const (
-	RlyVersion = "v2.6.0"
+	RlyVersion    = "v2.6.0"
+	RlyBinaryName = "rly"
 )
 
 type CosmosProviderConfig struct {
