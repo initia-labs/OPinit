@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 )
 
 func Test_MaxValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
@@ -21,7 +23,7 @@ func Test_MaxValidators(t *testing.T) {
 }
 
 func Test_HistoricalEntries(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
@@ -34,7 +36,7 @@ func Test_HistoricalEntries(t *testing.T) {
 }
 
 func Test_UnbondingTime(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	unbondingTime, err := input.OPChildKeeper.UnbondingTime(ctx)
 	require.NoError(t, err)

@@ -15,8 +15,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	legacy.RegisterAminoMsg(cdc, &MsgExecuteMessages{}, "opchild/MsgExecuteMessages")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateSequencer{}, "opchild/MsgUpdateSequencer")
-	legacy.RegisterAminoMsg(cdc, &MsgAddAttestor{}, "opchild/MsgAddAttestor")
-	legacy.RegisterAminoMsg(cdc, &MsgRemoveAttestor{}, "opchild/MsgRemoveAttestor")
 	legacy.RegisterAminoMsg(cdc, &MsgAddFeeWhitelistAddresses{}, "opchild/MsgAddFeeWhitelistAddresses")
 	legacy.RegisterAminoMsg(cdc, &MsgRemoveFeeWhitelistAddresses{}, "opchild/MsgRemoveFeeWhitelistAddresses")
 	legacy.RegisterAminoMsg(cdc, &MsgAddBridgeExecutor{}, "opchild/MsgAddBridgeExecutor")
@@ -41,8 +39,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgExecuteMessages{},
 		&MsgUpdateSequencer{},
-		&MsgAddAttestor{},
-		&MsgRemoveAttestor{},
 		&MsgAddFeeWhitelistAddresses{},
 		&MsgRemoveFeeWhitelistAddresses{},
 		&MsgAddBridgeExecutor{},

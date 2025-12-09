@@ -4,14 +4,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_SetGetBatchInfo(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	batchInfo1 := types.BatchInfo{
-		Submitter: addrsStr[0],
+		Submitter: testutil.AddrsStr[0],
 		ChainType: types.BatchInfo_INITIA,
 	}
 	output1 := types.Output{
@@ -24,7 +25,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo2 := types.BatchInfo{
-		Submitter: addrsStr[1],
+		Submitter: testutil.AddrsStr[1],
 		ChainType: types.BatchInfo_INITIA,
 	}
 	output2 := types.Output{
@@ -37,7 +38,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo3 := types.BatchInfo{
-		Submitter: addrsStr[0],
+		Submitter: testutil.AddrsStr[0],
 		ChainType: types.BatchInfo_CELESTIA,
 	}
 	output3 := types.Output{
@@ -50,7 +51,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo4 := types.BatchInfo{
-		Submitter: addrsStr[1],
+		Submitter: testutil.AddrsStr[1],
 		ChainType: types.BatchInfo_CELESTIA,
 	}
 	output4 := types.Output{
@@ -63,7 +64,7 @@ func Test_SetGetBatchInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	batchInfo5 := types.BatchInfo{
-		Submitter: addrsStr[1],
+		Submitter: testutil.AddrsStr[1],
 		ChainType: types.BatchInfo_CELESTIA,
 	}
 	output5 := types.Output{

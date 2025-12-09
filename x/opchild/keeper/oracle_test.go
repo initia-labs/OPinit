@@ -9,6 +9,7 @@ import (
 
 	"cosmossdk.io/store/dbadapter"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
@@ -116,7 +117,7 @@ func Test_UpdateHostValidatorSet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx, input := createDefaultTestInput(t)
+			ctx, input := testutil.CreateTestInput(t, false)
 			opchildKeeper := input.OPChildKeeper
 			hostValidatorStore := opchildKeeper.HostValidatorStore
 
@@ -248,7 +249,7 @@ func Test_UpdateOracle(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx, input := createDefaultTestInput(t)
+			ctx, input := testutil.CreateTestInput(t, false)
 			opchildKeeper := input.OPChildKeeper
 			oracleKeeper := input.OracleKeeper
 
@@ -351,7 +352,7 @@ func Test_UpdateOracle(t *testing.T) {
 }
 
 func Test_HandleOracleDataPacket_BridgeIdMismatch(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:  1,
@@ -379,7 +380,7 @@ func Test_HandleOracleDataPacket_BridgeIdMismatch(t *testing.T) {
 }
 
 func Test_HandleOracleDataPacket_OracleDisabled(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:  1,
@@ -407,7 +408,7 @@ func Test_HandleOracleDataPacket_OracleDisabled(t *testing.T) {
 }
 
 func Test_HandleOracleDataPacket_InvalidCurrencyPair(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:  1,
@@ -434,7 +435,7 @@ func Test_HandleOracleDataPacket_InvalidCurrencyPair(t *testing.T) {
 }
 
 func Test_ProcessOraclePriceUpdate_InvalidPrice(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	input.OracleKeeper.InitGenesis(sdk.UnwrapSDKContext(ctx), oracletypes.GenesisState{
 		CurrencyPairGenesis: make([]oracletypes.CurrencyPairGenesis, 0),
@@ -471,7 +472,7 @@ func Test_ProcessOraclePriceUpdate_InvalidPrice(t *testing.T) {
 }
 
 func Test_ConvertProofOpsToMerkleProof_InvalidProof(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:   1,
@@ -505,7 +506,7 @@ func Test_ConvertProofOpsToMerkleProof_InvalidProof(t *testing.T) {
 }
 
 func Test_ProcessOraclePriceUpdate_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	tmclient.RegisterInterfaces(input.Cdc.InterfaceRegistry())
 

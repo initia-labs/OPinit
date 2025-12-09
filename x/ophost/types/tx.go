@@ -572,13 +572,11 @@ func NewMsgRegisterAttestorSet(
 	authority string,
 	bridgeId uint64,
 	attestorSet []Attestor,
-	ibcChannelId string,
 ) *MsgRegisterAttestorSet {
 	return &MsgRegisterAttestorSet{
-		Authority:    authority,
-		BridgeId:     bridgeId,
-		AttestorSet:  attestorSet,
-		IbcChannelId: ibcChannelId,
+		Authority:   authority,
+		BridgeId:    bridgeId,
+		AttestorSet: attestorSet,
 	}
 }
 
@@ -594,10 +592,6 @@ func (msg MsgRegisterAttestorSet) Validate(ac address.Codec, vc address.Codec) e
 
 	if err := ValidateAttestorSet(msg.AttestorSet, vc); err != nil {
 		return err
-	}
-
-	if msg.IbcChannelId == "" {
-		return ErrInvalidIBCChannelID
 	}
 
 	return nil
@@ -620,13 +614,11 @@ func NewMsgAddAttestor(
 	authority string,
 	bridgeId uint64,
 	attestor Attestor,
-	ibcChannelId string,
 ) *MsgAddAttestor {
 	return &MsgAddAttestor{
-		Authority:    authority,
-		BridgeId:     bridgeId,
-		Attestor:     attestor,
-		IbcChannelId: ibcChannelId,
+		Authority: authority,
+		BridgeId:  bridgeId,
+		Attestor:  attestor,
 	}
 }
 
@@ -644,10 +636,6 @@ func (msg MsgAddAttestor) Validate(ac address.Codec, vc address.Codec) error {
 		return err
 	}
 
-	if msg.IbcChannelId == "" {
-		return ErrInvalidIBCChannelID
-	}
-
 	return nil
 }
 
@@ -663,13 +651,11 @@ func NewMsgRemoveAttestor(
 	authority string,
 	bridgeId uint64,
 	operatorAddress string,
-	ibcChannelId string,
 ) *MsgRemoveAttestor {
 	return &MsgRemoveAttestor{
 		Authority:       authority,
 		BridgeId:        bridgeId,
 		OperatorAddress: operatorAddress,
-		IbcChannelId:    ibcChannelId,
 	}
 }
 
@@ -685,10 +671,6 @@ func (msg MsgRemoveAttestor) Validate(ac address.Codec, vc address.Codec) error 
 
 	if _, err := vc.StringToBytes(msg.OperatorAddress); err != nil {
 		return errors.Wrapf(err, "invalid operator address")
-	}
-
-	if msg.IbcChannelId == "" {
-		return ErrInvalidIBCChannelID
 	}
 
 	return nil

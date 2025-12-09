@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_TokenPair(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	tokenPair := types.TokenPair{
 		L1Denom: "l1_denom",
 		L2Denom: "l2_denom",
@@ -21,7 +22,7 @@ func Test_TokenPair(t *testing.T) {
 }
 
 func Test_IterateTokenPair(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	tokenPair1 := types.TokenPair{
 		L1Denom: "l11_denom",

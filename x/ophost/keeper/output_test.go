@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_OutputProposal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	output := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockTime:   time.Now().UTC(),
@@ -25,7 +26,7 @@ func Test_OutputProposal(t *testing.T) {
 }
 
 func Test_IterateOutputProposal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockNumber: 1,
@@ -82,15 +83,15 @@ func Test_IterateOutputProposal(t *testing.T) {
 }
 
 func Test_IsFinalized(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Challenger:            addrsStr[1],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -113,7 +114,7 @@ func Test_IsFinalized(t *testing.T) {
 }
 
 func Test_NextOutputIndex(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	index, err := input.OPHostKeeper.IncreaseNextOutputIndex(ctx, 1)
 	require.NoError(t, err)
@@ -141,15 +142,15 @@ func Test_NextOutputIndex(t *testing.T) {
 }
 
 func Test_GetLastFinalizedOutput(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -179,7 +180,7 @@ func Test_GetLastFinalizedOutput(t *testing.T) {
 }
 
 func Test_DeleteOutputProposal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	output := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -191,12 +192,12 @@ func Test_DeleteOutputProposal(t *testing.T) {
 	require.NoError(t, err)
 
 	err = input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 

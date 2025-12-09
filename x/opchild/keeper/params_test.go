@@ -4,17 +4,18 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Params(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)
 	params.MinGasPrices = sdk.NewDecCoins()
-	params.FeeWhitelist = []string{addrsStr[0], addrsStr[1]}
+	params.FeeWhitelist = []string{testutil.AddrsStr[0], testutil.AddrsStr[1]}
 
 	err = input.OPChildKeeper.SetParams(ctx, params)
 	require.NoError(t, err)
@@ -24,7 +25,7 @@ func Test_Params(t *testing.T) {
 	require.True(t, minGasPrices.Empty())
 	bridgeExecutors, err := input.OPChildKeeper.BridgeExecutors(ctx)
 	require.NoError(t, err)
-	require.Equal(t, []sdk.AccAddress{addrs[0]}, bridgeExecutors)
+	require.Equal(t, []sdk.AccAddress{testutil.Addrs[0]}, bridgeExecutors)
 
 	feeWhitelist, err := input.OPChildKeeper.FeeWhitelist(ctx)
 	require.NoError(t, err)
@@ -32,7 +33,7 @@ func Test_Params(t *testing.T) {
 }
 
 func Test_Change_MaxValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params, err := input.OPChildKeeper.GetParams(ctx)
 	require.NoError(t, err)

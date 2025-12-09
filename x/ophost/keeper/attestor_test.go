@@ -9,31 +9,29 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_SendAttestorSetUpdatePacket_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeId := uint64(1)
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    1000,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte("test-metadata"),
 		BatchInfo: ophosttypes.BatchInfo{
-			Submitter: addrsStr[2],
+			Submitter: testutil.AddrsStr[2],
 			ChainType: ophosttypes.BatchInfo_INITIA,
 		},
 		AttestorSet: []ophosttypes.Attestor{},
 	}
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
-	require.NoError(t, err)
-
-	err = input.OPHostKeeper.PortID.Set(ctx, ophosttypes.PortID)
 	require.NoError(t, err)
 
 	err = input.OPHostKeeper.SendAttestorSetUpdatePacket(
@@ -56,12 +54,9 @@ func Test_SendAttestorSetUpdatePacket_Success(t *testing.T) {
 }
 
 func Test_SendAttestorSetUpdatePacket_BridgeNotFound(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
-	err := input.OPHostKeeper.PortID.Set(ctx, ophosttypes.PortID)
-	require.NoError(t, err)
-
-	err = input.OPHostKeeper.SendAttestorSetUpdatePacket(
+	err := input.OPHostKeeper.SendAttestorSetUpdatePacket(
 		ctx,
 		999, // non-existent bridge ID
 		ophosttypes.PortID,
@@ -72,7 +67,7 @@ func Test_SendAttestorSetUpdatePacket_BridgeNotFound(t *testing.T) {
 }
 
 func Test_SendAttestorSetUpdatePacket_WithAttestors(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	privKey1 := ed25519.GenPrivKey()
 	pubKey1 := privKey1.PubKey()
@@ -81,30 +76,27 @@ func Test_SendAttestorSetUpdatePacket_WithAttestors(t *testing.T) {
 	require.NoError(t, err)
 
 	attestor1 := ophosttypes.Attestor{
-		OperatorAddress: valAddrsStr[3],
+		OperatorAddress: testutil.ValAddrsStr[3],
 		ConsensusPubkey: pkAny1,
 		Moniker:         "attestor1",
 	}
 
 	bridgeId := uint64(1)
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    1000,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte("test-metadata"),
 		BatchInfo: ophosttypes.BatchInfo{
-			Submitter: addrsStr[2],
+			Submitter: testutil.AddrsStr[2],
 			ChainType: ophosttypes.BatchInfo_INITIA,
 		},
 		AttestorSet: []ophosttypes.Attestor{attestor1},
 	}
 
 	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
-	require.NoError(t, err)
-
-	err = input.OPHostKeeper.PortID.Set(ctx, ophosttypes.PortID)
 	require.NoError(t, err)
 
 	err = input.OPHostKeeper.SendAttestorSetUpdatePacket(

@@ -6,41 +6,42 @@ import (
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GetValidator(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	valPubKey := testutilsims.CreateTestPubKeys(1)[0]
-	val, err := types.NewValidator(valAddrs[1], valPubKey, "validator1")
+	val, err := types.NewValidator(testutil.ValAddrs[1], valPubKey, "validator1")
 	require.NoError(t, err)
 
 	// should be empty
-	_, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
+	_, found := input.OPChildKeeper.GetValidator(ctx, testutil.ValAddrs[1])
 	require.False(t, found)
 
 	// set validator
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val))
 
-	valAfter, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
+	valAfter, found := input.OPChildKeeper.GetValidator(ctx, testutil.ValAddrs[1])
 	require.True(t, found)
 	require.Equal(t, val, valAfter)
 
 	// remove validator
-	require.NoError(t, input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1]))
+	require.NoError(t, input.OPChildKeeper.RemoveValidator(ctx, testutil.ValAddrs[1]))
 
 	// should be empty
-	_, found = input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
+	_, found = input.OPChildKeeper.GetValidator(ctx, testutil.ValAddrs[1])
 	require.False(t, found)
 }
 
 func Test_GetValidatorByConsAddr(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	valPubKey := testutilsims.CreateTestPubKeys(1)[0]
-	val, err := types.NewValidator(valAddrs[1], valPubKey, "validator1")
+	val, err := types.NewValidator(testutil.ValAddrs[1], valPubKey, "validator1")
 	require.NoError(t, err)
 
 	consAddr, err := val.GetConsAddr()
@@ -59,7 +60,7 @@ func Test_GetValidatorByConsAddr(t *testing.T) {
 	require.Equal(t, val, valAfter)
 
 	// remove validator
-	require.NoError(t, input.OPChildKeeper.RemoveValidator(ctx, valAddrs[1]))
+	require.NoError(t, input.OPChildKeeper.RemoveValidator(ctx, testutil.ValAddrs[1]))
 
 	// should be empty
 	_, found = input.OPChildKeeper.GetValidatorByConsAddr(ctx, consAddr)
@@ -67,13 +68,13 @@ func Test_GetValidatorByConsAddr(t *testing.T) {
 }
 
 func Test_GetAllValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
-	val1, err := types.NewValidator(valAddrs[1], valPubKeys[0], "validator1")
+	val1, err := types.NewValidator(testutil.ValAddrs[1], valPubKeys[0], "validator1")
 	require.NoError(t, err)
 
-	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
+	val2, err := types.NewValidator(testutil.ValAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
@@ -87,13 +88,13 @@ func Test_GetAllValidators(t *testing.T) {
 }
 
 func Test_GetValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
-	val1, err := types.NewValidator(valAddrs[1], valPubKeys[0], "validator1")
+	val1, err := types.NewValidator(testutil.ValAddrs[1], valPubKeys[0], "validator1")
 	require.NoError(t, err)
 
-	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
+	val2, err := types.NewValidator(testutil.ValAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
@@ -105,36 +106,36 @@ func Test_GetValidators(t *testing.T) {
 }
 
 func Test_LastValidatorPower(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
-	val1, err := types.NewValidator(valAddrs[1], valPubKeys[0], "validator1")
+	val1, err := types.NewValidator(testutil.ValAddrs[1], valPubKeys[0], "validator1")
 	require.NoError(t, err)
 
-	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
+	val2, err := types.NewValidator(testutil.ValAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
-	beforePower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, valAddrs[1])
+	beforePower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, testutil.ValAddrs[1])
 	require.NoError(t, err)
 	require.Equal(t, int64(0), beforePower)
 
 	// set validator with power index
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val1))
 	require.NoError(t, input.OPChildKeeper.SetValidator(ctx, val2))
-	require.NoError(t, input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[1], 100))
-	require.NoError(t, input.OPChildKeeper.SetLastValidatorPower(ctx, valAddrs[2], 200))
+	require.NoError(t, input.OPChildKeeper.SetLastValidatorPower(ctx, testutil.ValAddrs[1], 100))
+	require.NoError(t, input.OPChildKeeper.SetLastValidatorPower(ctx, testutil.ValAddrs[2], 200))
 
-	afterPower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, valAddrs[1])
+	afterPower, err := input.OPChildKeeper.GetLastValidatorPower(ctx, testutil.ValAddrs[1])
 	require.NoError(t, err)
 	require.Equal(t, int64(100), afterPower)
 
 	// iterate all powers
 	require.NoError(t, input.OPChildKeeper.IterateLastValidatorPowers(ctx, func(key []byte, power int64) (stop bool, err error) {
 		valAddr := sdk.ValAddress(key)
-		if valAddr.Equals(valAddrs[1]) {
+		if valAddr.Equals(testutil.ValAddrs[1]) {
 			require.Equal(t, int64(100), power)
 		} else {
-			require.Equal(t, valAddrs[2], valAddr)
+			require.Equal(t, testutil.ValAddrs[2], valAddr)
 			require.Equal(t, int64(200), power)
 		}
 

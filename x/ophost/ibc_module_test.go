@@ -1,4 +1,4 @@
-package keeper_test
+package ophost_test
 
 import (
 	"fmt"
@@ -10,15 +10,12 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	"github.com/initia-labs/OPinit/x/ophost"
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-
-	// set port ID
-	err := input.OPHostKeeper.PortID.Set(ctx, ophosttypes.PortID)
-	require.NoError(t, err)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
 	capability := &capabilitytypes.Capability{}
@@ -53,7 +50,7 @@ func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
 }
 
 func Test_OPHostIBCModule_OnChanCloseInit(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
 
@@ -68,7 +65,7 @@ func Test_OPHostIBCModule_OnChanCloseInit(t *testing.T) {
 }
 
 func Test_OPHostIBCModule_OnRecvPacket(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
 
@@ -87,7 +84,7 @@ func Test_OPHostIBCModule_OnRecvPacket(t *testing.T) {
 }
 
 func Test_OPHostIBCModule_OnAcknowledgementPacket(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
 
@@ -104,20 +101,10 @@ func Test_OPHostIBCModule_OnAcknowledgementPacket(t *testing.T) {
 
 	err := ibcModule.OnAcknowledgementPacket(ctx, packet, ack.Acknowledgement(), nil)
 	require.NoError(t, err)
-
-	events := ctx.EventManager().Events()
-	found := false
-	for _, event := range events {
-		if event.Type == ophosttypes.EventTypePacket {
-			found = true
-			break
-		}
-	}
-	require.True(t, found, "expected packet event to be emitted")
 }
 
 func Test_OPHostIBCModule_OnAcknowledgementPacket_Error(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
 
@@ -151,7 +138,7 @@ func Test_OPHostIBCModule_OnAcknowledgementPacket_Error(t *testing.T) {
 }
 
 func Test_OPHostIBCModule_OnTimeoutPacket(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
 
@@ -166,14 +153,4 @@ func Test_OPHostIBCModule_OnTimeoutPacket(t *testing.T) {
 
 	err := ibcModule.OnTimeoutPacket(ctx, packet, nil)
 	require.NoError(t, err)
-
-	events := ctx.EventManager().Events()
-	found := false
-	for _, event := range events {
-		if event.Type == ophosttypes.EventTypeTimeout {
-			found = true
-			break
-		}
-	}
-	require.True(t, found, "expected timeout event to be emitted")
 }

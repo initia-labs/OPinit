@@ -8,16 +8,17 @@ import (
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_HandleAttestorSetUpdatePacket_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -28,9 +29,9 @@ func Test_HandleAttestorSetUpdatePacket_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(3)
-	attestor1 := createAttestor(t, valAddrsStr[1], valPubKeys[0], "attestor1")
-	attestor2 := createAttestor(t, valAddrsStr[2], valPubKeys[1], "attestor2")
-	attestor3 := createAttestor(t, valAddrsStr[3], valPubKeys[2], "attestor3")
+	attestor1 := testutil.CreateAttestor(t, testutil.ValAddrsStr[1], valPubKeys[0], "attestor1")
+	attestor2 := testutil.CreateAttestor(t, testutil.ValAddrsStr[2], valPubKeys[1], "attestor2")
+	attestor3 := testutil.CreateAttestor(t, testutil.ValAddrsStr[3], valPubKeys[2], "attestor3")
 
 	packetData := ophosttypes.AttestorSetUpdatePacketData{
 		BridgeId:      1,
@@ -68,11 +69,11 @@ func Test_HandleAttestorSetUpdatePacket_Success(t *testing.T) {
 }
 
 func Test_HandleAttestorSetUpdatePacket_BridgeIdMismatch(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -95,11 +96,11 @@ func Test_HandleAttestorSetUpdatePacket_BridgeIdMismatch(t *testing.T) {
 }
 
 func Test_HandleAttestorSetUpdatePacket_RemoveOldAttestors(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -110,8 +111,8 @@ func Test_HandleAttestorSetUpdatePacket_RemoveOldAttestors(t *testing.T) {
 	require.NoError(t, err)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(4)
-	attestor1 := createAttestor(t, valAddrsStr[1], valPubKeys[0], "attestor1")
-	attestor2 := createAttestor(t, valAddrsStr[2], valPubKeys[1], "attestor2")
+	attestor1 := testutil.CreateAttestor(t, testutil.ValAddrsStr[1], valPubKeys[0], "attestor1")
+	attestor2 := testutil.CreateAttestor(t, testutil.ValAddrsStr[2], valPubKeys[1], "attestor2")
 
 	packetData1 := ophosttypes.AttestorSetUpdatePacketData{
 		BridgeId:      1,
@@ -127,7 +128,7 @@ func Test_HandleAttestorSetUpdatePacket_RemoveOldAttestors(t *testing.T) {
 	require.Len(t, vals, 2)
 
 	// update with new set (remove attestor2, add attestor3)
-	attestor3 := createAttestor(t, valAddrsStr[3], valPubKeys[2], "attestor3")
+	attestor3 := testutil.CreateAttestor(t, testutil.ValAddrsStr[3], valPubKeys[2], "attestor3")
 
 	packetData2 := ophosttypes.AttestorSetUpdatePacketData{
 		BridgeId:      1,
@@ -166,11 +167,11 @@ func Test_HandleAttestorSetUpdatePacket_RemoveOldAttestors(t *testing.T) {
 }
 
 func Test_HandleAttestorSetUpdatePacket_SkipExistingAttestors(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -181,8 +182,8 @@ func Test_HandleAttestorSetUpdatePacket_SkipExistingAttestors(t *testing.T) {
 	require.NoError(t, err)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
-	attestor1 := createAttestor(t, valAddrsStr[1], valPubKeys[0], "attestor1")
-	attestor2 := createAttestor(t, valAddrsStr[2], valPubKeys[1], "attestor2")
+	attestor1 := testutil.CreateAttestor(t, testutil.ValAddrsStr[1], valPubKeys[0], "attestor1")
+	attestor2 := testutil.CreateAttestor(t, testutil.ValAddrsStr[2], valPubKeys[1], "attestor2")
 
 	packetData := ophosttypes.AttestorSetUpdatePacketData{
 		BridgeId:      1,
@@ -203,11 +204,11 @@ func Test_HandleAttestorSetUpdatePacket_SkipExistingAttestors(t *testing.T) {
 }
 
 func Test_HandleAttestorSetUpdatePacket_InvalidAttestor(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -236,11 +237,11 @@ func Test_HandleAttestorSetUpdatePacket_InvalidAttestor(t *testing.T) {
 }
 
 func Test_OnRecvAttestorSetUpdatePacket_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -251,8 +252,8 @@ func Test_OnRecvAttestorSetUpdatePacket_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
-	attestor1 := createAttestor(t, valAddrsStr[1], valPubKeys[0], "attestor1")
-	attestor2 := createAttestor(t, valAddrsStr[2], valPubKeys[1], "attestor2")
+	attestor1 := testutil.CreateAttestor(t, testutil.ValAddrsStr[1], valPubKeys[0], "attestor1")
+	attestor2 := testutil.CreateAttestor(t, testutil.ValAddrsStr[2], valPubKeys[1], "attestor2")
 
 	packetData := ophosttypes.NewAttestorSetUpdatePacketData(
 		1,
@@ -270,7 +271,7 @@ func Test_OnRecvAttestorSetUpdatePacket_Success(t *testing.T) {
 }
 
 func Test_OnRecvAttestorSetUpdatePacket_InvalidPacketData(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	_, err := input.OPChildKeeper.OnRecvAttestorSetUpdatePacket(ctx, []byte("invalid-data"))
 	require.Error(t, err)

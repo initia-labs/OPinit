@@ -9,12 +9,8 @@ import (
 )
 
 func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
-	if err := k.PortID.Set(ctx, data.PortId); err != nil {
-		panic(err)
-	}
-
-	if !k.IsBound(ctx, data.PortId) {
-		err := k.BindPort(ctx, data.PortId)
+	if !k.IsBound(ctx, types.PortID) {
+		err := k.BindPort(ctx, types.PortID)
 		if err != nil {
 			panic(fmt.Sprintf("could not bind port: %v", err))
 		}
@@ -80,13 +76,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 // GenesisState will contain the pool, params, validators, and bonds found in
 // the keeper.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	portID, err := k.PortID.Get(ctx)
-	if err != nil {
-		panic(err)
-	}
-
 	var bridges []types.Bridge
-	err = k.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error) {
+	err := k.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error) {
 		nextL1Sequence, err := k.GetNextL1Sequence(ctx, bridgeId)
 		if err != nil {
 			return true, err
@@ -168,6 +159,5 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		Bridges:        bridges,
 		NextBridgeId:   nextBridgeId,
 		MigrationInfos: migrationInfos,
-		PortId:         portID,
 	}
 }

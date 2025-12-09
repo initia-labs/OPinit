@@ -15,6 +15,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
+	"github.com/initia-labs/OPinit/x/ophost/types/hook"
 )
 
 type MsgServer struct {
@@ -693,17 +694,18 @@ func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegis
 		return nil, err
 	}
 
-	portID, err := ms.Keeper.PortID.Get(ctx)
+	// Extract channel ID from bridge metadata
+	channelID, err := hook.GetOpinitChannelID(config.Metadata)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
 	}
 
-	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, portID, req.IbcChannelId)
+	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
 	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, req.IbcChannelId)
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
 	}
 
-	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, portID, req.IbcChannelId); err != nil {
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, channelID); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
 	}
 
@@ -735,28 +737,28 @@ func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) 
 		return nil, err
 	}
 
-	for _, attestor := range config.AttestorSet {
-		if attestor.OperatorAddress == req.Attestor.OperatorAddress {
-			return nil, sdkerrors.ErrInvalidRequest.Wrapf("attestor already exists: %s", req.Attestor.OperatorAddress)
-		}
+	newAttestorSet := append(config.AttestorSet, req.Attestor)
+	if err := types.ValidateAttestorSet(newAttestorSet, ms.ValidatorAddressCodec()); err != nil {
+		return nil, err
 	}
 
-	config.AttestorSet = append(config.AttestorSet, req.Attestor)
+	config.AttestorSet = newAttestorSet
 	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
 		return nil, err
 	}
 
-	portID, err := ms.Keeper.PortID.Get(ctx)
+	// Extract channel ID from bridge metadata
+	channelID, err := hook.GetOpinitChannelID(config.Metadata)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
 	}
 
-	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, portID, req.IbcChannelId)
+	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
 	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, req.IbcChannelId)
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
 	}
 
-	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, portID, req.IbcChannelId); err != nil {
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, channelID); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
 	}
 
@@ -807,17 +809,18 @@ func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAtte
 		return nil, err
 	}
 
-	portID, err := ms.Keeper.PortID.Get(ctx)
+	// Extract channel ID from bridge metadata
+	channelID, err := hook.GetOpinitChannelID(config.Metadata)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
 	}
 
-	foundChannel := ms.Keeper.channelKeeper.HasChannel(sdkCtx, portID, req.IbcChannelId)
+	foundChannel := ms.Keeper.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
 	if !foundChannel {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, req.IbcChannelId)
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
 	}
 
-	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, portID, req.IbcChannelId); err != nil {
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, channelID); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
 	}
 

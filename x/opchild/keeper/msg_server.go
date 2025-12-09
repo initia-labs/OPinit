@@ -189,60 +189,6 @@ func (ms MsgServer) UpdateSequencer(ctx context.Context, req *types.MsgUpdateSeq
 	return &types.MsgUpdateSequencerResponse{}, nil
 }
 
-// AddAttestor implements adding an attestor to the validator set
-func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) (*types.MsgAddAttestorResponse, error) {
-	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
-		return nil, err
-	}
-	if ms.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
-	}
-
-	attestorAddr, err := ms.validatorAddressCodec.StringToBytes(req.AttestorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ms.addValidator(ctx, req.Moniker, sdk.ValAddress(attestorAddr), req.Pubkey, types.AttestorConsPower); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgAddAttestorResponse{}, nil
-}
-
-// RemoveAttestor implements removing an attestor from the validator set
-func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAttestor) (*types.MsgRemoveAttestorResponse, error) {
-	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.validatorAddressCodec); err != nil {
-		return nil, err
-	}
-
-	if ms.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
-	}
-
-	attestorAddr, err := ms.validatorAddressCodec.StringToBytes(req.AttestorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	valAddr := sdk.ValAddress(attestorAddr)
-
-	validator, found := ms.GetValidator(ctx, valAddr)
-	if !found {
-		return nil, errorsmod.Wrap(types.ErrNoValidatorFound, req.AttestorAddress)
-	}
-
-	if validator.ConsPower != types.AttestorConsPower {
-		return nil, errorsmod.Wrapf(types.ErrValidatorNotAttestor, "address %s has consensus power %d", req.AttestorAddress, validator.ConsPower)
-	}
-
-	if err := ms.removeValidator(ctx, valAddr); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgRemoveAttestorResponse{}, nil
-}
-
 // addValidator implements adding a validator to the designated validator set
 func (ms MsgServer) addValidator(ctx context.Context, moniker string, valAddr sdk.ValAddress, pubkey *codectypes.Any, vp int64) error {
 	pk, ok := pubkey.GetCachedValue().(cryptotypes.PubKey)

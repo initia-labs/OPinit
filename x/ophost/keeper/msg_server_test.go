@@ -16,37 +16,38 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_RecordBatch(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	_, err := ms.RecordBatch(ctx, types.NewMsgRecordBatch(addrsStr[0], 1, []byte{1, 2, 3}))
+	_, err := ms.RecordBatch(ctx, types.NewMsgRecordBatch(testutil.AddrsStr[0], 1, []byte{1, 2, 3}))
 	require.NoError(t, err)
 }
 
 func Test_CreateBridge(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params := input.OPHostKeeper.GetParams(ctx)
 	params.RegistrationFee = sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(100)))
 	require.NoError(t, input.OPHostKeeper.SetParams(ctx, params))
 
-	input.Faucet.Fund(ctx, addrs[0], sdk.NewCoin("foo", math.NewInt(1000)))
+	input.Faucet.Fund(ctx, testutil.Addrs[0], sdk.NewCoin("foo", math.NewInt(1000)))
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
-	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	res, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), res.BridgeId)
 
@@ -59,19 +60,19 @@ func Test_CreateBridge(t *testing.T) {
 }
 
 func Test_ProposeOutput(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
-	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
@@ -79,11 +80,11 @@ func Test_ProposeOutput(t *testing.T) {
 	ctx = ctx.WithBlockTime(blockTime)
 
 	// unauthorized
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[1], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[1], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.Error(t, err)
 
 	// valid
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 
 	output, err := input.OPHostKeeper.GetOutputProposal(ctx, 1, 1)
@@ -97,19 +98,19 @@ func Test_ProposeOutput(t *testing.T) {
 }
 
 func Test_DeleteOutput(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
-	createReq := types.NewMsgCreateBridge(addrsStr[0], config)
+	createReq := types.NewMsgCreateBridge(testutil.AddrsStr[0], config)
 	createRes, err := ms.CreateBridge(ctx, createReq)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
@@ -117,18 +118,18 @@ func Test_DeleteOutput(t *testing.T) {
 	blockTime := time.Now().UTC()
 	ctx = ctx.WithBlockTime(blockTime)
 
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 2, 200, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 2, 200, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 
 	// unauthorized
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[2], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(testutil.AddrsStr[2], 1, 1))
 	require.Error(t, err)
 
 	// valid by challenger
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(testutil.AddrsStr[1], 1, 1))
 	require.NoError(t, err)
 
 	// should return error; deleted
@@ -139,11 +140,11 @@ func Test_DeleteOutput(t *testing.T) {
 	require.Error(t, err)
 
 	// should be able to resubmit the same output
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 
 	// invalid output index: nextoutputindex is 2 now
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[1], 1, 2))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(testutil.AddrsStr[1], 1, 2))
 	require.Error(t, err)
 
 	// valid delete by gov
@@ -151,45 +152,45 @@ func Test_DeleteOutput(t *testing.T) {
 	require.NoError(t, err)
 
 	// should be able to resubmit the same output
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 1, 100, []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}))
 	require.NoError(t, err)
 
 	// valid delete by proposer
-	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(addrsStr[0], 1, 1))
+	_, err = ms.DeleteOutput(ctx, types.NewMsgDeleteOutput(testutil.AddrsStr[0], 1, 1))
 	require.NoError(t, err)
 }
 
 func Test_InitiateTokenDeposit(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
-	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	createRes, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), createRes.BridgeId)
 
 	amount := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100))
-	input.Faucet.Fund(ctx, addrs[1], amount)
+	input.Faucet.Fund(ctx, testutil.Addrs[1], amount)
 	_, err = ms.InitiateTokenDeposit(
 		ctx,
-		types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, "l2_addr", amount, []byte("messages")),
+		types.NewMsgInitiateTokenDeposit(testutil.AddrsStr[1], 1, "l2_addr", amount, []byte("messages")),
 	)
 	require.NoError(t, err)
-	require.True(t, input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).IsZero())
+	require.True(t, input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], sdk.DefaultBondDenom).IsZero())
 	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, types.BridgeAddress(1), sdk.DefaultBondDenom))
 
 	// not existing bridge
 	_, err = ms.InitiateTokenDeposit(
 		ctx,
-		types.NewMsgInitiateTokenDeposit(addrsStr[1], 2, "l2_addr", amount, []byte("messages")),
+		types.NewMsgInitiateTokenDeposit(testutil.AddrsStr[1], 2, "l2_addr", amount, []byte("messages")),
 	)
 	require.Error(t, err)
 
@@ -198,24 +199,24 @@ func Test_InitiateTokenDeposit(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ms.DisableBridge(ctx, types.NewMsgDisableBridge(govAddr, 1))
 	require.NoError(t, err)
-	_, err = ms.InitiateTokenDeposit(ctx, types.NewMsgInitiateTokenDeposit(addrsStr[1], 1, "l2_addr", amount, []byte("messages")))
+	_, err = ms.InitiateTokenDeposit(ctx, types.NewMsgInitiateTokenDeposit(testutil.AddrsStr[1], 1, "l2_addr", amount, []byte("messages")))
 	require.ErrorIs(t, err, types.ErrBridgeDisabled)
 }
 
 func Test_FinalizeTokenWithdrawal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// fund amount
@@ -246,13 +247,13 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 
 	now := time.Now().UTC()
 	ctx = ctx.WithBlockTime(now)
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, outputRoot[:]))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 1, 100, outputRoot[:]))
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
 
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
-		addrsStr[3], // any address can execute this
+		testutil.AddrsStr[3], // any address can execute this
 		1, 1, 1, proofs,
 		sender,
 		receiver,
@@ -267,19 +268,19 @@ func Test_FinalizeTokenWithdrawal(t *testing.T) {
 }
 
 func Test_FinalizeTokenWithdrawal_MigratedToken(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// fund amount
@@ -326,13 +327,13 @@ func Test_FinalizeTokenWithdrawal_MigratedToken(t *testing.T) {
 
 	now := time.Now().UTC()
 	ctx = ctx.WithBlockTime(now)
-	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(addrsStr[0], 1, 1, 100, outputRoot[:]))
+	_, err = ms.ProposeOutput(ctx, types.NewMsgProposeOutput(testutil.AddrsStr[0], 1, 1, 100, outputRoot[:]))
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(now.Add(time.Second * 60))
 
 	_, err = ms.FinalizeTokenWithdrawal(ctx, types.NewMsgFinalizeTokenWithdrawal(
-		addrsStr[3], // any address can execute this
+		testutil.AddrsStr[3], // any address can execute this
 		1, 1, 1, proofs,
 		sender,
 		receiver,
@@ -357,46 +358,46 @@ func decodeBase64(t *testing.T, str string) []byte {
 }
 
 func Test_UpdateProposal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
-	msg := types.NewMsgUpdateProposer(govAddr, 1, addrsStr[1])
+	msg := types.NewMsgUpdateProposer(govAddr, 1, testutil.AddrsStr[1])
 	_, err = ms.UpdateProposer(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, addrsStr[1], _config.Proposer)
-	require.Equal(t, addrsStr[1], input.BridgeHook.proposer)
+	require.Equal(t, testutil.AddrsStr[1], _config.Proposer)
+	require.Equal(t, testutil.AddrsStr[1], input.BridgeHook.Proposer)
 
 	// current proposer signer
-	msg = types.NewMsgUpdateProposer(addrsStr[1], 1, addrsStr[2])
+	msg = types.NewMsgUpdateProposer(testutil.AddrsStr[1], 1, testutil.AddrsStr[2])
 	_, err = ms.UpdateProposer(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, addrs[2].String(), _config.Proposer)
-	require.Equal(t, addrs[2].String(), input.BridgeHook.proposer)
+	require.Equal(t, testutil.Addrs[2].String(), _config.Proposer)
+	require.Equal(t, testutil.Addrs[2].String(), input.BridgeHook.Proposer)
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
-	msg = types.NewMsgUpdateProposer(invalidAddr, 1, addrsStr[1])
+	msg = types.NewMsgUpdateProposer(invalidAddr, 1, testutil.AddrsStr[1])
 	require.NoError(t, err)
 
 	_, err = ms.UpdateProposer(
@@ -407,39 +408,39 @@ func Test_UpdateProposal(t *testing.T) {
 }
 
 func Test_UpdateChallenger(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
-	msg := types.NewMsgUpdateChallenger(govAddr, 1, addrsStr[2])
+	msg := types.NewMsgUpdateChallenger(govAddr, 1, testutil.AddrsStr[2])
 	_, err = ms.UpdateChallenger(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, addrsStr[2], _config.Challenger)
-	require.Equal(t, input.BridgeHook.challenger, _config.Challenger)
+	require.Equal(t, testutil.AddrsStr[2], _config.Challenger)
+	require.Equal(t, input.BridgeHook.Challenger, _config.Challenger)
 
 	// current challenger
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
-	msg = types.NewMsgUpdateChallenger(invalidAddr, 1, addrsStr[1])
+	msg = types.NewMsgUpdateChallenger(invalidAddr, 1, testutil.AddrsStr[1])
 	require.NoError(t, err)
 
 	_, err = ms.UpdateChallenger(
@@ -455,58 +456,58 @@ func Test_UpdateChallenger(t *testing.T) {
 }
 
 func Test_UpdateBatchInfo(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
 		BatchInfo: types.BatchInfo{
-			Submitter: addrsStr[1],
+			Submitter: testutil.AddrsStr[1],
 			ChainType: types.BatchInfo_INITIA,
 		},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
 	msg := types.NewMsgUpdateBatchInfo(govAddr, 1, types.BatchInfo{
-		Submitter: addrsStr[2],
+		Submitter: testutil.AddrsStr[2],
 		ChainType: types.BatchInfo_CELESTIA,
 	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, _config.BatchInfo.Submitter, addrsStr[2])
+	require.Equal(t, _config.BatchInfo.Submitter, testutil.AddrsStr[2])
 	require.Equal(t, types.BatchInfo_CELESTIA, _config.BatchInfo.ChainType)
-	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
+	require.Equal(t, input.BridgeHook.BatchInfo, _config.BatchInfo)
 
 	// current proposer signer
-	msg = types.NewMsgUpdateBatchInfo(addrsStr[0], 1, types.BatchInfo{
-		Submitter: addrsStr[3],
+	msg = types.NewMsgUpdateBatchInfo(testutil.AddrsStr[0], 1, types.BatchInfo{
+		Submitter: testutil.AddrsStr[3],
 		ChainType: types.BatchInfo_INITIA,
 	})
 	_, err = ms.UpdateBatchInfo(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, _config.BatchInfo.Submitter, addrsStr[3])
+	require.Equal(t, _config.BatchInfo.Submitter, testutil.AddrsStr[3])
 	require.Equal(t, types.BatchInfo_INITIA, _config.BatchInfo.ChainType)
-	require.Equal(t, input.BridgeHook.batchInfo, _config.BatchInfo)
+	require.Equal(t, input.BridgeHook.BatchInfo, _config.BatchInfo)
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 	msg = types.NewMsgUpdateBatchInfo(invalidAddr, 1, types.BatchInfo{
-		Submitter: addrsStr[2],
+		Submitter: testutil.AddrsStr[2],
 		ChainType: types.BatchInfo_CELESTIA,
 	})
 	require.NoError(t, err)
@@ -519,21 +520,21 @@ func Test_UpdateBatchInfo(t *testing.T) {
 }
 
 func Test_UpdateOracleConfig(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 		OracleEnabled:         true,
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
@@ -547,7 +548,7 @@ func Test_UpdateOracleConfig(t *testing.T) {
 	require.Equal(t, false, _config.OracleEnabled)
 
 	// current proposer signer
-	msg = types.NewMsgUpdateOracleConfig(addrsStr[0], 1, true)
+	msg = types.NewMsgUpdateOracleConfig(testutil.AddrsStr[0], 1, true)
 	_, err = ms.UpdateOracleConfig(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
@@ -564,20 +565,20 @@ func Test_UpdateOracleConfig(t *testing.T) {
 	require.Error(t, err)
 }
 func Test_UpdateMetadata(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
@@ -589,16 +590,16 @@ func Test_UpdateMetadata(t *testing.T) {
 	_config, err := ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, []byte{4, 5, 6}, _config.Metadata)
-	require.Equal(t, []byte{4, 5, 6}, input.BridgeHook.metadata)
+	require.Equal(t, []byte{4, 5, 6}, input.BridgeHook.Metadata)
 
 	// current proposer
-	msg = types.NewMsgUpdateMetadata(addrsStr[0], 1, []byte{7, 8, 9})
+	msg = types.NewMsgUpdateMetadata(testutil.AddrsStr[0], 1, []byte{7, 8, 9})
 	_, err = ms.UpdateMetadata(ctx, msg)
 	require.NoError(t, err)
 	_config, err = ms.GetBridgeConfig(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, []byte{7, 8, 9}, _config.Metadata)
-	require.Equal(t, []byte{7, 8, 9}, input.BridgeHook.metadata)
+	require.Equal(t, []byte{7, 8, 9}, input.BridgeHook.Metadata)
 
 	// invalid signer
 	invalidAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
@@ -615,21 +616,21 @@ func Test_UpdateMetadata(t *testing.T) {
 }
 
 func Test_MsgServer_DisableBridge(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 		OracleEnabled:         true,
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	// gov signer
@@ -649,13 +650,13 @@ func Test_MsgServer_DisableBridge(t *testing.T) {
 	require.Error(t, err)
 
 	// current proposer signer
-	msg = types.NewMsgDisableBridge(addrsStr[0], 1)
+	msg = types.NewMsgDisableBridge(testutil.AddrsStr[0], 1)
 	_, err = ms.DisableBridge(ctx, msg)
 	require.Error(t, err)
 }
 
 func Test_MsgServer_UpdateParams(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	params := ms.GetParams(ctx)
@@ -682,20 +683,20 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 }
 
 func Test_MsgServer_UpdateFinalizationPeriod(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	config := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 
-	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(addrsStr[0], config))
+	_, err := ms.CreateBridge(ctx, types.NewMsgCreateBridge(testutil.AddrsStr[0], config))
 	require.NoError(t, err)
 
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
@@ -741,29 +742,26 @@ func Test_MsgServer_UpdateFinalizationPeriod(t *testing.T) {
 }
 
 func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
 	require.NoError(t, err)
 
 	bridgeId := uint64(1)
 	bridgeConfig := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    1000,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte("test-metadata"),
 		BatchInfo: types.BatchInfo{
-			Submitter: addrsStr[2],
+			Submitter: testutil.AddrsStr[2],
 			ChainType: types.BatchInfo_INITIA,
 		},
 		AttestorSet: []types.Attestor{},
 	}
 	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
-	require.NoError(t, err)
-
-	err = input.OPHostKeeper.PortID.Set(ctx, types.PortID)
 	require.NoError(t, err)
 
 	// create attestors
@@ -779,12 +777,12 @@ func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
 
 	attestorSet := []types.Attestor{
 		{
-			OperatorAddress: valAddrsStr[0],
+			OperatorAddress: testutil.ValAddrsStr[0],
 			ConsensusPubkey: pkAny1,
 			Moniker:         "attestor1",
 		},
 		{
-			OperatorAddress: valAddrsStr[1],
+			OperatorAddress: testutil.ValAddrsStr[1],
 			ConsensusPubkey: pkAny2,
 			Moniker:         "attestor2",
 		},
@@ -800,8 +798,8 @@ func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
 	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
 	require.NoError(t, err)
 	require.Len(t, config.AttestorSet, 2)
-	require.Equal(t, valAddrsStr[0], config.AttestorSet[0].OperatorAddress)
-	require.Equal(t, valAddrsStr[1], config.AttestorSet[1].OperatorAddress)
+	require.Equal(t, testutil.ValAddrsStr[0], config.AttestorSet[0].OperatorAddress)
+	require.Equal(t, testutil.ValAddrsStr[1], config.AttestorSet[1].OperatorAddress)
 
 	events := sdk.UnwrapSDKContext(ctx).EventManager().Events()
 	found := false
@@ -815,18 +813,18 @@ func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
 }
 
 func Test_MsgServer_RegisterAttestorSet_InvalidSigner(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	bridgeId := uint64(1)
 	bridgeConfig := types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    1000,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte("test-metadata"),
 		BatchInfo: types.BatchInfo{
-			Submitter: addrsStr[2],
+			Submitter: testutil.AddrsStr[2],
 			ChainType: types.BatchInfo_INITIA,
 		},
 		AttestorSet: []types.Attestor{},
@@ -837,14 +835,14 @@ func Test_MsgServer_RegisterAttestorSet_InvalidSigner(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// invalid authority (not gov)
-	msg := types.NewMsgRegisterAttestorSet(addrsStr[0], bridgeId, []types.Attestor{}, "channel-0")
+	msg := types.NewMsgRegisterAttestorSet(testutil.AddrsStr[0], bridgeId, []types.Attestor{}, "channel-0")
 	_, err = ms.RegisterAttestorSet(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid authority")
 }
 
 func Test_MsgServer_RegisterAttestorSet_BridgeNotFound(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
 	require.NoError(t, err)

@@ -465,8 +465,6 @@ message MsgRegisterAttestorSet {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-  // ibc_channel_id is the IBC channel ID to send the attestor set update packet to L2
-  string ibc_channel_id = 4 [(gogoproto.moretags) = "yaml:\"ibc_channel_id\""];
 }
 
 // MsgRegisterAttestorSetResponse returns a message handle result.
@@ -488,8 +486,6 @@ message MsgAddAttestor {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-  // ibc_channel_id is the IBC channel ID to send the attestor set update packet to L2
-  string ibc_channel_id = 4 [(gogoproto.moretags) = "yaml:\"ibc_channel_id\""];
 }
 
 // MsgAddAttestorResponse returns a message handle result.
@@ -510,8 +506,6 @@ message MsgRemoveAttestor {
     (gogoproto.moretags) = "yaml:\"operator_address\"",
     (cosmos_proto.scalar) = "cosmos.ValidatorAddressString"
   ];
-  // ibc_channel_id is the IBC channel ID to send the attestor set update packet to L2
-  string ibc_channel_id = 4 [(gogoproto.moretags) = "yaml:\"ibc_channel_id\""];
 }
 
 // MsgRemoveAttestorResponse returns a message handle result.

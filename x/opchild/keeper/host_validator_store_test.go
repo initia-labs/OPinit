@@ -12,10 +12,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 )
 
 func Test_UpdateHostValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 	_, valPubKeys, cmtValSet := createCmtValidatorSet(t, 20)
 
@@ -38,7 +40,7 @@ func Test_UpdateHostValidators(t *testing.T) {
 }
 
 func Test_GetHostPubKeyByConsAddr(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 
 	valPubKey := testutilsims.CreateTestPubKeys(1)[0]
@@ -65,7 +67,7 @@ func Test_GetHostPubKeyByConsAddr(t *testing.T) {
 }
 
 func Test_HostValidatorByConsAddr(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 
 	valPubKey := testutilsims.CreateTestPubKeys(1)[0]
@@ -90,7 +92,7 @@ func Test_HostValidatorByConsAddr(t *testing.T) {
 }
 
 func Test_DeleteHostValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 
 	valPubKeys := testutilsims.CreateTestPubKeys(20)
@@ -112,7 +114,7 @@ func Test_DeleteHostValidators(t *testing.T) {
 }
 
 func Test_GetHostAllValidators(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 
 	valPubKeys := testutilsims.CreateTestPubKeys(20)
@@ -132,7 +134,7 @@ func Test_GetHostAllValidators(t *testing.T) {
 }
 
 func Test_HostTotalBondedTokens(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 
 	sum := math.ZeroInt()
@@ -157,7 +159,7 @@ func Test_HostTotalBondedTokens(t *testing.T) {
 }
 
 func Test_LastHeight(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	hostValidatorStore := input.OPChildKeeper.HostValidatorStore
 
 	_, err := hostValidatorStore.GetLastHeight(ctx)

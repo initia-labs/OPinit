@@ -6,12 +6,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_GenesisImportExport(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	require.NoError(t, input.OPChildKeeper.SetNextL2Sequence(ctx, 1))
 
 	seq, err := input.OPChildKeeper.IncreaseNextL2Sequence(ctx)
@@ -64,12 +65,12 @@ func Test_GenesisImportExport(t *testing.T) {
 	// set bridge info
 	genState.BridgeInfo = &types.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[1],
+		BridgeAddr: testutil.AddrsStr[1],
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger: addrsStr[2],
-			Proposer:   addrsStr[3],
+			Challenger: testutil.AddrsStr[2],
+			Proposer:   testutil.AddrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
-				Submitter: addrsStr[4],
+				Submitter: testutil.AddrsStr[4],
 				ChainType: ophosttypes.BatchInfo_INITIA,
 			},
 			SubmissionInterval:    time.Minute,

@@ -45,14 +45,6 @@ func ValidateOPHostChannelParams(
 		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s ", channeltypes.UNORDERED, order)
 	}
 
-	boundPort, err := keeper.PortID.Get(ctx)
-	if err != nil {
-		return err
-	}
-	if boundPort != portID {
-		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
-	}
-
 	return nil
 }
 
@@ -178,16 +170,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ophost packet acknowledgement: %v", err)
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
-		),
-	)
-
 	switch resp := ack.GetResponse().(type) {
-
 	case *channeltypes.Acknowledgement_Error:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
@@ -207,12 +190,5 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeTimeout,
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
-		),
-	)
-
 	return nil
 }

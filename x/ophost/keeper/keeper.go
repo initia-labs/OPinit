@@ -47,7 +47,6 @@ type Keeper struct {
 	NextOutputIndexes collections.Map[uint64, uint64]
 	ProvenWithdrawals collections.Map[collections.Pair[uint64, []byte], bool]
 	MigrationInfos    collections.Map[collections.Pair[uint64, string], types.MigrationInfo]
-	PortID            collections.Item[string]
 }
 
 func NewKeeper(
@@ -98,7 +97,6 @@ func NewKeeper(
 		NextOutputIndexes: collections.NewMap(sb, types.NextOutputIndexPrefix, "next_output_indexes", collections.Uint64Key, collections.Uint64Value),
 		ProvenWithdrawals: collections.NewMap(sb, types.ProvenWithdrawalPrefix, "proven_withdrawals", collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey), collections.BoolValue),
 		MigrationInfos:    collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), codec.CollValue[types.MigrationInfo](cdc)),
-		PortID:            collections.NewItem(sb, types.PortKey, "port_id", collections.StringValue),
 	}
 
 	schema, err := sb.Build()

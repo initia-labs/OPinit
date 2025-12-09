@@ -1,35 +1,22 @@
-package keeper_test
+package opchild_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	"github.com/initia-labs/OPinit/x/opchild"
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
-// helper function to create an Attestor
-func createAttestor(t *testing.T, operatorAddr string, pubKey cryptotypes.PubKey, moniker string) ophosttypes.Attestor {
-	pkAny, err := codectypes.NewAnyWithValue(pubKey)
-	require.NoError(t, err)
-
-	return ophosttypes.Attestor{
-		OperatorAddress: operatorAddr,
-		ConsensusPubkey: pkAny,
-		Moniker:         moniker,
-	}
-}
-
 func Test_IBCModule_OnChanOpenInit(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	err := input.OPChildKeeper.PortID.Set(ctx, opchildtypes.PortID)
@@ -110,7 +97,7 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 }
 
 func Test_IBCModule_OnChanOpenTry(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	err := input.OPChildKeeper.PortID.Set(ctx, opchildtypes.PortID)
@@ -161,7 +148,7 @@ func Test_IBCModule_OnChanOpenTry(t *testing.T) {
 }
 
 func Test_IBCModule_OnChanOpenAck(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
@@ -188,7 +175,7 @@ func Test_IBCModule_OnChanOpenAck(t *testing.T) {
 }
 
 func Test_IBCModule_OnChanOpenConfirm(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
@@ -202,7 +189,7 @@ func Test_IBCModule_OnChanOpenConfirm(t *testing.T) {
 }
 
 func Test_IBCModule_OnChanCloseInit(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
@@ -218,7 +205,7 @@ func Test_IBCModule_OnChanCloseInit(t *testing.T) {
 }
 
 func Test_IBCModule_OnChanCloseConfirm(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
@@ -232,12 +219,12 @@ func Test_IBCModule_OnChanCloseConfirm(t *testing.T) {
 }
 
 func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	bridgeInfo := opchildtypes.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
@@ -248,8 +235,8 @@ func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
 	require.NoError(t, err)
 
 	// attestor set update packet
-	attestor1 := createAttestor(t, valAddrsStr[1], pubKeys[1], "attestor1")
-	attestor2 := createAttestor(t, valAddrsStr[2], pubKeys[2], "attestor2")
+	attestor1 := testutil.CreateAttestor(t, testutil.ValAddrsStr[1], testutil.PubKeys[1], "attestor1")
+	attestor2 := testutil.CreateAttestor(t, testutil.ValAddrsStr[2], testutil.PubKeys[2], "attestor2")
 
 	packetData := ophosttypes.NewAttestorSetUpdatePacketData(
 		1,
@@ -279,7 +266,7 @@ func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
 }
 
 func Test_IBCModule_OnRecvPacket_InvalidData(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
@@ -298,7 +285,7 @@ func Test_IBCModule_OnRecvPacket_InvalidData(t *testing.T) {
 }
 
 func Test_IBCModule_OnAcknowledgementPacket(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
@@ -329,7 +316,7 @@ func Test_IBCModule_OnAcknowledgementPacket(t *testing.T) {
 }
 
 func Test_IBCModule_OnTimeoutPacket(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)

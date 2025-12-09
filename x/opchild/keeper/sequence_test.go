@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 )
 
 func Test_NextL1GetNextL1Sequence(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	res, err := input.OPChildKeeper.GetNextL1Sequence(ctx)
 	require.NoError(t, err)
@@ -21,7 +23,7 @@ func Test_NextL1GetNextL1Sequence(t *testing.T) {
 }
 
 func Test_SetAndSetNextL2Sequence(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	seq, err := input.OPChildKeeper.GetNextL2Sequence(ctx)
 	require.NoError(t, err)
@@ -34,7 +36,7 @@ func Test_SetAndSetNextL2Sequence(t *testing.T) {
 }
 
 func Test_IncreaseNextL2Sequence(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	seq, err := input.OPChildKeeper.GetNextL2Sequence(ctx)
 	require.NoError(t, err)

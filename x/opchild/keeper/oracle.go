@@ -177,7 +177,10 @@ func (k Keeper) verifyOracleDataProof(
 	data types.OracleData,
 	bridgeInfo types.BridgeInfo,
 ) error {
-	k.ensureIBCKeepersSet()
+	if err := k.ensureIBCKeepersSet(); err != nil {
+		return err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// construct the state path for the oracle data in the oracle module

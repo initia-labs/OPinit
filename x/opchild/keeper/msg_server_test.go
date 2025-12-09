@@ -31,6 +31,7 @@ import (
 	"golang.org/x/crypto/sha3"
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -39,7 +40,7 @@ import (
 // The messages for Validators
 
 func Test_MsgServer_ExecuteMessages(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
@@ -47,13 +48,13 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	require.NoError(t, err)
 
 	// admin to 0
-	params.Admin = addrsStr[0]
+	params.Admin = testutil.AddrsStr[0]
 	require.NoError(t, ms.SetParams(ctx, params))
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
 
 	// register validator
-	val, err := types.NewValidator(valAddrs[0], valPubKeys[0], "val1")
+	val, err := types.NewValidator(testutil.ValAddrs[0], valPubKeys[0], "val1")
 	require.NoError(t, err)
 
 	err = input.OPChildKeeper.SetValidator(ctx, val)
@@ -66,40 +67,9 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	addMsg, err := types.NewMsgAddAttestor("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
-	require.NoError(t, err)
-
-	removeMsg, err := types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[1])
-	require.NoError(t, err)
-
-	// should failed with unauthorized
-	msg, err := types.NewMsgExecuteMessages(addrsStr[1], []sdk.Msg{addMsg})
-	require.NoError(t, err)
-
-	_, err = ms.ExecuteMessages(ctx, msg)
-	require.Error(t, err)
-
-	// success
-	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{addMsg})
-	require.NoError(t, err)
-
-	_, err = ms.ExecuteMessages(ctx, msg)
-	require.NoError(t, err)
-
-	// apply validator updates
-	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
-	require.NoError(t, err)
-
 	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
 	require.Len(t, vals, 2)
-
-	// remove attestor
-	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{removeMsg})
-	require.NoError(t, err)
-
-	_, err = ms.ExecuteMessages(ctx, msg)
-	require.NoError(t, err)
 
 	// apply validator updates
 	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
@@ -119,7 +89,7 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 		Amount: math.LegacyNewDec(2),
 	}}
 	updateParamsMsg := types.NewMsgUpdateParams(moduleAddr, &params)
-	msg, err = types.NewMsgExecuteMessages(addrsStr[0], []sdk.Msg{updateParamsMsg})
+	msg, err := types.NewMsgExecuteMessages(testutil.AddrsStr[0], []sdk.Msg{updateParamsMsg})
 	require.NoError(t, err)
 
 	_, err = ms.ExecuteMessages(ctx, msg)
@@ -129,165 +99,43 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 /////////////////////////////////////////
 // The messages for Authority
 
-func Test_MsgServer_AddAttestor(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-
-	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
-	valPubKeys := testutilsims.CreateTestPubKeys(2)
-
-	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
-	require.NoError(t, err)
-
-	msg, err := types.NewMsgAddAttestor("val1", moduleAddr, valAddrsStr[0], valPubKeys[0])
-	require.NoError(t, err)
-
-	_, err = ms.AddAttestor(ctx, msg)
-	require.NoError(t, err)
-
-	// invalid signer
-	msg, err = types.NewMsgAddAttestor("val1", addrsStr[0], valAddrsStr[0], valPubKeys[0])
-	require.NoError(t, err)
-
-	_, err = ms.AddAttestor(ctx, msg)
-	require.Error(t, err)
-
-	// duplicate add attestor
-	msg, err = types.NewMsgAddAttestor("val1", moduleAddr, valAddrsStr[0], valPubKeys[1])
-	require.NoError(t, err)
-
-	_, err = ms.AddAttestor(ctx, msg)
-	require.Error(t, err)
-
-	// duplicate cons pubkey
-	msg, err = types.NewMsgAddAttestor("val1", moduleAddr, valAddrsStr[1], valPubKeys[0])
-	require.NoError(t, err)
-
-	_, err = ms.AddAttestor(ctx, msg)
-	require.Error(t, err)
-
-	params, err := ms.GetParams(ctx)
-	require.NoError(t, err)
-	params.MaxValidators = 1
-	err = ms.SetParams(ctx, params)
-	require.NoError(t, err)
-
-	msg, err = types.NewMsgAddAttestor("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
-	require.NoError(t, err)
-
-	// max validators reached
-	_, err = ms.AddAttestor(ctx, msg)
-	require.Error(t, err)
-
-	params, err = ms.GetParams(ctx)
-	require.NoError(t, err)
-	params.MaxValidators = 2
-	err = ms.SetParams(ctx, params)
-	require.NoError(t, err)
-
-	_, err = ms.AddAttestor(ctx, msg)
-	require.NoError(t, err)
-}
-
-func Test_MsgServer_RemoveAttestor(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
-
-	valPubKeys := testutilsims.CreateTestPubKeys(2)
-
-	// register validator
-	val, err := types.NewValidator(valAddrs[0], valPubKeys[0], "val1")
-	require.NoError(t, err)
-
-	err = input.OPChildKeeper.SetValidator(ctx, val)
-	require.NoError(t, err)
-
-	// invalid signer
-	msg, err := types.NewMsgRemoveAttestor(addrsStr[0], valAddrsStr[0])
-	require.NoError(t, err)
-
-	_, err = ms.RemoveAttestor(
-		ctx,
-		msg,
-	)
-	require.Error(t, err)
-
-	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
-	require.NoError(t, err)
-
-	// remove not existing validator
-	msg, err = types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[1])
-	require.NoError(t, err)
-
-	_, err = ms.RemoveAttestor(
-		ctx,
-		msg,
-	)
-	require.Error(t, err)
-	require.ErrorIs(t, err, types.ErrNoValidatorFound)
-
-	// remove sequencer should fail
-	msg, err = types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[0])
-	require.NoError(t, err)
-
-	_, err = ms.RemoveAttestor(ctx, msg)
-	require.Error(t, err)
-	require.ErrorIs(t, err, types.ErrValidatorNotAttestor)
-
-	// register attestor
-	addMsg, err := types.NewMsgAddAttestor("val2", moduleAddr, valAddrsStr[1], valPubKeys[1])
-	require.NoError(t, err)
-
-	_, err = ms.AddAttestor(ctx, addMsg)
-	require.NoError(t, err)
-
-	// valid remove validator
-	msg, err = types.NewMsgRemoveAttestor(moduleAddr, valAddrsStr[1])
-	require.NoError(t, err)
-
-	_, err = ms.RemoveAttestor(
-		ctx,
-		msg,
-	)
-	require.NoError(t, err)
-}
-
 func Test_MsgServer_UpdateSequencer(t *testing.T) {
 	t.Run("successfully replaces sequencer", func(t *testing.T) {
-		ctx, input := createDefaultTestInput(t)
+		ctx, input := testutil.CreateTestInput(t, false)
 		ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 		valPubKeys := testutilsims.CreateTestPubKeys(2)
 
-		currentSeq, err := types.NewValidator(valAddrs[0], valPubKeys[0], "current-sequencer")
+		currentSeq, err := types.NewValidator(testutil.ValAddrs[0], valPubKeys[0], "current-sequencer")
 		require.NoError(t, err)
 		require.NoError(t, input.OPChildKeeper.SetValidator(ctx, currentSeq))
 
 		moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 		require.NoError(t, err)
 
-		msg, err := types.NewMsgUpdateSequencer("next-sequencer", moduleAddr, valAddrsStr[1], valPubKeys[1])
+		msg, err := types.NewMsgUpdateSequencer("next-sequencer", moduleAddr, testutil.ValAddrsStr[1], valPubKeys[1])
 		require.NoError(t, err)
 
 		_, err = ms.UpdateSequencer(ctx, msg)
 		require.NoError(t, err)
 
-		newSeq, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[1])
+		newSeq, found := input.OPChildKeeper.GetValidator(ctx, testutil.ValAddrs[1])
 		require.True(t, found)
 		require.Equal(t, "next-sequencer", newSeq.Moniker)
 		require.Equal(t, int64(types.SequencerConsPower), newSeq.ConsPower)
 
-		oldSeq, found := input.OPChildKeeper.GetValidator(ctx, valAddrs[0])
+		oldSeq, found := input.OPChildKeeper.GetValidator(ctx, testutil.ValAddrs[0])
 		require.True(t, found)
 		require.Zero(t, oldSeq.ConsPower)
 	})
 
 	t.Run("fails with unauthorized signer", func(t *testing.T) {
-		ctx, input := createDefaultTestInput(t)
+		ctx, input := testutil.CreateTestInput(t, false)
 		ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 		valPubKeys := testutilsims.CreateTestPubKeys(2)
 
-		msg, err := types.NewMsgUpdateSequencer("next-sequencer", addrsStr[0], valAddrsStr[1], valPubKeys[1])
+		msg, err := types.NewMsgUpdateSequencer("next-sequencer", testutil.AddrsStr[0], testutil.ValAddrsStr[1], valPubKeys[1])
 		require.NoError(t, err)
 
 		_, err = ms.UpdateSequencer(ctx, msg)
@@ -295,7 +143,7 @@ func Test_MsgServer_UpdateSequencer(t *testing.T) {
 	})
 
 	t.Run("fails when current sequencer missing", func(t *testing.T) {
-		ctx, input := createDefaultTestInput(t)
+		ctx, input := testutil.CreateTestInput(t, false)
 		ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 		valPubKeys := testutilsims.CreateTestPubKeys(1)
@@ -303,7 +151,7 @@ func Test_MsgServer_UpdateSequencer(t *testing.T) {
 		moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 		require.NoError(t, err)
 
-		msg, err := types.NewMsgUpdateSequencer("next-sequencer", moduleAddr, valAddrsStr[0], valPubKeys[0])
+		msg, err := types.NewMsgUpdateSequencer("next-sequencer", moduleAddr, testutil.ValAddrsStr[0], valPubKeys[0])
 		require.NoError(t, err)
 
 		_, err = ms.UpdateSequencer(ctx, msg)
@@ -313,13 +161,13 @@ func Test_MsgServer_UpdateSequencer(t *testing.T) {
 }
 
 func Test_MsgServer_AddFeeWhitelistAddresses(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	params, err := ms.GetParams(ctx)
 	require.NoError(t, err)
 	initialWhitelistCount := len(params.FeeWhitelist)
-	newAddresses := []string{addrsStr[1], addrsStr[2]}
+	newAddresses := []string{testutil.AddrsStr[1], testutil.AddrsStr[2]}
 
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
@@ -342,8 +190,8 @@ func Test_MsgServer_AddFeeWhitelistAddresses(t *testing.T) {
 	params, err = ms.GetParams(ctx)
 	require.NoError(t, err)
 	require.Equal(t, initialWhitelistCount+2, len(params.FeeWhitelist))
-	require.Contains(t, params.FeeWhitelist, addrsStr[1])
-	require.Contains(t, params.FeeWhitelist, addrsStr[2])
+	require.Contains(t, params.FeeWhitelist, testutil.AddrsStr[1])
+	require.Contains(t, params.FeeWhitelist, testutil.AddrsStr[2])
 
 	_, err = ms.AddFeeWhitelistAddresses(ctx, msg)
 	require.NoError(t, err)
@@ -353,13 +201,13 @@ func Test_MsgServer_AddFeeWhitelistAddresses(t *testing.T) {
 }
 
 func Test_MsgServer_RemoveFeeWhitelistAddresses(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	addAddresses := []string{addrsStr[1], addrsStr[2], addrsStr[3]}
+	addAddresses := []string{testutil.AddrsStr[1], testutil.AddrsStr[2], testutil.AddrsStr[3]}
 	addMsg := types.NewMsgAddFeeWhitelistAddresses(moduleAddr, addAddresses)
 	_, err = ms.AddFeeWhitelistAddresses(ctx, addMsg)
 	require.NoError(t, err)
@@ -368,7 +216,7 @@ func Test_MsgServer_RemoveFeeWhitelistAddresses(t *testing.T) {
 	require.NoError(t, err)
 	countAfterAdd := len(params.FeeWhitelist)
 
-	removeAddresses := []string{addrsStr[1], addrsStr[3]}
+	removeAddresses := []string{testutil.AddrsStr[1], testutil.AddrsStr[3]}
 	msg := types.NewMsgRemoveFeeWhitelistAddresses(moduleAddr, removeAddresses)
 	_, err = ms.RemoveFeeWhitelistAddresses(ctx, msg)
 	require.NoError(t, err)
@@ -376,9 +224,9 @@ func Test_MsgServer_RemoveFeeWhitelistAddresses(t *testing.T) {
 	params, err = ms.GetParams(ctx)
 	require.NoError(t, err)
 	require.Equal(t, countAfterAdd-2, len(params.FeeWhitelist))
-	require.NotContains(t, params.FeeWhitelist, addrsStr[1])
-	require.Contains(t, params.FeeWhitelist, addrsStr[2])
-	require.NotContains(t, params.FeeWhitelist, addrsStr[3])
+	require.NotContains(t, params.FeeWhitelist, testutil.AddrsStr[1])
+	require.Contains(t, params.FeeWhitelist, testutil.AddrsStr[2])
+	require.NotContains(t, params.FeeWhitelist, testutil.AddrsStr[3])
 
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
@@ -390,7 +238,7 @@ func Test_MsgServer_RemoveFeeWhitelistAddresses(t *testing.T) {
 }
 
 func Test_MsgServer_AddBridgeExecutor(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	params, err := ms.GetParams(ctx)
@@ -401,7 +249,7 @@ func Test_MsgServer_AddBridgeExecutor(t *testing.T) {
 	require.NoError(t, err)
 
 	// adding valid addresses
-	newAddresses := []string{addrsStr[1], addrsStr[2]}
+	newAddresses := []string{testutil.AddrsStr[1], testutil.AddrsStr[2]}
 	msg := types.NewMsgAddBridgeExecutor(moduleAddr, newAddresses)
 	_, err = ms.AddBridgeExecutor(ctx, msg)
 	require.NoError(t, err)
@@ -409,8 +257,8 @@ func Test_MsgServer_AddBridgeExecutor(t *testing.T) {
 	params, err = ms.GetParams(ctx)
 	require.NoError(t, err)
 	require.Equal(t, initialExecutorCount+2, len(params.BridgeExecutors))
-	require.Contains(t, params.BridgeExecutors, addrsStr[1])
-	require.Contains(t, params.BridgeExecutors, addrsStr[2])
+	require.Contains(t, params.BridgeExecutors, testutil.AddrsStr[1])
+	require.Contains(t, params.BridgeExecutors, testutil.AddrsStr[2])
 
 	// adding duplicate addresses (should not increase count)
 	_, err = ms.AddBridgeExecutor(ctx, msg)
@@ -430,13 +278,13 @@ func Test_MsgServer_AddBridgeExecutor(t *testing.T) {
 }
 
 func Test_MsgServer_RemoveBridgeExecutor(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	addAddresses := []string{addrsStr[1], addrsStr[2], addrsStr[3]}
+	addAddresses := []string{testutil.AddrsStr[1], testutil.AddrsStr[2], testutil.AddrsStr[3]}
 	addMsg := types.NewMsgAddBridgeExecutor(moduleAddr, addAddresses)
 	_, err = ms.AddBridgeExecutor(ctx, addMsg)
 	require.NoError(t, err)
@@ -445,7 +293,7 @@ func Test_MsgServer_RemoveBridgeExecutor(t *testing.T) {
 	require.NoError(t, err)
 	countAfterAdd := len(params.BridgeExecutors)
 
-	removeAddresses := []string{addrsStr[1], addrsStr[3]}
+	removeAddresses := []string{testutil.AddrsStr[1], testutil.AddrsStr[3]}
 	msg := types.NewMsgRemoveBridgeExecutor(moduleAddr, removeAddresses)
 	_, err = ms.RemoveBridgeExecutor(ctx, msg)
 	require.NoError(t, err)
@@ -453,9 +301,9 @@ func Test_MsgServer_RemoveBridgeExecutor(t *testing.T) {
 	params, err = ms.GetParams(ctx)
 	require.NoError(t, err)
 	require.Equal(t, countAfterAdd-2, len(params.BridgeExecutors))
-	require.NotContains(t, params.BridgeExecutors, addrsStr[1])
-	require.Contains(t, params.BridgeExecutors, addrsStr[2])
-	require.NotContains(t, params.BridgeExecutors, addrsStr[3])
+	require.NotContains(t, params.BridgeExecutors, testutil.AddrsStr[1])
+	require.Contains(t, params.BridgeExecutors, testutil.AddrsStr[2])
+	require.NotContains(t, params.BridgeExecutors, testutil.AddrsStr[3])
 
 	// invalid authority
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
@@ -468,7 +316,7 @@ func Test_MsgServer_RemoveBridgeExecutor(t *testing.T) {
 }
 
 func Test_MsgServer_UpdateMinGasPrices(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
@@ -500,7 +348,7 @@ func Test_MsgServer_UpdateMinGasPrices(t *testing.T) {
 }
 
 func Test_MsgServer_UpdateMinGasPrices_EmptyCoins(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
@@ -526,39 +374,39 @@ func Test_MsgServer_UpdateMinGasPrices_EmptyCoins(t *testing.T) {
 }
 
 func Test_MsgServer_UpdateAdmin(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
 
-	msg := types.NewMsgUpdateAdmin(moduleAddr, addrsStr[1])
+	msg := types.NewMsgUpdateAdmin(moduleAddr, testutil.AddrsStr[1])
 	_, err = ms.UpdateAdmin(ctx, msg)
 	require.NoError(t, err)
 
 	params, err := ms.GetParams(ctx)
 	require.NoError(t, err)
-	require.Equal(t, addrsStr[1], params.Admin)
+	require.Equal(t, testutil.AddrsStr[1], params.Admin)
 
 	// invalid authority
 	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress("gov"))
 	require.NoError(t, err)
 
-	invalidMsg := types.NewMsgUpdateAdmin(govAddr, addrsStr[2])
+	invalidMsg := types.NewMsgUpdateAdmin(govAddr, testutil.AddrsStr[2])
 	_, err = ms.UpdateAdmin(ctx, invalidMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid authority")
 }
 
 func Test_MsgServer_UpdateParams(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	params, err := ms.GetParams(ctx)
 	require.NoError(t, err)
 	params.MaxValidators = 1
 	params.HistoricalEntries = 1
-	params.BridgeExecutors = []string{addrs[1].String(), addrs[2].String()}
+	params.BridgeExecutors = []string{testutil.Addrs[1].String(), testutil.Addrs[2].String()}
 
 	moduleAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(types.ModuleName))
 	require.NoError(t, err)
@@ -585,24 +433,24 @@ func Test_MsgServer_UpdateParams(t *testing.T) {
 }
 
 func Test_MsgServer_SpendFeePool(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	// fund fee pool
 	collectedFees := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100)))
 	input.Faucet.Fund(ctx, authtypes.NewModuleAddress(authtypes.FeeCollectorName), collectedFees...)
 
-	beforeAmount := input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).Amount
+	beforeAmount := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], sdk.DefaultBondDenom).Amount
 
 	msg := types.NewMsgSpendFeePool(
 		authtypes.NewModuleAddress(types.ModuleName),
-		addrs[1],
+		testutil.Addrs[1],
 		collectedFees,
 	)
 	_, err := ms.SpendFeePool(ctx, msg)
 	require.NoError(t, err)
 
-	afterAmount := input.BankKeeper.GetBalance(ctx, addrs[1], sdk.DefaultBondDenom).Amount
+	afterAmount := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], sdk.DefaultBondDenom).Amount
 	require.Equal(t, beforeAmount.Add(math.NewInt(100)), afterAmount)
 }
 
@@ -610,19 +458,19 @@ func Test_MsgServer_SpendFeePool(t *testing.T) {
 // The messages for User
 
 func Test_MsgServer_Withdraw(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	info := types.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[1],
+		BridgeAddr: testutil.AddrsStr[1],
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger: addrsStr[2],
-			Proposer:   addrsStr[3],
+			Challenger: testutil.AddrsStr[2],
+			Proposer:   testutil.AddrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
-				Submitter: addrsStr[4],
+				Submitter: testutil.AddrsStr[4],
 				ChainType: ophosttypes.BatchInfo_INITIA,
 			},
 			SubmissionInterval:    time.Minute,
@@ -632,13 +480,13 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 		},
 	}
 
-	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.NoError(t, err)
 
 	baseDenom := "test_token"
 	denom := ophosttypes.L2Denom(1, baseDenom)
 
-	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], "anyformataddr", addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test/token", nil))
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], "anyformataddr", testutil.AddrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test/token", nil))
 	require.NoError(t, err)
 
 	coins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(1_000_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
@@ -653,7 +501,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	require.Error(t, err)
 
 	// valid
-	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
+	msg = types.NewMsgInitiateTokenWithdrawal(accountAddr, testutil.AddrsStr[1], sdk.NewCoin(denom, math.NewInt(100)))
 	_, err = ms.InitiateTokenWithdrawal(ctx, msg)
 	require.NoError(t, err)
 }
@@ -662,19 +510,19 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 // The messages for Bridge Executor
 
 func Test_MsgServer_SetBridgeInfo(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	info := types.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[1],
+		BridgeAddr: testutil.AddrsStr[1],
 		L1ChainId:  "test-chain-id",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger: addrsStr[2],
-			Proposer:   addrsStr[3],
+			Challenger: testutil.AddrsStr[2],
+			Proposer:   testutil.AddrsStr[3],
 			BatchInfo: ophosttypes.BatchInfo{
-				Submitter: addrsStr[4],
+				Submitter: testutil.AddrsStr[4],
 				ChainType: ophosttypes.BatchInfo_INITIA,
 			},
 			SubmissionInterval:    time.Minute,
@@ -684,22 +532,22 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 		},
 	}
 
-	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err := ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.NoError(t, err)
 
 	// reset possible
-	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.NoError(t, err)
 
 	// cannot change chain id
 	info.L1ChainId = "test-chain-id-2"
-	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.Error(t, err)
 
 	// cannot change client id
 	info.L1ChainId = "test-chain-id"
 	info.L1ClientId = "test-client-id-2"
-	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.Error(t, err)
 
 	info.L1ClientId = "test-client-id"
@@ -707,26 +555,26 @@ func Test_MsgServer_SetBridgeInfo(t *testing.T) {
 	// invalid bridge id
 	info.BridgeId = 0
 
-	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.Error(t, err)
 
 	// cannot change bridge id
 	info.BridgeId = 2
 
-	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.ErrorContains(t, err, "expected bridge id")
 
 	// cannot change bridge addr
 	info.BridgeId = 1
-	info.BridgeAddr = addrsStr[0]
+	info.BridgeAddr = testutil.AddrsStr[0]
 
-	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(addrsStr[0], info))
+	_, err = ms.SetBridgeInfo(ctx, types.NewMsgSetBridgeInfo(testutil.AddrsStr[0], info))
 	require.Error(t, err)
 	require.ErrorContains(t, err, "expected bridge addr")
 }
 
 func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
@@ -734,14 +582,14 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 
 	opchildModuleAddress := authtypes.NewModuleAddress(types.ModuleName)
 
-	beforeToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	beforeToBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), beforeToBalance.Amount)
 
 	beforeModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
 	require.Equal(t, math.ZeroInt(), beforeModuleBalance.Amount)
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], opchildModuleAddress.String(), sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], opchildModuleAddress.String(), sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -754,7 +602,7 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 		}
 	}
 
-	afterToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	afterToBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), afterToBalance.Amount)
 
 	afterModuleBalance := input.BankKeeper.GetBalance(ctx, opchildModuleAddress, denom)
@@ -766,7 +614,7 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	require.Equal(t, sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, opchildModuleAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyTo, addrsStr[1]),
+		sdk.NewAttribute(types.AttributeKeyTo, testutil.AddrsStr[1]),
 		sdk.NewAttribute(types.AttributeKeyDenom, denom),
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, "test_token"),
 		sdk.NewAttribute(types.AttributeKeyAmount, "100"),
@@ -775,17 +623,17 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 }
 
 func Test_MsgServer_Deposit_InvalidAddress(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	beforeToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	beforeToBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), beforeToBalance.Amount)
 
 	// valid deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], "invalid_address", sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], "invalid_address", sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -798,7 +646,7 @@ func Test_MsgServer_Deposit_InvalidAddress(t *testing.T) {
 		}
 	}
 
-	afterToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	afterToBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), afterToBalance.Amount)
 
 	// token withdrawal initiated
@@ -807,7 +655,7 @@ func Test_MsgServer_Deposit_InvalidAddress(t *testing.T) {
 	require.Equal(t, sdk.NewEvent(
 		types.EventTypeInitiateTokenWithdrawal,
 		sdk.NewAttribute(types.AttributeKeyFrom, "invalid_address"),
-		sdk.NewAttribute(types.AttributeKeyTo, addrsStr[1]),
+		sdk.NewAttribute(types.AttributeKeyTo, testutil.AddrsStr[1]),
 		sdk.NewAttribute(types.AttributeKeyDenom, denom),
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, "test_token"),
 		sdk.NewAttribute(types.AttributeKeyAmount, "100"),
@@ -816,42 +664,42 @@ func Test_MsgServer_Deposit_InvalidAddress(t *testing.T) {
 }
 
 func Test_MsgServer_Deposit_NoHook(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
 	// unauthorized deposit
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[1], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[1], testutil.AddrsStr[1], testutil.AddrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.Error(t, err)
 
-	beforeBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	beforeBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), beforeBalance.Amount)
 
 	// valid deposit
-	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
+	msg = types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], testutil.AddrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
-	require.True(t, input.TokenCreationFactory.created[denom])
+	require.True(t, input.TokenCreationFactory.Created[denom])
 
-	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
+	afterBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom)
 	require.Equal(t, math.NewInt(100), afterBalance.Amount)
 }
 
 func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
+	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom).Amount)
 
 	// empty deposit to create account
-	priv, _, addr := keyPubAddr()
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
+	priv, _, addr := testutil.KeyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -859,16 +707,16 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	acc := input.AccountKeeper.GetAccount(ctx, addr)
 	require.NotNil(t, acc)
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
-	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(testutil.GenerateTestTx(
 		t, input,
-		[]sdk.Msg{banktypes.NewMsgSend(addr, addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(50))))}, // send half tokens to addrs[2]
+		[]sdk.Msg{banktypes.NewMsgSend(addr, testutil.Addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(50))))}, // send half tokens to addrs[2]
 		privs, accNums, accSeqs, sdk.UnwrapSDKContext(ctx).ChainID(),
 	))
 	require.NoError(t, err)
 
 	// valid deposit
 	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager())
-	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
+	msg = types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -879,22 +727,22 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	}
 
 	// check addrs[2] balance
-	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	afterBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[2], denom)
 	require.Equal(t, math.NewInt(50), afterBalance.Amount)
 }
 
 func Test_MsgServer_Deposit_HookFail(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
+	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom).Amount)
 
 	// empty deposit to create account
-	priv, _, addr := keyPubAddr()
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
+	priv, _, addr := testutil.KeyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -902,16 +750,16 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	acc := input.AccountKeeper.GetAccount(ctx, addr)
 	require.NotNil(t, acc)
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
-	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(testutil.GenerateTestTx(
 		t, input,
-		[]sdk.Msg{banktypes.NewMsgSend(addr, addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(101))))}, // send more than deposited tokens
+		[]sdk.Msg{banktypes.NewMsgSend(addr, testutil.Addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(101))))}, // send more than deposited tokens
 		privs, accNums, accSeqs, sdk.UnwrapSDKContext(ctx).ChainID(),
 	))
 	require.NoError(t, err)
 
 	// valid deposit
 	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager())
-	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
+	msg = types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -925,7 +773,7 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	}
 
 	// check addrs[2] balance
-	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	afterBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[2], denom)
 	require.Equal(t, math.NewInt(0), afterBalance.Amount)
 
 	// check receiver has no balance
@@ -934,17 +782,17 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 }
 
 func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
+	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom).Amount)
 
 	// empty deposit to create account
-	priv, _, addr := keyPubAddr()
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
+	priv, _, addr := testutil.KeyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -952,9 +800,9 @@ func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
 	acc := input.AccountKeeper.GetAccount(ctx, addr)
 	require.NotNil(t, acc)
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
-	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(testutil.GenerateTestTx(
 		t, input,
-		[]sdk.Msg{banktypes.NewMsgSend(addr, addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))))},
+		[]sdk.Msg{banktypes.NewMsgSend(addr, testutil.Addrs[2], sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(100))))},
 		privs, accNums, accSeqs, sdk.UnwrapSDKContext(ctx).ChainID(),
 	))
 	require.NoError(t, err)
@@ -967,7 +815,7 @@ func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
 
 	// valid deposit
 	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager()).WithGasMeter(storetypes.NewGasMeter(2_000_000))
-	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
+	msg = types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -982,7 +830,7 @@ func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
 	}
 
 	// check addrs[2] balance
-	afterBalance := input.BankKeeper.GetBalance(ctx, addrs[2], denom)
+	afterBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[2], denom)
 	require.Equal(t, math.NewInt(0), afterBalance.Amount)
 
 	// check receiver has no balance
@@ -991,7 +839,7 @@ func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
 }
 
 func Test_MsgServer_UpdateOracle(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	opchildKeeper := input.OPChildKeeper
 	oracleKeeper := input.OracleKeeper
 
@@ -1099,15 +947,15 @@ func Test_MsgServer_UpdateOracle(t *testing.T) {
 	require.NoError(t, err)
 
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
-	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[0], 11, extCommitBz))
+	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(testutil.AddrsStr[0], 11, extCommitBz))
 	require.NoError(t, err)
 
-	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[1], 11, extCommitBz))
+	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(testutil.AddrsStr[1], 11, extCommitBz))
 	require.Error(t, err)
 }
 
 func Test_MsgServer_UpdateOracleFail(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	opchildKeeper := input.OPChildKeeper
 
 	defaultHostChainId := "test-host-1"
@@ -1123,28 +971,28 @@ func Test_MsgServer_UpdateOracleFail(t *testing.T) {
 	require.NoError(t, err)
 
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
-	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(addrsStr[0], 11, []byte{}))
+	_, err = ms.UpdateOracle(ctx, types.NewMsgUpdateOracle(testutil.AddrsStr[0], 11, []byte{}))
 	require.EqualError(t, err, types.ErrOracleDisabled.Error())
 }
 
 func Test_MsgServer_RelayOracleData(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	opchildKeeper := input.OPChildKeeper
 
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-host-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger:            addrsStr[1],
-			Proposer:              addrsStr[2],
+			Challenger:            testutil.AddrsStr[1],
+			Proposer:              testutil.AddrsStr[2],
 			SubmissionInterval:    100,
 			FinalizationPeriod:    100,
 			SubmissionStartHeight: 1,
 			OracleEnabled:         true,
 			Metadata:              []byte{},
-			BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+			BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 		},
 	}
 	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
@@ -1169,14 +1017,14 @@ func Test_MsgServer_RelayOracleData(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
 
-	msg := types.NewMsgRelayOracleData(addrsStr[0], oracleData)
+	msg := types.NewMsgRelayOracleData(testutil.AddrsStr[0], oracleData)
 	_, err = ms.RelayOracleData(ctx, msg)
 	require.Error(t, err) // expected to fail at proof verification
 	require.Contains(t, err.Error(), "failed to handle oracle data")
 }
 
 func Test_MsgServer_RelayOracleData_InvalidMessage(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	opchildKeeper := input.OPChildKeeper
 
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
@@ -1193,30 +1041,30 @@ func Test_MsgServer_RelayOracleData_InvalidMessage(t *testing.T) {
 		},
 	}
 
-	msg := types.NewMsgRelayOracleData(addrsStr[0], invalidOracleData)
+	msg := types.NewMsgRelayOracleData(testutil.AddrsStr[0], invalidOracleData)
 	_, err := ms.RelayOracleData(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "bridge id cannot be zero")
 }
 
 func Test_MsgServer_RelayOracleData_OracleDisabled(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	opchildKeeper := input.OPChildKeeper
 
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:   1,
-		BridgeAddr: addrsStr[0],
+		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-host-1",
 		L1ClientId: "test-client-id",
 		BridgeConfig: ophosttypes.BridgeConfig{
-			Challenger:            addrsStr[1],
-			Proposer:              addrsStr[2],
+			Challenger:            testutil.AddrsStr[1],
+			Proposer:              testutil.AddrsStr[2],
 			SubmissionInterval:    100,
 			FinalizationPeriod:    100,
 			SubmissionStartHeight: 1,
 			OracleEnabled:         false, // disabled
 			Metadata:              []byte{},
-			BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+			BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 		},
 	}
 	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
@@ -1239,7 +1087,7 @@ func Test_MsgServer_RelayOracleData_OracleDisabled(t *testing.T) {
 	}
 
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
-	msg := types.NewMsgRelayOracleData(addrsStr[0], oracleData)
+	msg := types.NewMsgRelayOracleData(testutil.AddrsStr[0], oracleData)
 	_, err = ms.RelayOracleData(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "oracle is disabled")

@@ -14,8 +14,6 @@ import (
 var (
 	_ sdk.Msg = &MsgExecuteMessages{}
 	_ sdk.Msg = &MsgUpdateSequencer{}
-	_ sdk.Msg = &MsgAddAttestor{}
-	_ sdk.Msg = &MsgRemoveAttestor{}
 	_ sdk.Msg = &MsgAddFeeWhitelistAddresses{}
 	_ sdk.Msg = &MsgRemoveFeeWhitelistAddresses{}
 	_ sdk.Msg = &MsgAddBridgeExecutor{}
@@ -33,7 +31,6 @@ var (
 
 	_ codectypes.UnpackInterfacesMessage = &MsgExecuteMessages{}
 	_ codectypes.UnpackInterfacesMessage = &MsgUpdateSequencer{}
-	_ codectypes.UnpackInterfacesMessage = &MsgAddAttestor{}
 )
 
 // should refer initiavm/precompile/modules/minlib/sources/coin.move
@@ -128,78 +125,6 @@ func (msg MsgUpdateSequencer) Validate(ac address.Codec, vc address.Codec) error
 func (msg MsgUpdateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pubKey cryptotypes.PubKey
 	return unpacker.UnpackAny(msg.Pubkey, &pubKey)
-}
-
-/* MsgAddAttestor */
-
-// NewMsgAddAttestor creates a new MsgAddAttestor instance.
-// Delegator address and validator address are the same.
-func NewMsgAddAttestor(
-	moniker string, authority string, attestorAddr string, pubKey cryptotypes.PubKey,
-) (*MsgAddAttestor, error) {
-	if pubKey == nil {
-		return nil, ErrEmptyValidatorPubKey
-	}
-	pkAny, err := codectypes.NewAnyWithValue(pubKey)
-	if err != nil {
-		return nil, err
-	}
-	return &MsgAddAttestor{
-		Moniker:         moniker,
-		Authority:       authority,
-		AttestorAddress: attestorAddr,
-		Pubkey:          pkAny,
-	}, nil
-}
-
-// Validate performs basic MsgAddAttestor message validation.
-func (msg MsgAddAttestor) Validate(ac address.Codec, vc address.Codec) error {
-	// note that unmarshaling from bech32 ensures both non-empty and valid
-	_, err := ac.StringToBytes(msg.Authority)
-	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address: %s", err)
-	}
-	_, err = vc.StringToBytes(msg.AttestorAddress)
-	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid attestor address: %s", err)
-	}
-
-	if msg.Pubkey == nil {
-		return ErrEmptyValidatorPubKey
-	}
-
-	return nil
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgAddAttestor) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(msg.Pubkey, &pubKey)
-}
-
-/* MsgRemoveAttestor */
-
-// NewMsgRemoveAttestor creates a new MsgRemoveAttestor instance.
-func NewMsgRemoveAttestor(
-	authority string, attestorAddr string,
-) (*MsgRemoveAttestor, error) {
-	return &MsgRemoveAttestor{
-		Authority:       authority,
-		AttestorAddress: attestorAddr,
-	}, nil
-}
-
-// Validate performs basic MsgRemoveAttestor message validation.
-func (msg MsgRemoveAttestor) Validate(ac, vc address.Codec) error {
-	if _, err := ac.StringToBytes(msg.Authority); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address: %s", err)
-	}
-
-	if _, err := vc.StringToBytes(msg.AttestorAddress); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid attestor address: %s", err)
-	}
-
-	return nil
 }
 
 /* MsgInitiateTokenWithdrawal */

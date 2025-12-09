@@ -1,4 +1,4 @@
-package keeper_test
+package testutil
 
 import (
 	"context"
@@ -17,15 +17,15 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	signingmod "cosmossdk.io/x/tx/signing"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/std"
@@ -49,63 +49,26 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	exported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	opchild "github.com/initia-labs/OPinit/x/opchild"
+	"github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 )
 
-var ModuleBasics = module.NewBasicManager(
-	auth.AppModuleBasic{},
-	bank.AppModuleBasic{},
-	opchild.AppModuleBasic{},
-)
-
 var (
-	pubKeys = []cryptotypes.PubKey{
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-	}
+	// ModuleBasics is the basic manager for the opchild module
+	ModuleBasics = module.NewBasicManager(
+		auth.AppModuleBasic{},
+		bank.AppModuleBasic{},
+		opchild.AppModuleBasic{},
+	)
 
-	addrs = []sdk.AccAddress{
-		sdk.AccAddress(pubKeys[0].Address()),
-		sdk.AccAddress(pubKeys[1].Address()),
-		sdk.AccAddress(pubKeys[2].Address()),
-		sdk.AccAddress(pubKeys[3].Address()),
-		sdk.AccAddress(pubKeys[4].Address()),
-	}
-
-	addrsStr = []string{
-		addrs[0].String(),
-		addrs[1].String(),
-		addrs[2].String(),
-		addrs[3].String(),
-		addrs[4].String(),
-	}
-
-	valAddrs = []sdk.ValAddress{
-		sdk.ValAddress(pubKeys[0].Address()),
-		sdk.ValAddress(pubKeys[1].Address()),
-		sdk.ValAddress(pubKeys[2].Address()),
-		sdk.ValAddress(pubKeys[3].Address()),
-		sdk.ValAddress(pubKeys[4].Address()),
-	}
-
-	valAddrsStr = []string{
-		valAddrs[0].String(),
-		valAddrs[1].String(),
-		valAddrs[2].String(),
-		valAddrs[3].String(),
-		valAddrs[4].String(),
-	}
-
-	testDenoms = []string{
+	// TestDenoms are test token denominations used across tests
+	TestDenoms = []string{
 		"test1",
 		"test2",
 		"test3",
@@ -114,6 +77,40 @@ var (
 	}
 
 	initiaSupply = math.NewInt(100_000_000_000)
+
+	PubKeys = GenPubKeys(5)
+
+	Addrs = []sdk.AccAddress{
+		sdk.AccAddress(PubKeys[0].Address()),
+		sdk.AccAddress(PubKeys[1].Address()),
+		sdk.AccAddress(PubKeys[2].Address()),
+		sdk.AccAddress(PubKeys[3].Address()),
+		sdk.AccAddress(PubKeys[4].Address()),
+	}
+
+	AddrsStr = []string{
+		Addrs[0].String(),
+		Addrs[1].String(),
+		Addrs[2].String(),
+		Addrs[3].String(),
+		Addrs[4].String(),
+	}
+
+	ValAddrs = []sdk.ValAddress{
+		sdk.ValAddress(PubKeys[0].Address()),
+		sdk.ValAddress(PubKeys[1].Address()),
+		sdk.ValAddress(PubKeys[2].Address()),
+		sdk.ValAddress(PubKeys[3].Address()),
+		sdk.ValAddress(PubKeys[4].Address()),
+	}
+
+	ValAddrsStr = []string{
+		ValAddrs[0].String(),
+		ValAddrs[1].String(),
+		ValAddrs[2].String(),
+		ValAddrs[3].String(),
+		ValAddrs[4].String(),
+	}
 )
 
 type EncodingConfig struct {
@@ -153,15 +150,6 @@ func MakeEncodingConfig(_ testing.TB) EncodingConfig {
 	}
 }
 
-func initialTotalSupply() sdk.Coins {
-	faucetBalance := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initiaSupply))
-	for _, testDenom := range testDenoms {
-		faucetBalance = faucetBalance.Add(sdk.NewCoin(testDenom, initiaSupply))
-	}
-
-	return faucetBalance
-}
-
 type TestFaucet struct {
 	t                testing.TB
 	bankKeeper       bankkeeper.Keeper
@@ -173,7 +161,7 @@ type TestFaucet struct {
 func NewTestFaucet(t testing.TB, ctx context.Context, bankKeeper bankkeeper.Keeper, minterModuleName string, initiaSupply ...sdk.Coin) *TestFaucet {
 	require.NotEmpty(t, initiaSupply)
 	r := &TestFaucet{t: t, bankKeeper: bankKeeper, minterModuleName: minterModuleName}
-	_, _, addr := keyPubAddr()
+	_, _, addr := KeyPubAddr()
 	r.sender = addr
 	r.Mint(ctx, addr, initiaSupply...)
 	r.balance = initiaSupply
@@ -204,7 +192,7 @@ func (f *TestFaucet) Fund(parentCtx context.Context, receiver sdk.AccAddress, am
 }
 
 func (f *TestFaucet) NewFundedAccount(ctx context.Context, amounts ...sdk.Coin) sdk.AccAddress {
-	_, _, addr := keyPubAddr()
+	_, _, addr := KeyPubAddr()
 	f.Fund(ctx, addr, amounts...)
 	return addr
 }
@@ -222,21 +210,14 @@ type TestKeepers struct {
 	MockRouter           *MockRouter
 }
 
-// createDefaultTestInput common settings for createTestInput
-func createDefaultTestInput(t testing.TB) (context.Context, TestKeepers) {
-	return createTestInput(t, false)
-}
-
-// createTestInput encoders can be nil to accept the defaults, or set it to override some of the message handlers (like default)
-func createTestInput(t testing.TB, isCheckTx bool) (context.Context, TestKeepers) {
-	return _createTestInput(t, isCheckTx, dbm.NewMemDB())
+func CreateTestInput(t testing.TB, isCheckTx bool) (context.Context, TestKeepers) {
+	return createTestInput(t, isCheckTx, dbm.NewMemDB())
 }
 
 var keyCounter uint64
 
-// we need to make this deterministic (same every test run), as encoded address size and thus gas cost,
-// depends on the actual bytes (due to ugly CanonicalAddress encoding)
-func keyPubAddr() (cryptotypes.PrivKey, cryptotypes.PubKey, sdk.AccAddress) {
+// KeyPubAddr generates deterministic keys for testing
+func KeyPubAddr() (cryptotypes.PrivKey, cryptotypes.PubKey, sdk.AccAddress) {
 	keyCounter++
 	seed := make([]byte, 8)
 	binary.BigEndian.PutUint64(seed, keyCounter)
@@ -247,8 +228,15 @@ func keyPubAddr() (cryptotypes.PrivKey, cryptotypes.PubKey, sdk.AccAddress) {
 	return key, pub, addr
 }
 
-// encoders can be nil to accept the defaults, or set it to override some of the message handlers (like default)
-func _createTestInput(
+func initialTotalSupply() sdk.Coins {
+	faucetBalance := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initiaSupply))
+	for _, testDenom := range TestDenoms {
+		faucetBalance = faucetBalance.Add(sdk.NewCoin(testDenom, initiaSupply))
+	}
+	return faucetBalance
+}
+
+func createTestInput(
 	t testing.TB,
 	isCheckTx bool,
 	db dbm.DB,
@@ -325,7 +313,10 @@ func _createTestInput(
 		authtypes.NewModuleAddress(opchildtypes.ModuleName),
 	)
 
-	tokenCreationFactory := &TestTokenCreationFactory{created: make(map[string]bool)}
+	// Use first address from shared test addresses for admin/executor
+	firstAddr := Addrs[0]
+
+	tokenCreationFactory := &TestTokenCreationFactory{Created: make(map[string]bool)}
 	opchildKeeper := opchildkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
@@ -351,8 +342,8 @@ func _createTestInput(
 	).WithTokenCreationFn(tokenCreationFactory.TokenCreationFn)
 
 	opchildParams := opchildtypes.DefaultParams()
-	opchildParams.Admin = addrs[0].String()
-	opchildParams.BridgeExecutors = []string{addrs[0].String()}
+	opchildParams.Admin = firstAddr.String()
+	opchildParams.BridgeExecutors = []string{firstAddr.String()}
 	require.NoError(t, opchildKeeper.SetParams(ctx, opchildParams))
 
 	// register handlers to msg router
@@ -373,7 +364,9 @@ func _createTestInput(
 	ibcClientKeeper := NewMockIBCClientKeeper()
 	portKeeper := &MockIBCPortKeeper{}
 	scopedKeeper := &MockIBCScopedKeeper{}
-	opchildKeeper.SetIBCKeepers(ibcClientKeeper, portKeeper, scopedKeeper)
+	if err := opchildKeeper.SetIBCKeepers(ibcClientKeeper, portKeeper, scopedKeeper); err != nil {
+		panic(err)
+	}
 
 	keepers := TestKeepers{
 		Cdc:                  appCodec,
@@ -390,7 +383,7 @@ func _createTestInput(
 	return ctx, keepers
 }
 
-func generateTestTx(
+func GenerateTestTx(
 	t *testing.T, input TestKeepers, msgs []sdk.Msg,
 	privs []cryptotypes.PrivKey, accNums []uint64,
 	accSeqs []uint64, chainID string,
@@ -446,15 +439,14 @@ func generateTestTx(
 }
 
 type TestTokenCreationFactory struct {
-	created map[string]bool
+	Created map[string]bool
 }
 
 func (t *TestTokenCreationFactory) TokenCreationFn(ctx context.Context, denom string, decimals uint8) error {
-	t.created[denom] = true
+	t.Created[denom] = true
 	return nil
 }
 
-// MockRouter handles IBC transfer messages for testing
 type MockRouter struct {
 	originMessageRouter baseapp.MessageRouter
 	handledMsgs         []*transfertypes.MsgTransfer
@@ -509,7 +501,6 @@ func (router *MockRouter) SetShouldFail(shouldFail bool) {
 	router.shouldFail = shouldFail
 }
 
-// MockIBCClientKeeper is a mock IBC client keeper for testing
 type MockIBCClientKeeper struct {
 	stores    map[string]storetypes.KVStore
 	states    map[string]exported.ClientState
@@ -524,17 +515,14 @@ func NewMockIBCClientKeeper() *MockIBCClientKeeper {
 	}
 }
 
-// SetClientState sets a client state for a given client ID
 func (k *MockIBCClientKeeper) SetClientState(clientID string, cs exported.ClientState) {
 	k.states[clientID] = cs
 }
 
-// SetConsensusState sets a consensus state for a given client ID
 func (k *MockIBCClientKeeper) SetConsensusState(clientID string, cs exported.ConsensusState) {
 	k.consensus[clientID] = cs
 }
 
-// GetClientState returns the client state for a given client ID
 func (k *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
 	cs, ok := k.states[clientID]
 	return cs, ok
@@ -544,7 +532,6 @@ func (k *MockIBCClientKeeper) SetClientStore(key string, store storetypes.KVStor
 	k.stores[key] = store
 }
 
-// ClientStore returns a KVStore for the client
 func (k *MockIBCClientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
 	kvStore, ok := k.stores[clientID]
 	if !ok {
@@ -553,14 +540,12 @@ func (k *MockIBCClientKeeper) ClientStore(ctx sdk.Context, clientID string) stor
 	return kvStore
 }
 
-// MockIBCPortKeeper is a mock IBC port keeper for testing
 type MockIBCPortKeeper struct{}
 
 func (k *MockIBCPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	return &capabilitytypes.Capability{}
 }
 
-// MockIBCScopedKeeper is a mock IBC scoped keeper for testing
 type MockIBCScopedKeeper struct{}
 
 func (k *MockIBCScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool) {
@@ -569,4 +554,23 @@ func (k *MockIBCScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capa
 
 func (k *MockIBCScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return nil
+}
+
+func GenPubKeys(n int) []cryptotypes.PubKey {
+	pubKeys := make([]cryptotypes.PubKey, n)
+	for i := 0; i < n; i++ {
+		pubKeys[i] = secp256k1.GenPrivKey().PubKey()
+	}
+	return pubKeys
+}
+
+func CreateAttestor(t *testing.T, operatorAddr string, pubKey cryptotypes.PubKey, moniker string) ophosttypes.Attestor {
+	pkAny, err := codectypes.NewAnyWithValue(pubKey)
+	require.NoError(t, err)
+
+	return ophosttypes.Attestor{
+		OperatorAddress: operatorAddr,
+		ConsensusPubkey: pkAny,
+		Moniker:         moniker,
+	}
 }

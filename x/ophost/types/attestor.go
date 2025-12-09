@@ -1,19 +1,43 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+)
+
+var (
+	// DefaultTransferPacketTimeoutHeight is the timeout height following IBC defaults
+	DefaultTransferPacketTimeoutHeight = clienttypes.Height{
+		RevisionNumber: 0,
+		RevisionHeight: 0,
+	}
+
+	// DefaultPacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
+	// The default is currently set to a 10-minute timeout.
+	DefaultPacketTimeoutTimestamp = time.Duration((10 * time.Minute).Nanoseconds())
 )
 
 // ValidateAttestor validates a single attestor with address validation
 func ValidateAttestor(attestor Attestor, vc address.Codec) error {
 	if _, err := vc.StringToBytes(attestor.OperatorAddress); err != nil {
 		return errors.Wrapf(err, "invalid attestor address")
+	}
+
+	return ValidateAttestorNoAddrValidation(attestor)
+}
+
+// ValidateAttestorNoAddrValidation validates a single attestor without address validation
+func ValidateAttestorNoAddrValidation(attestor Attestor) error {
+	if len(attestor.OperatorAddress) == 0 {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "attestor address cannot be empty")
 	}
 
 	if attestor.ConsensusPubkey == nil {
@@ -28,19 +52,6 @@ func ValidateAttestor(attestor Attestor, vc address.Codec) error {
 	pubkey, ok := cachedValue.(cryptotypes.PubKey)
 	if !ok || pubkey == nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid consensus pubkey")
-	}
-
-	return nil
-}
-
-// ValidateAttestorNoAddrValidation validates a single attestor without address validation
-func ValidateAttestorNoAddrValidation(attestor Attestor) error {
-	if len(attestor.OperatorAddress) == 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "attestor address cannot be empty")
-	}
-
-	if attestor.ConsensusPubkey == nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "consensus pubkey cannot be nil")
 	}
 
 	return nil

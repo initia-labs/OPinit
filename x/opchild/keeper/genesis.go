@@ -32,7 +32,9 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 		panic(err)
 	}
 
-	if !k.IsBound(ctx, data.PortId) {
+	if bound, err := k.IsBound(ctx, data.PortId); err != nil {
+		panic(err)
+	} else if !bound {
 		err := k.BindPort(ctx, data.PortId)
 		if err != nil {
 			panic(fmt.Sprintf("could not bind port: %v", err))

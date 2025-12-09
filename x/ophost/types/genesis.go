@@ -3,7 +3,6 @@ package types
 import (
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 const (
@@ -18,7 +17,6 @@ func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64, migra
 		Bridges:        bridges,
 		NextBridgeId:   nextBridgeId,
 		MigrationInfos: migrationInfos,
-		PortId:         portID,
 	}
 }
 
@@ -29,7 +27,6 @@ func DefaultGenesisState() *GenesisState {
 		Bridges:        []Bridge{},
 		NextBridgeId:   DefaultBridgeIdStart,
 		MigrationInfos: []MigrationInfo{},
-		PortId:         PortID,
 	}
 }
 
@@ -93,10 +90,6 @@ func ValidateGenesis(data *GenesisState, ac address.Codec, vc address.Codec) err
 		if err := migrationInfo.Validate(); err != nil {
 			return err
 		}
-	}
-
-	if err := host.PortIdentifierValidator(data.PortId); err != nil {
-		return err
 	}
 
 	return data.Params.Validate()

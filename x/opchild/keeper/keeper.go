@@ -122,9 +122,6 @@ func NewKeeper(
 		storeService:          storeService,
 		authKeeper:            ak,
 		bankKeeper:            bk,
-		ibcClientKeeper:       nil,
-		portKeeper:            nil,
-		scopedKeeper:          nil,
 		decorators:            decorators,
 		txDecoder:             txDecoder,
 		msgRouter:             msgRouter,
@@ -167,26 +164,30 @@ func (k *Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, 
 }
 
 // SetIBCKeepers sets the IBC keepers after initialization.
-// This must be called before the keeper is used, and can only be called once.
-func (k *Keeper) SetIBCKeepers(ibcClientKeeper types.ClientKeeper, portKeeper types.PortKeeper, scopedKeeper types.ScopedKeeper) {
+// This must be called before the keeper is used and can only be called once.
+func (k *Keeper) SetIBCKeepers(ibcClientKeeper types.ClientKeeper, portKeeper types.PortKeeper, scopedKeeper types.ScopedKeeper) error {
 	if k.ibcClientKeeper != nil || k.portKeeper != nil || k.scopedKeeper != nil {
-		panic("opchild: IBC keepers already set - can only be called once")
+		return types.ErrIBCKeepersAlreadySet
 	}
 
 	if ibcClientKeeper == nil || portKeeper == nil || scopedKeeper == nil {
-		panic("opchild: all IBC keepers must be non-nil")
+		return types.ErrIBCKeepersNonNil
 	}
 
 	k.ibcClientKeeper = ibcClientKeeper
 	k.portKeeper = portKeeper
 	k.scopedKeeper = scopedKeeper
+
+	return nil
 }
 
-// ensureIBCKeepersSet panics if IBC keepers have not been set via SetIBCKeepers.
-func (k Keeper) ensureIBCKeepersSet() {
+// ensureIBCKeepersSet returns error if IBC keepers have not been set via SetIBCKeepers.
+func (k Keeper) ensureIBCKeepersSet() error {
 	if k.ibcClientKeeper == nil || k.portKeeper == nil || k.scopedKeeper == nil {
-		panic("opchild: IBC keepers not initialized - call SetIBCKeepers before using IBC functionality")
+		return types.ErrIBCKeepersNotInitialized
 	}
+
+	return nil
 }
 
 // GetAuthority returns the x/move module's authority.
@@ -275,17 +276,23 @@ func (k Keeper) L1ChainId(ctx context.Context) (string, error) {
 }
 
 // IsBound checks if the ophost module is already bound to the desired port
-func (k Keeper) IsBound(ctx context.Context, portID string) bool {
-	k.ensureIBCKeepersSet()
+func (k Keeper) IsBound(ctx context.Context, portID string) (bool, error) {
+	if err := k.ensureIBCKeepersSet(); err != nil {
+		return false, err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
 
-	return ok
+	return ok, nil
 }
 
 // BindPort defines a wrapper function for the Keeper's function to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx context.Context, portID string) error {
-	k.ensureIBCKeepersSet()
+	if err := k.ensureIBCKeepersSet(); err != nil {
+		return err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	capability := k.portKeeper.BindPort(sdkCtx, portID)
 
