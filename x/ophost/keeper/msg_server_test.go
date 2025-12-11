@@ -791,7 +791,7 @@ func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// successful registration
-	msg := types.NewMsgRegisterAttestorSet(govAddr, bridgeId, attestorSet, "channel-0")
+	msg := types.NewMsgRegisterAttestorSet(govAddr, bridgeId, attestorSet)
 	_, err = ms.RegisterAttestorSet(ctx, msg)
 	require.NoError(t, err)
 
@@ -835,7 +835,7 @@ func Test_MsgServer_RegisterAttestorSet_InvalidSigner(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// invalid authority (not gov)
-	msg := types.NewMsgRegisterAttestorSet(testutil.AddrsStr[0], bridgeId, []types.Attestor{}, "channel-0")
+	msg := types.NewMsgRegisterAttestorSet(testutil.AddrsStr[0], bridgeId, []types.Attestor{})
 	_, err = ms.RegisterAttestorSet(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid authority")
@@ -850,7 +850,7 @@ func Test_MsgServer_RegisterAttestorSet_BridgeNotFound(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// non-existent bridge
-	msg := types.NewMsgRegisterAttestorSet(govAddr, 999, []types.Attestor{}, "channel-0")
+	msg := types.NewMsgRegisterAttestorSet(govAddr, 999, []types.Attestor{})
 	_, err = ms.RegisterAttestorSet(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
