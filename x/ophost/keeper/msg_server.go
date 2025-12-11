@@ -694,7 +694,6 @@ func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegis
 		return nil, err
 	}
 
-	// Extract channel ID from bridge metadata
 	channelID, err := hook.GetOpinitChannelID(config.Metadata)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
@@ -747,7 +746,6 @@ func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) 
 		return nil, err
 	}
 
-	// Extract channel ID from bridge metadata
 	channelID, err := hook.GetOpinitChannelID(config.Metadata)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
@@ -809,7 +807,6 @@ func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAtte
 		return nil, err
 	}
 
-	// Extract channel ID from bridge metadata
 	channelID, err := hook.GetOpinitChannelID(config.Metadata)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")

@@ -165,9 +165,7 @@ func (im IBCModule) OnRecvPacket(
 		return channeltypes.NewResultAcknowledgement(ackBytes)
 	}
 
-	return channeltypes.NewErrorAcknowledgement(
-		errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "unknown packet type: %s", err.Error()),
-	)
+	return channeltypes.NewErrorAcknowledgement(err)
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
