@@ -15,15 +15,20 @@ import (
 func TestNewMsgRelayOracleData(t *testing.T) {
 	sender := "init1test"
 	oracleData := types.OracleData{
-		BridgeId:       1,
-		CurrencyPair:   "BTC/USD",
-		Price:          "50000000000",
-		Decimals:       8,
-		L1BlockHeight:  100,
-		L1BlockTime:    1000000000,
-		CurrencyPairId: 1,
-		Nonce:          1,
-		Proof:          []byte("proof"),
+		BridgeId:        1,
+		OraclePriceHash: make([]byte, 32),
+		Prices: []types.OraclePriceData{
+			{
+				CurrencyPair:   "BTC/USD",
+				Price:          "50000000000",
+				Decimals:       8,
+				CurrencyPairId: 1,
+				Nonce:          1,
+			},
+		},
+		L1BlockHeight: 100,
+		L1BlockTime:   1000000000,
+		Proof:         []byte("proof"),
 		ProofHeight: clienttypes.Height{
 			RevisionNumber: 0,
 			RevisionHeight: 100,
@@ -41,15 +46,20 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 	ac := authcodec.NewBech32Codec("init")
 
 	validOracleData := types.OracleData{
-		BridgeId:       1,
-		CurrencyPair:   "BTC/USD",
-		Price:          "50000000000",
-		Decimals:       8,
-		L1BlockHeight:  100,
-		L1BlockTime:    1000000000,
-		CurrencyPairId: 1,
-		Nonce:          1,
-		Proof:          []byte("proof"),
+		BridgeId:        1,
+		OraclePriceHash: make([]byte, 32),
+		Prices: []types.OraclePriceData{
+			{
+				CurrencyPair:   "BTC/USD",
+				Price:          "50000000000",
+				Decimals:       8,
+				CurrencyPairId: 1,
+				Nonce:          1,
+			},
+		},
+		L1BlockHeight: 100,
+		L1BlockTime:   1000000000,
+		Proof:         []byte("proof"),
 		ProofHeight: clienttypes.Height{
 			RevisionNumber: 0,
 			RevisionHeight: 100,
@@ -98,9 +108,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      0, // Invalid
-					CurrencyPair:  "BTC/USD",
-					Price:         "50000",
+					BridgeId:        0, // Invalid
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "50000",
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   1000,
 					Proof:         []byte("proof"),
@@ -116,9 +134,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "", // Invalid
-					Price:         "50000",
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "", // Invalid
+							Price:          "50000",
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   1000,
 					Proof:         []byte("proof"),
@@ -134,9 +160,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "BTC/USD",
-					Price:         "not-a-number", // Invalid
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "not-a-number", // Invalid
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   1000,
 					Proof:         []byte("proof"),
@@ -152,10 +186,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "BTC/USD",
-					Price:         "50000",
-					Decimals:      19, // Invalid - max is 18
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "50000",
+							Decimals:       19, // Invalid - max is 18
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   1000,
 					Proof:         []byte("proof"),
@@ -171,9 +212,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "BTC/USD",
-					Price:         "50000",
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "50000",
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 0, // Invalid
 					L1BlockTime:   1000,
 					Proof:         []byte("proof"),
@@ -189,9 +238,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "BTC/USD",
-					Price:         "50000",
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "50000",
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   0, // Invalid
 					Proof:         []byte("proof"),
@@ -207,9 +264,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "BTC/USD",
-					Price:         "50000",
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "50000",
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   1000,
 					Proof:         []byte{}, // Invalid
@@ -225,9 +290,17 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 			msg: types.NewMsgRelayOracleData(
 				"init1q6jhwnarkw2j5qqgx3qlu20k8nrdglft5ksr0g",
 				types.OracleData{
-					BridgeId:      1,
-					CurrencyPair:  "BTC/USD",
-					Price:         "50000",
+					BridgeId:        1,
+					OraclePriceHash: make([]byte, 32),
+					Prices: []types.OraclePriceData{
+						{
+							CurrencyPair:   "BTC/USD",
+							Price:          "50000",
+							Decimals:       5,
+							CurrencyPairId: 1,
+							Nonce:          1,
+						},
+					},
 					L1BlockHeight: 100,
 					L1BlockTime:   1000,
 					Proof:         []byte("proof"),
@@ -278,15 +351,20 @@ func TestMsgRelayOracleData_ValidateBasic(t *testing.T) {
 	}
 
 	validOracleData := types.OracleData{
-		BridgeId:       1,
-		CurrencyPair:   "BTC/USD",
-		Price:          "50000000000",
-		Decimals:       8,
-		L1BlockHeight:  100,
-		L1BlockTime:    1000000000,
-		CurrencyPairId: 1,
-		Nonce:          1,
-		Proof:          []byte("proof"),
+		BridgeId:        1,
+		OraclePriceHash: make([]byte, 32),
+		Prices: []types.OraclePriceData{
+			{
+				CurrencyPair:   "BTC/USD",
+				Price:          "50000000000",
+				Decimals:       8,
+				CurrencyPairId: 1,
+				Nonce:          1,
+			},
+		},
+		L1BlockHeight: 100,
+		L1BlockTime:   1000000000,
+		Proof:         []byte("proof"),
 		ProofHeight: clienttypes.Height{
 			RevisionNumber: 0,
 			RevisionHeight: 100,
@@ -307,15 +385,20 @@ func TestMsgRelayOracleData_EdgeCases(t *testing.T) {
 
 	t.Run("minimal valid oracle data", func(t *testing.T) {
 		minimalData := types.OracleData{
-			BridgeId:       1,
-			CurrencyPair:   "A/B",
-			Price:          "1",
-			Decimals:       0,
-			L1BlockHeight:  1,
-			L1BlockTime:    1,
-			CurrencyPairId: 0,
-			Nonce:          0,
-			Proof:          []byte{0x00},
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "A/B",
+					Price:          "1",
+					Decimals:       0,
+					CurrencyPairId: 0,
+					Nonce:          0,
+				},
+			},
+			L1BlockHeight: 1,
+			L1BlockTime:   1,
+			Proof:         []byte{0x00},
 			ProofHeight: clienttypes.Height{
 				RevisionNumber: 0,
 				RevisionHeight: 1,
@@ -329,15 +412,20 @@ func TestMsgRelayOracleData_EdgeCases(t *testing.T) {
 
 	t.Run("max valid decimals", func(t *testing.T) {
 		maxDecimalsData := types.OracleData{
-			BridgeId:       1,
-			CurrencyPair:   "BTC/USD",
-			Price:          "50000",
-			Decimals:       18, // Max allowed
-			L1BlockHeight:  100,
-			L1BlockTime:    1000,
-			CurrencyPairId: 1,
-			Nonce:          1,
-			Proof:          []byte("proof"),
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "BTC/USD",
+					Price:          "50000",
+					Decimals:       18, // Max allowed
+					CurrencyPairId: 1,
+					Nonce:          1,
+				},
+			},
+			L1BlockHeight: 100,
+			L1BlockTime:   1000,
+			Proof:         []byte("proof"),
 			ProofHeight: clienttypes.Height{
 				RevisionHeight: 100,
 			},
@@ -350,15 +438,20 @@ func TestMsgRelayOracleData_EdgeCases(t *testing.T) {
 
 	t.Run("very large price", func(t *testing.T) {
 		largePriceData := types.OracleData{
-			BridgeId:       1,
-			CurrencyPair:   "BTC/USD",
-			Price:          "999999999999999999999999999999",
-			Decimals:       8,
-			L1BlockHeight:  100,
-			L1BlockTime:    1000,
-			CurrencyPairId: 1,
-			Nonce:          1,
-			Proof:          []byte("proof"),
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "BTC/USD",
+					Price:          "999999999999999999999999999999",
+					Decimals:       8,
+					CurrencyPairId: 1,
+					Nonce:          1,
+				},
+			},
+			L1BlockHeight: 100,
+			L1BlockTime:   1000,
+			Proof:         []byte("proof"),
 			ProofHeight: clienttypes.Height{
 				RevisionHeight: 100,
 			},

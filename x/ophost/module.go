@@ -129,6 +129,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(gs)
 }
 
+// EndBlock returns the end blocker for the ophost module.
+func (am AppModule) EndBlock(ctx context.Context) error {
+	return am.keeper.UpdateOraclePriceHashes(ctx)
+}
+
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
 

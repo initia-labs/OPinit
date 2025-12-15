@@ -12,15 +12,20 @@ import (
 
 func TestOracleData_Validate(t *testing.T) {
 	validOracleData := types.OracleData{
-		BridgeId:       1,
-		CurrencyPair:   "BTC/USD",
-		Price:          "50000000000",
-		Decimals:       8,
-		L1BlockHeight:  100,
-		L1BlockTime:    1000000000,
-		CurrencyPairId: 1,
-		Nonce:          1,
-		Proof:          []byte("valid-proof"),
+		BridgeId:        1,
+		OraclePriceHash: make([]byte, 32), // 32-byte hash
+		Prices: []types.OraclePriceData{
+			{
+				CurrencyPair:   "BTC/USD",
+				Price:          "50000000000",
+				Decimals:       8,
+				CurrencyPairId: 1,
+				Nonce:          1,
+			},
+		},
+		L1BlockHeight: 100,
+		L1BlockTime:   1000000000,
+		Proof:         []byte("valid-proof"),
 		ProofHeight: clienttypes.Height{
 			RevisionNumber: 0,
 			RevisionHeight: 100,
@@ -47,76 +52,206 @@ func TestOracleData_Validate(t *testing.T) {
 			expectedErr: "bridge id cannot be zero",
 		},
 		{
-			name: "empty currency pair",
+			name: "empty oracle price hash",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.CurrencyPair = ""
+				data.OraclePriceHash = []byte{}
+				return data
+			}(),
+			expectedErr: "oracle price hash cannot be empty",
+		},
+		{
+			name: "nil oracle price hash",
+			oracleData: func() types.OracleData {
+				data := validOracleData
+				data.OraclePriceHash = nil
+				return data
+			}(),
+			expectedErr: "oracle price hash cannot be empty",
+		},
+		{
+			name: "oracle price hash wrong length",
+			oracleData: func() types.OracleData {
+				data := validOracleData
+				data.OraclePriceHash = make([]byte, 16) // Should be 32
+				return data
+			}(),
+			expectedErr: "oracle price hash must be 32 bytes",
+		},
+		{
+			name: "empty prices array",
+			oracleData: func() types.OracleData {
+				data := validOracleData
+				data.Prices = []types.OraclePriceData{}
+				return data
+			}(),
+			expectedErr: "prices cannot be empty",
+		},
+		{
+			name: "nil prices array",
+			oracleData: func() types.OracleData {
+				data := validOracleData
+				data.Prices = nil
+				return data
+			}(),
+			expectedErr: "prices cannot be empty",
+		},
+		{
+			name: "invalid price in batch - empty currency pair",
+			oracleData: func() types.OracleData {
+				data := validOracleData
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "",
+						Price:          "50000000000",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "currency pair cannot be empty",
 		},
 		{
-			name: "whitespace currency pair",
+			name: "invalid price in batch - whitespace currency pair",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.CurrencyPair = "   "
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "   ",
+						Price:          "50000000000",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "currency pair cannot be empty",
 		},
 		{
-			name: "invalid currency pair format - no slash",
+			name: "invalid price in batch - no slash",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.CurrencyPair = "BTCUSD"
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTCUSD",
+						Price:          "50000000000",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "invalid currency pair format",
 		},
 		{
-			name: "empty price",
+			name: "invalid price in batch - empty price",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.Price = ""
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "price cannot be empty",
 		},
 		{
-			name: "whitespace price",
+			name: "invalid price in batch - not a number",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.Price = "   "
-				return data
-			}(),
-			expectedErr: "price cannot be empty",
-		},
-		{
-			name: "invalid price format - not a number",
-			oracleData: func() types.OracleData {
-				data := validOracleData
-				data.Price = "not-a-number"
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "not-a-number",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "invalid price format",
 		},
 		{
-			name: "decimals too large",
+			name: "invalid price in batch - decimals too large",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.Decimals = 19
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "50000000000",
+						Decimals:       19,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "decimals too large",
 		},
 		{
-			name: "max valid decimals",
+			name: "multiple prices in batch - all valid",
 			oracleData: func() types.OracleData {
 				data := validOracleData
-				data.Decimals = 18
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "50000000000",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+					{
+						CurrencyPair:   "ETH/USD",
+						Price:          "3000000000",
+						Decimals:       8,
+						CurrencyPairId: 2,
+						Nonce:          1,
+					},
+					{
+						CurrencyPair:   "ATOM/USD",
+						Price:          "10000000",
+						Decimals:       8,
+						CurrencyPairId: 3,
+						Nonce:          1,
+					},
+				}
 				return data
 			}(),
 			expectedErr: "",
+		},
+		{
+			name: "multiple prices - one invalid",
+			oracleData: func() types.OracleData {
+				data := validOracleData
+				data.Prices = []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "50000000000",
+						Decimals:       8,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+					{
+						CurrencyPair:   "ETH/USD",
+						Price:          "", // Invalid
+						Decimals:       8,
+						CurrencyPairId: 2,
+						Nonce:          1,
+					},
+				}
+				return data
+			}(),
+			expectedErr: "price cannot be empty",
 		},
 		{
 			name: "zero l1 block height",
@@ -172,42 +307,6 @@ func TestOracleData_Validate(t *testing.T) {
 			}(),
 			expectedErr: "proof height revision height cannot be zero",
 		},
-		{
-			name: "zero nonce is valid",
-			oracleData: func() types.OracleData {
-				data := validOracleData
-				data.Nonce = 0
-				return data
-			}(),
-			expectedErr: "",
-		},
-		{
-			name: "valid data with different currency pair",
-			oracleData: func() types.OracleData {
-				data := validOracleData
-				data.CurrencyPair = "ETH/USD"
-				return data
-			}(),
-			expectedErr: "",
-		},
-		{
-			name: "valid data with timestamp currency pair",
-			oracleData: func() types.OracleData {
-				data := validOracleData
-				data.CurrencyPair = "TIMESTAMP/NANOSECOND"
-				return data
-			}(),
-			expectedErr: "",
-		},
-		{
-			name: "very large price",
-			oracleData: func() types.OracleData {
-				data := validOracleData
-				data.Price = "999999999999999999999999999999"
-				return data
-			}(),
-			expectedErr: "",
-		},
 	}
 
 	for _, tc := range testCases {
@@ -226,15 +325,20 @@ func TestOracleData_Validate(t *testing.T) {
 func TestOracleData_Validate_EdgeCases(t *testing.T) {
 	t.Run("all valid edge values", func(t *testing.T) {
 		oracleData := types.OracleData{
-			BridgeId:       1,
-			CurrencyPair:   "A/B",
-			Price:          "1",
-			Decimals:       0,
-			L1BlockHeight:  1,
-			L1BlockTime:    1,
-			CurrencyPairId: 0,
-			Nonce:          0,
-			Proof:          []byte{0x00},
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "A/B",
+					Price:          "1",
+					Decimals:       0,
+					CurrencyPairId: 0,
+					Nonce:          0,
+				},
+			},
+			L1BlockHeight: 1,
+			L1BlockTime:   1,
+			Proof:         []byte{0x00},
 			ProofHeight: clienttypes.Height{
 				RevisionNumber: 0,
 				RevisionHeight: 1,
@@ -247,18 +351,108 @@ func TestOracleData_Validate_EdgeCases(t *testing.T) {
 
 	t.Run("large values", func(t *testing.T) {
 		oracleData := types.OracleData{
-			BridgeId:       ^uint64(0),
-			CurrencyPair:   "VERYLONGCURRENCYPAIR/ANOTHERLONGONE",
-			Price:          "99999999999999999999999999999999999999",
-			Decimals:       18,
-			L1BlockHeight:  ^uint64(0),
-			L1BlockTime:    9223372036854775807, // Max int64
-			CurrencyPairId: ^uint64(0),
-			Nonce:          ^uint64(0),
-			Proof:          make([]byte, 10000),
+			BridgeId:        ^uint64(0),
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "VERYLONGCURRENCYPAIR/ANOTHERLONGONE",
+					Price:          "99999999999999999999999999999999999999",
+					Decimals:       18,
+					CurrencyPairId: ^uint64(0),
+					Nonce:          ^uint64(0),
+				},
+			},
+			L1BlockHeight: ^uint64(0),
+			L1BlockTime:   9223372036854775807, // Max int64
+			Proof:         make([]byte, 10000),
 			ProofHeight: clienttypes.Height{
 				RevisionNumber: ^uint64(0),
 				RevisionHeight: ^uint64(0),
+			},
+		}
+
+		err := oracleData.Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("max valid decimals in batch", func(t *testing.T) {
+		oracleData := types.OracleData{
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "BTC/USD",
+					Price:          "50000000000",
+					Decimals:       18,
+					CurrencyPairId: 1,
+					Nonce:          1,
+				},
+			},
+			L1BlockHeight: 100,
+			L1BlockTime:   1000000000,
+			Proof:         []byte("valid-proof"),
+			ProofHeight: clienttypes.Height{
+				RevisionNumber: 0,
+				RevisionHeight: 100,
+			},
+		}
+
+		err := oracleData.Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("valid with timestamp currency pair", func(t *testing.T) {
+		oracleData := types.OracleData{
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "TIMESTAMP/NANOSECOND",
+					Price:          "1765532732375394000",
+					Decimals:       8,
+					CurrencyPairId: 0,
+					Nonce:          571,
+				},
+			},
+			L1BlockHeight: 100,
+			L1BlockTime:   1000000000,
+			Proof:         []byte("valid-proof"),
+			ProofHeight: clienttypes.Height{
+				RevisionNumber: 0,
+				RevisionHeight: 100,
+			},
+		}
+
+		err := oracleData.Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("duplicate currency pairs allowed", func(t *testing.T) {
+		oracleData := types.OracleData{
+			BridgeId:        1,
+			OraclePriceHash: make([]byte, 32),
+			Prices: []types.OraclePriceData{
+				{
+					CurrencyPair:   "BTC/USD",
+					Price:          "50000000000",
+					Decimals:       8,
+					CurrencyPairId: 1,
+					Nonce:          1,
+				},
+				{
+					CurrencyPair:   "BTC/USD",
+					Price:          "50000000001",
+					Decimals:       8,
+					CurrencyPairId: 1,
+					Nonce:          2,
+				},
+			},
+			L1BlockHeight: 100,
+			L1BlockTime:   1000000000,
+			Proof:         []byte("valid-proof"),
+			ProofHeight: clienttypes.Height{
+				RevisionNumber: 0,
+				RevisionHeight: 100,
 			},
 		}
 

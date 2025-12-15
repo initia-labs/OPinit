@@ -33,4 +33,5 @@ var (
 	ProvenWithdrawalPrefix = []byte{0x71}
 	BatchInfoPrefix        = []byte{0x81}
 	MigrationInfoPrefix    = []byte{0x91}
+	OraclePriceHashPrefix  = []byte{0xa1}
 )

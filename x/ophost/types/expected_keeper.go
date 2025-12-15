@@ -7,6 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
@@ -71,4 +73,11 @@ type PortKeeper interface {
 type ScopedKeeper interface {
 	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
 	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
+}
+
+// OracleKeeper defines the expected oracle keeper for reading price data
+type OracleKeeper interface {
+	GetPriceForCurrencyPair(ctx context.Context, cp connecttypes.CurrencyPair) (oracletypes.QuotePrice, error)
+	GetCurrencyPairFromID(ctx context.Context, id uint64) (connecttypes.CurrencyPair, bool)
+	GetNumCurrencyPairs(ctx context.Context) (uint64, error)
 }

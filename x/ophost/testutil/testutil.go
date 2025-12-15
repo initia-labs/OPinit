@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cometbft/cometbft/crypto"
@@ -301,6 +303,7 @@ func createTestInput(
 	channelKeeper := &MockChannelKeeper{}
 	portKeeper := &MockPortKeeper{}
 	scopedKeeper := &MockScopedKeeper{}
+	oracleKeeper := &MockOracleKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
@@ -311,6 +314,7 @@ func createTestInput(
 		channelKeeper,
 		portKeeper,
 		scopedKeeper,
+		oracleKeeper,
 		bridgeHook,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
@@ -461,6 +465,20 @@ func (k *MockScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabil
 
 func (k *MockScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return nil
+}
+
+type MockOracleKeeper struct{}
+
+func (k *MockOracleKeeper) GetPriceForCurrencyPair(ctx context.Context, cp connecttypes.CurrencyPair) (oracletypes.QuotePrice, error) {
+	return oracletypes.QuotePrice{}, nil
+}
+
+func (k *MockOracleKeeper) GetCurrencyPairFromID(ctx context.Context, id uint64) (connecttypes.CurrencyPair, bool) {
+	return connecttypes.CurrencyPair{}, false
+}
+
+func (k *MockOracleKeeper) GetNumCurrencyPairs(ctx context.Context) (uint64, error) {
+	return 0, nil
 }
 
 type MockRouter struct {

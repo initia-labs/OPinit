@@ -754,7 +754,7 @@ func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
 		SubmissionInterval:    100,
 		FinalizationPeriod:    1000,
 		SubmissionStartHeight: 1,
-		Metadata:              []byte("test-metadata"),
+		Metadata:              []byte("{\"perm_channels\":[{\"port_id\":\"opinit\",\"channel_id\":\"channel-2\"},{\"port_id\":\"nft-transfer\",\"channel_id\":\"channel-1\"},{\"port_id\":\"transfer\",\"channel_id\":\"channel-0\"}]}"),
 		BatchInfo: types.BatchInfo{
 			Submitter: testutil.AddrsStr[2],
 			ChainType: types.BatchInfo_INITIA,

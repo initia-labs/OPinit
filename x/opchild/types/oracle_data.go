@@ -7,11 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-func (o OracleData) Validate() error {
-	if o.BridgeId == 0 {
-		return ErrInvalidBridgeInfo.Wrap("bridge id cannot be zero")
-	}
-
+func (o OraclePriceData) Validate() error {
 	if strings.TrimSpace(o.CurrencyPair) == "" {
 		return sdkerrors.ErrInvalidRequest.Wrap("currency pair cannot be empty")
 	}
@@ -34,6 +30,35 @@ func (o OracleData) Validate() error {
 		return sdkerrors.ErrInvalidRequest.Wrapf("decimals too large: %d (max 18)", o.Decimals)
 	}
 
+	// nonce can be zero for the very first update
+
+	return nil
+}
+
+func (o OracleData) Validate() error {
+	if o.BridgeId == 0 {
+		return ErrInvalidBridgeInfo.Wrap("bridge id cannot be zero")
+	}
+
+	if len(o.OraclePriceHash) == 0 {
+		return sdkerrors.ErrInvalidRequest.Wrap("oracle price hash cannot be empty")
+	}
+
+	if len(o.OraclePriceHash) != 32 {
+		return sdkerrors.ErrInvalidRequest.Wrapf("oracle price hash must be 32 bytes, got %d", len(o.OraclePriceHash))
+	}
+
+	if len(o.Prices) == 0 {
+		return sdkerrors.ErrInvalidRequest.Wrap("prices cannot be empty")
+	}
+
+	// validate each price data
+	for i, priceData := range o.Prices {
+		if err := priceData.Validate(); err != nil {
+			return sdkerrors.ErrInvalidRequest.Wrapf("invalid price data at index %d: %v", i, err)
+		}
+	}
+
 	if o.L1BlockHeight == 0 {
 		return sdkerrors.ErrInvalidRequest.Wrap("l1 block height cannot be zero")
 	}
@@ -50,7 +75,5 @@ func (o OracleData) Validate() error {
 		return sdkerrors.ErrInvalidRequest.Wrap("proof height revision height cannot be zero")
 	}
 
-	// nonce can be zero for the very first update
-	
 	return nil
 }

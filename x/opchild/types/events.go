@@ -53,6 +53,5 @@ const (
 	AttributeKeyMigratedCoin    = "migrated_coin"
 	AttributeKeyL1BlockHeight   = "l1_block_height"
 	AttributeKeyAttestorSetSize = "attestor_set_size"
-	AttributeKeyCurrencyPair    = "currency_pair"
-	AttributeKeyPrice           = "price"
+	AttributeKeyNumCurrencyPair = "num_currency_pair"
 )

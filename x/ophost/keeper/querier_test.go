@@ -314,3 +314,23 @@ func Test_QueryMigrationInfo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, migrationInfo, res.MigrationInfo)
 }
+
+func Test_QueryOraclePriceHash(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+	q := keeper.NewQuerier(input.OPHostKeeper)
+
+	// non-existent oracle price hash should return error
+	_, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{BridgeId: 1})
+	require.Error(t, err)
+
+	oraclePriceHash := types.OraclePriceHash{
+		Hash:          []byte{0x01, 0x02, 0x03, 0x04},
+		L1BlockHeight: 100,
+		L1BlockTime:   1699999999000000000,
+	}
+	require.NoError(t, input.OPHostKeeper.OraclePriceHashes.Set(ctx, 1, oraclePriceHash))
+
+	res, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{BridgeId: 1})
+	require.NoError(t, err)
+	require.Equal(t, oraclePriceHash, res.OraclePriceHash)
+}

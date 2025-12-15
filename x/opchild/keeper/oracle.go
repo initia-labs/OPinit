@@ -1,9 +1,11 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"cosmossdk.io/collections"
@@ -26,6 +28,7 @@ import (
 
 	"github.com/initia-labs/OPinit/x/opchild/l2connect"
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type L2OracleHandler struct {
@@ -127,8 +130,8 @@ func (k L2OracleHandler) UpdateOracle(ctx context.Context, height uint64, extCom
 	return nil
 }
 
-// HandleOracleDataPacket handles the oracle data relayed from L1.
-// This verifies the oracle state proof and applies the price update to L2's oracle module.
+// HandleOracleDataPacket handles the batched oracle data relayed from L1.
+// This verifies the oracle hash proof and applies the price updates to L2's oracle module.
 func (k Keeper) HandleOracleDataPacket(
 	ctx context.Context,
 	oracleData types.OracleData,
@@ -149,11 +152,15 @@ func (k Keeper) HandleOracleDataPacket(
 	}
 
 	if err := k.verifyOracleDataProof(ctx, oracleData, bridgeInfo); err != nil {
-		return errorsmod.Wrap(err, "oracle state proof verification failed")
+		return errorsmod.Wrap(err, "oracle hash proof verification failed")
 	}
 
-	if err := k.processOraclePriceUpdate(ctx, oracleData); err != nil {
-		return errorsmod.Wrap(err, "failed to process oracle price")
+	if err := k.verifyOraclePricesHash(oracleData); err != nil {
+		return errorsmod.Wrap(err, "oracle prices hash verification failed")
+	}
+
+	if err := k.processBatchedOraclePriceUpdate(ctx, oracleData); err != nil {
+		return errorsmod.Wrap(err, "failed to process batched oracle prices")
 	}
 
 	sdkCtx.EventManager().EmitEvent(
@@ -161,16 +168,15 @@ func (k Keeper) HandleOracleDataPacket(
 			types.EventTypeOracleDataRelay,
 			sdk.NewAttribute(types.AttributeKeyBridgeId, fmt.Sprintf("%d", oracleData.BridgeId)),
 			sdk.NewAttribute(types.AttributeKeyL1BlockHeight, fmt.Sprintf("%d", oracleData.L1BlockHeight)),
-			sdk.NewAttribute(types.AttributeKeyCurrencyPair, oracleData.CurrencyPair),
-			sdk.NewAttribute(types.AttributeKeyPrice, oracleData.Price),
+			sdk.NewAttribute(types.AttributeKeyNumCurrencyPair, strconv.Itoa(len(oracleData.Prices))),
 		),
 	)
 
 	return nil
 }
 
-// verifyOracleDataProof verifies the oracle state proof from L1.
-// This verifies that the oracle price data existed in L1's oracle module state
+// verifyOracleDataProof verifies the oracle hash proof from L1.
+// This verifies that the oracle price hash exists in L1's ophost module state
 // at the specified height using a Merkle proof against L1's state root.
 func (k Keeper) verifyOracleDataProof(
 	ctx context.Context,
@@ -181,30 +187,23 @@ func (k Keeper) verifyOracleDataProof(
 		return err
 	}
 
+	if len(data.OraclePriceHash) == 0 {
+		return sdkerrors.ErrInvalidRequest.Wrap("oracle price hash cannot be empty")
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// construct the state path for the oracle data in the oracle module
-	cpBytes := []byte(data.CurrencyPair)
-	stateKey := append([]byte{0x00}, cpBytes...)
+	// construct the state path for the oracle price hash in ophost module
+	// The hash is stored at OraclePriceHashPrefix (0xa1) + bridge_id
+	stateKey := append([]byte{0xa1}, sdk.Uint64ToBigEndian(data.BridgeId)...)
 
-	priceInt, ok := math.NewIntFromString(data.Price)
-	if !ok {
-		return sdkerrors.ErrInvalidRequest.Wrapf("invalid price format: %s", data.Price)
+	// construct the expected value
+	expectedOraclePriceHash := ophosttypes.OraclePriceHash{
+		Hash:          data.OraclePriceHash,
+		L1BlockHeight: data.L1BlockHeight,
+		L1BlockTime:   data.L1BlockTime,
 	}
-
-	sec := data.L1BlockTime / 1e9
-	nsec := data.L1BlockTime % 1e9
-	quotePrice := oracletypes.QuotePrice{
-		Price:          priceInt,
-		BlockTimestamp: time.Unix(sec, nsec),
-		BlockHeight:    data.L1BlockHeight,
-	}
-	expectedCurrencyPairState := oracletypes.CurrencyPairState{
-		Price: &quotePrice,
-		Nonce: data.Nonce,
-		Id:    data.CurrencyPairId,
-	}
-	expectedValue := k.cdc.MustMarshal(&expectedCurrencyPairState)
+	expectedValue := k.cdc.MustMarshal(&expectedOraclePriceHash)
 
 	proofHeight := clienttypes.NewHeight(data.ProofHeight.RevisionNumber, data.ProofHeight.RevisionHeight)
 
@@ -218,9 +217,9 @@ func (k Keeper) verifyOracleDataProof(
 		return errorsmod.Wrap(err, "failed to marshal merkle proof")
 	}
 
-	// path for verification: oracle store key + state key
+	// path for verification: ophost store key + state key
 	// the merkle path should match how the data is stored in the iavl tree
-	merklePath := commitmenttypes.NewMerklePath(oracletypes.StoreKey, string(stateKey))
+	merklePath := commitmenttypes.NewMerklePath(ophosttypes.StoreKey, string(stateKey))
 
 	clientState, found := k.ibcClientKeeper.GetClientState(sdkCtx, bridgeInfo.L1ClientId)
 	if !found {
@@ -240,46 +239,98 @@ func (k Keeper) verifyOracleDataProof(
 		merklePath,
 		expectedValue,
 	); err != nil {
-		k.Logger(ctx).Error("oracle state proof verification failed",
+		k.Logger(ctx).Error("oracle hash proof verification failed",
 			"error", err.Error(),
 			"path", merklePath.String(),
 		)
-		return errorsmod.Wrap(err, "oracle state proof verification failed")
+		return errorsmod.Wrap(err, "oracle hash proof verification failed")
 	}
 
 	return nil
 }
 
-// processOraclePriceUpdate processes a single currency pair price update from L1.
-func (k Keeper) processOraclePriceUpdate(ctx context.Context, oracleData types.OracleData) error {
+// verifyOraclePricesHash verifies that the provided prices hash to the expected value.
+// This ensures the relayer is providing the correct price data that matches the hash in the proof.
+func (k Keeper) verifyOraclePricesHash(oracleData types.OracleData) error {
+	if len(oracleData.Prices) == 0 {
+		return sdkerrors.ErrInvalidRequest.Wrap("no prices provided")
+	}
+
+	prices := make(ophosttypes.OraclePriceInfos, len(oracleData.Prices))
+	for i, pd := range oracleData.Prices {
+		priceInt, ok := math.NewIntFromString(pd.Price)
+		if !ok {
+			return sdkerrors.ErrInvalidRequest.Wrapf("invalid price format: %s", pd.Price)
+		}
+
+		prices[i] = ophosttypes.OraclePriceInfo{
+			CurrencyPairId: pd.CurrencyPairId,
+			Price:          priceInt,
+			Timestamp:      oracleData.L1BlockTime,
+		}
+	}
+	computedHash := prices.ComputeOraclePricesHash()
+
+	if !bytes.Equal(computedHash, oracleData.OraclePriceHash) {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"oracle prices hash mismatch: expected %x, got %x",
+			oracleData.OraclePriceHash,
+			computedHash,
+		)
+	}
+
+	return nil
+}
+
+// processBatchedOraclePriceUpdate processes multiple currency pair price updates from L1.
+func (k Keeper) processBatchedOraclePriceUpdate(ctx context.Context, oracleData types.OracleData) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	cp, err := connecttypes.CurrencyPairFromString(oracleData.CurrencyPair)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid currency pair format: %s", oracleData.CurrencyPair)
-	}
-
-	// check if incoming oracle data is newer than existing using timestamp comparison
 	l1Time := time.Unix(0, oracleData.L1BlockTime)
-	existingPrice, err := k.l2OracleHandler.oracleKeeper.GetPriceForCurrencyPair(ctx, cp)
-	if err == nil && !l1Time.After(existingPrice.BlockTimestamp) {
-		return types.ErrInvalidOracleTimestamp
-	}
 
-	priceInt, ok := math.NewIntFromString(oracleData.Price)
-	if !ok {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid price format")
-	}
+	for _, priceData := range oracleData.Prices {
+		cp, err := connecttypes.CurrencyPairFromString(priceData.CurrencyPair)
+		if err != nil {
+			k.Logger(ctx).Error("invalid currency pair format",
+				"currency_pair", priceData.CurrencyPair,
+				"error", err.Error(),
+			)
+			continue
+		}
 
-	// we store l1 timestamp for staleness checks, l2 block height for reference
-	qp := oracletypes.QuotePrice{
-		Price:          priceInt,
-		BlockTimestamp: l1Time,
-		BlockHeight:    uint64(sdkCtx.BlockHeight()), //nolint:gosec
-	}
+		// check if incoming oracle data is newer than existing using timestamp comparison
+		existingPrice, err := k.l2OracleHandler.oracleKeeper.GetPriceForCurrencyPair(ctx, cp)
+		if err == nil && !l1Time.After(existingPrice.BlockTimestamp) {
+			k.Logger(ctx).Debug("skipping stale oracle price",
+				"currency_pair", priceData.CurrencyPair,
+				"existing_timestamp", existingPrice.BlockTimestamp,
+				"new_timestamp", l1Time,
+			)
+			continue
+		}
 
-	if err := k.l2OracleHandler.oracleKeeper.SetPriceForCurrencyPair(ctx, cp, qp); err != nil {
-		return errorsmod.Wrap(err, "failed to set price for currency pair")
+		priceInt, ok := math.NewIntFromString(priceData.Price)
+		if !ok {
+			k.Logger(ctx).Error("invalid price format",
+				"currency_pair", priceData.CurrencyPair,
+				"price", priceData.Price,
+			)
+			continue
+		}
+
+		// we store l1 timestamp for staleness checks, l2 block height for reference
+		qp := oracletypes.QuotePrice{
+			Price:          priceInt,
+			BlockTimestamp: l1Time,
+			BlockHeight:    uint64(sdkCtx.BlockHeight()), //nolint:gosec
+		}
+
+		if err := k.l2OracleHandler.oracleKeeper.SetPriceForCurrencyPair(ctx, cp, qp); err != nil {
+			k.Logger(ctx).Error("failed to set price for currency pair",
+				"currency_pair", priceData.CurrencyPair,
+				"error", err.Error(),
+			)
+			continue
+		}
 	}
 
 	return nil

@@ -32,6 +32,7 @@ const (
 	Query_NextL1Sequence_FullMethodName      = "/opinit.ophost.v1.Query/NextL1Sequence"
 	Query_BatchInfos_FullMethodName          = "/opinit.ophost.v1.Query/BatchInfos"
 	Query_MigrationInfo_FullMethodName       = "/opinit.ophost.v1.Query/MigrationInfo"
+	Query_OraclePriceHash_FullMethodName     = "/opinit.ophost.v1.Query/OraclePriceHash"
 )
 
 // QueryClient is the client API for Query service.
@@ -66,6 +67,8 @@ type QueryClient interface {
 	BatchInfos(ctx context.Context, in *QueryBatchInfosRequest, opts ...grpc.CallOption) (*QueryBatchInfosResponse, error)
 	// MigrationInfo queries the migration info.
 	MigrationInfo(ctx context.Context, in *QueryMigrationInfoRequest, opts ...grpc.CallOption) (*QueryMigrationInfoResponse, error)
+	// OraclePriceHash queries the oracle price hash for a bridge.
+	OraclePriceHash(ctx context.Context, in *QueryOraclePriceHashRequest, opts ...grpc.CallOption) (*QueryOraclePriceHashResponse, error)
 }
 
 type queryClient struct {
@@ -206,6 +209,16 @@ func (c *queryClient) MigrationInfo(ctx context.Context, in *QueryMigrationInfoR
 	return out, nil
 }
 
+func (c *queryClient) OraclePriceHash(ctx context.Context, in *QueryOraclePriceHashRequest, opts ...grpc.CallOption) (*QueryOraclePriceHashResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryOraclePriceHashResponse)
+	err := c.cc.Invoke(ctx, Query_OraclePriceHash_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
@@ -238,6 +251,8 @@ type QueryServer interface {
 	BatchInfos(context.Context, *QueryBatchInfosRequest) (*QueryBatchInfosResponse, error)
 	// MigrationInfo queries the migration info.
 	MigrationInfo(context.Context, *QueryMigrationInfoRequest) (*QueryMigrationInfoResponse, error)
+	// OraclePriceHash queries the oracle price hash for a bridge.
+	OraclePriceHash(context.Context, *QueryOraclePriceHashRequest) (*QueryOraclePriceHashResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -286,6 +301,9 @@ func (UnimplementedQueryServer) BatchInfos(context.Context, *QueryBatchInfosRequ
 }
 func (UnimplementedQueryServer) MigrationInfo(context.Context, *QueryMigrationInfoRequest) (*QueryMigrationInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MigrationInfo not implemented")
+}
+func (UnimplementedQueryServer) OraclePriceHash(context.Context, *QueryOraclePriceHashRequest) (*QueryOraclePriceHashResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method OraclePriceHash not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -542,6 +560,24 @@ func _Query_MigrationInfo_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_OraclePriceHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryOraclePriceHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).OraclePriceHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_OraclePriceHash_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).OraclePriceHash(ctx, req.(*QueryOraclePriceHashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -600,6 +636,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MigrationInfo",
 			Handler:    _Query_MigrationInfo_Handler,
+		},
+		{
+			MethodName: "OraclePriceHash",
+			Handler:    _Query_OraclePriceHash_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

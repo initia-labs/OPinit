@@ -29,6 +29,7 @@ type Keeper struct {
 	channelKeeper       types.ChannelKeeper
 	portKeeper          types.PortKeeper
 	scopedKeeper        types.ScopedKeeper
+	oracleKeeper        types.OracleKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -47,6 +48,7 @@ type Keeper struct {
 	NextOutputIndexes collections.Map[uint64, uint64]
 	ProvenWithdrawals collections.Map[collections.Pair[uint64, []byte], bool]
 	MigrationInfos    collections.Map[collections.Pair[uint64, string], types.MigrationInfo]
+	OraclePriceHashes collections.Map[uint64, types.OraclePriceHash]
 }
 
 func NewKeeper(
@@ -59,6 +61,7 @@ func NewKeeper(
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	scopedKeeper types.ScopedKeeper,
+	oracleKeeper types.OracleKeeper,
 	bridgeHook types.BridgeHook,
 	authority string,
 	validatorAddressCodec address.Codec,
@@ -81,6 +84,7 @@ func NewKeeper(
 		channelKeeper:       channelKeeper,
 		portKeeper:          portKeeper,
 		scopedKeeper:        scopedKeeper,
+		oracleKeeper:        oracleKeeper,
 
 		bridgeHook: bridgeHook,
 		authority:  authority,
@@ -97,6 +101,7 @@ func NewKeeper(
 		NextOutputIndexes: collections.NewMap(sb, types.NextOutputIndexPrefix, "next_output_indexes", collections.Uint64Key, collections.Uint64Value),
 		ProvenWithdrawals: collections.NewMap(sb, types.ProvenWithdrawalPrefix, "proven_withdrawals", collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey), collections.BoolValue),
 		MigrationInfos:    collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), codec.CollValue[types.MigrationInfo](cdc)),
+		OraclePriceHashes: collections.NewMap(sb, types.OraclePriceHashPrefix, "oracle_price_hashes", collections.Uint64Key, codec.CollValue[types.OraclePriceHash](cdc)),
 	}
 
 	schema, err := sb.Build()

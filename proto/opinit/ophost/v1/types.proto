@@ -155,3 +155,14 @@ message Attestor {
   // The moniker of the attestor.
   string moniker = 3;
 }
+
+// OraclePriceHash defines the hash of all oracle prices for a bridge.
+// This is computed and stored in EndBlock to enable batched oracle price relaying.
+message OraclePriceHash {
+  // hash is the hash of all oracle prices for the bridge.
+  bytes hash = 1;
+  // l1_block_height is the L1 block height at which this hash was computed.
+  uint64 l1_block_height = 2;
+  // l1_block_time is the L1 block timestamp when this hash was computed, in unix nanoseconds.
+  int64 l1_block_time = 3;
+}

@@ -36,6 +36,14 @@ import (
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
+func mustDecodeHex(s string) []byte {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
 /////////////////////////////////////////
 // The messages for Validators
 
@@ -69,7 +77,7 @@ func Test_MsgServer_ExecuteMessages(t *testing.T) {
 
 	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
-	require.Len(t, vals, 2)
+	require.Len(t, vals, 1)
 
 	// apply validator updates
 	_, err = input.OPChildKeeper.BlockValidatorUpdates(ctx)
@@ -998,20 +1006,39 @@ func Test_MsgServer_RelayOracleData(t *testing.T) {
 	err := opchildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 	require.NoError(t, err)
 
-	// valid oracle data (without proof verification for unit test)
+	oracleHash, _ := hex.DecodeString("d3f45ee700ee1a37b1b114d7e12f44d2514cafaa2308fa0446c324f3491453f7")
 	oracleData := types.OracleData{
-		BridgeId:       1,
-		CurrencyPair:   "BTC/USD",
-		Price:          "50000000000",
-		Decimals:       8,
-		L1BlockHeight:  100,
-		L1BlockTime:    1000000000,
-		CurrencyPairId: 1,
-		Nonce:          1,
-		Proof:          []byte("test-proof"),
+		BridgeId:        1,
+		OraclePriceHash: oracleHash,
+		Prices: []types.OraclePriceData{
+			{
+				CurrencyPair:   "BTC/USD",
+				Price:          "9222376713",
+				Decimals:       5,
+				CurrencyPairId: 4,
+				Nonce:          567,
+			},
+			{
+				CurrencyPair:   "ETH/USD",
+				Price:          "3243513053",
+				Decimals:       6,
+				CurrencyPairId: 15,
+				Nonce:          567,
+			},
+			{
+				CurrencyPair:   "ATOM/USD",
+				Price:          "2180500000",
+				Decimals:       9,
+				CurrencyPairId: 1,
+				Nonce:          567,
+			},
+		},
+		L1BlockHeight: 663,
+		L1BlockTime:   1765532733321115000,
+		Proof:         mustDecodeHex("0aeb010a0a69637332333a6961766c1209a100000000000000011ad1010ace010a09a10000000000000001122f0a20d3f45ee700ee1a37b1b114d7e12f44d2514cafaa2308fa0446c324f3491453f710970518f8eab787abd59bc0181a0c0801180120012a040002ae0a222a080112260204ae0a201fdb1e2e60ff88045cd3f68bd0da4593b20d710c13725f98e239dd014fbac36020222a080112260406ae0a20d0a1e370a3c38d3c05c109c408335caa79e61e6005cfba0fb1da3fc640c55cd820222a08011226060aae0a20bbe83488fa11800d0da08a55ae8d9201868378c190c793f5fcc294f7fb61faae200a96020a0c69637332333a73696d706c6512066f70686f73741afd010afa010a066f70686f737412200cecd8af22290cfdd98431e98cccb6418b7b27a3a9914616b0237d3d2f027ccb1a090801180120012a01002225080112210141c04a42e47994d4dbcb3060eedd792d7b623f1bf61f4f7498bd5e3e1119666a22250801122101a9a139f033e62375c436e237e8fb7deddb3a5ade8a485d45e0229d8b8ea9d937222508011221010f31c2c269df8cc8cccdc393e8c168cd397589427bf4fc70646b263f9389529a222708011201011a20cfff89b3f02d88273b060b24913e22bfe25d236a2cd25c21d142c6d93a1eb92e22250801122101bada0d57b7de3594067a4227846a20361bb1429f632d0cd0cde8f31395b96772"),
 		ProofHeight: clienttypes.Height{
-			RevisionNumber: 0,
-			RevisionHeight: 100,
+			RevisionNumber: 1,
+			RevisionHeight: 664,
 		},
 	}
 
@@ -1019,7 +1046,9 @@ func Test_MsgServer_RelayOracleData(t *testing.T) {
 
 	msg := types.NewMsgRelayOracleData(testutil.AddrsStr[0], oracleData)
 	_, err = ms.RelayOracleData(ctx, msg)
-	require.Error(t, err) // expected to fail at proof verification
+
+	// expected to fail at proof verification without IBC client state setup, successful test is in oracle_test.go
+	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to handle oracle data")
 }
 
@@ -1029,22 +1058,174 @@ func Test_MsgServer_RelayOracleData_InvalidMessage(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(&opchildKeeper)
 
-	invalidOracleData := types.OracleData{
-		BridgeId:      0, // invalid
-		CurrencyPair:  "BTC/USD",
-		Price:         "50000",
-		L1BlockHeight: 100,
-		L1BlockTime:   1000,
-		Proof:         []byte("proof"),
-		ProofHeight: clienttypes.Height{
-			RevisionHeight: 100,
+	testCases := []struct {
+		name        string
+		oracleData  types.OracleData
+		expectedErr string
+	}{
+		{
+			name: "zero bridge id",
+			oracleData: types.OracleData{
+				BridgeId:        0, // invalid - zero bridge ID
+				OraclePriceHash: make([]byte, 32),
+				Prices: []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "50000",
+						Decimals:       5,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				},
+				L1BlockHeight: 100,
+				L1BlockTime:   1000,
+				Proof:         []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "bridge id cannot be zero",
+		},
+		{
+			name: "empty oracle price hash",
+			oracleData: types.OracleData{
+				BridgeId:        1,
+				OraclePriceHash: []byte{}, // invalid - empty hash
+				Prices: []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "50000",
+						Decimals:       5,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				},
+				L1BlockHeight: 100,
+				L1BlockTime:   1000,
+				Proof:         []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "oracle price hash cannot be empty",
+		},
+		{
+			name: "wrong oracle price hash length",
+			oracleData: types.OracleData{
+				BridgeId:        1,
+				OraclePriceHash: make([]byte, 16), // invalid - should be 32 bytes
+				Prices: []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "50000",
+						Decimals:       5,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				},
+				L1BlockHeight: 100,
+				L1BlockTime:   1000,
+				Proof:         []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "oracle price hash must be 32 bytes",
+		},
+		{
+			name: "empty prices array",
+			oracleData: types.OracleData{
+				BridgeId:        1,
+				OraclePriceHash: make([]byte, 32),
+				Prices:          []types.OraclePriceData{}, // invalid - empty array
+				L1BlockHeight:   100,
+				L1BlockTime:     1000,
+				Proof:           []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "prices cannot be empty",
+		},
+		{
+			name: "invalid price data - empty currency pair",
+			oracleData: types.OracleData{
+				BridgeId:        1,
+				OraclePriceHash: make([]byte, 32),
+				Prices: []types.OraclePriceData{
+					{
+						CurrencyPair:   "", // invalid - empty
+						Price:          "50000",
+						Decimals:       5,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				},
+				L1BlockHeight: 100,
+				L1BlockTime:   1000,
+				Proof:         []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "currency pair cannot be empty",
+		},
+		{
+			name: "invalid price data - empty price",
+			oracleData: types.OracleData{
+				BridgeId:        1,
+				OraclePriceHash: make([]byte, 32),
+				Prices: []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "", // invalid - empty
+						Decimals:       5,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				},
+				L1BlockHeight: 100,
+				L1BlockTime:   1000,
+				Proof:         []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "price cannot be empty",
+		},
+		{
+			name: "invalid price data - invalid price format",
+			oracleData: types.OracleData{
+				BridgeId:        1,
+				OraclePriceHash: make([]byte, 32),
+				Prices: []types.OraclePriceData{
+					{
+						CurrencyPair:   "BTC/USD",
+						Price:          "not-a-number", // invalid format
+						Decimals:       5,
+						CurrencyPairId: 1,
+						Nonce:          1,
+					},
+				},
+				L1BlockHeight: 100,
+				L1BlockTime:   1000,
+				Proof:         []byte("proof"),
+				ProofHeight: clienttypes.Height{
+					RevisionHeight: 100,
+				},
+			},
+			expectedErr: "invalid price format",
 		},
 	}
 
-	msg := types.NewMsgRelayOracleData(testutil.AddrsStr[0], invalidOracleData)
-	_, err := ms.RelayOracleData(ctx, msg)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "bridge id cannot be zero")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.NewMsgRelayOracleData(testutil.AddrsStr[0], tc.oracleData)
+			_, err := ms.RelayOracleData(ctx, msg)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.expectedErr)
+		})
+	}
 }
 
 func Test_MsgServer_RelayOracleData_OracleDisabled(t *testing.T) {
@@ -1071,15 +1252,20 @@ func Test_MsgServer_RelayOracleData_OracleDisabled(t *testing.T) {
 	require.NoError(t, err)
 
 	oracleData := types.OracleData{
-		BridgeId:       1,
-		CurrencyPair:   "BTC/USD",
-		Price:          "50000000000",
-		Decimals:       8,
-		L1BlockHeight:  100,
-		L1BlockTime:    1000000000,
-		CurrencyPairId: 1,
-		Nonce:          1,
-		Proof:          []byte("test-proof"),
+		BridgeId:        1,
+		OraclePriceHash: make([]byte, 32),
+		Prices: []types.OraclePriceData{
+			{
+				CurrencyPair:   "BTC/USD",
+				Price:          "50000000000",
+				Decimals:       8,
+				CurrencyPairId: 1,
+				Nonce:          1,
+			},
+		},
+		L1BlockHeight: 100,
+		L1BlockTime:   1000000000,
+		Proof:         []byte("test-proof"),
 		ProofHeight: clienttypes.Height{
 			RevisionNumber: 0,
 			RevisionHeight: 100,
