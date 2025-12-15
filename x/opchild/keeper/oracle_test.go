@@ -496,8 +496,11 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 	err := input.OPChildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 	require.NoError(t, err)
 
-	appHash, _ := hex.DecodeString("73A6EB1E530A6F451C4AE7373206D0FF44C859B452DD801FAF3385EA2AB209C2")
-	nextValidatorHash, _ := hex.DecodeString("0A03067E7FA76E1A6880933EF515FFD2E391A3E8A883B3AE26A098718E44E7AD")
+	// Setup L1 IBC client with real data from height 77
+	// Query height 76 (H-1), verify against consensus state at height 77 (H)
+	// This uses actual data from running L1 node with new hash algorithm including currency pair strings
+	appHash, _ := hex.DecodeString("5EA27D296380CCBD058286BAB9A7309F4821FDFD5C0EA79B43452F935943A0F7")
+	nextValidatorHash, _ := hex.DecodeString("AB1BD1DFFAFC92506E5E8A29C3DBC133455D5F6A04F037BE1D865F2E5233ADE8")
 
 	clientState := tmclient.NewClientState(
 		"testchain-1",
@@ -505,13 +508,13 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 		24*time.Hour*7,
 		24*time.Hour*21,
 		10*time.Second,
-		clienttypes.NewHeight(1, 664),
+		clienttypes.NewHeight(1, 77),
 		commitmenttypes.GetSDKSpecs(),
 		[]string{"upgrade", "upgradedIBCState"},
 	)
 
 	consensusState := &tmclient.ConsensusState{
-		Timestamp:          time.Date(2025, 12, 12, 9, 45, 35, 356266000, time.UTC),
+		Timestamp:          time.Date(2025, 12, 15, 9, 48, 57, 131147000, time.UTC),
 		Root:               commitmenttypes.NewMerkleRoot(appHash),
 		NextValidatorsHash: nextValidatorHash,
 	}
@@ -528,7 +531,7 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 	require.NoError(t, err)
 	clientStore.Set(host.ClientStateKey(), csBytes)
 
-	height := clienttypes.NewHeight(1, 664)
+	height := clienttypes.NewHeight(1, 77)
 	bz, err := clienttypes.MarshalConsensusState(input.Cdc, consensusState)
 	require.NoError(t, err)
 	clientStore.Set(host.ConsensusStateKey(height), bz)
@@ -545,27 +548,31 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 
 	input.ClientKeeper.SetClientStore("test-client-id-1", clientStore)
 
-	proofBytes, _ := hex.DecodeString("0aeb010a0a69637332333a6961766c1209a100000000000000011ad1010ace010a09a10000000000000001122f0a20d3f45ee700ee1a37b1b114d7e12f44d2514cafaa2308fa0446c324f3491453f710970518f8eab787abd59bc0181a0c0801180120012a040002ae0a222a080112260204ae0a201fdb1e2e60ff88045cd3f68bd0da4593b20d710c13725f98e239dd014fbac36020222a080112260406ae0a20d0a1e370a3c38d3c05c109c408335caa79e61e6005cfba0fb1da3fc640c55cd820222a08011226060aae0a20bbe83488fa11800d0da08a55ae8d9201868378c190c793f5fcc294f7fb61faae200a96020a0c69637332333a73696d706c6512066f70686f73741afd010afa010a066f70686f737412200cecd8af22290cfdd98431e98cccb6418b7b27a3a9914616b0237d3d2f027ccb1a090801180120012a01002225080112210141c04a42e47994d4dbcb3060eedd792d7b623f1bf61f4f7498bd5e3e1119666a22250801122101a9a139f033e62375c436e237e8fb7deddb3a5ade8a485d45e0229d8b8ea9d937222508011221010f31c2c269df8cc8cccdc393e8c168cd397589427bf4fc70646b263f9389529a222708011201011a20cfff89b3f02d88273b060b24913e22bfe25d236a2cd25c21d142c6d93a1eb92e22250801122101bada0d57b7de3594067a4227846a20361bb1429f632d0cd0cde8f31395b96772")
+	// Real proof from L1 at height 76, verifies against consensus state at height 77
+	// Hash now includes currency pair strings to prevent price misdirection attacks
+	proofBytes, _ := hex.DecodeString("0aae010a0a69637332333a6961766c1201a11a9c010a99010a01a1122e0a202426ac051cc798ba02498fea05d5339f9faec21636a86451fd385fefd0cbdcf0104c18e0f2ce80f6d2d6c0181a0c0801180120012a0400029801222a08011226020498012075596157e985487234ce2decc134457070eda3b58b91ae7650cae591d28c5e3420222a080112260406980120a8b6e260143cdc29339aaee80e08969a7aabb37b277a610a05b0929f4b498f7b200a96020a0c69637332333a73696d706c6512066f70686f73741afd010afa010a066f70686f737412206a3019435bcd8ff099cf7fdce28999492238c34861490ed43b291446e1a90e5d1a090801180120012a01002225080112210141c04a42e47994d4dbcb3060eedd792d7b623f1bf61f4f7498bd5e3e1119666a2225080112210164f8a73f872520985d0223e32e62c7b0abe1a4a5b28291971287e31d8d2018f222250801122101ca8b13c9a346351958db29e912ac6c6f077ca5daad31e42b24e0c1f2188279c8222708011201011a2051d6a3064852fb1c963e30cf47a449b53579124da7dcfe72fcd745c73467891e2225080112210158954f6c5b67cd1cd66210fe76713db5a80e8f96f36c357782c87bea6a22d86b")
 
-	testL1BlockTime := int64(1765532733321115000)
-	timestampPrice, _ := math.NewIntFromString("1765532732375394000")
+	// All 16 oracle prices from L1 at height 76
+	// Hash now includes currency pair strings to prevent price misdirection attacks
+	testL1BlockTime := int64(1765792135104412000)
+	timestampPrice, _ := math.NewIntFromString("1765792134345144000")
 	testPrices := []ophosttypes.OraclePriceInfo{
-		{CurrencyPairId: 0, Price: timestampPrice, Timestamp: testL1BlockTime},           // TIMESTAMP/NANOSECOND
-		{CurrencyPairId: 1, Price: math.NewInt(2180500000), Timestamp: testL1BlockTime},  // ATOM/USD
-		{CurrencyPairId: 2, Price: math.NewInt(69120736), Timestamp: testL1BlockTime},    // OSMO/USD
-		{CurrencyPairId: 3, Price: math.NewInt(8866564969), Timestamp: testL1BlockTime},  // BNB/USD
-		{CurrencyPairId: 4, Price: math.NewInt(9222376713), Timestamp: testL1BlockTime},  // BTC/USD
-		{CurrencyPairId: 5, Price: math.NewInt(2980894), Timestamp: testL1BlockTime},     // NTRN/USD
-		{CurrencyPairId: 6, Price: math.NewInt(1000300090), Timestamp: testL1BlockTime},  // USDT/USD
-		{CurrencyPairId: 7, Price: math.NewInt(999800000), Timestamp: testL1BlockTime},   // USDC/USD
-		{CurrencyPairId: 8, Price: math.NewInt(16278383515), Timestamp: testL1BlockTime}, // SUI/USD
-		{CurrencyPairId: 9, Price: math.NewInt(13750125037), Timestamp: testL1BlockTime}, // SOL/USD
-		{CurrencyPairId: 10, Price: math.NewInt(59214999), Timestamp: testL1BlockTime},   // TIA/USD
-		{CurrencyPairId: 11, Price: math.NewInt(72521756), Timestamp: testL1BlockTime},   // BERA/USD
-		{CurrencyPairId: 12, Price: math.NewInt(26347904), Timestamp: testL1BlockTime},   // ENA/USD
-		{CurrencyPairId: 13, Price: math.NewInt(1706011803), Timestamp: testL1BlockTime}, // APT/USD
-		{CurrencyPairId: 14, Price: math.NewInt(213564069), Timestamp: testL1BlockTime},  // ARB/USD
-		{CurrencyPairId: 15, Price: math.NewInt(3243513053), Timestamp: testL1BlockTime}, // ETH/USD
+		{CurrencyPairId: 0, CurrencyPairString: "TIMESTAMP/NANOSECOND", Price: timestampPrice, Timestamp: testL1BlockTime},
+		{CurrencyPairId: 1, CurrencyPairString: "ATOM/USD", Price: math.NewInt(2147129425), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 2, CurrencyPairString: "OSMO/USD", Price: math.NewInt(63231311), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 3, CurrencyPairString: "BNB/USD", Price: math.NewInt(8903780756), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 4, CurrencyPairString: "BTC/USD", Price: math.NewInt(8983796759), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 5, CurrencyPairString: "NTRN/USD", Price: math.NewInt(2785557), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 6, CurrencyPairString: "USDT/USD", Price: math.NewInt(1000200040), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 7, CurrencyPairString: "USDC/USD", Price: math.NewInt(999800000), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 8, CurrencyPairString: "SUI/USD", Price: math.NewInt(15696139227), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 9, CurrencyPairString: "SOL/USD", Price: math.NewInt(13250650130), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 10, CurrencyPairString: "TIA/USD", Price: math.NewInt(55051010), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 11, CurrencyPairString: "BERA/USD", Price: math.NewInt(72214442), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 12, CurrencyPairString: "ENA/USD", Price: math.NewInt(23744748), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 13, CurrencyPairString: "APT/USD", Price: math.NewInt(1649965023), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 14, CurrencyPairString: "ARB/USD", Price: math.NewInt(209041808), Timestamp: testL1BlockTime},
+		{CurrencyPairId: 15, CurrencyPairString: "ETH/USD", Price: math.NewInt(3144108821), Timestamp: testL1BlockTime},
 	}
 	computedHash := ophosttypes.OraclePriceInfos(testPrices).ComputeOraclePricesHash()
 
@@ -573,49 +580,50 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 		BridgeId:        1,
 		OraclePriceHash: computedHash,
 		Prices: []types.OraclePriceData{
-			{CurrencyPair: "TIMESTAMP/NANOSECOND", Price: "1765532732375394000", Decimals: 8, CurrencyPairId: 0, Nonce: 571},
-			{CurrencyPair: "ATOM/USD", Price: "2180500000", Decimals: 9, CurrencyPairId: 1, Nonce: 567},
-			{CurrencyPair: "OSMO/USD", Price: "69120736", Decimals: 9, CurrencyPairId: 2, Nonce: 563},
-			{CurrencyPair: "BNB/USD", Price: "8866564969", Decimals: 7, CurrencyPairId: 3, Nonce: 563},
-			{CurrencyPair: "BTC/USD", Price: "9222376713", Decimals: 5, CurrencyPairId: 4, Nonce: 567},
-			{CurrencyPair: "NTRN/USD", Price: "2980894", Decimals: 8, CurrencyPairId: 5, Nonce: 565},
-			{CurrencyPair: "USDT/USD", Price: "1000300090", Decimals: 9, CurrencyPairId: 6, Nonce: 571},
-			{CurrencyPair: "USDC/USD", Price: "999800000", Decimals: 9, CurrencyPairId: 7, Nonce: 571},
-			{CurrencyPair: "SUI/USD", Price: "16278383515", Decimals: 10, CurrencyPairId: 8, Nonce: 567},
-			{CurrencyPair: "SOL/USD", Price: "13750125037", Decimals: 8, CurrencyPairId: 9, Nonce: 567},
-			{CurrencyPair: "TIA/USD", Price: "59214999", Decimals: 8, CurrencyPairId: 10, Nonce: 567},
-			{CurrencyPair: "BERA/USD", Price: "72521756", Decimals: 8, CurrencyPairId: 11, Nonce: 567},
-			{CurrencyPair: "ENA/USD", Price: "26347904", Decimals: 8, CurrencyPairId: 12, Nonce: 567},
-			{CurrencyPair: "APT/USD", Price: "1706011803", Decimals: 9, CurrencyPairId: 13, Nonce: 567},
-			{CurrencyPair: "ARB/USD", Price: "213564069", Decimals: 9, CurrencyPairId: 14, Nonce: 567},
-			{CurrencyPair: "ETH/USD", Price: "3243513053", Decimals: 6, CurrencyPairId: 15, Nonce: 567},
+			{CurrencyPair: "TIMESTAMP/NANOSECOND", Price: "1765792134345144000", Decimals: 8, CurrencyPairId: 0, Nonce: 58},
+			{CurrencyPair: "ATOM/USD", Price: "2147129425", Decimals: 9, CurrencyPairId: 1, Nonce: 56},
+			{CurrencyPair: "OSMO/USD", Price: "63231311", Decimals: 9, CurrencyPairId: 2, Nonce: 53},
+			{CurrencyPair: "BNB/USD", Price: "8903780756", Decimals: 7, CurrencyPairId: 3, Nonce: 55},
+			{CurrencyPair: "BTC/USD", Price: "8983796759", Decimals: 5, CurrencyPairId: 4, Nonce: 56},
+			{CurrencyPair: "NTRN/USD", Price: "2785557", Decimals: 8, CurrencyPairId: 5, Nonce: 53},
+			{CurrencyPair: "USDT/USD", Price: "1000200040", Decimals: 9, CurrencyPairId: 6, Nonce: 58},
+			{CurrencyPair: "USDC/USD", Price: "999800000", Decimals: 9, CurrencyPairId: 7, Nonce: 58},
+			{CurrencyPair: "SUI/USD", Price: "15696139227", Decimals: 10, CurrencyPairId: 8, Nonce: 56},
+			{CurrencyPair: "SOL/USD", Price: "13250650130", Decimals: 8, CurrencyPairId: 9, Nonce: 56},
+			{CurrencyPair: "TIA/USD", Price: "55051010", Decimals: 8, CurrencyPairId: 10, Nonce: 56},
+			{CurrencyPair: "BERA/USD", Price: "72214442", Decimals: 8, CurrencyPairId: 11, Nonce: 56},
+			{CurrencyPair: "ENA/USD", Price: "23744748", Decimals: 8, CurrencyPairId: 12, Nonce: 56},
+			{CurrencyPair: "APT/USD", Price: "1649965023", Decimals: 9, CurrencyPairId: 13, Nonce: 56},
+			{CurrencyPair: "ARB/USD", Price: "209041808", Decimals: 9, CurrencyPairId: 14, Nonce: 57},
+			{CurrencyPair: "ETH/USD", Price: "3144108821", Decimals: 6, CurrencyPairId: 15, Nonce: 56},
 		},
-		L1BlockHeight: 663,
+		L1BlockHeight: 76,
 		L1BlockTime:   testL1BlockTime,
 		Proof:         proofBytes,
-		ProofHeight:   clienttypes.NewHeight(1, 664),
+		ProofHeight:   clienttypes.NewHeight(1, 77),
 	}
 
 	err = input.OPChildKeeper.HandleOracleDataPacket(ctx, oracleData)
 	require.NoError(t, err, "batched oracle relay should succeed with all 16 prices matching L1 hash")
 
+	// Verify prices were updated correctly
 	btcPair, _ := connecttypes.CurrencyPairFromString("BTC/USD")
 	btcPrice, err := input.OracleKeeper.GetPriceForCurrencyPair(ctx, btcPair)
 	require.NoError(t, err)
-	require.Equal(t, "9222376713", btcPrice.Price.String())
-	require.Equal(t, time.Unix(0, 1765532733321115000).UTC(), btcPrice.BlockTimestamp)
+	require.Equal(t, "8983796759", btcPrice.Price.String())
+	require.Equal(t, time.Unix(0, testL1BlockTime).UTC(), btcPrice.BlockTimestamp)
 
 	ethPair, _ := connecttypes.CurrencyPairFromString("ETH/USD")
 	ethPrice, err := input.OracleKeeper.GetPriceForCurrencyPair(ctx, ethPair)
 	require.NoError(t, err)
-	require.Equal(t, "3243513053", ethPrice.Price.String())
-	require.Equal(t, time.Unix(0, 1765532733321115000).UTC(), ethPrice.BlockTimestamp)
+	require.Equal(t, "3144108821", ethPrice.Price.String())
+	require.Equal(t, time.Unix(0, testL1BlockTime).UTC(), ethPrice.BlockTimestamp)
 
 	atomPair, _ := connecttypes.CurrencyPairFromString("ATOM/USD")
 	atomPrice, err := input.OracleKeeper.GetPriceForCurrencyPair(ctx, atomPair)
 	require.NoError(t, err)
-	require.Equal(t, "2180500000", atomPrice.Price.String())
-	require.Equal(t, time.Unix(0, 1765532733321115000).UTC(), atomPrice.BlockTimestamp)
+	require.Equal(t, "2147129425", atomPrice.Price.String())
+	require.Equal(t, time.Unix(0, testL1BlockTime).UTC(), atomPrice.BlockTimestamp)
 
 	events := sdkCtx.EventManager().Events()
 	found := false
@@ -629,7 +637,7 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 					require.Equal(t, "1", attr.Value)
 					bridgeIdFound = true
 				case types.AttributeKeyL1BlockHeight:
-					require.Equal(t, "663", attr.Value)
+					require.Equal(t, "76", attr.Value)
 					l1HeightFound = true
 				case types.AttributeKeyNumCurrencyPair:
 					require.Equal(t, "16", attr.Value)

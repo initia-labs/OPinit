@@ -194,8 +194,8 @@ func (k Keeper) verifyOracleDataProof(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// construct the state path for the oracle price hash in ophost module
-	// The hash is stored at OraclePriceHashPrefix (0xa1) + bridge_id
-	stateKey := append([]byte{0xa1}, sdk.Uint64ToBigEndian(data.BridgeId)...)
+	// The hash is stored as a collections.Item at OraclePriceHashPrefix (0xa1)
+	stateKey := []byte{0xa1}
 
 	// construct the expected value
 	expectedOraclePriceHash := ophosttypes.OraclePriceHash{
@@ -264,9 +264,10 @@ func (k Keeper) verifyOraclePricesHash(oracleData types.OracleData) error {
 		}
 
 		prices[i] = ophosttypes.OraclePriceInfo{
-			CurrencyPairId: pd.CurrencyPairId,
-			Price:          priceInt,
-			Timestamp:      oracleData.L1BlockTime,
+			CurrencyPairId:     pd.CurrencyPairId,
+			CurrencyPairString: pd.CurrencyPair,
+			Price:              priceInt,
+			Timestamp:          oracleData.L1BlockTime,
 		}
 	}
 	computedHash := prices.ComputeOraclePricesHash()

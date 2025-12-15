@@ -63,9 +63,10 @@ func (k Keeper) computeOraclePricesHash(ctx sdk.Context) ([]byte, error) {
 		}
 
 		prices = append(prices, types.OraclePriceInfo{
-			CurrencyPairId: id,
-			Price:          price.Price,
-			Timestamp:      price.BlockTimestamp.UnixNano(),
+			CurrencyPairId:     id,
+			CurrencyPairString: cp.String(),
+			Price:              price.Price,
+			Timestamp:          price.BlockTimestamp.UnixNano(),
 		})
 	}
 
