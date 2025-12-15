@@ -94,7 +94,7 @@ service Query {
   // OraclePriceHash queries the oracle price hash for a bridge.
   rpc OraclePriceHash(QueryOraclePriceHashRequest) returns (QueryOraclePriceHashResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/opinit/ophost/v1/bridges/{bridge_id}/oracle_price_hash";
+    option (google.api.http).get = "/opinit/ophost/v1/oracle_price_hash";
   }
 }
 
@@ -294,9 +294,7 @@ message QueryMigrationInfoResponse {
 }
 
 // QueryOraclePriceHashRequest is request type for Query/OraclePriceHash RPC method.
-message QueryOraclePriceHashRequest {
-  uint64 bridge_id = 1;
-}
+message QueryOraclePriceHashRequest {}
 
 // QueryOraclePriceHashResponse is response type for Query/OraclePriceHash RPC method.
 message QueryOraclePriceHashResponse {

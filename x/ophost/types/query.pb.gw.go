@@ -833,24 +833,6 @@ func request_Query_OraclePriceHash_0(ctx context.Context, marshaler runtime.Mars
 	var protoReq QueryOraclePriceHashRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["bridge_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "bridge_id")
-	}
-
-	protoReq.BridgeId, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "bridge_id", err)
-	}
-
 	msg, err := client.OraclePriceHash(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -859,24 +841,6 @@ func request_Query_OraclePriceHash_0(ctx context.Context, marshaler runtime.Mars
 func local_request_Query_OraclePriceHash_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryOraclePriceHashRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["bridge_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "bridge_id")
-	}
-
-	protoReq.BridgeId, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "bridge_id", err)
-	}
 
 	msg, err := server.OraclePriceHash(ctx, &protoReq)
 	return msg, metadata, err
@@ -1562,7 +1526,7 @@ var (
 
 	pattern_Query_MigrationInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 2, 6}, []string{"opinit", "ophost", "v1", "bridges", "bridge_id", "migration_info", "by_l1_denom"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_OraclePriceHash_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"opinit", "ophost", "v1", "bridges", "bridge_id", "oracle_price_hash"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_OraclePriceHash_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"opinit", "ophost", "v1", "oracle_price_hash"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

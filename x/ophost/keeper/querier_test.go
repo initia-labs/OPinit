@@ -320,7 +320,7 @@ func Test_QueryOraclePriceHash(t *testing.T) {
 	q := keeper.NewQuerier(input.OPHostKeeper)
 
 	// non-existent oracle price hash should return error
-	_, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{BridgeId: 1})
+	_, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{})
 	require.Error(t, err)
 
 	oraclePriceHash := types.OraclePriceHash{
@@ -328,9 +328,9 @@ func Test_QueryOraclePriceHash(t *testing.T) {
 		L1BlockHeight: 100,
 		L1BlockTime:   1699999999000000000,
 	}
-	require.NoError(t, input.OPHostKeeper.OraclePriceHashes.Set(ctx, 1, oraclePriceHash))
+	require.NoError(t, input.OPHostKeeper.OraclePriceHash.Set(ctx, oraclePriceHash))
 
-	res, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{BridgeId: 1})
+	res, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{})
 	require.NoError(t, err)
 	require.Equal(t, oraclePriceHash, res.OraclePriceHash)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
@@ -19,40 +19,21 @@ func (k Keeper) UpdateOraclePriceHashes(ctx context.Context) error {
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// iterate through all bridges
-	err := k.IterateBridgeConfig(ctx, func(bridgeId uint64, config types.BridgeConfig) (bool, error) {
-		// skip here if oracle is not enabled for the bridge
-		if !config.OracleEnabled {
-			return false, nil
-		}
+	// compute the hash of all oracle prices
+	hash, err := k.computeOraclePricesHash(sdkCtx)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to compute oracle prices hash")
+	}
 
-		// compute the hash of all oracle prices
-		hash, err := k.computeOraclePricesHash(sdkCtx)
-		if err != nil {
-			k.Logger(ctx).Error("failed to compute oracle prices hash",
-				"bridge_id", bridgeId,
-				"error", err.Error(),
-			)
-			// continue to the next bridge instead of failing
-			return false, nil
-		}
+	oraclePriceHash := types.OraclePriceHash{
+		Hash:          hash,
+		L1BlockHeight: uint64(sdkCtx.BlockHeight()), //nolint:gosec
+		L1BlockTime:   sdkCtx.BlockTime().UnixNano(),
+	}
 
-		oraclePriceHash := types.OraclePriceHash{
-			Hash:          hash,
-			L1BlockHeight: uint64(sdkCtx.BlockHeight()), //nolint:gosec
-			L1BlockTime:   sdkCtx.BlockTime().UnixNano(),
-		}
-
-		if err := k.OraclePriceHashes.Set(ctx, bridgeId, oraclePriceHash); err != nil {
-			k.Logger(ctx).Error("failed to store oracle price hash",
-				"bridge_id", bridgeId,
-				"error", err.Error(),
-			)
-			return false, nil
-		}
-
-		return false, nil
-	})
+	if err := k.OraclePriceHash.Set(ctx, oraclePriceHash); err != nil {
+		return errorsmod.Wrap(err, "failed to store oracle price hash")
+	}
 
 	return err
 }
@@ -96,18 +77,6 @@ func (k Keeper) computeOraclePricesHash(ctx sdk.Context) ([]byte, error) {
 }
 
 // GetOraclePriceHash returns the oracle price hash for a bridge.
-func (k Keeper) GetOraclePriceHash(ctx context.Context, bridgeId uint64) (types.OraclePriceHash, error) {
-	return k.OraclePriceHashes.Get(ctx, bridgeId)
-}
-
-// HasOraclePriceHash checks if an oracle price hash exists for a bridge.
-func (k Keeper) HasOraclePriceHash(ctx context.Context, bridgeId uint64) (bool, error) {
-	hash, err := k.OraclePriceHashes.Get(ctx, bridgeId)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			return false, nil
-		}
-		return false, err
-	}
-	return len(hash.Hash) > 0, nil
+func (k Keeper) GetOraclePriceHash(ctx context.Context) (types.OraclePriceHash, error) {
+	return k.OraclePriceHash.Get(ctx)
 }

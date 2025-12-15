@@ -199,7 +199,7 @@ func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInf
 
 // OraclePriceHash implements the Query/OraclePriceHash RPC method
 func (q Querier) OraclePriceHash(ctx context.Context, req *types.QueryOraclePriceHashRequest) (*types.QueryOraclePriceHashResponse, error) {
-	oraclePriceHash, err := q.GetOraclePriceHash(ctx, req.BridgeId)
+	oraclePriceHash, err := q.GetOraclePriceHash(ctx)
 	if err != nil && errors.Is(err, collections.ErrNotFound) {
 		return nil, status.Error(codes.NotFound, "oracle price hash not found")
 	} else if err != nil {
