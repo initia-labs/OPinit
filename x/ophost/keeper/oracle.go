@@ -69,10 +69,6 @@ func (k Keeper) computeOraclePricesHash(ctx sdk.Context) ([]byte, error) {
 		})
 	}
 
-	if len(prices) == 0 {
-		return nil, errors.New("no valid currency pairs with prices found")
-	}
-
 	return prices.ComputeOraclePricesHash(), nil
 }
 
