@@ -496,9 +496,6 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 	err := input.OPChildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 	require.NoError(t, err)
 
-	// Setup L1 IBC client with real data from height 77
-	// Query height 76 (H-1), verify against consensus state at height 77 (H)
-	// This uses actual data from running L1 node with new hash algorithm including currency pair strings
 	appHash, _ := hex.DecodeString("5EA27D296380CCBD058286BAB9A7309F4821FDFD5C0EA79B43452F935943A0F7")
 	nextValidatorHash, _ := hex.DecodeString("AB1BD1DFFAFC92506E5E8A29C3DBC133455D5F6A04F037BE1D865F2E5233ADE8")
 
@@ -548,12 +545,8 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 
 	input.ClientKeeper.SetClientStore("test-client-id-1", clientStore)
 
-	// Real proof from L1 at height 76, verifies against consensus state at height 77
-	// Hash now includes currency pair strings to prevent price misdirection attacks
 	proofBytes, _ := hex.DecodeString("0aae010a0a69637332333a6961766c1201a11a9c010a99010a01a1122e0a202426ac051cc798ba02498fea05d5339f9faec21636a86451fd385fefd0cbdcf0104c18e0f2ce80f6d2d6c0181a0c0801180120012a0400029801222a08011226020498012075596157e985487234ce2decc134457070eda3b58b91ae7650cae591d28c5e3420222a080112260406980120a8b6e260143cdc29339aaee80e08969a7aabb37b277a610a05b0929f4b498f7b200a96020a0c69637332333a73696d706c6512066f70686f73741afd010afa010a066f70686f737412206a3019435bcd8ff099cf7fdce28999492238c34861490ed43b291446e1a90e5d1a090801180120012a01002225080112210141c04a42e47994d4dbcb3060eedd792d7b623f1bf61f4f7498bd5e3e1119666a2225080112210164f8a73f872520985d0223e32e62c7b0abe1a4a5b28291971287e31d8d2018f222250801122101ca8b13c9a346351958db29e912ac6c6f077ca5daad31e42b24e0c1f2188279c8222708011201011a2051d6a3064852fb1c963e30cf47a449b53579124da7dcfe72fcd745c73467891e2225080112210158954f6c5b67cd1cd66210fe76713db5a80e8f96f36c357782c87bea6a22d86b")
 
-	// All 16 oracle prices from L1 at height 76
-	// Hash now includes currency pair strings to prevent price misdirection attacks
 	testL1BlockTime := int64(1765792135104412000)
 	timestampPrice, _ := math.NewIntFromString("1765792134345144000")
 	testPrices := []ophosttypes.OraclePriceInfo{

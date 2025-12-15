@@ -37,7 +37,7 @@ func (op OraclePriceInfos) ComputeOraclePricesHash() []byte {
 		binary.BigEndian.PutUint64(idBytes, p.CurrencyPairId)
 		hasher.Write(idBytes)
 
-		// write currency pair string (authenticated to prevent price misdirection)
+		// write currency pair string
 		hasher.Write([]byte(p.CurrencyPairString))
 
 		// write price as string
