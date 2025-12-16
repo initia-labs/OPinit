@@ -171,7 +171,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(channeltypes.AttributeKeyAck, fmt.Sprintf("%v", acknowledgement)),
+			sdk.NewAttribute(channeltypes.AttributeKeyAckHex, fmt.Sprintf("%v", acknowledgement)),
 		),
 	)
 

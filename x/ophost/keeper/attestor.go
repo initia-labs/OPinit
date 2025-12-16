@@ -28,7 +28,7 @@ func (k Keeper) SendAttestorSetUpdatePacket(
 	packetData := types.NewAttestorSetUpdatePacketData(
 		bridgeId,
 		config.AttestorSet,
-		uint64(sdkCtx.BlockHeight()),
+		uint64(sdkCtx.BlockHeight()), //nolint:gosec
 	)
 
 	channelCap, ok := k.scopedKeeper.GetCapability(sdkCtx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
@@ -36,7 +36,7 @@ func (k Keeper) SendAttestorSetUpdatePacket(
 		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	timeoutTimestamp := uint64(sdkCtx.BlockTime().Add(types.DefaultPacketTimeoutTimestamp).UnixNano())
+	timeoutTimestamp := uint64(sdkCtx.BlockTime().Add(types.DefaultPacketTimeoutTimestamp).UnixNano()) //nolint:gosec
 
 	_, err = k.channelKeeper.SendPacket(
 		sdkCtx,

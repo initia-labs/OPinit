@@ -699,7 +699,7 @@ func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegis
 		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
 	}
 
-	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
+	found := ms.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
 	if !found {
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
 	}
@@ -751,7 +751,7 @@ func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) 
 		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
 	}
 
-	found := ms.Keeper.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
+	found := ms.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
 	if !found {
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
 	}
@@ -812,7 +812,7 @@ func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAtte
 		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
 	}
 
-	foundChannel := ms.Keeper.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
+	foundChannel := ms.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
 	if !foundChannel {
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
 	}

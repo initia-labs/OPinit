@@ -445,7 +445,8 @@ func GenerateTestTx(
 	require.NoError(t, err)
 
 	// set msgs
-	txBuilder.SetMsgs(msgs...)
+	err = txBuilder.SetMsgs(msgs...)
+	require.NoError(t, err)
 
 	// First round: we gather all the signer infos. We use the "set empty
 	// signature" hack to do that.
