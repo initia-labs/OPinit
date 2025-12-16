@@ -10,6 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -38,6 +42,12 @@ $ launchtools launch --artifacts-dir ./ --with-config ./config.json
 		RunE: func(cmd *cobra.Command, args []string) error {
 			sdk.SetAddrCacheEnabled(false)
 			defer sdk.SetAddrCacheEnabled(true)
+
+			ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			defer cancel()
+
+			// decorate the command's context with the signal context
+			cmd.SetContext(ctx)
 
 			// use coin type 118 for opinit-bots and relayer
 			cfg := sdk.GetConfig()

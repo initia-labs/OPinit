@@ -28,11 +28,11 @@ func RunAppWithPostAction(postAction launchtools.PostAction) func(cfg *launchtoo
 			// temporarily allow creation of empty blocks
 			// this should help creation of ibc channels.
 			// NOTE: This part is ephemeral only in the context of the launcher.
-			ctx.ServerContext().Config.Consensus.CreateEmptyBlocks = true
-			ctx.ServerContext().Config.Consensus.CreateEmptyBlocksInterval = CreateEmptyBlocksInterval
+			ctx.ServerContext().Config.Sequencing.BlockInterval = CreateEmptyBlocksInterval
+			ctx.ServerContext().Config.Sequencing.CreateEmptyBlocks = true
 
 			// create a channel to synchronize on app creation
-			var syncDone = make(chan interface{})
+			var syncDone = make(chan any)
 
 			// create cobra command context
 			startCmd := server.StartCmdWithOptions(
@@ -84,7 +84,11 @@ func RunAppWithPostAction(postAction launchtools.PostAction) func(cfg *launchtoo
 			// Run RunE command - this part fires up the actual chain
 			// Note that the command is run in a separate goroutine, as it is blocking.
 			// App should be later cleaned up in another launcher step
+			done := make(chan struct{})
+			ctx.SetAppDone(done)
+
 			go func() {
+				defer close(done)
 				if err := startCmd.RunE(startCmd, nil); err != nil {
 					panic(errors.Wrapf(err, "failed to run command"))
 				}

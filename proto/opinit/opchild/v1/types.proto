@@ -206,3 +206,12 @@ message OracleData {
     (gogoproto.nullable) = false
   ];
 }
+
+// ShutdownInfo defines the information of the shutdown.
+message ShutdownInfo {
+  // last_addr is the last address that was processed.
+  bytes last_addr = 1;
+
+  // last_block indicates if this block is the last block of the chain.
+  bool last_block = 2;
+}

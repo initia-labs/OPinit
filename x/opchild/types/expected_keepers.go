@@ -39,7 +39,7 @@ type BankKeeper interface {
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	LockedCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins
-	SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins
+	SpendableCoin(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
 
 	GetSupply(ctx context.Context, denom string) sdk.Coin
 
@@ -61,6 +61,14 @@ type BankKeeper interface {
 type OracleKeeper interface {
 	currencypair.OracleKeeper
 	SetPriceForCurrencyPair(ctx context.Context, cp connecttypes.CurrencyPair, qp oracletypes.QuotePrice) error
+}
+
+type TransferKeeper interface {
+	DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
+}
+
+type ChannelKeeper interface {
+	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
 }
 
 // ValidatorSet expected properties for the set of all validators (noalias)

@@ -33,6 +33,8 @@ type Keeper struct {
 	ibcClientKeeper types.ClientKeeper
 	portKeeper      types.PortKeeper
 	scopedKeeper    types.ScopedKeeper
+	transferKeeper  types.TransferKeeper
+	channelKeeper   types.ChannelKeeper
 
 	// sig verify and sequence increment decorators
 	decorators sdk.AnteHandler
@@ -61,8 +63,7 @@ type Keeper struct {
 	DenomPairs           collections.Map[string, string]
 	MigrationInfos       collections.Map[string, types.MigrationInfo] // l2 denom -> migration info
 	IBCToL2DenomMap      collections.Map[string, string]              // ibc denom -> l2 denom
-	ShutdownInfo         collections.Item[[]byte]
-	PortID               collections.Item[string]
+	ShutdownInfo         collections.Item[types.ShutdownInfo]
 
 	ExecutorChangePlans map[uint64]types.ExecutorChangePlan
 
@@ -82,7 +83,8 @@ func NewKeeper(
 	/*
 		Should provide the following decorators
 		sdk.ChainAnteDecorators(
-			ante.NewValidateBasicDecorator(),
+			authante.NewValidateBasicDecorator(),
+			authante.NewTxTimeoutHeightDecorator(),
 			authante.NewSetPubKeyDecorator(accountKeeper),
 			authante.NewValidateSigCountDecorator(accountKeeper),
 			authante.NewSigGasConsumeDecorator(accountKeeper, authante.DefaultSigVerificationGasConsumer),
@@ -141,8 +143,7 @@ func NewKeeper(
 		HistoricalInfos:       collections.NewMap(sb, types.HistoricalInfoPrefix, "historical_infos", collections.Int64Key, codec.CollValue[cosmostypes.HistoricalInfo](cdc)),
 		MigrationInfos:        collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.StringKey, codec.CollValue[types.MigrationInfo](cdc)),
 		IBCToL2DenomMap:       collections.NewMap(sb, types.IBCToL2DenomMapPrefix, "ibc_to_l2_denom_map", collections.StringKey, collections.StringValue),
-		ShutdownInfo:          collections.NewItem(sb, types.ShutdownInfoPrefix, "shutdown_info", collections.BytesValue),
-		PortID:                collections.NewItem(sb, types.PortKey, "port_id", collections.StringValue),
+		ShutdownInfo:          collections.NewItem(sb, types.ShutdownInfoPrefix, "shutdown_info", codec.CollValue[types.ShutdownInfo](cdc)),
 		ExecutorChangePlans:   make(map[uint64]types.ExecutorChangePlan),
 		HostValidatorStore:    hostValidatorStore,
 	}
@@ -188,6 +189,18 @@ func (k Keeper) ensureIBCKeepersSet() error {
 	}
 
 	return nil
+}
+
+// WithTransferKeeper sets the transfer keeper.
+func (k *Keeper) WithTransferKeeper(tk types.TransferKeeper) *Keeper {
+	k.transferKeeper = tk
+	return k
+}
+
+// WithChannelKeeper sets the channel keeper.
+func (k *Keeper) WithChannelKeeper(ck types.ChannelKeeper) *Keeper {
+	k.channelKeeper = ck
+	return k
 }
 
 // GetAuthority returns the x/move module's authority.

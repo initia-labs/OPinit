@@ -44,8 +44,6 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
-
-  string port_id = 10 [(gogoproto.moretags) = "yaml:\"port_id\""];
 }
 
 // LastValidatorPower required for validator set update logic.

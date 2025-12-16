@@ -105,6 +105,10 @@ type Launcher interface {
 	SetRelayer(relayer Relayer)
 	GetRelayer() Relayer
 
+	// SetAppDone sets the done channel for the app.
+	SetAppDone(done <-chan struct{})
+	WaitApp()
+
 	// WriteOutput writes data to internal artifacts buffer.
 	WriteOutput(name string, data string) error
 
@@ -139,6 +143,8 @@ type LauncherContext struct {
 
 	bridgeId *uint64
 	relayer  Relayer
+
+	appDone <-chan struct{}
 }
 
 func NewLauncher(
@@ -300,6 +306,16 @@ func (l *LauncherContext) SetErrorGroup(g *errgroup.Group) {
 
 func (l *LauncherContext) GetErrorGroup() *errgroup.Group {
 	return l.errorgroup
+}
+
+func (l *LauncherContext) SetAppDone(done <-chan struct{}) {
+	l.appDone = done
+}
+
+func (l *LauncherContext) WaitApp() {
+	if l.appDone != nil {
+		<-l.appDone
+	}
 }
 
 func (l *LauncherContext) Close() error {

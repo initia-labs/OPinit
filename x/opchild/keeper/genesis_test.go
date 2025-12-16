@@ -55,10 +55,6 @@ func Test_GenesisImportExport(t *testing.T) {
 	err = input.OPChildKeeper.SetIBCToL2DenomMap(ctx, "ibc/bar", l2DenomBar)
 	require.NoError(t, err)
 
-	// set port id
-	err = input.OPChildKeeper.PortID.Set(ctx, types.PortID)
-	require.NoError(t, err)
-
 	genState := input.OPChildKeeper.ExportGenesis(ctx)
 	require.Nil(t, genState.BridgeInfo)
 

@@ -5,21 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
+	"syscall"
 
 	"github.com/pkg/errors"
 
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	relayercmd "github.com/cosmos/relayer/v2/cmd"
-	relayertypes "github.com/cosmos/relayer/v2/relayer"
-	relayerconfig "github.com/cosmos/relayer/v2/relayer/chains/cosmos"
 
 	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
+	"github.com/initia-labs/OPinit/contrib/launchtools/types"
+	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 )
 
 // EstablishIBCChannelsWithNFTTransfer creates a new IBC channel for fungible transfer, and one with NFT transfer
@@ -69,7 +70,10 @@ func establishIBCChannels(
 			return errors.New("app is not initialized")
 		}
 
-		relayer := NewRelayer(ctx.Context(), relayerPath, ctx.Logger())
+		relayer, err := NewRelayer(ctx.Context(), relayerPath, ctx.Logger())
+		if err != nil {
+			return errors.Wrap(err, "failed to initialize relayer")
+		}
 		ctx.SetRelayer(relayer)
 		return runLifecycle(relayer)
 	}
@@ -86,15 +90,11 @@ func initializeConfig(r *Relayer) error {
 func initializeChains(config *launchtools.Config, basePath string) func(*Relayer) error {
 	// ChainConfig is a struct that represents the configuration of a chain
 	// cosmos/relayer specific
-	type ChainConfig struct {
-		Type  string                             `json:"type"`
-		Value relayerconfig.CosmosProviderConfig `json:"value"`
-	}
 
-	var chainConfigs = [2]ChainConfig{
+	var chainConfigs = [2]types.ChainConfig{
 		{
 			Type: "cosmos",
-			Value: relayerconfig.CosmosProviderConfig{
+			Value: types.CosmosProviderConfig{
 				Key:            RelayerKeyName,
 				ChainID:        config.L1Config.ChainID,
 				RPCAddr:        config.L1Config.RPC_URL,
@@ -103,13 +103,14 @@ func initializeChains(config *launchtools.Config, basePath string) func(*Relayer
 				GasAdjustment:  1.5,
 				GasPrices:      config.L1Config.GasPrices,
 				Debug:          true,
-				Timeout:        "160s",
+				Timeout:        "200s",
 				OutputFormat:   "json",
+				Broadcast:      "batch",
 			},
 		},
 		{
 			Type: "cosmos",
-			Value: relayerconfig.CosmosProviderConfig{
+			Value: types.CosmosProviderConfig{
 				Key:            RelayerKeyName,
 				ChainID:        config.L2Config.ChainID,
 				RPCAddr:        "http://localhost:26657",
@@ -118,24 +119,21 @@ func initializeChains(config *launchtools.Config, basePath string) func(*Relayer
 				GasAdjustment:  1.5,
 				GasPrices:      "", // gas prices required for l2 txs
 				Debug:          true,
-				Timeout:        "160s",
+				Timeout:        "200s",
 				OutputFormat:   "json",
+				Broadcast:      "batch",
 			},
 		},
 	}
 
 	// write chain configs to files
 	for i, chainConfig := range chainConfigs {
-		bz, err := json.MarshalIndent(chainConfig, "", " ")
-		if err != nil {
-			panic(errors.New("failed to create chain config"))
-		}
 
 		pathName := fmt.Sprintf("chain%d", i)
 		fileName := fmt.Sprintf("%s/%s.json", basePath, pathName)
 
-		if err := os.WriteFile(fileName, bz, 0600); err != nil {
-			panic(errors.New("failed to write chain config"))
+		if err := utils.WriteJSONConfig(fileName, chainConfig); err != nil {
+			panic(errors.Wrap(err, "failed to write chain config"))
 		}
 	}
 
@@ -165,25 +163,22 @@ func initializeChains(config *launchtools.Config, basePath string) func(*Relayer
 // initializePaths creates a path configuration file and initializes paths for the relayer
 // Paths are nothing more than a pair of chains that are connected by a channel
 func initializePaths(config *launchtools.Config, basePath string) func(*Relayer) error {
-	pathConfig := relayertypes.Path{
-		Src: &relayertypes.PathEnd{
+
+	pathConfig := types.Path{
+		Src: &types.PathEnd{
 			ChainID: config.L2Config.ChainID,
 		},
-		Dst: &relayertypes.PathEnd{
+		Dst: &types.PathEnd{
 			ChainID: config.L1Config.ChainID,
 		},
-		Filter: relayertypes.ChannelFilter{
+		Filter: types.ChannelFilter{
 			Rule:        "",
 			ChannelList: nil,
 		},
 	}
-	pathConfigJSON, err := json.Marshal(pathConfig)
-	if err != nil {
-		panic(errors.New("failed to create path config"))
-	}
 
-	if err := os.WriteFile(fmt.Sprintf("%s/paths.json", basePath), pathConfigJSON, 0600); err != nil {
-		panic(errors.New("failed to write path config"))
+	if err := utils.WriteJSONConfig(fmt.Sprintf("%s/paths.json", basePath), pathConfig); err != nil {
+		panic(errors.Wrap(err, "failed to write path config"))
 	}
 
 	return func(r *Relayer) error {
@@ -306,26 +301,41 @@ type Relayer struct {
 	home   string
 	logger log.Logger
 	ctx    context.Context
+	bin    string
 }
 
 func NewRelayer(
 	ctx context.Context,
 	home string,
 	logger log.Logger,
-) *Relayer {
+) (*Relayer, error) {
+	bin, err := utils.EnsureRelayerBinary()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Relayer{
 		home:   home,
 		logger: logger,
 		ctx:    ctx,
-	}
+		bin:    bin,
+	}, nil
 }
 
 func (r *Relayer) run(args []string) error {
-	cmd := relayercmd.NewRootCmd(nil)
-	cmd.SilenceUsage = true
+	cmdArgs := append(args, "--home", r.home)
+	cmd := exec.CommandContext(r.ctx, r.bin, cmdArgs...) //nolint:gosec // G204: r.bin is a trusted binary path derived from internal logic
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		if cmd.Process != nil {
+			return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		}
 
-	cmd.SetArgs(append(args, []string{"--home", r.home}...))
-	return cmd.ExecuteContext(context.Background())
+		return nil
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func (r *Relayer) UpdateClients() error {

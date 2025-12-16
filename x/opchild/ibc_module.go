@@ -39,18 +39,9 @@ func ValidateOPChildChannelParams(
 	ctx sdk.Context,
 	keeper keeper.Keeper,
 	order channeltypes.Order,
-	portID string,
 ) error {
 	if order != channeltypes.UNORDERED {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s ", channeltypes.UNORDERED, order)
-	}
-
-	boundPort, err := keeper.PortID.Get(ctx)
-	if err != nil {
-		return errorsmod.Wrapf(err, "cannot get port ID %s", portID)
-	}
-	if boundPort != portID {
-		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
 
 	return nil
@@ -67,7 +58,7 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if err := ValidateOPChildChannelParams(ctx, im.keeper, order, portID); err != nil {
+	if err := ValidateOPChildChannelParams(ctx, im.keeper, order); err != nil {
 		return "", err
 	}
 
@@ -97,7 +88,7 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if err := ValidateOPChildChannelParams(ctx, im.keeper, order, portID); err != nil {
+	if err := ValidateOPChildChannelParams(ctx, im.keeper, order); err != nil {
 		return "", err
 	}
 

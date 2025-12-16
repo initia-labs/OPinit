@@ -17,7 +17,7 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	signingmod "cosmossdk.io/x/tx/signing"
-
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -47,16 +47,21 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-
 	"github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
+
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 )
 
 var (
@@ -65,6 +70,8 @@ var (
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		opchild.AppModuleBasic{},
+		ibctransfer.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 	)
 
 	// TestDenoms are test token denominations used across tests
@@ -204,6 +211,8 @@ type TestKeepers struct {
 	OPChildKeeper        opchildkeeper.Keeper
 	OracleKeeper         *oraclekeeper.Keeper
 	ClientKeeper         *MockIBCClientKeeper
+	IBCKeeper            *ibckeeper.Keeper
+	TransferKeeper       *ibctransferkeeper.Keeper
 	EncodingConfig       EncodingConfig
 	Faucet               *TestFaucet
 	TokenCreationFactory *TestTokenCreationFactory
@@ -243,12 +252,15 @@ func createTestInput(
 ) (context.Context, TestKeepers) {
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, opchildtypes.StoreKey, oracletypes.StoreKey,
+		ibctransfertypes.StoreKey, exported.StoreKey, capabilitytypes.StoreKey,
 	)
 	ms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	for _, v := range keys {
 		ms.MountStoreWithDB(v, storetypes.StoreTypeIAVL, db)
 	}
-	memKeys := storetypes.NewMemoryStoreKeys()
+	memKeys := storetypes.NewMemoryStoreKeys(
+		capabilitytypes.MemStoreKey,
+	)
 	for _, v := range memKeys {
 		ms.MountStoreWithDB(v, storetypes.StoreTypeMemory, db)
 	}
@@ -271,6 +283,7 @@ func createTestInput(
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		opchildtypes.ModuleName:        {authtypes.Burner, authtypes.Minter},
+		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 
 		// for testing
 		authtypes.Minter: {authtypes.Minter, authtypes.Burner},
@@ -304,6 +317,7 @@ func createTestInput(
 	originMessageRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 	mockRouter := &MockRouter{
 		originMessageRouter: originMessageRouter,
+		bankKeeper:          bankKeeper,
 	}
 
 	oracleKeeper := oraclekeeper.NewKeeper(
@@ -312,6 +326,37 @@ func createTestInput(
 		nil,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName),
 	)
+
+	capabilityKeeper := capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
+
+	// grant capabilities for the ibc and ibc-transfer modules
+	scopedIBCKeeper := capabilityKeeper.ScopeToModule(exported.ModuleName)
+	scopedTransferKeeper := capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+
+	ibcKeeper := ibckeeper.NewKeeper(
+		appCodec,
+		keys[exported.StoreKey],
+		nil,
+		&MockStakingKeeper{unbondingTime: time.Hour * 24 * 7},
+		&MockUpgradeKeeper{plan: upgradetypes.Plan{Name: "upgrade"}},
+		scopedIBCKeeper,
+		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
+	)
+
+	transferKeeper := ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		nil,
+		ibcKeeper.ChannelKeeper,
+		ibcKeeper.ChannelKeeper,
+		ibcKeeper.PortKeeper,
+		&accountKeeper,
+		&bankKeeper,
+		scopedTransferKeeper,
+		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
+	)
+
+	transferKeeper.SetParams(sdk.UnwrapSDKContext(ctx), ibctransfertypes.DefaultParams())
 
 	// Use first address from shared test addresses for admin/executor
 	firstAddr := Addrs[0]
@@ -339,7 +384,9 @@ func createTestInput(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 		authcodec.NewBech32Codec("init"),
 		ctx.Logger(),
-	).WithTokenCreationFn(tokenCreationFactory.TokenCreationFn)
+	).WithTokenCreationFn(tokenCreationFactory.TokenCreationFn).
+		WithTransferKeeper(transferKeeper).
+		WithChannelKeeper(ibcKeeper.ChannelKeeper)
 
 	opchildParams := opchildtypes.DefaultParams()
 	opchildParams.Admin = firstAddr.String()
@@ -349,6 +396,7 @@ func createTestInput(
 	// register handlers to msg router
 	banktypes.RegisterMsgServer(originMessageRouter, bankkeeper.NewMsgServerImpl(bankKeeper))
 	opchildtypes.RegisterMsgServer(originMessageRouter, opchildkeeper.NewMsgServerImpl(opchildKeeper))
+	ibctransfertypes.RegisterMsgServer(originMessageRouter, transferKeeper)
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 
@@ -375,6 +423,8 @@ func createTestInput(
 		OPChildKeeper:        *opchildKeeper,
 		ClientKeeper:         ibcClientKeeper,
 		OracleKeeper:         &oracleKeeper,
+		IBCKeeper:            ibcKeeper,
+		TransferKeeper:       &transferKeeper,
 		EncodingConfig:       encodingConfig,
 		Faucet:               faucet,
 		TokenCreationFactory: tokenCreationFactory,
@@ -449,8 +499,9 @@ func (t *TestTokenCreationFactory) TokenCreationFn(ctx context.Context, denom st
 
 type MockRouter struct {
 	originMessageRouter baseapp.MessageRouter
-	handledMsgs         []*transfertypes.MsgTransfer
+	handledMsgs         []*ibctransfertypes.MsgTransfer
 	shouldFail          bool
+	bankKeeper          bankkeeper.Keeper
 }
 
 func (router *MockRouter) Handler(msg sdk.Msg) baseapp.MsgServiceHandler {
@@ -459,13 +510,33 @@ func (router *MockRouter) Handler(msg sdk.Msg) baseapp.MsgServiceHandler {
 
 func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHandler {
 	switch typeURL {
-	case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		return func(ctx sdk.Context, _msg sdk.Msg) (*sdk.Result, error) {
 			if router.shouldFail {
 				return nil, sdkerrors.ErrInvalidRequest
 			}
 
-			msg := _msg.(*transfertypes.MsgTransfer)
+			msg := _msg.(*ibctransfertypes.MsgTransfer)
+
+			sender, err := sdk.AccAddressFromBech32(msg.Sender)
+			if err != nil {
+				return nil, err
+			}
+
+			if ibctransfertypes.SenderChainIsSource(msg.SourcePort, msg.SourceChannel, msg.Token.Denom) {
+				escrowAddress := ibctransfertypes.GetEscrowAddress(msg.SourcePort, msg.SourceChannel)
+				if err := router.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(msg.Token)); err != nil {
+					return nil, err
+				}
+			} else {
+				coins := sdk.NewCoins(msg.Token)
+				if err := router.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, ibctransfertypes.ModuleName, coins); err != nil {
+					return nil, err
+				}
+				if err := router.bankKeeper.BurnCoins(ctx, ibctransfertypes.ModuleName, coins); err != nil {
+					return nil, err
+				}
+			}
 
 			// Store the handled message for verification
 			router.handledMsgs = append(router.handledMsgs, msg)
@@ -489,7 +560,7 @@ func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHan
 	return router.originMessageRouter.HandlerByTypeURL(typeURL)
 }
 
-func (router *MockRouter) GetHandledMsgs() []*transfertypes.MsgTransfer {
+func (router *MockRouter) GetHandledMsgs() []*ibctransfertypes.MsgTransfer {
 	return router.handledMsgs
 }
 
@@ -573,4 +644,57 @@ func CreateAttestor(t *testing.T, operatorAddr string, pubKey cryptotypes.PubKey
 		ConsensusPubkey: pkAny,
 		Moniker:         moniker,
 	}
+}
+
+type MockStakingKeeper struct {
+	unbondingTime time.Duration
+}
+
+// GetHistoricalInfo implements types.StakingKeeper.
+func (m *MockStakingKeeper) GetHistoricalInfo(ctx context.Context, height int64) (stakingtypes.HistoricalInfo, error) {
+	return stakingtypes.HistoricalInfo{}, nil
+}
+
+// UnbondingTime implements types.StakingKeeper.
+func (m *MockStakingKeeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
+	return m.unbondingTime, nil
+}
+
+type MockUpgradeKeeper struct {
+	plan upgradetypes.Plan
+}
+
+// ClearIBCState implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) ClearIBCState(ctx context.Context, lastHeight int64) error {
+	return nil
+}
+
+// GetUpgradePlan implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) GetUpgradePlan(ctx context.Context) (plan upgradetypes.Plan, err error) {
+	return upgradetypes.Plan{}, nil
+}
+
+// GetUpgradedClient implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) GetUpgradedClient(ctx context.Context, height int64) ([]byte, error) {
+	return nil, nil
+}
+
+// GetUpgradedConsensusState implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) GetUpgradedConsensusState(ctx context.Context, lastHeight int64) ([]byte, error) {
+	return nil, nil
+}
+
+// ScheduleUpgrade implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) ScheduleUpgrade(ctx context.Context, plan upgradetypes.Plan) error {
+	return nil
+}
+
+// SetUpgradedClient implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) SetUpgradedClient(ctx context.Context, planHeight int64, bz []byte) error {
+	return nil
+}
+
+// SetUpgradedConsensusState implements types.UpgradeKeeper.
+func (m *MockUpgradeKeeper) SetUpgradedConsensusState(ctx context.Context, planHeight int64, bz []byte) error {
+	return nil
 }

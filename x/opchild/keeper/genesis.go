@@ -28,14 +28,10 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 	sdkCtx = sdkCtx.WithBlockHeight(1 - sdk.ValidatorUpdateDelay)
 	ctx = sdkCtx
 
-	if err := k.PortID.Set(ctx, data.PortId); err != nil {
-		panic(err)
-	}
-
-	if bound, err := k.IsBound(ctx, data.PortId); err != nil {
+	if bound, err := k.IsBound(ctx, types.PortID); err != nil {
 		panic(err)
 	} else if !bound {
-		err := k.BindPort(ctx, data.PortId)
+		err := k.BindPort(ctx, types.PortID)
 		if err != nil {
 			panic(fmt.Sprintf("could not bind port: %v", err))
 		}
@@ -193,11 +189,6 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
-	portID, err := k.PortID.Get(ctx)
-	if err != nil {
-		panic(err)
-	}
-
 	return &types.GenesisState{
 		Params:              params,
 		LastValidatorPowers: lastValidatorPowers,
@@ -208,6 +199,5 @@ func (k Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		BridgeInfo:          bridgeInfo,
 		DenomPairs:          denomPairs,
 		MigrationInfos:      migrationInfos,
-		PortId:              portID,
 	}
 }

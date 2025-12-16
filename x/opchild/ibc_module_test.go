@@ -19,9 +19,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	err := input.OPChildKeeper.PortID.Set(ctx, opchildtypes.PortID)
-	require.NoError(t, err)
-
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
 	capability := &capabilitytypes.Capability{}
 
@@ -67,20 +64,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "expected ORDER_UNORDERED channel")
 
-	// invalid port
-	_, err = ibcModule.OnChanOpenInit(
-		sdkCtx,
-		channeltypes.UNORDERED,
-		[]string{"connection-0"},
-		"invalid-port",
-		"channel-3",
-		capability,
-		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-4"),
-		opchildtypes.Version,
-	)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid port")
-
 	// invalid version
 	_, err = ibcModule.OnChanOpenInit(
 		sdkCtx,
@@ -99,9 +82,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 func Test_IBCModule_OnChanOpenTry(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	err := input.OPChildKeeper.PortID.Set(ctx, opchildtypes.PortID)
-	require.NoError(t, err)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
 	capability := &capabilitytypes.Capability{}
