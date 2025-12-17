@@ -10,14 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"cosmossdk.io/core/address"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/core/address"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
