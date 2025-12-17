@@ -715,8 +715,6 @@ github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLf
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/initia-labs/cometbft v0.38.19-minitia.5 h1:hIM1iehjYka01+jhnm0PI4JzUK4CiQ/lB1c4CsUQ9zE=
 github.com/initia-labs/cometbft v0.38.19-minitia.5/go.mod h1:vNkfaIXhkqQ5A+9Ty6pbVTvLNYaqQLQ6AYYB73GwoDg=
-github.com/initia-labs/initia v1.2.2 h1:gOtJnm+8DvM7yIZASvU14yOqT52YU6gG5LgRMYyjF9c=
-github.com/initia-labs/initia v1.2.2/go.mod h1:Re9FJTPiFy3VsooRZU7rMK9olcxBJ1Vooz7qR/Eu18c=
 github.com/jhump/protoreflect v1.15.3 h1:6SFRuqU45u9hIZPJAoZ8c28T3nK64BNdp9w6jFonzls=
 github.com/jhump/protoreflect v1.15.3/go.mod h1:4ORHmSBmlCW8fh3xHmJMGyul1zNqZK4Elxc8qKP+p1k=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
