@@ -16,7 +16,7 @@ const (
 )
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo, migrationInfos []MigrationInfo, portID string) *GenesisState {
+func NewGenesisState(params Params, validators []Validator, bridgeInfo *BridgeInfo, migrationInfos []MigrationInfo) *GenesisState {
 	return &GenesisState{
 		Params:              params,
 		LastValidatorPowers: []LastValidatorPower{},

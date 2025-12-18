@@ -267,7 +267,7 @@ func (k Keeper) verifyOraclePricesHash(oracleData types.OracleData) error {
 			CurrencyPairId:     pd.CurrencyPairId,
 			CurrencyPairString: pd.CurrencyPair,
 			Price:              priceInt,
-			Timestamp:          oracleData.L1BlockTime,
+			Timestamp:          pd.Timestamp,
 		}
 	}
 	computedHash := prices.ComputeOraclePricesHash()
@@ -299,8 +299,17 @@ func (k Keeper) processBatchedOraclePriceUpdate(ctx context.Context, oracleData 
 		}
 
 		// check if incoming oracle data is newer than existing using timestamp comparison
-		existingPrice, err := k.l2OracleHandler.oracleKeeper.GetPriceForCurrencyPair(ctx, cp)
-		if err == nil && !l1Time.After(existingPrice.BlockTimestamp) {
+		if existingPrice, err := k.l2OracleHandler.oracleKeeper.GetPriceForCurrencyPair(ctx, cp); err != nil {
+			// if price doesn't exist yet, allow setting it
+			var quotePriceNotExistErr oracletypes.QuotePriceNotExistError
+			if !errors.As(err, &quotePriceNotExistErr) {
+				k.Logger(ctx).Error("failed to get existing price for staleness check",
+					"currency_pair", priceData.CurrencyPair,
+					"error", err.Error(),
+				)
+				continue
+			}
+		} else if !l1Time.After(existingPrice.BlockTimestamp) {
 			k.Logger(ctx).Debug("skipping stale oracle price",
 				"currency_pair", priceData.CurrencyPair,
 				"existing_timestamp", existingPrice.BlockTimestamp,

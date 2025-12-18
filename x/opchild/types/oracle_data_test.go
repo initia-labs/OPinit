@@ -189,7 +189,7 @@ func TestOracleData_Validate(t *testing.T) {
 					{
 						CurrencyPair:   "BTC/USD",
 						Price:          "50000000000",
-						Decimals:       19,
+						Decimals:       37,
 						CurrencyPairId: 1,
 						Nonce:          1,
 					},
@@ -383,7 +383,7 @@ func TestOracleData_Validate_EdgeCases(t *testing.T) {
 				{
 					CurrencyPair:   "BTC/USD",
 					Price:          "50000000000",
-					Decimals:       18,
+					Decimals:       36,
 					CurrencyPairId: 1,
 					Nonce:          1,
 				},

@@ -434,14 +434,16 @@ func NewRelayOracleDataCmd(ac address.Codec) *cobra.Command {
 							"price": "10177449000",
 							"decimals": 5,
 							"nonce": 123,
-							"currency_pair_id": 4
+							"currency_pair_id": 4,
+							"timestamp": 1699999999000000000
 						  },
 						  {
 							"currency_pair": "ETH/USD",
 							"price": "305678900",
 							"decimals": 5,
 							"nonce": 124,
-							"currency_pair_id": 5
+							"currency_pair_id": 5,
+							"timestamp": 1699999999000000000
 						  }
 						]
 						

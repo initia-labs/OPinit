@@ -192,7 +192,7 @@ func TestMsgRelayOracleData_Validate(t *testing.T) {
 						{
 							CurrencyPair:   "BTC/USD",
 							Price:          "50000",
-							Decimals:       19, // Invalid - max is 18
+							Decimals:       37, // Invalid - max is 36
 							CurrencyPairId: 1,
 							Nonce:          1,
 						},
@@ -418,7 +418,7 @@ func TestMsgRelayOracleData_EdgeCases(t *testing.T) {
 				{
 					CurrencyPair:   "BTC/USD",
 					Price:          "50000",
-					Decimals:       18, // Max allowed
+					Decimals:       36, // Max allowed
 					CurrencyPairId: 1,
 					Nonce:          1,
 				},

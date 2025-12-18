@@ -15,10 +15,9 @@ import (
 func Test_UpdateOraclePriceHashes_NoCurrencyPairs(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
 
-	// should fail with no currency pairs
+	// should just skip with no currency pairs
 	err := input.OPHostKeeper.UpdateOraclePriceHashes(ctx)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "no currency pairs found")
+	require.NoError(t, err)
 }
 
 // Test_GetOraclePriceHash_NotFound tests getting oracle price hash when none exists

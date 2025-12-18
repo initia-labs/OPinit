@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,8 +43,10 @@ func (k Keeper) computeOraclePricesHash(ctx sdk.Context) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// skip if there is no currency pair
 	if numPairs == 0 {
-		return nil, errors.New("no currency pairs found")
+		return nil, nil
 	}
 
 	prices := make(types.OraclePriceInfos, 0, numPairs)

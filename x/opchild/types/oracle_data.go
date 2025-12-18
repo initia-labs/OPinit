@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 )
 
 func (o OraclePriceData) Validate() error {
@@ -12,8 +14,7 @@ func (o OraclePriceData) Validate() error {
 		return sdkerrors.ErrInvalidRequest.Wrap("currency pair cannot be empty")
 	}
 
-	// format check: should contain '/'
-	if !strings.Contains(o.CurrencyPair, "/") {
+	if _, err := connecttypes.CurrencyPairFromString(o.CurrencyPair); err != nil {
 		return sdkerrors.ErrInvalidRequest.Wrapf("invalid currency pair format: %s", o.CurrencyPair)
 	}
 
@@ -26,8 +27,8 @@ func (o OraclePriceData) Validate() error {
 		return sdkerrors.ErrInvalidRequest.Wrapf("invalid price format: %s", o.Price)
 	}
 
-	if o.Decimals > 18 {
-		return sdkerrors.ErrInvalidRequest.Wrapf("decimals too large: %d (max 18)", o.Decimals)
+	if o.Decimals > marketmaptypes.DefaultMaxDecimals {
+		return sdkerrors.ErrInvalidRequest.Wrapf("decimals too large: %d (max %d)", o.Decimals, marketmaptypes.DefaultMaxDecimals)
 	}
 
 	// nonce can be zero for the very first update

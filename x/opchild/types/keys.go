@@ -19,9 +19,6 @@ const (
 )
 
 var (
-	// PortKey defines the key to store the port ID in store
-	PortKey = []byte{0x01}
-
 	// Keys for store prefixes
 	ParamsKey         = []byte{0x11} // prefix for parameters for module x/opchild
 	NextL2SequenceKey = []byte{0x12} // key for the outbound sequence number
