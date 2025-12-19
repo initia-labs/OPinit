@@ -3,10 +3,6 @@ package hook
 import (
 	"encoding/json"
 	"strings"
-
-	errorsmod "cosmossdk.io/errors"
-
-	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 const permsMetadataKey = "perm_channels"
@@ -47,24 +43,4 @@ func jsonStringHasKey(metadata, key string) bool {
 
 	_, ok := jsonObject[key]
 	return ok
-}
-
-// GetOpinitChannelID extracts the opinit channel ID from the bridge metadata.
-// Returns the channel ID for the opinit port, or an error if not found.
-func GetOpinitChannelID(metadata []byte) (string, error) {
-	var permsMetadata PermsMetadata
-	if err := json.Unmarshal(metadata, &permsMetadata); err != nil {
-		return "", errorsmod.Wrap(err, "failed to unmarshal metadata")
-	}
-
-	for _, permChannel := range permsMetadata.PermChannels {
-		if permChannel.PortID == types.PortID {
-			if permChannel.ChannelID == "" {
-				return "", errorsmod.Wrap(types.ErrInvalidBridgeMetadata, "opinit channel ID is empty")
-			}
-			return permChannel.ChannelID, nil
-		}
-	}
-
-	return "", errorsmod.Wrap(types.ErrInvalidBridgeMetadata, "opinit channel not found in metadata")
 }
