@@ -8,16 +8,18 @@ import (
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 )
 
 func Test_BlockValidatorUpdates(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	valPubKeys := testutilsims.CreateTestPubKeys(2)
-	val1, err := types.NewValidator(valAddrs[1], valPubKeys[0], "validator1")
+	val1, err := types.NewValidator(testutil.ValAddrs[1], valPubKeys[0], "validator1")
 	require.NoError(t, err)
 
-	val2, err := types.NewValidator(valAddrs[2], valPubKeys[1], "validator2")
+	val2, err := types.NewValidator(testutil.ValAddrs[2], valPubKeys[1], "validator2")
 	require.NoError(t, err)
 
 	// set validators

@@ -4,13 +4,14 @@ import (
 	context "context"
 
 	"cosmossdk.io/core/address"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
-
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	"github.com/skip-mev/connect/v2/abci/strategies/currencypair"
 )
@@ -80,4 +81,23 @@ type ValidatorSet interface {
 
 	// MaxValidators returns the maximum amount of bonded validators
 	MaxValidators(context.Context) (uint32, error)
+}
+
+// ClientKeeper defines the expected IBC client keeper interface for proof verification
+type ClientKeeper interface {
+	// GetClientState returns the client state for the given client ID
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+	// ClientStore returns the client-prefixed store for the given client ID
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
+}
+
+// PortKeeper defines the expected IBC port keeper
+type PortKeeper interface {
+	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+}
+
+// ScopedKeeper defines the expected IBC scoped keeper for managing channel capabilities
+type ScopedKeeper interface {
+	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
+	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
 }

@@ -67,12 +67,12 @@ func (b AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client
 		return err
 	}
 
-	return types.ValidateGenesis(&genState, b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
+	return types.ValidateGenesis(&genState, b.cdc.InterfaceRegistry().SigningContext().AddressCodec(), b.cdc.InterfaceRegistry().SigningContext().ValidatorAddressCodec())
 }
 
 // GetTxCmd returns the root tx command for the move module.
 func (b AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec())
+	return cli.GetTxCmd(b.cdc.InterfaceRegistry().SigningContext().AddressCodec(), b.cdc.InterfaceRegistry().SigningContext().ValidatorAddressCodec())
 }
 
 // RegisterInterfaces implements InterfaceModule
@@ -127,6 +127,11 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := am.keeper.ExportGenesis(ctx)
 	return cdc.MustMarshalJSON(gs)
+}
+
+// EndBlock returns the end blocker for the ophost module.
+func (am AppModule) EndBlock(ctx context.Context) error {
+	return am.keeper.UpdateOraclePriceHashes(ctx)
 }
 
 // IsAppModule implements the appmodule.AppModule interface.

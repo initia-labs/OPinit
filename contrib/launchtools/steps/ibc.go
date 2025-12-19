@@ -21,6 +21,8 @@ import (
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/types"
 	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
+	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 // EstablishIBCChannelsWithNFTTransfer creates a new IBC channel for fungible transfer, and one with NFT transfer
@@ -54,6 +56,9 @@ func establishIBCChannels(
 
 		// create default transfer ports
 		link,
+
+		// create default opinit ports
+		channelWithPorts(opchildtypes.PortID, ophosttypes.PortID, ophosttypes.Version),
 
 		// create nft-transfer ports as well
 		channelWithPorts(srcPort, dstPort, channelVersion),

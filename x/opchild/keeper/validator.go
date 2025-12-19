@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -168,4 +171,90 @@ func (k Keeper) GetLastValidators(ctx context.Context) (validators []types.Valid
 	})
 
 	return validators, err
+}
+
+// AddValidatorWithPower adds a validator with the specified consensus power.
+func (k Keeper) AddValidatorWithPower(ctx context.Context, moniker string, valAddr sdk.ValAddress, pubkey cryptotypes.PubKey, consPower int64) error {
+	allValidators, err := k.GetAllValidators(ctx)
+	if err != nil {
+		return err
+	}
+
+	numMaxValidators, err := k.MaxValidators(ctx)
+	if err != nil {
+		return err
+	}
+
+	if int(numMaxValidators) <= len(allValidators) {
+		return types.ErrMaxValidatorsExceeded
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// check to see if the pubkey or sender has been registered before
+	if _, found := k.GetValidator(ctx, valAddr); found {
+		return types.ErrValidatorOwnerExists
+	}
+
+	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pubkey)); found {
+		return types.ErrValidatorPubKeyExists
+	}
+
+	cp := sdkCtx.ConsensusParams()
+	pkType := pubkey.Type()
+	if !slices.Contains(cp.Validator.PubKeyTypes, pkType) {
+		return errorsmod.Wrapf(
+			types.ErrValidatorPubKeyTypeNotSupported,
+			"got: %s, expected: %s", pkType, cp.Validator.PubKeyTypes,
+		)
+	}
+
+	validator, err := types.NewValidator(valAddr, pubkey, moniker)
+	if err != nil {
+		return err
+	}
+
+	validator.ConsPower = consPower
+	if err := k.SetValidator(ctx, validator); err != nil {
+		return err
+	}
+	if err = k.SetValidatorByConsAddr(ctx, validator); err != nil {
+		return err
+	}
+
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeAddValidator,
+			sdk.NewAttribute(types.AttributeKeyValidator, validator.OperatorAddress),
+		),
+	})
+
+	return nil
+}
+
+// RemoveValidatorByAddress removes a validator by setting its consensus power to 0.
+// The actual removal from storage is handled during EndBlock.
+func (k Keeper) RemoveValidatorByAddress(ctx context.Context, valAddr sdk.ValAddress) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	val, found := k.GetValidator(ctx, valAddr)
+	if !found {
+		return errorsmod.Wrap(types.ErrNoValidatorFound, val.OperatorAddress)
+	}
+
+	val.ConsPower = 0
+
+	// set validator consensus power `0`,
+	// then `val_state_change` will execute `k.RemoveValidator`.
+	if err := k.SetValidator(ctx, val); err != nil {
+		return err
+	}
+
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRemoveValidator,
+			sdk.NewAttribute(types.AttributeKeyValidator, val.OperatorAddress),
+		),
+	})
+
+	return nil
 }

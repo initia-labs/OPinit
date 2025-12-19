@@ -4,20 +4,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_BridgeConfig(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	config := types.BridgeConfig{
-		Challenger:            addrs[0].String(),
-		Proposer:              addrs[1].String(),
+		Challenger:            testutil.Addrs[0].String(),
+		Proposer:              testutil.Addrs[1].String(),
 		SubmissionInterval:    time.Second * 100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config))
 	_config, err := input.OPHostKeeper.GetBridgeConfig(ctx, 1)
@@ -26,24 +27,24 @@ func Test_BridgeConfig(t *testing.T) {
 }
 
 func Test_IterateBridgeConfig(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	config1 := types.BridgeConfig{
-		Challenger:            addrs[0].String(),
-		Proposer:              addrs[1].String(),
+		Challenger:            testutil.Addrs[0].String(),
+		Proposer:              testutil.Addrs[1].String(),
 		SubmissionInterval:    time.Second * 100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challenger:            addrs[2].String(),
-		Proposer:              addrs[3].String(),
+		Challenger:            testutil.Addrs[2].String(),
+		Proposer:              testutil.Addrs[3].String(),
 		SubmissionInterval:    time.Second * 100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{3, 4, 5},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))

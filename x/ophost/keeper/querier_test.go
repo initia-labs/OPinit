@@ -7,19 +7,20 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_QueryBridge(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	config := types.BridgeConfig{
-		Challenger:            addrs[0].String(),
-		Proposer:              addrs[0].String(),
+		Challenger:            testutil.Addrs[0].String(),
+		Proposer:              testutil.Addrs[0].String(),
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, config)
 	require.NoError(t, err)
@@ -38,24 +39,24 @@ func Test_QueryBridge(t *testing.T) {
 }
 
 func Test_QueryBridges(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	config1 := types.BridgeConfig{
-		Challenger:            addrs[0].String(),
-		Proposer:              addrs[0].String(),
+		Challenger:            testutil.Addrs[0].String(),
+		Proposer:              testutil.Addrs[0].String(),
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challenger:            addrs[1].String(),
-		Proposer:              addrs[0].String(),
+		Challenger:            testutil.Addrs[1].String(),
+		Proposer:              testutil.Addrs[0].String(),
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{3, 4, 5},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
@@ -78,7 +79,7 @@ func Test_QueryBridges(t *testing.T) {
 }
 
 func Test_QueryTokenPair(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	pair := types.TokenPair{
 		L1Denom: "l1denom",
 		L2Denom: types.L2Denom(1, "l1denom"),
@@ -103,7 +104,7 @@ func Test_QueryTokenPair(t *testing.T) {
 }
 
 func Test_QueryTokenPairs(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	pair1 := types.TokenPair{
 		L1Denom: "l1denom1",
 		L2Denom: types.L2Denom(1, "l1denom1"),
@@ -127,7 +128,7 @@ func Test_QueryTokenPairs(t *testing.T) {
 }
 
 func Test_QueryOutputProposal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	output := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockNumber: 1,
@@ -145,7 +146,7 @@ func Test_QueryOutputProposal(t *testing.T) {
 }
 
 func Test_QueryOutputProposals(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
 		L1BlockNumber: 1,
@@ -181,15 +182,15 @@ func Test_QueryOutputProposals(t *testing.T) {
 }
 
 func Test_QueryLastFinalizedOutput(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	err := input.OPHostKeeper.SetBridgeConfig(ctx, 1, types.BridgeConfig{
-		Proposer:              addrsStr[0],
-		Challenger:            addrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    time.Second * 10,
 		SubmissionStartHeight: 1,
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	})
 	require.NoError(t, err)
 
@@ -224,7 +225,7 @@ func Test_QueryLastFinalizedOutput(t *testing.T) {
 }
 
 func Test_QueryClaimed(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	wh := [32]byte{1, 2, 3}
 
@@ -250,7 +251,7 @@ func Test_QueryClaimed(t *testing.T) {
 }
 
 func Test_QueryNextL1Sequence(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// update the next L1 sequence
 	require.NoError(t, input.OPHostKeeper.NextL1Sequences.Set(ctx, 100, 100))
@@ -264,13 +265,13 @@ func Test_QueryNextL1Sequence(t *testing.T) {
 }
 
 func Test_QueryBatchInfos(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-	batchInfo := types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}
+	ctx, input := testutil.CreateTestInput(t, false)
+	batchInfo := types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}
 	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, batchInfo, types.Output{}))
 
 	newBatchInfo := types.BatchInfoWithOutput{
 		BatchInfo: types.BatchInfo{
-			Submitter: addrsStr[0],
+			Submitter: testutil.AddrsStr[0],
 			ChainType: types.BatchInfo_CELESTIA,
 		},
 		Output: types.Output{
@@ -298,7 +299,7 @@ func Test_QueryBatchInfos(t *testing.T) {
 }
 
 func Test_QueryMigrationInfo(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	q := keeper.NewQuerier(input.OPHostKeeper)
 	_, err := q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{BridgeId: 1, L1Denom: "l1denom"})
 	require.Error(t, err)
@@ -312,4 +313,24 @@ func Test_QueryMigrationInfo(t *testing.T) {
 	res, err := q.MigrationInfo(ctx, &types.QueryMigrationInfoRequest{BridgeId: 1, L1Denom: "l1denom"})
 	require.NoError(t, err)
 	require.Equal(t, migrationInfo, res.MigrationInfo)
+}
+
+func Test_QueryOraclePriceHash(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+	q := keeper.NewQuerier(input.OPHostKeeper)
+
+	// non-existent oracle price hash should return error
+	_, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{})
+	require.Error(t, err)
+
+	oraclePriceHash := types.OraclePriceHash{
+		Hash:          []byte{0x01, 0x02, 0x03, 0x04},
+		L1BlockHeight: 100,
+		L1BlockTime:   1699999999000000000,
+	}
+	require.NoError(t, input.OPHostKeeper.OraclePriceHash.Set(ctx, oraclePriceHash))
+
+	res, err := q.OraclePriceHash(ctx, &types.QueryOraclePriceHashRequest{})
+	require.NoError(t, err)
+	require.Equal(t, oraclePriceHash, res.OraclePriceHash)
 }

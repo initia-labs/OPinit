@@ -1,18 +1,17 @@
 package steps
 
 import (
-	"encoding/json"
 	"strconv"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/pkg/errors"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
-	ophosthooktypes "github.com/initia-labs/OPinit/x/ophost/types/hook"
-	"github.com/pkg/errors"
 )
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeOpBridge
@@ -115,21 +114,19 @@ func createOpBridge(
 	submissionStartHeight uint64,
 	enableOracle bool,
 ) (*ophosttypes.MsgCreateBridge, error) {
-	// generate ophosthooktypes.PermsMetadata
-	// assume that all channels in IBC keeper need to be permitted on OPChild
-	// [transfer, nft-transfer, ...]
-	permChannels := make([]ophosthooktypes.PortChannelID, 0)
+	// find the opinit channel id from the list of channels
+	var opinitChannelID string
 	for _, channel := range identifiedChannels {
-		permChannels = append(permChannels, ophosthooktypes.PortChannelID{
-			PortID:    channel.Counterparty.PortId,
-			ChannelID: channel.Counterparty.ChannelId,
-		})
+		// look for the channel with opinit port on the counterparty side
+		if channel.Counterparty.PortId == ophosttypes.PortID {
+			opinitChannelID = channel.Counterparty.ChannelId
+			break
+		}
 	}
 
-	permsMetadata := ophosthooktypes.PermsMetadata{PermChannels: permChannels}
-	permsMetadataJSON, err := json.Marshal(permsMetadata)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to marshal perms metadata")
+	// if no opinit channel is found, return an error
+	if opinitChannelID == "" {
+		return nil, errors.New("opinit channel not found; the opinit channel should have been created in the previous step")
 	}
 
 	// create OpBridgeMessage
@@ -145,8 +142,9 @@ func createOpBridge(
 			SubmissionInterval:    submissionInterval,
 			FinalizationPeriod:    finalizationPeriod,
 			SubmissionStartHeight: submissionStartHeight,
-			Metadata:              permsMetadataJSON,
 			OracleEnabled:         enableOracle,
+			ChannelId:             opinitChannelID,
+			Metadata:              []byte{},
 		},
 	), nil
 }

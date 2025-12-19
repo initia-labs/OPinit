@@ -5,10 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 )
 
 func Test_Params(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params := input.OPHostKeeper.GetParams(ctx)
 	params.RegistrationFee = sdk.NewCoins()

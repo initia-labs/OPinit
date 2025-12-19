@@ -8,10 +8,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 )
 
 func Test_HistoricalInfo(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	params, err := input.OPChildKeeper.GetParams(ctx)

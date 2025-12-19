@@ -14,11 +14,12 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_RegisterMigrationInfo_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
@@ -40,14 +41,14 @@ func Test_RegisterMigrationInfo_Success(t *testing.T) {
 	require.ErrorContains(t, err, "bridge not found")
 
 	// create bridge
-	_, err = ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+	_, err = ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], ophosttypes.BridgeConfig{
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		BatchInfo: ophosttypes.BatchInfo{
-			Submitter: addrsStr[0],
+			Submitter: testutil.AddrsStr[0],
 			ChainType: ophosttypes.BatchInfo_INITIA,
 		},
 	}))
@@ -67,12 +68,12 @@ func Test_RegisterMigrationInfo_Success(t *testing.T) {
 }
 
 func Test_RegisterMigrationInfo_InvalidAuthority(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// Test with invalid authority - use a valid address format but not the gov module address
-	invalidAuthority := addrsStr[0] // This is not the gov module address
+	invalidAuthority := testutil.AddrsStr[0] // This is not the gov module address
 	migrationInfo := ophosttypes.MigrationInfo{
 		BridgeId:     1,
 		IbcChannelId: "channel-0",
@@ -92,7 +93,7 @@ func Test_RegisterMigrationInfo_InvalidAuthority(t *testing.T) {
 }
 
 func Test_RegisterMigrationInfo_DuplicateRegistration(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
@@ -111,14 +112,14 @@ func Test_RegisterMigrationInfo_DuplicateRegistration(t *testing.T) {
 	)
 
 	// create bridge
-	_, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+	_, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], ophosttypes.BridgeConfig{
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		BatchInfo: ophosttypes.BatchInfo{
-			Submitter: addrsStr[0],
+			Submitter: testutil.AddrsStr[0],
 			ChainType: ophosttypes.BatchInfo_INITIA,
 		},
 	}))
@@ -134,22 +135,22 @@ func Test_RegisterMigrationInfo_DuplicateRegistration(t *testing.T) {
 }
 
 func Test_RegisterMigrationInfo_MoveEscrowedFunds(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Fund the bridge account
@@ -187,31 +188,31 @@ func Test_RegisterMigrationInfo_MoveEscrowedFunds(t *testing.T) {
 }
 
 func Test_HandleMigratedTokenDeposit_NonMigratedToken(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
-	input.Faucet.Fund(ctx, addrs[0], sdk.NewCoin("non-migrated-token", math.NewInt(100)))
+	input.Faucet.Fund(ctx, testutil.Addrs[0], sdk.NewCoin("non-migrated-token", math.NewInt(100)))
 
 	// Test non-migrated token deposit
 	depositMsg := ophosttypes.NewMsgInitiateTokenDeposit(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
-		addrsStr[1], // to
+		testutil.AddrsStr[1], // to
 		sdk.NewCoin("non-migrated-token", math.NewInt(100)),
 		[]byte("test data"),
 	)
@@ -222,7 +223,7 @@ func Test_HandleMigratedTokenDeposit_NonMigratedToken(t *testing.T) {
 }
 
 func Test_MigrationInfo_CRUD_Operations(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Test setting migration info
 	migrationInfo := ophosttypes.MigrationInfo{
@@ -252,22 +253,22 @@ func Test_MigrationInfo_CRUD_Operations(t *testing.T) {
 }
 
 func Test_HandleMigratedTokenDeposit_IBCTransferFailure(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Register migration info
@@ -289,9 +290,9 @@ func Test_HandleMigratedTokenDeposit_IBCTransferFailure(t *testing.T) {
 
 	// Test migrated token deposit
 	depositMsg := ophosttypes.NewMsgInitiateTokenDeposit(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
-		addrsStr[1], // to
+		testutil.AddrsStr[1], // to
 		sdk.NewCoin("test1", math.NewInt(100)),
 		[]byte("test data"),
 	)
@@ -305,22 +306,22 @@ func Test_HandleMigratedTokenDeposit_IBCTransferFailure(t *testing.T) {
 }
 
 func Test_HandleMigratedTokenDeposit_IBCTransferSuccess(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Register migration info
@@ -342,9 +343,9 @@ func Test_HandleMigratedTokenDeposit_IBCTransferSuccess(t *testing.T) {
 
 	// Test migrated token deposit
 	depositMsg := ophosttypes.NewMsgInitiateTokenDeposit(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
-		addrsStr[1], // to
+		testutil.AddrsStr[1], // to
 		sdk.NewCoin("test1", math.NewInt(100)),
 		[]byte("test data"),
 	)
@@ -360,21 +361,21 @@ func Test_HandleMigratedTokenDeposit_IBCTransferSuccess(t *testing.T) {
 }
 
 func Test_HandleMigratedTokenWithdrawal_Direct(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Register migration info
@@ -400,19 +401,19 @@ func Test_HandleMigratedTokenWithdrawal_Direct(t *testing.T) {
 
 	// Check initial balances
 	initialEscrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
-	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "test1")
+	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], "test1")
 	require.Equal(t, math.NewInt(1000), initialEscrowBalance.Amount)
 	require.Equal(t, math.NewInt(0), initialReceiverBalance.Amount)
 
 	// Test migrated token withdrawal directly
 	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
-		1,           // outputIndex
-		1,           // sequence
-		[][]byte{},  // withdrawalProofs
-		addrsStr[0], // from
-		addrsStr[1], // to
+		1,                    // outputIndex
+		1,                    // sequence
+		[][]byte{},           // withdrawalProofs
+		testutil.AddrsStr[0], // from
+		testutil.AddrsStr[1], // to
 		sdk.NewCoin("test1", math.NewInt(500)),
 		[]byte{1},        // version
 		make([]byte, 32), // storageRoot
@@ -425,27 +426,27 @@ func Test_HandleMigratedTokenWithdrawal_Direct(t *testing.T) {
 
 	// Check final balances
 	finalEscrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
-	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "test1")
+	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], "test1")
 	require.Equal(t, math.NewInt(500), finalEscrowBalance.Amount) // 1000 - 500
 	require.Equal(t, math.NewInt(500), finalReceiverBalance.Amount)
 }
 
 func Test_HandleMigratedTokenWithdrawal_NonMigratedToken_Direct(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Fund the bridge account (not IBC escrow)
@@ -454,19 +455,19 @@ func Test_HandleMigratedTokenWithdrawal_NonMigratedToken_Direct(t *testing.T) {
 
 	// Check initial balances
 	initialBridgeBalance := input.BankKeeper.GetBalance(ctx, bridgeAddr, "non-migrated-token")
-	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "non-migrated-token")
+	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], "non-migrated-token")
 	require.Equal(t, math.NewInt(1000), initialBridgeBalance.Amount)
 	require.Equal(t, math.NewInt(0), initialReceiverBalance.Amount)
 
 	// Test non-migrated token withdrawal directly
 	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
-		1,           // outputIndex
-		1,           // sequence
-		[][]byte{},  // withdrawalProofs
-		addrsStr[0], // from
-		addrsStr[1], // to
+		1,                    // outputIndex
+		1,                    // sequence
+		[][]byte{},           // withdrawalProofs
+		testutil.AddrsStr[0], // from
+		testutil.AddrsStr[1], // to
 		sdk.NewCoin("non-migrated-token", math.NewInt(500)),
 		[]byte{1},        // version
 		make([]byte, 32), // storageRoot
@@ -479,27 +480,27 @@ func Test_HandleMigratedTokenWithdrawal_NonMigratedToken_Direct(t *testing.T) {
 
 	// Balances should remain unchanged since it wasn't handled
 	finalBridgeBalance := input.BankKeeper.GetBalance(ctx, bridgeAddr, "non-migrated-token")
-	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, addrs[1], "non-migrated-token")
+	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], "non-migrated-token")
 	require.Equal(t, math.NewInt(1000), finalBridgeBalance.Amount) // unchanged
 	require.Equal(t, math.NewInt(0), finalReceiverBalance.Amount)  // unchanged
 }
 
 func Test_HandleMigratedTokenWithdrawal_InvalidReceiverAddress_Direct(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Register migration info
@@ -525,13 +526,13 @@ func Test_HandleMigratedTokenWithdrawal_InvalidReceiverAddress_Direct(t *testing
 
 	// Test withdrawal with invalid receiver address
 	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
-		1,                 // outputIndex
-		1,                 // sequence
-		[][]byte{},        // withdrawalProofs
-		addrsStr[0],       // from
-		"invalid-address", // invalid address
+		1,                    // outputIndex
+		1,                    // sequence
+		[][]byte{},           // withdrawalProofs
+		testutil.AddrsStr[0], // from
+		"invalid-address",    // invalid address
 		sdk.NewCoin("test1", math.NewInt(500)),
 		[]byte{1},        // version
 		make([]byte, 32), // storageRoot
@@ -544,21 +545,21 @@ func Test_HandleMigratedTokenWithdrawal_InvalidReceiverAddress_Direct(t *testing
 }
 
 func Test_HandleMigratedTokenWithdrawal_InsufficientBalance_Direct(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Create a bridge first
 	bridgeConfig := ophosttypes.BridgeConfig{
-		Challenger:            addrsStr[0],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[0],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    time.Second * 10,
 		FinalizationPeriod:    time.Second * 60,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             ophosttypes.BatchInfo{Submitter: addrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
+		BatchInfo:             ophosttypes.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: ophosttypes.BatchInfo_INITIA},
 	}
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
-	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(addrsStr[0], bridgeConfig))
+	createRes, err := ms.CreateBridge(ctx, ophosttypes.NewMsgCreateBridge(testutil.AddrsStr[0], bridgeConfig))
 	require.NoError(t, err)
 
 	// Register migration info
@@ -584,13 +585,13 @@ func Test_HandleMigratedTokenWithdrawal_InsufficientBalance_Direct(t *testing.T)
 
 	// Test withdrawal with amount larger than available balance
 	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
-		addrsStr[0],
+		testutil.AddrsStr[0],
 		createRes.BridgeId,
 		1,                                      // outputIndex
 		1,                                      // sequence
 		[][]byte{},                             // withdrawalProofs
-		addrsStr[0],                            // from
-		addrsStr[1],                            // to
+		testutil.AddrsStr[0],                   // from
+		testutil.AddrsStr[1],                   // to
 		sdk.NewCoin("test1", math.NewInt(500)), // more than available 100
 		[]byte{1},                              // version
 		make([]byte, 32),                       // storageRoot

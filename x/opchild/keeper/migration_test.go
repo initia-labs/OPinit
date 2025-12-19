@@ -16,12 +16,13 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 // Test_RegisterMigrationInfo_Success tests successful registration of migration info
 func Test_RegisterMigrationInfo_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -56,7 +57,7 @@ func Test_RegisterMigrationInfo_Success(t *testing.T) {
 
 // Test_RegisterMigrationInfo_InvalidAuthority tests registration with invalid authority
 func Test_RegisterMigrationInfo_InvalidAuthority(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -65,7 +66,7 @@ func Test_RegisterMigrationInfo_InvalidAuthority(t *testing.T) {
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	// Test with invalid authority - use a valid address format but not the opchild module address
-	invalidAuthority := addrsStr[0] // This is not the opchild module address
+	invalidAuthority := testutil.AddrsStr[0] // This is not the opchild module address
 	migrationInfo := opchildtypes.MigrationInfo{
 		Denom:        "test1",
 		IbcChannelId: "channel-0",
@@ -84,7 +85,7 @@ func Test_RegisterMigrationInfo_InvalidAuthority(t *testing.T) {
 
 // Test_RegisterMigrationInfo_DuplicateRegistration tests duplicate registration prevention
 func Test_RegisterMigrationInfo_DuplicateRegistration(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -115,7 +116,7 @@ func Test_RegisterMigrationInfo_DuplicateRegistration(t *testing.T) {
 
 // Test_RegisterMigrationInfo_InvalidParameters tests various invalid parameter scenarios
 func Test_RegisterMigrationInfo_InvalidParameters(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
@@ -167,7 +168,7 @@ func Test_RegisterMigrationInfo_InvalidParameters(t *testing.T) {
 
 // Test_MigrationInfo_CRUD_Operations tests basic CRUD operations for migration info
 func Test_MigrationInfo_CRUD_Operations(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -208,7 +209,7 @@ func Test_MigrationInfo_CRUD_Operations(t *testing.T) {
 
 // Test_MigrationInfo_MultipleDenoms tests migration info across multiple denoms
 func Test_MigrationInfo_MultipleDenoms(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pairs first (L1 tokens)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -269,7 +270,7 @@ func Test_MigrationInfo_MultipleDenoms(t *testing.T) {
 
 // Test_MigrationInfo_Iteration tests iteration over migration infos
 func Test_MigrationInfo_Iteration(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pairs first (L1 tokens)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -326,7 +327,7 @@ func Test_MigrationInfo_Iteration(t *testing.T) {
 
 // Test_MigrationInfo_QueryNonExistent tests querying non-existent migration info
 func Test_MigrationInfo_QueryNonExistent(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Test querying non-existent migration info
 	_, err := input.OPChildKeeper.GetMigrationInfo(ctx, "non-existent")
@@ -341,7 +342,7 @@ func Test_MigrationInfo_QueryNonExistent(t *testing.T) {
 
 // Test_IBCToL2DenomMap_CRUD tests IBC to L2 denom mapping functionality
 func Test_IBCToL2DenomMap_CRUD(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Test setting IBC to L2 denom map
 	ibcDenom := "ibc/1234567890ABCDEF"
@@ -367,7 +368,7 @@ func Test_IBCToL2DenomMap_CRUD(t *testing.T) {
 
 // Test_MigrateToken_Success tests successful token migration
 func Test_MigrateToken_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -390,7 +391,7 @@ func Test_MigrateToken_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fund the sender account
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	amount := sdk.NewCoin("test1", math.NewInt(100))
 	input.Faucet.Fund(ctx, sender, sdk.NewCoins(amount)...)
 
@@ -417,7 +418,7 @@ func Test_MigrateToken_Success(t *testing.T) {
 
 // Test_MigrateToken_InvalidAmount tests token migration with invalid amount
 func Test_MigrateToken_InvalidAmount(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -442,7 +443,7 @@ func Test_MigrateToken_InvalidAmount(t *testing.T) {
 	// Test with zero amount
 	zeroAmount := sdk.NewCoin("test1", math.NewInt(0))
 	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
-		Sender: addrs[0].String(),
+		Sender: testutil.Addrs[0].String(),
 		Amount: zeroAmount,
 	})
 	require.Error(t, err)
@@ -454,7 +455,7 @@ func Test_MigrateToken_InvalidAmount(t *testing.T) {
 		Amount: math.NewInt(-100),
 	}
 	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
-		Sender: addrs[0].String(),
+		Sender: testutil.Addrs[0].String(),
 		Amount: negativeAmount,
 	})
 	require.Error(t, err)
@@ -463,7 +464,7 @@ func Test_MigrateToken_InvalidAmount(t *testing.T) {
 
 // Test_MigrateToken_NotFound tests token migration with not found migration info
 func Test_MigrateToken_NotFound(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -488,7 +489,7 @@ func Test_MigrateToken_NotFound(t *testing.T) {
 	// Test with mismatched denom
 	wrongDenomAmount := sdk.NewCoin("test2", math.NewInt(100))
 	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
-		Sender: addrs[0].String(),
+		Sender: testutil.Addrs[0].String(),
 		Amount: wrongDenomAmount,
 	})
 	require.Error(t, err)
@@ -497,7 +498,7 @@ func Test_MigrateToken_NotFound(t *testing.T) {
 
 // Test_MigrateToken_InsufficientBalance tests token migration with insufficient balance
 func Test_MigrateToken_InsufficientBalance(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -522,7 +523,7 @@ func Test_MigrateToken_InsufficientBalance(t *testing.T) {
 	// Test with amount larger than balance
 	largeAmount := sdk.NewCoin("test1", math.NewInt(1000))
 	_, err = ms.MigrateToken(ctx, &opchildtypes.MsgMigrateToken{
-		Sender: addrs[0].String(),
+		Sender: testutil.Addrs[0].String(),
 		Amount: largeAmount,
 	})
 	require.Error(t, err)
@@ -531,7 +532,7 @@ func Test_MigrateToken_InsufficientBalance(t *testing.T) {
 
 // Test_HandleMigratedTokenWithdrawal_Success tests successful handling of migrated token withdrawal
 func Test_HandleMigratedTokenWithdrawal_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -554,14 +555,14 @@ func Test_HandleMigratedTokenWithdrawal_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fund the sender account
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	amount := sdk.NewCoin("test1", math.NewInt(100))
 	input.Faucet.Fund(ctx, sender, sdk.NewCoins(amount)...)
 
 	// Create withdrawal message
 	withdrawalMsg := opchildtypes.NewMsgInitiateTokenWithdrawal(
 		sender.String(),
-		addrs[1].String(), // to
+		testutil.Addrs[1].String(), // to
 		amount,
 	)
 
@@ -590,7 +591,7 @@ func Test_HandleMigratedTokenWithdrawal_Success(t *testing.T) {
 	handledMsgs[0].TimeoutTimestamp = 0
 	require.Equal(t, handledMsgs[0], &transfertypes.MsgTransfer{
 		Sender:        sender.String(),
-		Receiver:      addrs[1].String(),
+		Receiver:      testutil.Addrs[1].String(),
 		Token:         sdk.NewCoin(expectedIBCDenom.Denom, amount.Amount),
 		SourcePort:    migrationInfo.IbcPortId,
 		SourceChannel: migrationInfo.IbcChannelId,
@@ -600,17 +601,17 @@ func Test_HandleMigratedTokenWithdrawal_Success(t *testing.T) {
 
 // Test_HandleMigratedTokenWithdrawal_NonMigratedToken tests handling withdrawal of non-migrated token
 func Test_HandleMigratedTokenWithdrawal_NonMigratedToken(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Fund the sender account with a non-migrated token
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	amount := sdk.NewCoin("non-migrated-token", math.NewInt(100))
 	input.Faucet.Fund(ctx, sender, sdk.NewCoins(amount)...)
 
 	// Create withdrawal message
 	withdrawalMsg := opchildtypes.NewMsgInitiateTokenWithdrawal(
 		sender.String(),
-		addrs[1].String(), // to
+		testutil.Addrs[1].String(), // to
 		amount,
 	)
 
@@ -626,7 +627,7 @@ func Test_HandleMigratedTokenWithdrawal_NonMigratedToken(t *testing.T) {
 
 // Test_HandleMigratedTokenWithdrawal_InvalidSender tests handling withdrawal with invalid sender
 func Test_HandleMigratedTokenWithdrawal_InvalidSender(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -651,7 +652,7 @@ func Test_HandleMigratedTokenWithdrawal_InvalidSender(t *testing.T) {
 	// Create withdrawal message with invalid sender
 	withdrawalMsg := opchildtypes.NewMsgInitiateTokenWithdrawal(
 		"invalid-address",
-		addrs[1].String(), // to
+		testutil.Addrs[1].String(), // to
 		sdk.NewCoin("test1", math.NewInt(100)),
 	)
 
@@ -663,7 +664,7 @@ func Test_HandleMigratedTokenWithdrawal_InvalidSender(t *testing.T) {
 
 // Test_HandleMigratedTokenDeposit_Success tests successful handling of migrated token deposit
 func Test_HandleMigratedTokenDeposit_Success(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -686,7 +687,7 @@ func Test_HandleMigratedTokenDeposit_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fund the sender account with IBC token
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	ibcCoin := sdk.NewCoin("ibc/1234567890ABCDEF", math.NewInt(100))
 
 	// Set up IBC to L2 denom mapping
@@ -711,7 +712,7 @@ func Test_HandleMigratedTokenDeposit_Success(t *testing.T) {
 	//////////////////////////////////////////////
 
 	// create hook data
-	priv, _, addr := keyPubAddr()
+	priv, _, addr := testutil.KeyPubAddr()
 
 	// Fund the sender account with IBC token
 	input.Faucet.Fund(ctx, addr, ibcCoin)
@@ -721,9 +722,9 @@ func Test_HandleMigratedTokenDeposit_Success(t *testing.T) {
 	require.NotNil(t, acc)
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
 	from, _ := input.AccountKeeper.AddressCodec().BytesToString(addr)
-	to, _ := input.AccountKeeper.AddressCodec().BytesToString(addrs[2])
+	to, _ := input.AccountKeeper.AddressCodec().BytesToString(testutil.Addrs[2])
 
-	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(testutil.GenerateTestTx(
 		t, input,
 		[]sdk.Msg{
 			opchildtypes.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin("test1", halfAmount)),
@@ -747,7 +748,7 @@ func Test_HandleMigratedTokenDeposit_Success(t *testing.T) {
 
 // Test_HandleMigratedTokenDeposit_InvalidAmount tests handling of migrated token deposit with invalid amount
 func Test_HandleMigratedTokenDeposit_InvalidAmount(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -772,7 +773,7 @@ func Test_HandleMigratedTokenDeposit_InvalidAmount(t *testing.T) {
 	// Test with zero amount
 	zeroAmount := sdk.NewCoin("ibc/1234567890ABCDEF", math.NewInt(0))
 
-	_, err = ms.HandleMigratedTokenDeposit(ctx, addrs[0], zeroAmount, "")
+	_, err = ms.HandleMigratedTokenDeposit(ctx, testutil.Addrs[0], zeroAmount, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "amount is not positive")
 
@@ -782,14 +783,14 @@ func Test_HandleMigratedTokenDeposit_InvalidAmount(t *testing.T) {
 		Amount: math.NewInt(-100),
 	}
 
-	_, err = ms.HandleMigratedTokenDeposit(ctx, addrs[0], negativeAmount, "")
+	_, err = ms.HandleMigratedTokenDeposit(ctx, testutil.Addrs[0], negativeAmount, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "amount is not positive")
 }
 
 // Test_HandleMigratedTokenDeposit_NonExistentIBCDenom tests handling of migrated token deposit with non-existent IBC denom
 func Test_HandleMigratedTokenDeposit_NonExistentIBCDenom(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -813,14 +814,14 @@ func Test_HandleMigratedTokenDeposit_NonExistentIBCDenom(t *testing.T) {
 
 	// Test with non-existent IBC denom
 	nonExistentIBCAmount := sdk.NewCoin("ibc/NONEXISTENT", math.NewInt(100))
-	_, err = ms.HandleMigratedTokenDeposit(ctx, addrs[0], nonExistentIBCAmount, "")
+	_, err = ms.HandleMigratedTokenDeposit(ctx, testutil.Addrs[0], nonExistentIBCAmount, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 }
 
 // Test_HandleMigratedTokenDeposit_InsufficientBalance tests handling of migrated token deposit with insufficient balance
 func Test_HandleMigratedTokenDeposit_InsufficientBalance(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -843,7 +844,7 @@ func Test_HandleMigratedTokenDeposit_InsufficientBalance(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fund the sender account with a small amount of IBC token
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	ibcAmount := sdk.NewCoin("ibc/1234567890ABCDEF", math.NewInt(50))
 
 	// Set up IBC to L2 denom mapping
@@ -862,7 +863,7 @@ func Test_HandleMigratedTokenDeposit_InsufficientBalance(t *testing.T) {
 
 // Test_HandleMigratedTokenDeposit_CompleteFlow tests the complete flow: migrate then handle migrated token deposit
 func Test_HandleMigratedTokenDeposit_CompleteFlow(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pair first (L1 token)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -885,7 +886,7 @@ func Test_HandleMigratedTokenDeposit_CompleteFlow(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fund the sender account with L2 token
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	amount := sdk.NewCoin("test1", math.NewInt(100))
 	input.Faucet.Fund(ctx, sender, sdk.NewCoins(amount)...)
 
@@ -914,7 +915,7 @@ func Test_HandleMigratedTokenDeposit_CompleteFlow(t *testing.T) {
 
 // Test_HandleMigratedTokenDeposit_MultipleDenoms tests handling of migrated token deposit across multiple denoms
 func Test_HandleMigratedTokenDeposit_MultipleDenoms(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	// Set up denom pairs first (L1 tokens)
 	err := input.OPChildKeeper.DenomPairs.Set(ctx, "test1", "test1")
@@ -954,7 +955,7 @@ func Test_HandleMigratedTokenDeposit_MultipleDenoms(t *testing.T) {
 	require.NoError(t, err)
 
 	// Fund the sender account with both IBC tokens
-	sender := addrs[0]
+	sender := testutil.Addrs[0]
 	ibcAmount1 := sdk.NewCoin("ibc/1234567890ABCDEF", math.NewInt(100))
 	ibcAmount2 := sdk.NewCoin("ibc/FEDCBA0987654321", math.NewInt(200))
 
