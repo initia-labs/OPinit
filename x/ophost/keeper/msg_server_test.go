@@ -754,6 +754,7 @@ func Test_MsgServer_RegisterAttestorSet(t *testing.T) {
 		SubmissionInterval:    100,
 		FinalizationPeriod:    1000,
 		SubmissionStartHeight: 1,
+		ChannelId:             "channel-2",
 		Metadata:              []byte("{\"perm_channels\":[{\"port_id\":\"opinit\",\"channel_id\":\"channel-2\"},{\"port_id\":\"nft-transfer\",\"channel_id\":\"channel-1\"},{\"port_id\":\"transfer\",\"channel_id\":\"channel-0\"}]}"),
 		BatchInfo: types.BatchInfo{
 			Submitter: testutil.AddrsStr[2],
@@ -854,4 +855,435 @@ func Test_MsgServer_RegisterAttestorSet_BridgeNotFound(t *testing.T) {
 	_, err = ms.RegisterAttestorSet(ctx, msg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
+}
+
+func Test_MsgServer_UpdateChannelId_Success(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// update channel id as gov
+	msg := types.NewMsgUpdateChannelId(govAddr, bridgeId, "channel-5")
+	_, err = ms.UpdateChannelId(ctx, msg)
+	require.NoError(t, err)
+
+	// verify channel id was updated
+	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
+	require.NoError(t, err)
+	require.Equal(t, "channel-5", config.ChannelId)
+
+	events := sdk.UnwrapSDKContext(ctx).EventManager().Events()
+	found := false
+	for _, event := range events {
+		if event.Type == types.EventTypeUpdateChannelId {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "expected update channel id event")
+}
+
+func Test_MsgServer_UpdateChannelId_AsProposer(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	// create bridge
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// proposer can update channel id
+	msg := types.NewMsgUpdateChannelId(testutil.AddrsStr[0], bridgeId, "channel-10")
+	_, err = ms.UpdateChannelId(ctx, msg)
+	require.NoError(t, err)
+
+	// verify channel id was updated
+	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
+	require.NoError(t, err)
+	require.Equal(t, "channel-10", config.ChannelId)
+}
+
+func Test_MsgServer_UpdateChannelId_InvalidAuthority(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	// create bridge
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err := input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// unauthorized user cannot update channel id
+	msg := types.NewMsgUpdateChannelId(testutil.AddrsStr[2], bridgeId, "channel-5")
+	_, err = ms.UpdateChannelId(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func Test_MsgServer_UpdateChannelId_EmptyChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create bridge
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// empty channel id should fail validation
+	msg := types.NewMsgUpdateChannelId(govAddr, bridgeId, "")
+	_, err = ms.UpdateChannelId(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid channel id")
+}
+
+func Test_MsgServer_RegisterAttestorSet_EmptyChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create bridge without channel_id
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	// create attestor
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	attestorSet := []types.Attestor{
+		{
+			OperatorAddress: testutil.ValAddrsStr[0],
+			ConsensusPubkey: pkAny1,
+			Moniker:         "attestor1",
+		},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// registration should fail due to empty channel id
+	msg := types.NewMsgRegisterAttestorSet(govAddr, bridgeId, attestorSet)
+	_, err = ms.RegisterAttestorSet(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "channel_id must be set")
+}
+
+func Test_MsgServer_RegisterAttestorSet_WithChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create bridge
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	// create attestor
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	attestorSet := []types.Attestor{
+		{
+			OperatorAddress: testutil.ValAddrsStr[0],
+			ConsensusPubkey: pkAny1,
+			Moniker:         "attestor1",
+		},
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// registration should succeed
+	msg := types.NewMsgRegisterAttestorSet(govAddr, bridgeId, attestorSet)
+	_, err = ms.RegisterAttestorSet(ctx, msg)
+	require.NoError(t, err)
+
+	// verify attestor set was updated
+	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
+	require.NoError(t, err)
+	require.Len(t, config.AttestorSet, 1)
+	require.Equal(t, testutil.ValAddrsStr[0], config.AttestorSet[0].OperatorAddress)
+}
+
+func Test_MsgServer_AddAttestor_EmptyChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create bridge without channel_id
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	// create attestor
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	attestor := types.Attestor{
+		OperatorAddress: testutil.ValAddrsStr[0],
+		ConsensusPubkey: pkAny1,
+		Moniker:         "attestor1",
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// add attestor should fail due to empty channel id
+	msg := types.NewMsgAddAttestor(govAddr, bridgeId, attestor)
+	_, err = ms.AddAttestor(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "channel_id must be set")
+}
+
+func Test_MsgServer_AddAttestor_WithChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create bridge
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	// create attestor
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	attestor := types.Attestor{
+		OperatorAddress: testutil.ValAddrsStr[0],
+		ConsensusPubkey: pkAny1,
+		Moniker:         "attestor1",
+	}
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// add attestor should succeed
+	msg := types.NewMsgAddAttestor(govAddr, bridgeId, attestor)
+	_, err = ms.AddAttestor(ctx, msg)
+	require.NoError(t, err)
+
+	// verify attestor was added
+	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
+	require.NoError(t, err)
+	require.Len(t, config.AttestorSet, 1)
+	require.Equal(t, testutil.ValAddrsStr[0], config.AttestorSet[0].OperatorAddress)
+}
+
+func Test_MsgServer_RemoveAttestor_EmptyChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create attestor
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	attestor := types.Attestor{
+		OperatorAddress: testutil.ValAddrsStr[0],
+		ConsensusPubkey: pkAny1,
+		Moniker:         "attestor1",
+	}
+
+	// create bridge without channel_id but with existing attestor
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{attestor},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// remove attestor should fail due to empty channel id
+	msg := types.NewMsgRemoveAttestor(govAddr, bridgeId, testutil.ValAddrsStr[0])
+	_, err = ms.RemoveAttestor(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "channel_id must be set")
+}
+
+func Test_MsgServer_RemoveAttestor_WithChannelId(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	govAddr, err := input.AccountKeeper.AddressCodec().BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	require.NoError(t, err)
+
+	// create attestor
+	privKey1 := ed25519.GenPrivKey()
+	pubKey1 := privKey1.PubKey()
+	pkAny1, err := codectypes.NewAnyWithValue(pubKey1)
+	require.NoError(t, err)
+
+	attestor := types.Attestor{
+		OperatorAddress: testutil.ValAddrsStr[0],
+		ConsensusPubkey: pkAny1,
+		Moniker:         "attestor1",
+	}
+
+	// create bridge with both channel_id and attestor
+	bridgeId := uint64(1)
+	bridgeConfig := types.BridgeConfig{
+		Proposer:              testutil.AddrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		SubmissionInterval:    100,
+		FinalizationPeriod:    1000,
+		SubmissionStartHeight: 1,
+		ChannelId:             "channel-0",
+		BatchInfo: types.BatchInfo{
+			Submitter: testutil.AddrsStr[2],
+			ChainType: types.BatchInfo_INITIA,
+		},
+		AttestorSet: []types.Attestor{attestor},
+	}
+	err = input.OPHostKeeper.SetBridgeConfig(ctx, bridgeId, bridgeConfig)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
+
+	// remove attestor should succeed
+	msg := types.NewMsgRemoveAttestor(govAddr, bridgeId, testutil.ValAddrsStr[0])
+	_, err = ms.RemoveAttestor(ctx, msg)
+	require.NoError(t, err)
+
+	// verify attestor was removed
+	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
+	require.NoError(t, err)
+	require.Len(t, config.AttestorSet, 0)
 }

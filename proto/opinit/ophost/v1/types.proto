@@ -60,6 +60,8 @@ message BridgeConfig {
   bool oracle_enabled = 7;
 
   // Normally it is IBC channelID for permissioned IBC relayer.
+  // DEPRECATED: This field is deprecated and kept for backward compatibility.
+  // Use channel_id instead.
   bytes metadata = 8;
 
   // bridge_disabled is a flag to disable the bridge.
@@ -77,6 +79,9 @@ message BridgeConfig {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  // channel_id is the IBC channel ID for the opinit port, used for relaying attestor set updates and oracle data to L2.
+  string channel_id = 12;
 }
 
 // BatchInfo defines the set of batch information.

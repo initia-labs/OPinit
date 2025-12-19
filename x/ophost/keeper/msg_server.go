@@ -10,12 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
-	"github.com/initia-labs/OPinit/x/ophost/types/hook"
 )
 
 type MsgServer struct {
@@ -552,6 +550,36 @@ func (ms MsgServer) UpdateOracleConfig(ctx context.Context, req *types.MsgUpdate
 	return &types.MsgUpdateOracleConfigResponse{}, nil
 }
 
+func (ms MsgServer) UpdateChannelId(ctx context.Context, req *types.MsgUpdateChannelId) (*types.MsgUpdateChannelIdResponse, error) {
+	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
+		return nil, err
+	}
+
+	bridgeId := req.BridgeId
+	config, err := ms.GetBridgeConfig(ctx, bridgeId)
+	if err != nil {
+		return nil, err
+	}
+
+	// gov or current proposer can update channel ID.
+	if ms.authority != req.Authority && config.Proposer != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s or %s, got %s", ms.authority, config.Proposer, req.Authority)
+	}
+
+	config.ChannelId = req.ChannelId
+
+	if err := ms.SetBridgeConfig(ctx, bridgeId, config); err != nil {
+		return nil, err
+	}
+
+	sdk.UnwrapSDKContext(ctx).EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateChannelId,
+		sdk.NewAttribute(types.AttributeKeyBridgeId, strconv.FormatUint(bridgeId, 10)),
+		sdk.NewAttribute(types.AttributeKeyChannelId, config.ChannelId),
+	))
+	return &types.MsgUpdateChannelIdResponse{}, nil
+}
+
 func (ms MsgServer) UpdateMetadata(ctx context.Context, req *types.MsgUpdateMetadata) (*types.MsgUpdateMetadataResponse, error) {
 	if err := req.Validate(ms.authKeeper.AddressCodec()); err != nil {
 		return nil, err
@@ -672,8 +700,6 @@ func (ms MsgServer) DisableBridge(ctx context.Context, req *types.MsgDisableBrid
 
 // RegisterAttestorSet implements registering/replacing the entire attestor set
 func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegisterAttestorSet) (*types.MsgRegisterAttestorSetResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
 		return nil, err
 	}
@@ -694,17 +720,11 @@ func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegis
 		return nil, err
 	}
 
-	channelID, err := hook.GetOpinitChannelID(config.Metadata)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
+	if config.ChannelId == "" {
+		return nil, types.ErrInvalidChannelId.Wrap("channel_id must be set to relay attestor set updates")
 	}
 
-	found := ms.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
-	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
-	}
-
-	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, channelID); err != nil {
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, config.ChannelId); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
 	}
 
@@ -719,8 +739,6 @@ func (ms MsgServer) RegisterAttestorSet(ctx context.Context, req *types.MsgRegis
 
 // AddAttestor implements adding a single attestor to the set
 func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) (*types.MsgAddAttestorResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
 		return nil, err
 	}
@@ -746,17 +764,11 @@ func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) 
 		return nil, err
 	}
 
-	channelID, err := hook.GetOpinitChannelID(config.Metadata)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
+	if config.ChannelId == "" {
+		return nil, types.ErrInvalidChannelId.Wrap("channel_id must be set to relay attestor set updates")
 	}
 
-	found := ms.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
-	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
-	}
-
-	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, channelID); err != nil {
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, config.ChannelId); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
 	}
 
@@ -771,8 +783,6 @@ func (ms MsgServer) AddAttestor(ctx context.Context, req *types.MsgAddAttestor) 
 
 // RemoveAttestor implements removing a single attestor from the set
 func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAttestor) (*types.MsgRemoveAttestorResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	if err := req.Validate(ms.authKeeper.AddressCodec(), ms.ValidatorAddressCodec()); err != nil {
 		return nil, err
 	}
@@ -807,17 +817,11 @@ func (ms MsgServer) RemoveAttestor(ctx context.Context, req *types.MsgRemoveAtte
 		return nil, err
 	}
 
-	channelID, err := hook.GetOpinitChannelID(config.Metadata)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to get opinit channel ID from metadata")
+	if config.ChannelId == "" {
+		return nil, types.ErrInvalidChannelId.Wrap("channel_id must be set to relay attestor set updates")
 	}
 
-	foundChannel := ms.channelKeeper.HasChannel(sdkCtx, types.PortID, channelID)
-	if !foundChannel {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", types.PortID, channelID)
-	}
-
-	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, channelID); err != nil {
+	if err := ms.SendAttestorSetUpdatePacket(ctx, bridgeId, types.PortID, config.ChannelId); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to send attestor set update packet to L2")
 	}
 

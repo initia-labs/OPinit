@@ -21,6 +21,7 @@ var (
 	_ sdk.Msg = &MsgUpdateChallenger{}
 	_ sdk.Msg = &MsgUpdateBatchInfo{}
 	_ sdk.Msg = &MsgUpdateMetadata{}
+	_ sdk.Msg = &MsgUpdateChannelId{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgUpdateFinalizationPeriod{}
 	_ sdk.Msg = &MsgRegisterMigrationInfo{}
@@ -426,6 +427,38 @@ func (msg MsgUpdateOracleConfig) Validate(accAddressCodec address.Codec) error {
 	if msg.BridgeId == 0 {
 		return ErrInvalidBridgeId
 	}
+	return nil
+}
+
+/* MsgUpdateChannelId */
+
+// NewMsgUpdateChannelId creates a new MsgUpdateChannelId instance.
+func NewMsgUpdateChannelId(
+	authority string,
+	bridgeId uint64,
+	channelId string,
+) *MsgUpdateChannelId {
+	return &MsgUpdateChannelId{
+		Authority: authority,
+		BridgeId:  bridgeId,
+		ChannelId: channelId,
+	}
+}
+
+// Validate performs basic MsgUpdateChannelId message validation.
+func (msg MsgUpdateChannelId) Validate(accAddressCodec address.Codec) error {
+	if _, err := accAddressCodec.StringToBytes(msg.Authority); err != nil {
+		return err
+	}
+
+	if msg.BridgeId == 0 {
+		return ErrInvalidBridgeId
+	}
+
+	if msg.ChannelId == "" {
+		return ErrInvalidChannelId
+	}
+
 	return nil
 }
 
