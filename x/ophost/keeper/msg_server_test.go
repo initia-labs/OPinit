@@ -926,15 +926,11 @@ func Test_MsgServer_UpdateChannelId_AsProposer(t *testing.T) {
 
 	ms := keeper.NewMsgServerImpl(input.OPHostKeeper)
 
-	// proposer can update channel id
+	// proposer cannot update channel id
 	msg := types.NewMsgUpdateChannelId(testutil.AddrsStr[0], bridgeId, "channel-10")
 	_, err = ms.UpdateChannelId(ctx, msg)
-	require.NoError(t, err)
-
-	// verify channel id was updated
-	config, err := input.OPHostKeeper.GetBridgeConfig(ctx, bridgeId)
-	require.NoError(t, err)
-	require.Equal(t, "channel-10", config.ChannelId)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid authority")
 }
 
 func Test_MsgServer_UpdateChannelId_InvalidAuthority(t *testing.T) {

@@ -47,6 +47,20 @@ func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "expected ORDER_UNORDERED channel")
+
+	// invalid port
+	_, err = ibcModule.OnChanOpenInit(
+		ctx,
+		channeltypes.UNORDERED,
+		[]string{"connection-0"},
+		"invalid-port",
+		"channel-2",
+		capability,
+		channeltypes.NewCounterparty(ophosttypes.PortID, "channel-3"),
+		ophosttypes.Version,
+	)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid port")
 }
 
 func Test_OPHostIBCModule_OnChanCloseInit(t *testing.T) {
