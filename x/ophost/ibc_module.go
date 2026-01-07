@@ -34,7 +34,7 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 }
 
 // ValidateOPHostChannelParams does validation of a newly created ophost channel. An ophost channel must be UNORDERED,
-// use the correct port (by default 'ophost')
+// use the correct port (by default 'opinit')
 func ValidateOPHostChannelParams(
 	ctx sdk.Context,
 	keeper keeper.Keeper,
@@ -43,6 +43,11 @@ func ValidateOPHostChannelParams(
 ) error {
 	if order != channeltypes.UNORDERED {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s ", channeltypes.UNORDERED, order)
+	}
+
+	boundPort := types.PortID
+	if boundPort != portID {
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
 
 	return nil

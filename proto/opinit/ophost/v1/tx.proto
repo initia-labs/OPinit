@@ -370,8 +370,7 @@ message MsgUpdateChannelId {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "ophost/MsgUpdateChannelId";
 
-  // authority is the address that controls the module (defaults to x/gov unless overwritten)
-  // or the current proposer address.
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1 [
     (gogoproto.moretags) = "yaml:\"authority\"",
     (cosmos_proto.scalar) = "cosmos.AddressString"

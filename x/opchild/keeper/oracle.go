@@ -286,9 +286,10 @@ func (k Keeper) verifyOraclePricesHash(oracleData types.OracleData) error {
 // processBatchedOraclePriceUpdate processes multiple currency pair price updates from L1.
 func (k Keeper) processBatchedOraclePriceUpdate(ctx context.Context, oracleData types.OracleData) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	l1Time := time.Unix(0, oracleData.L1BlockTime)
 
 	for _, priceData := range oracleData.Prices {
+		priceTimestamp := time.Unix(0, priceData.Timestamp)
+
 		cp, err := connecttypes.CurrencyPairFromString(priceData.CurrencyPair)
 		if err != nil {
 			k.Logger(ctx).Error("invalid currency pair format",
@@ -309,11 +310,11 @@ func (k Keeper) processBatchedOraclePriceUpdate(ctx context.Context, oracleData 
 				)
 				continue
 			}
-		} else if !l1Time.After(existingPrice.BlockTimestamp) {
+		} else if !priceTimestamp.After(existingPrice.BlockTimestamp) {
 			k.Logger(ctx).Debug("skipping stale oracle price",
 				"currency_pair", priceData.CurrencyPair,
 				"existing_timestamp", existingPrice.BlockTimestamp,
-				"new_timestamp", l1Time,
+				"new_timestamp", priceTimestamp,
 			)
 			continue
 		}
@@ -330,7 +331,7 @@ func (k Keeper) processBatchedOraclePriceUpdate(ctx context.Context, oracleData 
 		// we store l1 timestamp for staleness checks, l2 block height for reference
 		qp := oracletypes.QuotePrice{
 			Price:          priceInt,
-			BlockTimestamp: l1Time,
+			BlockTimestamp: priceTimestamp,
 			BlockHeight:    uint64(sdkCtx.BlockHeight()), //nolint:gosec
 		}
 
