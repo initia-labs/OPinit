@@ -314,6 +314,10 @@ func (k Keeper) BindPort(ctx context.Context, portID string) error {
 
 // ClaimCapability claims a channel capability for the ophost module
 func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
+	if err := k.ensureIBCKeepersSet(); err != nil {
+		return err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
