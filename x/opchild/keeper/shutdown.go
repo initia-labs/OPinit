@@ -9,7 +9,6 @@ import (
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -20,9 +19,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
-
-var dummyValAddr = sdk.ValAddress(make([]byte, 20))
-var dummyPubKey = &ed25519.PubKey{Key: make([]byte, ed25519.PubKeySize)}
 
 const MaxWithdrawCount = 100
 
