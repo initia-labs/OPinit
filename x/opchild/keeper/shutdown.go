@@ -36,35 +36,27 @@ func (k Keeper) IsBridgeDisabled(ctx context.Context) (bool, error) {
 	return bridgeConfig.BridgeConfig.BridgeDisabled, nil
 }
 
-func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
+func (k *Keeper) Shutdown(ctx context.Context) error {
 	ms := NewMsgServerImpl(k)
 	withdrawCount := 0
 
 	shutdownInfo, err := k.ShutdownInfo.Get(ctx)
 	if err != nil && !errors.Is(err, collections.ErrNotFound) {
-		return false, err
-	}
-
-	if shutdownInfo.LastBlock {
-		dummyVal, err := types.NewValidator(dummyValAddr, dummyPubKey, "")
-		if err != nil {
-			return false, err
-		}
-		return true, k.ChangeExecutor(ctx, types.ExecutorChangePlan{
-			NextValidator: dummyVal,
-		})
+		return err
+	} else if shutdownInfo.LastBlock {
+		return nil
 	}
 
 	// get the auth keeper
 	authKeeper, ok := k.authKeeper.(*authkeeper.AccountKeeper)
 	if !ok {
-		return false, errors.New("unexpected auth keeper type")
+		return errors.New("unexpected auth keeper type")
 	}
 
 	// iterate all accounts from the last processed address
 	iter, err := authKeeper.Accounts.Iterate(ctx, new(collections.Range[sdk.AccAddress]).StartExclusive(shutdownInfo.LastAddr))
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer iter.Close()
 
@@ -74,11 +66,11 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 		var acc sdk.AccountI
 		addr, err = iter.Key()
 		if err != nil {
-			return false, err
+			return err
 		}
 		acc, err = iter.Value()
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		if _, ok := acc.(sdk.ModuleAccountI); ok {
@@ -193,23 +185,23 @@ func (k *Keeper) Shutdown(ctx context.Context) (bool, error) {
 		lastAddr = addr
 	}
 	if err != nil {
-		return false, err
+		return err
 	} else if !bytes.Equal(shutdownInfo.LastAddr, lastAddr.Bytes()) {
 		shutdownInfo.LastAddr = lastAddr.Bytes()
 		err := k.ShutdownInfo.Set(ctx, shutdownInfo)
 		if err != nil {
-			return false, err
+			return err
 		}
 	}
 
 	if withdrawCount == MaxWithdrawCount {
-		return false, nil
+		return nil
 	}
 
 	shutdownInfo.LastBlock = true
 	err = k.ShutdownInfo.Set(ctx, shutdownInfo)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return false, nil
+	return nil
 }

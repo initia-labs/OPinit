@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
@@ -114,40 +113,22 @@ func TestShutdown(t *testing.T) {
 	ibcAccount0 := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(ibcDenom, math.NewInt(100)))
 	ibcAccount1 := input.Faucet.NewFundedAccount(ctx, sdk.NewCoin(ibcDenom2, math.NewInt(100)))
 
-	end, err := input.OPChildKeeper.Shutdown(ctx)
+	err = input.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
-	require.False(t, end)
 
 	shutdownInfo, err := input.OPChildKeeper.ShutdownInfo.Get(ctx)
 	require.NoError(t, err)
 	require.False(t, shutdownInfo.LastBlock)
 
-	end, err = input.OPChildKeeper.Shutdown(ctx)
+	err = input.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
-	require.False(t, end)
 
 	shutdownInfo, err = input.OPChildKeeper.ShutdownInfo.Get(ctx)
 	require.NoError(t, err)
 	require.True(t, shutdownInfo.LastBlock)
 
-	end, err = input.OPChildKeeper.Shutdown(ctx)
+	err = input.OPChildKeeper.Shutdown(ctx)
 	require.NoError(t, err)
-	require.True(t, end)
-
-	vals, err := input.OPChildKeeper.GetAllValidators(ctx)
-	require.NoError(t, err)
-	require.Len(t, vals, 2)
-
-	cnt := 0
-	for _, val := range vals {
-		if val.ConsPower == 1 {
-			valPubKey, err := val.ConsPubKey()
-			require.NoError(t, err)
-			require.Equal(t, &ed25519.PubKey{Key: make([]byte, ed25519.PubKeySize)}, valPubKey)
-			cnt++
-		}
-	}
-	require.Equal(t, 1, cnt)
 
 	balances = input.BankKeeper.GetAllBalances(ctx, testutil.Addrs[1])
 	require.Len(t, balances, 0)
