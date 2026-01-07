@@ -124,10 +124,6 @@ func (ms MsgServer) ProposeOutput(ctx context.Context, req *types.MsgProposeOutp
 		return nil, err
 	}
 
-	if bridgeConfig.BridgeDisabled {
-		return nil, types.ErrBridgeDisabled
-	}
-
 	// permission check
 	if proposer != bridgeConfig.Proposer {
 		return nil, sdkerrors.ErrUnauthorized.Wrap("invalid proposer")

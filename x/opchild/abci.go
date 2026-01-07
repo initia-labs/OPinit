@@ -38,9 +38,9 @@ func EndBlocker(ctx context.Context, k *keeper.Keeper) ([]abci.ValidatorUpdate, 
 	if disabled, err := k.IsBridgeDisabled(ctx); err != nil {
 		return nil, err
 	} else if disabled {
-		// when the bridge is disabled, shutdown the validator set
-		_, err := k.Shutdown(ctx)
-		if err != nil {
+		// when the bridge is disabled, do shutdown process
+		// - withdraw all user funds to L1
+		if err := k.Shutdown(ctx); err != nil {
 			return nil, err
 		}
 	}
