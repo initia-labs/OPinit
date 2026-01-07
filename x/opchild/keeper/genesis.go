@@ -28,6 +28,15 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 	sdkCtx = sdkCtx.WithBlockHeight(1 - sdk.ValidatorUpdateDelay)
 	ctx = sdkCtx
 
+	if bound, err := k.IsBound(ctx, types.PortID); err != nil {
+		panic(err)
+	} else if !bound {
+		err := k.BindPort(ctx, types.PortID)
+		if err != nil {
+			panic(fmt.Sprintf("could not bind port: %v", err))
+		}
+	}
+
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
 	}

@@ -4,31 +4,32 @@ import (
 	"testing"
 	"time"
 
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GenesisExport(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challenger:            addrsStr[1],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    100,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	config2 := types.BridgeConfig{
-		Challenger:            addrsStr[2],
-		Proposer:              addrsStr[3],
+		Challenger:            testutil.AddrsStr[2],
+		Proposer:              testutil.AddrsStr[3],
 		SubmissionInterval:    200,
 		FinalizationPeriod:    200,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{3, 4, 5},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 1, config1))
 	require.NoError(t, input.OPHostKeeper.SetBridgeConfig(ctx, 2, config2))
@@ -67,9 +68,9 @@ func Test_GenesisExport(t *testing.T) {
 	require.NoError(t, input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{1, 2, 3}))
 	require.NoError(t, input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{3, 4, 5}))
 
-	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, types.Output{}))
-	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[1], ChainType: types.BatchInfo_CELESTIA}, output1))
-	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, output3))
+	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}, types.Output{}))
+	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: testutil.AddrsStr[1], ChainType: types.BatchInfo_CELESTIA}, output1))
+	require.NoError(t, input.OPHostKeeper.SetBatchInfo(ctx, 1, types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}, output3))
 
 	// set migration info
 	require.NoError(t, input.OPHostKeeper.SetMigrationInfo(ctx, types.MigrationInfo{
@@ -116,9 +117,9 @@ func Test_GenesisExport(t *testing.T) {
 			{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		BatchInfos: []types.BatchInfoWithOutput{
-			{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: types.Output{}},
-			{BatchInfo: types.BatchInfo{Submitter: addrsStr[1], ChainType: types.BatchInfo_CELESTIA}, Output: output1},
-			{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: output3},
+			{BatchInfo: types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: types.Output{}},
+			{BatchInfo: types.BatchInfo{Submitter: testutil.AddrsStr[1], ChainType: types.BatchInfo_CELESTIA}, Output: output1},
+			{BatchInfo: types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: output3},
 		},
 	}, genState.Bridges[0])
 
@@ -139,16 +140,16 @@ func Test_GenesisExport(t *testing.T) {
 }
 
 func Test_GenesisImportExport(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	params := input.OPHostKeeper.GetParams(ctx)
 	config1 := types.BridgeConfig{
-		Challenger:            addrsStr[1],
-		Proposer:              addrsStr[0],
+		Challenger:            testutil.AddrsStr[1],
+		Proposer:              testutil.AddrsStr[0],
 		SubmissionInterval:    100,
 		FinalizationPeriod:    100,
 		SubmissionStartHeight: 1,
 		Metadata:              []byte{1, 2, 3},
-		BatchInfo:             types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA},
+		BatchInfo:             types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA},
 	}
 	output1 := types.Output{
 		OutputRoot:    []byte{1, 2, 3},
@@ -198,9 +199,9 @@ func Test_GenesisImportExport(t *testing.T) {
 					{3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 				},
 				BatchInfos: []types.BatchInfoWithOutput{
-					{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: types.Output{}},
-					{BatchInfo: types.BatchInfo{Submitter: addrsStr[1], ChainType: types.BatchInfo_CELESTIA}, Output: output1},
-					{BatchInfo: types.BatchInfo{Submitter: addrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: output3},
+					{BatchInfo: types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: types.Output{}},
+					{BatchInfo: types.BatchInfo{Submitter: testutil.AddrsStr[1], ChainType: types.BatchInfo_CELESTIA}, Output: output1},
+					{BatchInfo: types.BatchInfo{Submitter: testutil.AddrsStr[0], ChainType: types.BatchInfo_INITIA}, Output: output3},
 				},
 			}},
 		NextBridgeId: 2,

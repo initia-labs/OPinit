@@ -10,14 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"cosmossdk.io/core/address"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/core/address"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophostcli "github.com/initia-labs/OPinit/x/ophost/client/cli"
@@ -41,6 +43,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 		NewSetBridgeInfoCmd(ac),
 		NewUpdateOracleCmd(ac),
 		NewMigrateTokenCmd(ac),
+		NewRelayOracleDataCmd(ac),
 	)
 
 	return opchildTxCmd
@@ -403,6 +406,141 @@ func NewSetBridgeInfoCmd(ac address.Codec) *cobra.Command {
 				BridgeConfig: bridgeConfig,
 			})
 			if err = msg.Validate(ac); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewRelayOracleDataCmd returns a CLI command handler for relayers to submit batched oracle data from L1.
+func NewRelayOracleDataCmd(ac address.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "relay-oracle-data [bridge-id] [oracle-hash] [prices-json-file] [l1-height] [l1-time] [proof] [proof-height]",
+		Short: "relay batched oracle price data from L1 with state proof",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`relay batched oracle price data from L1 to L2 with a Merkle proof of the oracle price hash.
+						
+						The prices JSON file should contain an array of price data objects:
+						[
+						  {
+							"currency_pair": "BTC/USD",
+							"price": "10177449000",
+							"decimals": 5,
+							"nonce": 123,
+							"currency_pair_id": 4,
+							"timestamp": 1699999999000000000
+						  },
+						  {
+							"currency_pair": "ETH/USD",
+							"price": "305678900",
+							"decimals": 5,
+							"nonce": 124,
+							"currency_pair_id": 5,
+							"timestamp": 1699999999000000000
+						  }
+						]
+						
+						Example:
+						$ %s tx opchild relay-oracle-data 1 0xabcd1234... prices.json 9666412 1699999999000000000 0xdef567... 1/9666412 --from relayer
+						
+						Note: IBC proof height should be in format "revision-number/revision-height" (e.g., "1/9666412")
+						Note: The proof verifies the oracle price hash stored in L1's ophost module
+						`, version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(7),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			bridgeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid bridge-id: %w", err)
+			}
+
+			oracleHashHex := strings.TrimPrefix(args[1], "0x")
+			oracleHash, err := hex.DecodeString(oracleHashHex)
+			if err != nil {
+				return fmt.Errorf("invalid oracle-hash hex: %w", err)
+			}
+
+			pricesFile := args[2]
+			pricesJSON, err := os.ReadFile(pricesFile)
+			if err != nil {
+				return fmt.Errorf("failed to read prices file: %w", err)
+			}
+
+			var prices []types.OraclePriceData
+			if err := json.Unmarshal(pricesJSON, &prices); err != nil {
+				return fmt.Errorf("failed to parse prices JSON: %w", err)
+			}
+
+			if len(prices) == 0 {
+				return fmt.Errorf("prices array cannot be empty")
+			}
+
+			l1Height, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid l1-height: %w", err)
+			}
+
+			l1Time, err := strconv.ParseInt(args[4], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid l1-time: %w", err)
+			}
+
+			proofHex := strings.TrimPrefix(args[5], "0x")
+			proof, err := hex.DecodeString(proofHex)
+			if err != nil {
+				return fmt.Errorf("invalid proof hex: %w", err)
+			}
+
+			proofHeightParts := strings.Split(args[6], "/")
+			if len(proofHeightParts) != 2 {
+				return fmt.Errorf("invalid proof-height format, expected 'revision-number/revision-height'")
+			}
+
+			revisionNumber, err := strconv.ParseUint(proofHeightParts[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid proof-height revision-number: %w", err)
+			}
+
+			revisionHeight, err := strconv.ParseUint(proofHeightParts[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid proof-height revision-height: %w", err)
+			}
+
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRelayOracleData(
+				fromAddr,
+				types.OracleData{
+					BridgeId:        bridgeId,
+					OraclePriceHash: oracleHash,
+					Prices:          prices,
+					L1BlockHeight:   l1Height,
+					L1BlockTime:     l1Time,
+					Proof:           proof,
+					ProofHeight: clienttypes.Height{
+						RevisionNumber: revisionNumber,
+						RevisionHeight: revisionHeight,
+					},
+				},
+			)
+
+			if err := msg.Validate(ac); err != nil {
 				return err
 			}
 

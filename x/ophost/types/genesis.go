@@ -11,7 +11,7 @@ const (
 )
 
 // NewGenesisState creates a new GenesisState instance
-func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64, migrationInfos []MigrationInfo) *GenesisState {
+func NewGenesisState(params Params, bridges []Bridge, nextBridgeId uint64, migrationInfos []MigrationInfo, portID string) *GenesisState {
 	return &GenesisState{
 		Params:         params,
 		Bridges:        bridges,
@@ -32,9 +32,9 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis performs basic validation of rollup genesis data returning an
 // error for any failed validation criteria.
-func ValidateGenesis(data *GenesisState, ac address.Codec) error {
+func ValidateGenesis(data *GenesisState, ac address.Codec, vc address.Codec) error {
 	for _, bridge := range data.Bridges {
-		if err := bridge.BridgeConfig.Validate(ac); err != nil {
+		if err := bridge.BridgeConfig.Validate(ac, vc); err != nil {
 			return err
 		}
 

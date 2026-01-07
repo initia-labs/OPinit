@@ -1,4 +1,4 @@
-package keeper_test
+package testutil
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cometbft/cometbft/crypto"
@@ -44,45 +47,58 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	ophost "github.com/initia-labs/OPinit/x/ophost"
 	ophostkeeper "github.com/initia-labs/OPinit/x/ophost/keeper"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
-var ModuleBasics = module.NewBasicManager(
-	auth.AppModuleBasic{},
-	bank.AppModuleBasic{},
-	ophost.AppModuleBasic{},
-)
-
 var (
-	pubKeys = []crypto.PubKey{
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
-		secp256k1.GenPrivKey().PubKey(),
+	// ModuleBasics is the basic manager for the ophost module
+	ModuleBasics = module.NewBasicManager(
+		auth.AppModuleBasic{},
+		bank.AppModuleBasic{},
+		ophost.AppModuleBasic{},
+	)
+
+	PubKeys = testutil.GenPubKeys(5)
+
+	Addrs = []sdk.AccAddress{
+		sdk.AccAddress(PubKeys[0].Address()),
+		sdk.AccAddress(PubKeys[1].Address()),
+		sdk.AccAddress(PubKeys[2].Address()),
+		sdk.AccAddress(PubKeys[3].Address()),
+		sdk.AccAddress(PubKeys[4].Address()),
 	}
 
-	addrs = []sdk.AccAddress{
-		sdk.AccAddress(pubKeys[0].Address()),
-		sdk.AccAddress(pubKeys[1].Address()),
-		sdk.AccAddress(pubKeys[2].Address()),
-		sdk.AccAddress(pubKeys[3].Address()),
-		sdk.AccAddress(pubKeys[4].Address()),
+	AddrsStr = []string{
+		Addrs[0].String(),
+		Addrs[1].String(),
+		Addrs[2].String(),
+		Addrs[3].String(),
+		Addrs[4].String(),
 	}
 
-	addrsStr = []string{
-		addrs[0].String(),
-		addrs[1].String(),
-		addrs[2].String(),
-		addrs[3].String(),
-		addrs[4].String(),
+	ValAddrs = []sdk.ValAddress{
+		sdk.ValAddress(PubKeys[0].Address()),
+		sdk.ValAddress(PubKeys[1].Address()),
+		sdk.ValAddress(PubKeys[2].Address()),
+		sdk.ValAddress(PubKeys[3].Address()),
+		sdk.ValAddress(PubKeys[4].Address()),
 	}
 
-	testDenoms = []string{
+	ValAddrsStr = []string{
+		ValAddrs[0].String(),
+		ValAddrs[1].String(),
+		ValAddrs[2].String(),
+		ValAddrs[3].String(),
+		ValAddrs[4].String(),
+	}
+
+	TestDenoms = []string{
 		"test1",
 		"test2",
 		"test3",
@@ -130,15 +146,6 @@ func MakeEncodingConfig(_ testing.TB) EncodingConfig {
 	}
 }
 
-func initialTotalSupply() sdk.Coins {
-	faucetBalance := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initiaSupply))
-	for _, testDenom := range testDenoms {
-		faucetBalance = faucetBalance.Add(sdk.NewCoin(testDenom, initiaSupply))
-	}
-
-	return faucetBalance
-}
-
 type TestFaucet struct {
 	t                testing.TB
 	bankKeeper       bankkeeper.Keeper
@@ -150,7 +157,7 @@ type TestFaucet struct {
 func NewTestFaucet(t testing.TB, ctx sdk.Context, bankKeeper bankkeeper.Keeper, minterModuleName string, initiaSupply ...sdk.Coin) *TestFaucet {
 	require.NotEmpty(t, initiaSupply)
 	r := &TestFaucet{t: t, bankKeeper: bankKeeper, minterModuleName: minterModuleName}
-	_, _, addr := keyPubAddr()
+	_, _, addr := KeyPubAddr()
 	r.sender = addr
 	r.Mint(ctx, addr, initiaSupply...)
 	r.balance = initiaSupply
@@ -181,7 +188,7 @@ func (f *TestFaucet) Fund(parentCtx sdk.Context, receiver sdk.AccAddress, amount
 }
 
 func (f *TestFaucet) NewFundedAccount(ctx sdk.Context, amounts ...sdk.Coin) sdk.AccAddress {
-	_, _, addr := keyPubAddr()
+	_, _, addr := KeyPubAddr()
 	f.Fund(ctx, addr, amounts...)
 	return addr
 }
@@ -191,28 +198,21 @@ type TestKeepers struct {
 	BankKeeper          bankkeeper.Keeper
 	OPHostKeeper        ophostkeeper.Keeper
 	CommunityPoolKeeper *MockCommunityPoolKeeper
-	BridgeHook          *bridgeHook
+	BridgeHook          *BridgeHook
 	EncodingConfig      EncodingConfig
 	Faucet              *TestFaucet
 	MultiStore          storetypes.CommitMultiStore
 	MockRouter          *MockRouter
 }
 
-// createDefaultTestInput common settings for createTestInput
-func createDefaultTestInput(t testing.TB) (sdk.Context, TestKeepers) {
-	return createTestInput(t, false)
-}
-
-// createTestInput encoders can be nil to accept the defaults, or set it to override some of the message handlers (like default)
-func createTestInput(t testing.TB, isCheckTx bool) (sdk.Context, TestKeepers) {
-	return _createTestInput(t, isCheckTx, dbm.NewMemDB())
+func CreateTestInput(t testing.TB, isCheckTx bool) (sdk.Context, TestKeepers) {
+	return createTestInput(t, isCheckTx, dbm.NewMemDB())
 }
 
 var keyCounter uint64
 
-// we need to make this deterministic (same every test run), as encoded address size and thus gas cost,
-// depends on the actual bytes (due to ugly CanonicalAddress encoding)
-func keyPubAddr() (crypto.PrivKey, crypto.PubKey, sdk.AccAddress) {
+// KeyPubAddr generates deterministic keys for testing
+func KeyPubAddr() (crypto.PrivKey, crypto.PubKey, sdk.AccAddress) {
 	keyCounter++
 	seed := make([]byte, 8)
 	binary.BigEndian.PutUint64(seed, keyCounter)
@@ -223,8 +223,15 @@ func keyPubAddr() (crypto.PrivKey, crypto.PubKey, sdk.AccAddress) {
 	return key, pub, addr
 }
 
-// encoders can be nil to accept the defaults, or set it to override some of the message handlers (like default)
-func _createTestInput(
+func initialTotalSupply() sdk.Coins {
+	faucetBalance := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initiaSupply))
+	for _, testDenom := range TestDenoms {
+		faucetBalance = faucetBalance.Add(sdk.NewCoin(testDenom, initiaSupply))
+	}
+	return faucetBalance
+}
+
+func createTestInput(
 	t testing.TB,
 	isCheckTx bool,
 	db dbm.DB,
@@ -291,8 +298,12 @@ func _createTestInput(
 	mockRouter := &MockRouter{
 		originMessageRouter: originMessageRouter,
 	}
-	bridgeHook := &bridgeHook{}
+	bridgeHook := &BridgeHook{}
 	communityPoolKeeper := &MockCommunityPoolKeeper{}
+	channelKeeper := &MockChannelKeeper{}
+	portKeeper := &MockPortKeeper{}
+	scopedKeeper := &MockScopedKeeper{}
+	oracleKeeper := &MockOracleKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
@@ -300,8 +311,13 @@ func _createTestInput(
 		accountKeeper,
 		bankKeeper,
 		communityPoolKeeper,
+		channelKeeper,
+		portKeeper,
+		scopedKeeper,
+		oracleKeeper,
 		bridgeHook,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 	)
 
 	ophostParams := ophosttypes.DefaultParams()
@@ -327,81 +343,81 @@ func _createTestInput(
 	return ctx, keepers
 }
 
-type bridgeHook struct {
-	proposer   string
-	challenger string
-	batchInfo  ophosttypes.BatchInfo
-	metadata   []byte
-	err        error
+type BridgeHook struct {
+	Proposer   string
+	Challenger string
+	BatchInfo  ophosttypes.BatchInfo
+	Metadata   []byte
+	Err        error
 }
 
-func (h *bridgeHook) BridgeCreated(
+func (h *BridgeHook) BridgeCreated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {
-	if h.err != nil {
-		return h.err
+	if h.Err != nil {
+		return h.Err
 	}
 
-	h.metadata = bridgeConfig.Metadata
-	h.proposer = bridgeConfig.Proposer
-	h.challenger = bridgeConfig.Challenger
+	h.Metadata = bridgeConfig.Metadata
+	h.Proposer = bridgeConfig.Proposer
+	h.Challenger = bridgeConfig.Challenger
 	return nil
 }
 
-func (h *bridgeHook) BridgeChallengerUpdated(
+func (h *BridgeHook) BridgeChallengerUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {
-	if h.err != nil {
-		return h.err
+	if h.Err != nil {
+		return h.Err
 	}
 
-	h.challenger = bridgeConfig.Challenger
-
-	return nil
-}
-
-func (h *bridgeHook) BridgeProposerUpdated(
-	ctx context.Context,
-	bridgeId uint64,
-	bridgeConfig ophosttypes.BridgeConfig,
-) error {
-	if h.err != nil {
-		return h.err
-	}
-
-	h.proposer = bridgeConfig.Proposer
+	h.Challenger = bridgeConfig.Challenger
 
 	return nil
 }
 
-func (h *bridgeHook) BridgeBatchInfoUpdated(
+func (h *BridgeHook) BridgeProposerUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {
-	if h.err != nil {
-		return h.err
+	if h.Err != nil {
+		return h.Err
 	}
 
-	h.batchInfo = bridgeConfig.BatchInfo
+	h.Proposer = bridgeConfig.Proposer
 
 	return nil
 }
 
-func (h *bridgeHook) BridgeMetadataUpdated(
+func (h *BridgeHook) BridgeBatchInfoUpdated(
 	ctx context.Context,
 	bridgeId uint64,
 	bridgeConfig ophosttypes.BridgeConfig,
 ) error {
-	if h.err != nil {
-		return h.err
+	if h.Err != nil {
+		return h.Err
 	}
 
-	h.metadata = bridgeConfig.Metadata
+	h.BatchInfo = bridgeConfig.BatchInfo
+
+	return nil
+}
+
+func (h *BridgeHook) BridgeMetadataUpdated(
+	ctx context.Context,
+	bridgeId uint64,
+	bridgeConfig ophosttypes.BridgeConfig,
+) error {
+	if h.Err != nil {
+		return h.Err
+	}
+
+	h.Metadata = bridgeConfig.Metadata
 
 	return nil
 }
@@ -414,11 +430,57 @@ type MockCommunityPoolKeeper struct {
 
 func (k *MockCommunityPoolKeeper) FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error {
 	k.CommunityPool = k.CommunityPool.Add(amount...)
-
 	return nil
 }
 
-// MockRouter handles IBC transfer messages for testing
+type MockChannelKeeper struct{}
+
+func (k *MockChannelKeeper) SendPacket(
+	ctx sdk.Context,
+	channelCap *capabilitytypes.Capability,
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) (sequence uint64, err error) {
+	return 1, nil
+}
+
+func (k *MockChannelKeeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
+	return true
+}
+
+type MockPortKeeper struct{}
+
+func (k *MockPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+	return &capabilitytypes.Capability{}
+}
+
+type MockScopedKeeper struct{}
+
+func (k *MockScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool) {
+	return &capabilitytypes.Capability{}, true
+}
+
+func (k *MockScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+	return nil
+}
+
+type MockOracleKeeper struct{}
+
+func (k *MockOracleKeeper) GetPriceForCurrencyPair(ctx context.Context, cp connecttypes.CurrencyPair) (oracletypes.QuotePrice, error) {
+	return oracletypes.QuotePrice{}, nil
+}
+
+func (k *MockOracleKeeper) GetCurrencyPairFromID(ctx context.Context, id uint64) (connecttypes.CurrencyPair, bool) {
+	return connecttypes.CurrencyPair{}, false
+}
+
+func (k *MockOracleKeeper) GetNumCurrencyPairs(ctx context.Context) (uint64, error) {
+	return 0, nil
+}
+
 type MockRouter struct {
 	originMessageRouter baseapp.MessageRouter
 	handledMsgs         []*transfertypes.MsgTransfer
@@ -471,4 +533,12 @@ func (router *MockRouter) Reset() {
 
 func (router *MockRouter) SetShouldFail(shouldFail bool) {
 	router.shouldFail = shouldFail
+}
+
+func GenPubKeys(n int) []crypto.PubKey {
+	pubKeys := make([]crypto.PubKey, n)
+	for i := 0; i < n; i++ {
+		pubKeys[i] = secp256k1.GenPrivKey().PubKey()
+	}
+	return pubKeys
 }

@@ -5,6 +5,7 @@ import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -59,6 +60,8 @@ message BridgeConfig {
   bool oracle_enabled = 7;
 
   // Normally it is IBC channelID for permissioned IBC relayer.
+  // DEPRECATED: This field is deprecated and kept for backward compatibility.
+  // Use channel_id instead.
   bytes metadata = 8;
 
   // bridge_disabled is a flag to disable the bridge.
@@ -70,6 +73,15 @@ message BridgeConfig {
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true
   ];
+
+  // attestor_set is the set of attestors.
+  repeated Attestor attestor_set = 11 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+
+  // channel_id is the IBC channel ID for the opinit port, used for relaying attestor set updates and oracle data to L2.
+  string channel_id = 12;
 }
 
 // BatchInfo defines the set of batch information.
@@ -135,4 +147,27 @@ message MigrationInfo {
   string ibc_port_id = 3;
   // L1Denom is the denom of the l1.
   string l1_denom = 4;
+}
+
+// Attestor defines an attestor in the bridge.
+message Attestor {
+  option (amino.name) = "ophost/Attestor";
+
+  // The validator operator address of the attestor.
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.ValidatorAddressString"];
+  // The consensus pubkey of the attestor.
+  google.protobuf.Any consensus_pubkey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  // The moniker of the attestor.
+  string moniker = 3;
+}
+
+// OraclePriceHash defines the hash of all oracle prices for a bridge.
+// This is computed and stored in EndBlock to enable batched oracle price relaying.
+message OraclePriceHash {
+  // hash is the hash of all oracle prices for the bridge.
+  bytes hash = 1;
+  // l1_block_height is the L1 block height at which this hash was computed.
+  uint64 l1_block_height = 2;
+  // l1_block_time is the L1 block timestamp when this hash was computed, in unix nanoseconds.
+  int64 l1_block_time = 3;
 }

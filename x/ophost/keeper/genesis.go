@@ -1,12 +1,21 @@
 package keeper
 
 import (
+	"fmt"
+
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
+	if !k.IsBound(ctx, types.PortID) {
+		err := k.BindPort(ctx, types.PortID)
+		if err != nil {
+			panic(fmt.Sprintf("could not bind port: %v", err))
+		}
+	}
+
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
 	}
@@ -67,7 +76,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 // GenesisState will contain the pool, params, validators, and bonds found in
 // the keeper.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-
 	var bridges []types.Bridge
 	err := k.IterateBridgeConfig(ctx, func(bridgeId uint64, bridgeConfig types.BridgeConfig) (stop bool, err error) {
 		nextL1Sequence, err := k.GetNextL1Sequence(ctx, bridgeId)

@@ -12,21 +12,22 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
 func Test_MsgServer_Deposit_HookEvents(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
 	bz := sha3.Sum256([]byte("test_token"))
 	denom := "l2/" + hex.EncodeToString(bz[:])
 
-	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
+	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], denom).Amount)
 
 	// empty deposit to create account
-	priv, _, addr := keyPubAddr()
-	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
+	priv, _, addr := testutil.KeyPubAddr()
+	msg := types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.ZeroInt()), 1, 1, "test_token", nil)
 	_, err := ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 
@@ -35,9 +36,9 @@ func Test_MsgServer_Deposit_HookEvents(t *testing.T) {
 	require.NotNil(t, acc)
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv}, []uint64{acc.GetAccountNumber()}, []uint64{0}
 	from, _ := input.AccountKeeper.AddressCodec().BytesToString(addr)
-	to, _ := input.AccountKeeper.AddressCodec().BytesToString(addrs[2])
+	to, _ := input.AccountKeeper.AddressCodec().BytesToString(testutil.Addrs[2])
 
-	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(generateTestTx(
+	signedTxBz, err := input.EncodingConfig.TxConfig.TxEncoder()(testutil.GenerateTestTx(
 		t, input,
 		[]sdk.Msg{
 			types.NewMsgInitiateTokenWithdrawal(from, to, sdk.NewCoin(denom, math.NewInt(50))),
@@ -48,7 +49,7 @@ func Test_MsgServer_Deposit_HookEvents(t *testing.T) {
 
 	// valid deposit
 	ctx = sdk.UnwrapSDKContext(ctx).WithEventManager(sdk.NewEventManager())
-	msg = types.NewMsgFinalizeTokenDeposit(addrsStr[0], addrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
+	msg = types.NewMsgFinalizeTokenDeposit(testutil.AddrsStr[0], testutil.AddrsStr[1], addr.String(), sdk.NewCoin(denom, math.NewInt(100)), 2, 1, "test_token", signedTxBz)
 	_, err = ms.FinalizeTokenDeposit(ctx, msg)
 	require.NoError(t, err)
 

@@ -4,6 +4,12 @@ const (
 	// ModuleName is the name of the ophost module
 	ModuleName = "ophost"
 
+	// Version defines the current version for ophost IBC module
+	Version = "opinit-1"
+
+	// PortID is the default port id for ophost module
+	PortID = "opinit"
+
 	// StoreKey is the string store representation
 	StoreKey = ModuleName
 
@@ -12,7 +18,6 @@ const (
 )
 
 var (
-
 	// Keys for store prefixes
 	NextBridgeIdKey = []byte{0x11}
 	ParamsKey       = []byte{0x12}
@@ -25,4 +30,5 @@ var (
 	ProvenWithdrawalPrefix = []byte{0x71}
 	BatchInfoPrefix        = []byte{0x81}
 	MigrationInfoPrefix    = []byte{0x91}
+	OraclePriceHashPrefix  = []byte{0xa1}
 )

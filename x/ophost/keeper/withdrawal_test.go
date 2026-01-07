@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/ophost/testutil"
 )
 
 func Test_ProvenWithdrawal(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
+	ctx, input := testutil.CreateTestInput(t, false)
 
 	require.NoError(t, input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{1, 2, 3}))
 	require.NoError(t, input.OPHostKeeper.RecordProvenWithdrawal(ctx, 1, [32]byte{4, 5, 6}))

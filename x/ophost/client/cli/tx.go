@@ -22,7 +22,7 @@ import (
 )
 
 // GetTxCmd returns a root CLI command handler for all x/ophost transaction commands.
-func GetTxCmd(ac address.Codec) *cobra.Command {
+func GetTxCmd(ac address.Codec, vc address.Codec) *cobra.Command {
 	ophostTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "OPHost transaction subcommands",
@@ -33,7 +33,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 
 	ophostTxCmd.AddCommand(
 		NewRecordBatchCmd(ac),
-		NewCreateBridge(ac),
+		NewCreateBridge(ac, vc),
 		NewProposeOutput(ac),
 		NewDeleteOutput(ac),
 		NewInitiateTokenDeposit(ac),
@@ -89,8 +89,8 @@ func NewRecordBatchCmd(ac address.Codec) *cobra.Command {
 	return cmd
 }
 
-// NewCreateBridgeCmd returns a CLI command handler for transaction to creating a bridge.
-func NewCreateBridge(ac address.Codec) *cobra.Command {
+// NewCreateBridge returns a CLI command handler for transaction to creating a bridge.
+func NewCreateBridge(ac address.Codec, vc address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-bridge [path/to/bridge-config.json]",
 		Short: "send a bridge creating tx",
@@ -157,7 +157,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 				OracleEnabled:         origConfig.OracleEnabled,
 			}
 
-			if err = config.Validate(ac); err != nil {
+			if err = config.Validate(ac, vc); err != nil {
 
 				return err
 			}
@@ -169,7 +169,7 @@ func NewCreateBridge(ac address.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgCreateBridge(fromAddr, config)
-			if err = msg.Validate(ac); err != nil {
+			if err = msg.Validate(ac, vc); err != nil {
 
 				return err
 			}

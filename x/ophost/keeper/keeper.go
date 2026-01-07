@@ -4,12 +4,15 @@ import (
 	"context"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/core/address"
 	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -23,10 +26,16 @@ type Keeper struct {
 	bankKeeper          types.BankKeeper
 	bridgeHook          types.BridgeHook
 	communityPoolKeeper types.CommunityPoolKeeper
+	channelKeeper       types.ChannelKeeper
+	portKeeper          types.PortKeeper
+	scopedKeeper        types.ScopedKeeper
+	oracleKeeper        types.OracleKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
+
+	validatorAddressCodec address.Codec
 
 	Schema            collections.Schema
 	NextBridgeId      collections.Sequence
@@ -39,6 +48,7 @@ type Keeper struct {
 	NextOutputIndexes collections.Map[uint64, uint64]
 	ProvenWithdrawals collections.Map[collections.Pair[uint64, []byte], bool]
 	MigrationInfos    collections.Map[collections.Pair[uint64, string], types.MigrationInfo]
+	OraclePriceHash   collections.Item[types.OraclePriceHash]
 }
 
 func NewKeeper(
@@ -48,8 +58,13 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	ck types.CommunityPoolKeeper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	scopedKeeper types.ScopedKeeper,
+	oracleKeeper types.OracleKeeper,
 	bridgeHook types.BridgeHook,
 	authority string,
+	validatorAddressCodec address.Codec,
 ) *Keeper {
 	// ensure that authority is a valid AccAddress
 	if _, err := ak.AddressCodec().StringToBytes(authority); err != nil {
@@ -66,9 +81,15 @@ func NewKeeper(
 		authKeeper:          ak,
 		bankKeeper:          bk,
 		communityPoolKeeper: ck,
+		channelKeeper:       channelKeeper,
+		portKeeper:          portKeeper,
+		scopedKeeper:        scopedKeeper,
+		oracleKeeper:        oracleKeeper,
 
 		bridgeHook: bridgeHook,
 		authority:  authority,
+
+		validatorAddressCodec: validatorAddressCodec,
 
 		NextBridgeId:      collections.NewSequence(sb, types.NextBridgeIdKey, "next_bridge_id"),
 		Params:            collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
@@ -80,6 +101,7 @@ func NewKeeper(
 		NextOutputIndexes: collections.NewMap(sb, types.NextOutputIndexPrefix, "next_output_indexes", collections.Uint64Key, collections.Uint64Value),
 		ProvenWithdrawals: collections.NewMap(sb, types.ProvenWithdrawalPrefix, "proven_withdrawals", collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey), collections.BoolValue),
 		MigrationInfos:    collections.NewMap(sb, types.MigrationInfoPrefix, "migration_infos", collections.PairKeyCodec(collections.Uint64Key, collections.StringKey), codec.CollValue[types.MigrationInfo](cdc)),
+		OraclePriceHash:   collections.NewItem(sb, types.OraclePriceHashPrefix, "oracle_price_hash", codec.CollValue[types.OraclePriceHash](cdc)),
 	}
 
 	schema, err := sb.Build()
@@ -96,8 +118,41 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
+// ValidatorAddressCodec returns the validator address codec.
+func (k Keeper) ValidatorAddressCodec() address.Codec {
+	return k.validatorAddressCodec
+}
+
+// IsBound checks if the ophost module is already bound to the desired port
+func (k Keeper) IsBound(ctx context.Context, portID string) bool {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
+
+	return ok
+}
+
+// BindPort defines a wrapper function for the Keeper's function to expose it to module's InitGenesis function
+func (k Keeper) BindPort(ctx context.Context, portID string) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	capability := k.portKeeper.BindPort(sdkCtx, portID)
+
+	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
+}
+
+// ClaimCapability claims a channel capability for the ophost module
+func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
+}
+
 // Logger returns a module-specific logger.
 func (k *Keeper) Logger(ctx context.Context) log.Logger {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return sdkCtx.Logger().With("module", "x/"+types.ModuleName)
+}
+
+// Codec returns the keeper codec
+func (k Keeper) Codec() codec.Codec {
+	return k.cdc
 }

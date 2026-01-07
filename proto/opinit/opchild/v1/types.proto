@@ -6,6 +6,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "ibc/core/client/v1/client.proto";
 import "opinit/ophost/v1/types.proto";
 import "tendermint/abci/types.proto";
 
@@ -147,6 +148,66 @@ message MigrationInfo {
 
   // ibc_port_id is the IBC port ID, which is allocated for l1 chain, in l2 chain state.
   string ibc_port_id = 3;
+}
+
+// OraclePriceData defines a single oracle price without proof (used in batched updates).
+message OraclePriceData {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // currency_pair is the currency pair being relayed.
+  string currency_pair = 1 [(gogoproto.moretags) = "yaml:\"currency_pair\""];
+
+  // price is the oracle price from L1.
+  string price = 2 [(gogoproto.moretags) = "yaml:\"price\""];
+
+  // decimals is the number of decimals for the price.
+  uint64 decimals = 3 [(gogoproto.moretags) = "yaml:\"decimals\""];
+
+  // nonce is the nonce from L1 oracle module.
+  uint64 nonce = 4 [(gogoproto.moretags) = "yaml:\"nonce\""];
+
+  // currency_pair_id is the ID of the currency pair in L1's oracle module.
+  uint64 currency_pair_id = 5 [(gogoproto.moretags) = "yaml:\"currency_pair_id\""];
+
+  // timestamp is the block timestamp of the price from L1's oracle module, in unix nanoseconds.
+  int64 timestamp = 6 [(gogoproto.moretags) = "yaml:\"timestamp\""];
+}
+
+// OracleData defines the oracle price data relayed from L1.
+// The relayer must provide batched oracle price data with a Merkle proof that the hash exists in
+// L1's ophost module state. L2 verifies the proof against L1's state root, updated by IBC light client.
+message OracleData {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // bridge_id is the unique identifier of the bridge.
+  uint64 bridge_id = 1 [(gogoproto.moretags) = "yaml:\"bridge_id\""];
+
+  // oracle_price_hash is the hash of all oracle prices stored in L1 ophost state.
+  bytes oracle_price_hash = 2 [(gogoproto.moretags) = "yaml:\"oracle_price_hash\""];
+
+  // prices contains all the oracle price data from L1.
+  repeated OraclePriceData prices = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+
+  // l1_block_height is the L1 block height at which this oracle data was recorded.
+  uint64 l1_block_height = 4 [(gogoproto.moretags) = "yaml:\"l1_block_height\""];
+
+  // l1_block_time is the L1 block timestamp, in unix nanoseconds.
+  int64 l1_block_time = 5 [(gogoproto.moretags) = "yaml:\"l1_block_time\""];
+
+  // proof is the Merkle proof that verifies the oracle_price_hash exists
+  // in L1's ophost module state at the specified height.
+  bytes proof = 6 [(gogoproto.moretags) = "yaml:\"proof\""];
+
+  // proof_height is the L1 height at which the proof was generated.
+  ibc.core.client.v1.Height proof_height = 7 [
+    (gogoproto.moretags) = "yaml:\"proof_height\"",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // ShutdownInfo defines the information of the shutdown.
