@@ -21,10 +21,17 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 
 	handler := lanes.SystemLaneMatchHandler()
 
-	// 1 system message
+	// 1 system message (MsgUpdateOracle)
 	require.True(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
 			&opchildtypes.MsgUpdateOracle{},
+		},
+	}))
+
+	// 1 system message (MsgRelayOracleData)
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&opchildtypes.MsgRelayOracleData{},
 		},
 	}))
 
@@ -33,6 +40,14 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 		msgs: []sdk.Msg{
 			&opchildtypes.MsgUpdateOracle{},
 			&opchildtypes.MsgUpdateOracle{},
+		},
+	}))
+
+	// 2 system messages (mixed)
+	require.False(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&opchildtypes.MsgUpdateOracle{},
+			&opchildtypes.MsgRelayOracleData{},
 		},
 	}))
 
@@ -47,7 +62,18 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 		&opchildtypes.MsgUpdateOracle{},
 	})
 
-	// 1 system message and authz.MsgExec
+	// authz.MsgExec with MsgUpdateOracle
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&authzMsg,
+		},
+	}))
+
+	authzMsg = authz.NewMsgExec(nil, []sdk.Msg{
+		&opchildtypes.MsgRelayOracleData{},
+	})
+
+	// authz.MsgExec with MsgRelayOracleData
 	require.True(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
 			&authzMsg,

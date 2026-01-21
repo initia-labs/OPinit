@@ -19,11 +19,15 @@ func SystemLaneMatchHandler() blockbase.MatchHandler {
 		for _, msg := range tx.GetMsgs() {
 			switch msg := msg.(type) {
 			case *types.MsgUpdateOracle:
+			case *types.MsgRelayOracleData:
 			case *authz.MsgExec:
 				msgs, err := msg.GetMessages()
 				if err != nil || len(msgs) != 1 {
 					return false
-				} else if _, ok := msgs[0].(*types.MsgUpdateOracle); !ok {
+				}
+				switch msgs[0].(type) {
+				case *types.MsgUpdateOracle, *types.MsgRelayOracleData:
+				default:
 					return false
 				}
 			default:
