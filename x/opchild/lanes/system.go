@@ -13,10 +13,6 @@ import (
 // SystemLaneMatchHandler returns the default match handler for the system lane.
 func SystemLaneMatchHandler() blockbase.MatchHandler {
 	return func(ctx sdk.Context, tx sdk.Tx) bool {
-		if len(tx.GetMsgs()) != 1 {
-			return false
-		}
-
 		for _, msg := range tx.GetMsgs() {
 			switch msg := msg.(type) {
 			case *clienttypes.MsgUpdateClient:

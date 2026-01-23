@@ -43,22 +43,6 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 		},
 	}))
 
-	// 2 system messages
-	require.False(t, handler(ctx, MockTx{
-		msgs: []sdk.Msg{
-			&opchildtypes.MsgUpdateOracle{},
-			&opchildtypes.MsgUpdateOracle{},
-		},
-	}))
-
-	// 2 system messages (mixed)
-	require.False(t, handler(ctx, MockTx{
-		msgs: []sdk.Msg{
-			&opchildtypes.MsgUpdateOracle{},
-			&opchildtypes.MsgRelayOracleData{},
-		},
-	}))
-
 	// 1 non-system message
 	require.False(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
@@ -96,6 +80,14 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 	require.False(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
 			&authzMsg,
+		},
+	}))
+
+	// MsgUpdateClient with MsgRelayOracleData
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&clienttypes.MsgUpdateClient{},
+			&opchildtypes.MsgRelayOracleData{},
 		},
 	}))
 }
