@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/cometbft/cometbft/proto/tendermint/types"
 
@@ -21,6 +22,13 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 
 	handler := lanes.SystemLaneMatchHandler()
 
+	// 1 system message (MsgUpdateClient)
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&clienttypes.MsgUpdateClient{},
+		},
+	}))
+
 	// 1 system message (MsgUpdateOracle)
 	require.True(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
@@ -31,22 +39,6 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 	// 1 system message (MsgRelayOracleData)
 	require.True(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
-			&opchildtypes.MsgRelayOracleData{},
-		},
-	}))
-
-	// 2 system messages
-	require.False(t, handler(ctx, MockTx{
-		msgs: []sdk.Msg{
-			&opchildtypes.MsgUpdateOracle{},
-			&opchildtypes.MsgUpdateOracle{},
-		},
-	}))
-
-	// 2 system messages (mixed)
-	require.False(t, handler(ctx, MockTx{
-		msgs: []sdk.Msg{
-			&opchildtypes.MsgUpdateOracle{},
 			&opchildtypes.MsgRelayOracleData{},
 		},
 	}))
@@ -88,6 +80,14 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 	require.False(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
 			&authzMsg,
+		},
+	}))
+
+	// MsgUpdateClient with MsgRelayOracleData
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&clienttypes.MsgUpdateClient{},
+			&opchildtypes.MsgRelayOracleData{},
 		},
 	}))
 }
