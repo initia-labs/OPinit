@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/cometbft/cometbft/proto/tendermint/types"
 
@@ -20,6 +21,13 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 	ctx := sdk.NewContext(nil, types.Header{}, false, log.NewNopLogger())
 
 	handler := lanes.SystemLaneMatchHandler()
+
+	// 1 system message (MsgUpdateOracle)
+	require.True(t, handler(ctx, MockTx{
+		msgs: []sdk.Msg{
+			&clienttypes.MsgUpdateClient{},
+		},
+	}))
 
 	// 1 system message (MsgUpdateOracle)
 	require.True(t, handler(ctx, MockTx{
