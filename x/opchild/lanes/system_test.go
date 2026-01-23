@@ -22,7 +22,7 @@ func Test_SystemLaneMatchHandler(t *testing.T) {
 
 	handler := lanes.SystemLaneMatchHandler()
 
-	// 1 system message (MsgUpdateOracle)
+	// 1 system message (MsgUpdateClient)
 	require.True(t, handler(ctx, MockTx{
 		msgs: []sdk.Msg{
 			&clienttypes.MsgUpdateClient{},
