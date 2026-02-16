@@ -81,3 +81,8 @@ type OracleKeeper interface {
 	GetCurrencyPairFromID(ctx context.Context, id uint64) (connecttypes.CurrencyPair, bool)
 	GetNumCurrencyPairs(ctx context.Context) (uint64, error)
 }
+
+type TransferKeeper interface {
+	GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin
+	SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin)
+}

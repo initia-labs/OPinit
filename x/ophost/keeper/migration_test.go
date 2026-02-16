@@ -182,9 +182,11 @@ func Test_RegisterMigrationInfo_MoveEscrowedFunds(t *testing.T) {
 	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
 	finalBalance := input.BankKeeper.GetBalance(ctx, bridgeAddr, "test1")
 	escrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
+	totalEscrow := input.TransferKeeper.GetTotalEscrowForDenom(ctx, "test1")
 
 	require.Equal(t, math.NewInt(0), finalBalance.Amount)
 	require.Equal(t, math.NewInt(1000), escrowBalance.Amount)
+	require.Equal(t, sdk.NewCoin("test1", math.NewInt(1000)), totalEscrow)
 }
 
 func Test_HandleMigratedTokenDeposit_NonMigratedToken(t *testing.T) {
@@ -398,12 +400,15 @@ func Test_HandleMigratedTokenWithdrawal_Direct(t *testing.T) {
 	// Fund the IBC escrow account
 	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
 	input.Faucet.Fund(ctx, transferEscrowAddress, sdk.NewCoin("test1", math.NewInt(1000)))
+	input.TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin("test1", math.NewInt(1000)))
 
 	// Check initial balances
 	initialEscrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
 	initialReceiverBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], "test1")
+	initialTotalEscrow := input.TransferKeeper.GetTotalEscrowForDenom(ctx, "test1")
 	require.Equal(t, math.NewInt(1000), initialEscrowBalance.Amount)
 	require.Equal(t, math.NewInt(0), initialReceiverBalance.Amount)
+	require.Equal(t, sdk.NewCoin("test1", math.NewInt(1000)), initialTotalEscrow)
 
 	// Test migrated token withdrawal directly
 	withdrawalMsg := ophosttypes.NewMsgFinalizeTokenWithdrawal(
@@ -427,8 +432,10 @@ func Test_HandleMigratedTokenWithdrawal_Direct(t *testing.T) {
 	// Check final balances
 	finalEscrowBalance := input.BankKeeper.GetBalance(ctx, transferEscrowAddress, "test1")
 	finalReceiverBalance := input.BankKeeper.GetBalance(ctx, testutil.Addrs[1], "test1")
+	finalTotalEscrow := input.TransferKeeper.GetTotalEscrowForDenom(ctx, "test1")
 	require.Equal(t, math.NewInt(500), finalEscrowBalance.Amount) // 1000 - 500
 	require.Equal(t, math.NewInt(500), finalReceiverBalance.Amount)
+	require.Equal(t, sdk.NewCoin("test1", math.NewInt(500)), finalTotalEscrow)
 }
 
 func Test_HandleMigratedTokenWithdrawal_NonMigratedToken_Direct(t *testing.T) {

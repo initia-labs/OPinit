@@ -203,6 +203,7 @@ type TestKeepers struct {
 	Faucet              *TestFaucet
 	MultiStore          storetypes.CommitMultiStore
 	MockRouter          *MockRouter
+	TransferKeeper      *MockTransferKeeper
 }
 
 func CreateTestInput(t testing.TB, isCheckTx bool) (sdk.Context, TestKeepers) {
@@ -304,6 +305,7 @@ func createTestInput(
 	portKeeper := &MockPortKeeper{}
 	scopedKeeper := &MockScopedKeeper{}
 	oracleKeeper := &MockOracleKeeper{}
+	transferKeeper := &MockTransferKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ophosttypes.StoreKey]),
@@ -315,6 +317,7 @@ func createTestInput(
 		portKeeper,
 		scopedKeeper,
 		oracleKeeper,
+		transferKeeper,
 		bridgeHook,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
@@ -339,6 +342,7 @@ func createTestInput(
 		Faucet:              faucet,
 		MultiStore:          ms,
 		MockRouter:          mockRouter,
+		TransferKeeper:      transferKeeper,
 	}
 	return ctx, keepers
 }
@@ -541,4 +545,19 @@ func GenPubKeys(n int) []crypto.PubKey {
 		pubKeys[i] = secp256k1.GenPrivKey().PubKey()
 	}
 	return pubKeys
+}
+
+type MockTransferKeeper struct {
+	totalEscrowAmount sdk.Coin
+}
+
+func (tk *MockTransferKeeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
+	if tk.totalEscrowAmount.IsNil() {
+		return sdk.NewCoin(denom, math.ZeroInt())
+	}
+	return tk.totalEscrowAmount
+}
+
+func (tk *MockTransferKeeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+	tk.totalEscrowAmount = coin
 }

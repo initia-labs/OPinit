@@ -30,6 +30,7 @@ type Keeper struct {
 	portKeeper          types.PortKeeper
 	scopedKeeper        types.ScopedKeeper
 	oracleKeeper        types.OracleKeeper
+	transferKeeper      types.TransferKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -62,6 +63,7 @@ func NewKeeper(
 	portKeeper types.PortKeeper,
 	scopedKeeper types.ScopedKeeper,
 	oracleKeeper types.OracleKeeper,
+	transferKeeper types.TransferKeeper,
 	bridgeHook types.BridgeHook,
 	authority string,
 	validatorAddressCodec address.Codec,
@@ -85,6 +87,7 @@ func NewKeeper(
 		portKeeper:          portKeeper,
 		scopedKeeper:        scopedKeeper,
 		oracleKeeper:        oracleKeeper,
+		transferKeeper:      transferKeeper,
 
 		bridgeHook: bridgeHook,
 		authority:  authority,
