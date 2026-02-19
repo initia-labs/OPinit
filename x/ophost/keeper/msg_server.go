@@ -867,11 +867,17 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	// move escrowed funds to IBC escrow account
 	bridgeAddr := types.BridgeAddress(req.MigrationInfo.BridgeId)
 	transferEscrowAddress := transfertypes.GetEscrowAddress(req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId)
-	escrowedFunds := sdk.NewCoins(ms.bankKeeper.GetBalance(ctx, bridgeAddr, req.MigrationInfo.L1Denom))
-	if escrowedFunds.IsAllPositive() {
-		if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, transferEscrowAddress, escrowedFunds); err != nil {
+	escrowToken := ms.bankKeeper.GetBalance(ctx, bridgeAddr, req.MigrationInfo.L1Denom)
+	if escrowToken.IsPositive() {
+		if err := ms.bankKeeper.SendCoins(ctx, bridgeAddr, transferEscrowAddress, sdk.NewCoins(escrowToken)); err != nil {
 			return nil, err
 		}
+
+		// increase ibc escrow amount
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		currentTotalEscrow := ms.transferKeeper.GetTotalEscrowForDenom(sdkCtx, req.MigrationInfo.L1Denom)
+		newTotalEscrow := currentTotalEscrow.Add(escrowToken)
+		ms.transferKeeper.SetTotalEscrowForDenom(sdkCtx, newTotalEscrow)
 	}
 
 	// emit event

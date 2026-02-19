@@ -112,10 +112,20 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 		return false, err
 	}
 
-	withdrawnFunds := sdk.NewCoins(msg.Amount)
+	unescrowAmount := msg.Amount
+	withdrawnFunds := sdk.NewCoins(unescrowAmount)
 	if err := k.bankKeeper.SendCoins(ctx, transferEscrowAddress, receiver, withdrawnFunds); err != nil {
 		return false, err
 	}
+
+	// decrease ibc escrow amount
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(sdkCtx, migrationInfo.L1Denom)
+	newTotalEscrow, err := currentTotalEscrow.SafeSub(unescrowAmount)
+	if err != nil {
+		return false, err
+	}
+	k.transferKeeper.SetTotalEscrowForDenom(sdkCtx, newTotalEscrow)
 
 	return true, nil
 }

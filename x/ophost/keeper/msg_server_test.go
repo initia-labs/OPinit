@@ -302,6 +302,10 @@ func Test_FinalizeTokenWithdrawal_MigratedToken(t *testing.T) {
 	_, err = ms.RegisterMigrationInfo(ctx, msg)
 	require.NoError(t, err)
 
+	// total escrow should be 2*amount
+	totalEscrow := input.TransferKeeper.GetTotalEscrowForDenom(ctx, amount.Denom)
+	require.Equal(t, amount.Add(amount), totalEscrow)
+
 	// build withdrawal proof
 	sender := "osmo174knscjg688ddtxj8smyjz073r3w5mms8ugvx6"
 	receiver := "cosmos174knscjg688ddtxj8smyjz073r3w5mms08musg"
@@ -348,6 +352,10 @@ func Test_FinalizeTokenWithdrawal_MigratedToken(t *testing.T) {
 
 	transferEscrowAddress := transfertypes.GetEscrowAddress("transfer", "channel-0")
 	require.Equal(t, amount, input.BankKeeper.GetBalance(ctx, transferEscrowAddress, amount.Denom))
+
+	// total escrow should be decreased by amount
+	totalEscrow = input.TransferKeeper.GetTotalEscrowForDenom(ctx, amount.Denom)
+	require.Equal(t, amount, totalEscrow)
 }
 
 func decodeBase64(t *testing.T, str string) []byte {
