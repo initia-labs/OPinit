@@ -24,7 +24,7 @@ require (
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit/api v1.2.0
+	github.com/initia-labs/OPinit/api v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk/v2 v2.1.5
 	github.com/skip-mev/connect/v2 v2.3.0
