@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
+
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 func Test_opBridgeConfig_JSON(t *testing.T) {

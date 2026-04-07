@@ -47,12 +47,13 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
+
 	"github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
-	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
-	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -630,7 +631,7 @@ func (k *MockIBCScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilityty
 
 func GenPubKeys(n int) []cryptotypes.PubKey {
 	pubKeys := make([]cryptotypes.PubKey, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		pubKeys[i] = secp256k1.GenPrivKey().PubKey()
 	}
 	return pubKeys

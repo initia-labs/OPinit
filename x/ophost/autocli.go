@@ -2,6 +2,7 @@ package ophost
 
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+
 	ophostv1 "github.com/initia-labs/OPinit/api/opinit/ophost/v1"
 )
 

@@ -6653,6 +6653,7 @@ func (x *CoinsWrapper) GetCoins() []*v1beta1.Coin {
 	return nil
 }
 
+// DenomPair defines a pair of L2 denom and its corresponding base denom.
 type DenomPair struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

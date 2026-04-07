@@ -35,7 +35,7 @@ func jsonStringHasKey(metadata, key string) bool {
 		return false
 	}
 
-	jsonObject := make(map[string]interface{})
+	jsonObject := make(map[string]any)
 	err := json.Unmarshal([]byte(metadata), &jsonObject)
 	if err != nil {
 		return false

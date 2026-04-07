@@ -3,6 +3,7 @@ package hook_test
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"testing"
 	"time"
 
@@ -39,12 +40,7 @@ type MockPermissionRelayers struct {
 }
 
 func (l MockPermissionRelayers) HasRelayer(relayer string) bool {
-	for _, r := range l.Relayers {
-		if r == relayer {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(l.Relayers, relayer)
 }
 
 type MockPermRelayerList struct {

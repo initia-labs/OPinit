@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	"github.com/stretchr/testify/require"
+
 	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_OutputProposal(t *testing.T) {

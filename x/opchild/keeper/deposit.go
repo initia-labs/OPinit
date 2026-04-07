@@ -16,10 +16,7 @@ func (k Keeper) handleBridgeHook(ctx sdk.Context, data []byte, hookMaxGas uint64
 	}
 
 	originGasMeter := ctx.GasMeter()
-	gasForHook := originGasMeter.GasRemaining()
-	if gasForHook > hookMaxGas {
-		gasForHook = hookMaxGas
-	}
+	gasForHook := min(originGasMeter.GasRemaining(), hookMaxGas)
 
 	defer func() {
 		if r := recover(); r != nil {

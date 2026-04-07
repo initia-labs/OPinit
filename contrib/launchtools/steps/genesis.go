@@ -19,10 +19,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/go-bip39"
+	"github.com/pkg/errors"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/utils"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
-	"github.com/pkg/errors"
 )
 
 type (

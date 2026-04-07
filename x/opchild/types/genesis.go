@@ -78,7 +78,7 @@ func ValidateGenesis(data *GenesisState, ac address.Codec) error {
 func validateGenesisStateValidators(validators []Validator) error {
 	addrMap := make(map[string]bool, len(validators))
 
-	for i := 0; i < len(validators); i++ {
+	for i := range validators {
 		val := validators[i]
 		consPk, err := val.ConsPubKey()
 		if err != nil {
