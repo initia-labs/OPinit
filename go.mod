@@ -1,6 +1,6 @@
 module github.com/initia-labs/OPinit
 
-go 1.23.6
+go 1.24.0
 
 require (
 	cosmossdk.io/api v0.7.6
@@ -223,4 +223,4 @@ replace (
 )
 
 // use custom to make config update at launch time
-replace github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.19-minitia.5
+replace github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.19-minitia.24

@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_Params(t *testing.T) {

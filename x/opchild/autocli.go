@@ -2,6 +2,7 @@ package opchild
 
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+
 	opchildv1 "github.com/initia-labs/OPinit/api/opinit/opchild/v1"
 )
 

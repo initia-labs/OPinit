@@ -133,6 +133,7 @@ enum ResponseResultType {
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
 }
 
+// DenomPair defines a pair of L2 denom and its corresponding base denom.
 message DenomPair {
   string denom = 1;
   string base_denom = 2;

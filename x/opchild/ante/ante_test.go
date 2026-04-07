@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/initia-labs/OPinit/x/opchild/types"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"

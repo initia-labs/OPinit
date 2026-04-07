@@ -6,9 +6,10 @@ import (
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_GetValidator(t *testing.T) {

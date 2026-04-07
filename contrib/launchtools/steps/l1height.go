@@ -3,8 +3,9 @@ package steps
 import (
 	"fmt"
 
-	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/pkg/errors"
+
+	"github.com/initia-labs/OPinit/contrib/launchtools"
 )
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = GetL1Height

@@ -44,11 +44,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
+
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
-	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
-	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"

@@ -291,6 +291,7 @@ func (m *CoinsWrapper) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CoinsWrapper proto.InternalMessageInfo
 
+// DenomPair defines a pair of L2 denom and its corresponding base denom.
 type DenomPair struct {
 	Denom     string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
 	BaseDenom string `protobuf:"bytes,2,opt,name=base_denom,json=baseDenom,proto3" json:"base_denom,omitempty"`

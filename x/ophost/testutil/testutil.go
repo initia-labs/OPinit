@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/OPinit/x/opchild/testutil"
 
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/ed25519"
@@ -541,7 +542,7 @@ func (router *MockRouter) SetShouldFail(shouldFail bool) {
 
 func GenPubKeys(n int) []crypto.PubKey {
 	pubKeys := make([]crypto.PubKey, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		pubKeys[i] = secp256k1.GenPrivKey().PubKey()
 	}
 	return pubKeys

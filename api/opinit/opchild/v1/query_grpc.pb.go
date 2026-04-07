@@ -50,6 +50,7 @@ type QueryClient interface {
 	NextL1Sequence(ctx context.Context, in *QueryNextL1SequenceRequest, opts ...grpc.CallOption) (*QueryNextL1SequenceResponse, error)
 	// NextL2Sequence queries the next l2 sequence number.
 	NextL2Sequence(ctx context.Context, in *QueryNextL2SequenceRequest, opts ...grpc.CallOption) (*QueryNextL2SequenceResponse, error)
+	// BaseDenom queries the base denom of the chain.
 	BaseDenom(ctx context.Context, in *QueryBaseDenomRequest, opts ...grpc.CallOption) (*QueryBaseDenomResponse, error)
 	// MigrationInfo queries the migration information.
 	MigrationInfo(ctx context.Context, in *QueryMigrationInfoRequest, opts ...grpc.CallOption) (*QueryMigrationInfoResponse, error)
@@ -164,6 +165,7 @@ type QueryServer interface {
 	NextL1Sequence(context.Context, *QueryNextL1SequenceRequest) (*QueryNextL1SequenceResponse, error)
 	// NextL2Sequence queries the next l2 sequence number.
 	NextL2Sequence(context.Context, *QueryNextL2SequenceRequest) (*QueryNextL2SequenceResponse, error)
+	// BaseDenom queries the base denom of the chain.
 	BaseDenom(context.Context, *QueryBaseDenomRequest) (*QueryBaseDenomResponse, error)
 	// MigrationInfo queries the migration information.
 	MigrationInfo(context.Context, *QueryMigrationInfoRequest) (*QueryMigrationInfoResponse, error)

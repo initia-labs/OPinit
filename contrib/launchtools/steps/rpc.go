@@ -1,9 +1,10 @@
 package steps
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	launchutils "github.com/initia-labs/OPinit/contrib/launchtools/utils"
-	"github.com/pkg/errors"
 )
 
 var _ launchtools.LauncherStepFuncFactory[*launchtools.Config] = InitializeRPCHelpers
