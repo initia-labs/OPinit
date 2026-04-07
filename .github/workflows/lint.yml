@@ -85,7 +85,7 @@ jobs:
       - name: install format tools
         if: env.GIT_DIFF
         run: |
-          go install golang.org/x/tools/cmd/goimports@latest
+          go install golang.org/x/tools/cmd/goimports@v0.43.0
         env:
           GIT_DIFF: ${{ env.GIT_DIFF }}
       - name: run format

@@ -1,6 +1,6 @@
 module github.com/initia-labs/OPinit/api
 
-go 1.24.0
+go 1.24.13
 
 require (
 	cosmossdk.io/api v0.7.6
