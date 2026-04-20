@@ -10,10 +10,11 @@ import (
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/dbadapter"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/stretchr/testify/require"
+
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,7 +41,7 @@ import (
 func createCmtValidatorSet(t *testing.T, numVals int) ([]cryptotypes.PrivKey, []cryptotypes.PubKey, *cmtproto.ValidatorSet) {
 	privKeys := make([]cryptotypes.PrivKey, numVals)
 	pubKeys := make([]cryptotypes.PubKey, numVals)
-	for i := 0; i < numVals; i++ {
+	for i := range numVals {
 		privKeys[i] = ed25519.GenPrivKey()
 		pubKeys[i] = privKeys[i].PubKey()
 	}

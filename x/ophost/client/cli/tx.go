@@ -17,8 +17,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/spf13/cobra"
+
+	"github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 // GetTxCmd returns a root CLI command handler for all x/ophost transaction commands.

@@ -12,6 +12,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+
 	"github.com/initia-labs/OPinit/x/ophost/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/keeper"

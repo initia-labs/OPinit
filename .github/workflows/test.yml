@@ -1,18 +1,21 @@
-name: Test
+name: Build & Test
 on:
   pull_request:
     paths:
       - "**.go"
-      - "**.mv"
-      - "**.move"
+      - "go.mod"
+      - "go.sum"
   push:
     branches:
       - main
       - "release/*"
     paths:
       - "**.go"
-      - "**.mv"
-      - "**.move"
+      - "go.mod"
+      - "go.sum"
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,15 +26,13 @@ jobs:
     name: Run test and upload codecov
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.23
-      - name: Install openssl
-        run: sudo apt-get install libssl-dev
-      - uses: actions/checkout@v3
-      - uses: technote-space/get-diff-action@v4
+          go-version: 1.24
+      - uses: actions/checkout@v5
+      - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
             **/**.go
@@ -60,6 +61,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.txt
           fail_ci_if_error: true
-        if: ${{ env.GIT_DIFF != '' }}
+        if: ${{ env.GIT_DIFF != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         env:
           GIT_DIFF: ${{ env.GIT_DIFF }}

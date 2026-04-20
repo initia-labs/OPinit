@@ -69,7 +69,7 @@ func TestDecodePacketData_EmptyAttestorSet(t *testing.T) {
 func TestDecodePacketData_MultipleAttestors(t *testing.T) {
 	// Create multiple attestors
 	attestors := make([]ophosttypes.Attestor, 5)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		privKey := ed25519.GenPrivKey()
 		pubKey := privKey.PubKey()
 		pkAny, err := codectypes.NewAnyWithValue(pubKey)
@@ -100,7 +100,7 @@ func TestDecodePacketData_MultipleAttestors(t *testing.T) {
 	require.Len(t, decoded.AttestorSet, 5)
 
 	// Verify all attestors
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		require.Equal(t, attestors[i].OperatorAddress, decoded.AttestorSet[i].OperatorAddress)
 		require.Equal(t, attestors[i].Moniker, decoded.AttestorSet[i].Moniker)
 	}

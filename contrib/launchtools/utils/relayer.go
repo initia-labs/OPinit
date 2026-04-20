@@ -13,8 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/initia-labs/OPinit/contrib/launchtools/types"
 	"github.com/pkg/errors"
+
+	"github.com/initia-labs/OPinit/contrib/launchtools/types"
 )
 
 // EnsureRelayerBinary checks if the relayer binary is installed and matches the expected version.

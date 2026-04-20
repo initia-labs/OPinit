@@ -71,7 +71,7 @@ func (s *CLITestSuite) SetupSuite() {
 	s.clientCtx = ctxGen().WithOutput(&outBuf)
 
 	s.addrs = make([]sdk.AccAddress, 0)
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		k, _, err := s.clientCtx.Keyring.NewMnemonic("NewValidator", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
 		s.Require().NoError(err)
 
@@ -126,7 +126,6 @@ func (s *CLITestSuite) TestNewWithdrawCmd() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
 			if tc.expectErr {
@@ -295,7 +294,6 @@ func (s *CLITestSuite) TestNewDepositCmd() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
 			if tc.expectErr {
@@ -391,7 +389,6 @@ func (s *CLITestSuite) TestNewExecuteMessagesCmd() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
 			if tc.expectErr {
@@ -480,7 +477,6 @@ func (s *CLITestSuite) TestNewSetBridgeInfo() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
 			if tc.expectErr {
@@ -550,7 +546,6 @@ func (s *CLITestSuite) TestNewMigrateTokenCmd() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
 			if tc.expectErr {

@@ -6,7 +6,7 @@ DOCKER := $(shell which docker)
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.14.0
+protoVer=0.18.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
@@ -43,6 +43,11 @@ lint-fix:
 	golangci-lint run --fix --timeout=15m --tests=false
 
 .PHONY: lint lint-fix
+
+format:
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./tests/mocks/*" -not -path "./api/*" -not -name '*.pb.go' | xargs gofmt -w -s
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./tests/mocks/*" -not -path "./api/*" -not -name '*.pb.go' | xargs goimports -w -local github.com/initia-labs/OPinit
+.PHONY: format
 
 
 ###############################################################################

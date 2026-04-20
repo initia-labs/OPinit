@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 

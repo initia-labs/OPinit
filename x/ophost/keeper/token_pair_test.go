@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/initia-labs/OPinit/x/ophost/testutil"
 	"github.com/initia-labs/OPinit/x/ophost/types"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_TokenPair(t *testing.T) {

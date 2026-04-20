@@ -7,6 +7,7 @@ import (
 	blockbase "github.com/skip-mev/block-sdk/v2/block/base"
 
 	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 

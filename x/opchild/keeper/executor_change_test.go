@@ -11,9 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
 	"github.com/initia-labs/OPinit/x/opchild/types"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_RegisterExecutorChangePlan(t *testing.T) {

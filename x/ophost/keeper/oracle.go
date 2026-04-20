@@ -52,7 +52,7 @@ func (k Keeper) computeOraclePricesHash(ctx sdk.Context) ([]byte, error) {
 	prices := make(types.OraclePriceInfos, 0, numPairs)
 
 	// iterate through all currency pair IDs
-	for id := uint64(0); id < numPairs; id++ {
+	for id := range numPairs {
 		cp, found := k.oracleKeeper.GetCurrencyPairFromID(ctx, id)
 		if !found {
 			continue
