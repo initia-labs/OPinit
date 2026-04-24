@@ -125,6 +125,6 @@ func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInf
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	ibcDenom := transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 	return &types.QueryMigrationInfoResponse{MigrationInfo: migrationInfo, IbcDenom: ibcDenom}, nil
 }

@@ -351,27 +351,24 @@ func lookupPacket(packet channeltypes.Packet, receive bool) (data transfertypes.
 		return data, "", false
 	}
 
+	denom := transfertypes.ExtractDenomFromPath(data.Denom)
 	// if the token is originated from the receiving chain, do nothing
-	if receive && transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+	if receive && denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 		return data, "", false
 	}
 
 	// if the token is originated from the sending chain, do nothing
-	if !receive && transfertypes.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+	if !receive && !denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 		return data, "", false
 	}
 
 	// compute the prefixed ibc denom
-	prefixedDenom := data.Denom
 	if receive {
-		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-		prefixedDenom = sourcePrefix + data.Denom
+		destHop := transfertypes.NewHop(packet.GetDestPort(), packet.GetDestChannel())
+		denom = transfertypes.NewDenom(denom.Base, append([]transfertypes.Hop{destHop}, denom.Trace...)...)
 	}
 
-	// parse the denom and return IBCDenom()
-	ibcDenom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
-
-	return data, ibcDenom, true
+	return data, denom.IBCDenom(), true
 }
 
 // newEmitErrorAcknowledgement creates a new error acknowledgement after having emitted an event with the

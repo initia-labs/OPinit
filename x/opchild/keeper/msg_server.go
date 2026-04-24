@@ -822,7 +822,7 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	}
 
 	// set the ibc to l2 denom map
-	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	ibcDenom := transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 	if err := ms.SetIBCToL2DenomMap(ctx, ibcDenom, req.MigrationInfo.Denom); err != nil {
 		return nil, err
 	}

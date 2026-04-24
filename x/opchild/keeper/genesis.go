@@ -108,7 +108,7 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 			panic(err)
 		}
 
-		ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+		ibcDenom := transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 		if err := k.SetIBCToL2DenomMap(ctx, ibcDenom, migrationInfo.Denom); err != nil {
 			panic(err)
 		}

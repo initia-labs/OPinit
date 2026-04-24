@@ -217,5 +217,5 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 
 // ibcDenom computes the IBC denom from the migration info and base denom
 func ibcDenom(migrationInfo types.MigrationInfo, baseDenom string) string {
-	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	return transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 }

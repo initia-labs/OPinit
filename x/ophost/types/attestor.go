@@ -131,5 +131,5 @@ func NewAttestorSetUpdatePacketData(
 
 // GetBytes is a helper for serializing AttestorSetUpdatePacketData
 func (apd AttestorSetUpdatePacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(mustProtoMarshalJSON(&apd))
+	return sdk.MustSortJSON(mustProtoMarshalJSON(&apd)) //nolint:staticcheck
 }

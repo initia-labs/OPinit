@@ -506,7 +506,7 @@ func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHan
 				return nil, err
 			}
 
-			if ibctransfertypes.SenderChainIsSource(msg.SourcePort, msg.SourceChannel, msg.Token.Denom) {
+			if denom := ibctransfertypes.ExtractDenomFromPath(msg.Token.Denom); !denom.HasPrefix(msg.SourcePort, msg.SourceChannel) {
 				escrowAddress := ibctransfertypes.GetEscrowAddress(msg.SourcePort, msg.SourceChannel)
 				if err := router.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(msg.Token)); err != nil {
 					return nil, err
