@@ -16,8 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmostypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -31,8 +29,6 @@ type Keeper struct {
 	authKeeper      types.AccountKeeper
 	bankKeeper      types.BankKeeper
 	ibcClientKeeper types.ClientKeeper
-	portKeeper      types.PortKeeper
-	scopedKeeper    types.ScopedKeeper
 	transferKeeper  types.TransferKeeper
 	channelKeeper   types.ChannelKeeper
 
@@ -164,27 +160,25 @@ func (k *Keeper) WithTokenCreationFn(fn func(ctx context.Context, denom string, 
 	return k
 }
 
-// SetIBCKeepers sets the IBC keepers after initialization.
+// SetIBCKeepers sets the IBC client keeper after initialization.
 // This must be called before the keeper is used and can only be called once.
-func (k *Keeper) SetIBCKeepers(ibcClientKeeper types.ClientKeeper, portKeeper types.PortKeeper, scopedKeeper types.ScopedKeeper) error {
-	if k.ibcClientKeeper != nil || k.portKeeper != nil || k.scopedKeeper != nil {
+func (k *Keeper) SetIBCKeepers(ibcClientKeeper types.ClientKeeper) error {
+	if k.ibcClientKeeper != nil {
 		return types.ErrIBCKeepersAlreadySet
 	}
 
-	if ibcClientKeeper == nil || portKeeper == nil || scopedKeeper == nil {
+	if ibcClientKeeper == nil {
 		return types.ErrIBCKeepersNonNil
 	}
 
 	k.ibcClientKeeper = ibcClientKeeper
-	k.portKeeper = portKeeper
-	k.scopedKeeper = scopedKeeper
 
 	return nil
 }
 
 // ensureIBCKeepersSet returns error if IBC keepers have not been set via SetIBCKeepers.
 func (k Keeper) ensureIBCKeepersSet() error {
-	if k.ibcClientKeeper == nil || k.portKeeper == nil || k.scopedKeeper == nil {
+	if k.ibcClientKeeper == nil {
 		return types.ErrIBCKeepersNotInitialized
 	}
 
@@ -286,41 +280,6 @@ func (k Keeper) L1ChainId(ctx context.Context) (string, error) {
 	}
 
 	return info.L1ChainId, nil
-}
-
-// IsBound checks if the ophost module is already bound to the desired port
-func (k Keeper) IsBound(ctx context.Context, portID string) (bool, error) {
-	if err := k.ensureIBCKeepersSet(); err != nil {
-		return false, err
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
-
-	return ok, nil
-}
-
-// BindPort defines a wrapper function for the Keeper's function to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx context.Context, portID string) error {
-	if err := k.ensureIBCKeepersSet(); err != nil {
-		return err
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	capability := k.portKeeper.BindPort(sdkCtx, portID)
-
-	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
-}
-
-// ClaimCapability claims a channel capability for the ophost module
-func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	if err := k.ensureIBCKeepersSet(); err != nil {
-		return err
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
 }
 
 func (k Keeper) Codec() codec.Codec {

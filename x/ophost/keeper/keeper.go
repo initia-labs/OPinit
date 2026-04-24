@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -27,8 +25,6 @@ type Keeper struct {
 	bridgeHook          types.BridgeHook
 	communityPoolKeeper types.CommunityPoolKeeper
 	channelKeeper       types.ChannelKeeper
-	portKeeper          types.PortKeeper
-	scopedKeeper        types.ScopedKeeper
 	oracleKeeper        types.OracleKeeper
 	transferKeeper      types.TransferKeeper
 
@@ -60,8 +56,6 @@ func NewKeeper(
 	bk types.BankKeeper,
 	ck types.CommunityPoolKeeper,
 	channelKeeper types.ChannelKeeper,
-	portKeeper types.PortKeeper,
-	scopedKeeper types.ScopedKeeper,
 	oracleKeeper types.OracleKeeper,
 	transferKeeper types.TransferKeeper,
 	bridgeHook types.BridgeHook,
@@ -84,8 +78,6 @@ func NewKeeper(
 		bankKeeper:          bk,
 		communityPoolKeeper: ck,
 		channelKeeper:       channelKeeper,
-		portKeeper:          portKeeper,
-		scopedKeeper:        scopedKeeper,
 		oracleKeeper:        oracleKeeper,
 		transferKeeper:      transferKeeper,
 
@@ -124,29 +116,6 @@ func (k Keeper) GetAuthority() string {
 // ValidatorAddressCodec returns the validator address codec.
 func (k Keeper) ValidatorAddressCodec() address.Codec {
 	return k.validatorAddressCodec
-}
-
-// IsBound checks if the ophost module is already bound to the desired port
-func (k Keeper) IsBound(ctx context.Context, portID string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
-
-	return ok
-}
-
-// BindPort defines a wrapper function for the Keeper's function to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx context.Context, portID string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	capability := k.portKeeper.BindPort(sdkCtx, portID)
-
-	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
-}
-
-// ClaimCapability claims a channel capability for the ophost module
-func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
 }
 
 // Logger returns a module-specific logger.

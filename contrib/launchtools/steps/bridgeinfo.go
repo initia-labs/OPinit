@@ -4,8 +4,8 @@ import (
 	"github.com/pkg/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	tmclient "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
@@ -33,37 +33,26 @@ func SetBridgeInfo(
 			return errors.New("relayer not initialized")
 		}
 
-		// scan all states from IBC - get all established states
-		res, err := ctx.App().GetIBCKeeper().ClientStates(
-			ctx.QueryContext(),
-			&clienttypes.QueryClientStatesRequest{},
-		)
-		if err != nil {
-			return errors.Wrapf(err, "failed to query client states")
-		}
-
+		// scan all states from IBC - get all established states.
 		var l1ClientID string
+		ctx.App().GetIBCKeeper().ClientKeeper.IterateClientStates(
+			sdk.UnwrapSDKContext(ctx.QueryContext()), nil,
+			func(clientID string, clientState exported.ClientState) bool {
+				tcli, ok := clientState.(*tmclient.ClientState)
+				if !ok {
+					ctx.Logger().Debug("skipping non-tendermint client", "client-type", clientState.String())
+					return false
+				}
+				if tcli.ChainId == config.L1Config.ChainID {
+					ctx.Logger().Info("found L1 tendermint client", "client-id", clientID)
+					l1ClientID = clientID
+					return true
+				}
+				return false
+			},
+		)
 
-		// among the states, find the one with the chain ID of L1
-		for _, st := range res.ClientStates {
-			clientState, err := clienttypes.UnpackClientState(st.ClientState)
-			if err != nil {
-				return errors.Wrapf(err, "failed to unpack client state")
-			}
-			tcli, ok := clientState.(*tmclient.ClientState)
-			if !ok {
-				ctx.Logger().Debug("skipping non-tendermint client", "client-type", clientState.String())
-				continue
-			}
-
-			if tcli.ChainId == config.L1Config.ChainID {
-				ctx.Logger().Info("found L1 tendermint client", "client-id", st.ClientId)
-				l1ClientID = st.ClientId
-				break
-			}
-		}
-
-		// if  L1 tendermint client is never found, return an error
+		// if L1 tendermint client is never found, return an error
 		if l1ClientID == "" {
 			return errors.New("failed to find L1 tendermint client")
 		}

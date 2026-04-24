@@ -12,11 +12,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -125,7 +125,7 @@ func (k *Keeper) Shutdown(ctx context.Context) error {
 				sourcePort := parts[0]
 				sourceChannel := parts[1]
 
-				var connection exported.ConnectionI
+				var connection connectiontypes.ConnectionEnd
 				_, connection, err = k.channelKeeper.GetChannelConnection(sdk.UnwrapSDKContext(ctx), sourcePort, sourceChannel)
 				if err != nil {
 					return true
@@ -137,7 +137,7 @@ func (k *Keeper) Shutdown(ctx context.Context) error {
 					return true
 				}
 				// check if the connection is the same as the l1 client id
-				if connection.GetClientID() != l1ClientId {
+				if connection.ClientId != l1ClientId {
 					return false
 				}
 

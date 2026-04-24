@@ -10,7 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 )
 
 var (
@@ -131,5 +131,5 @@ func NewAttestorSetUpdatePacketData(
 
 // GetBytes is a helper for serializing AttestorSetUpdatePacketData
 func (apd AttestorSetUpdatePacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(mustProtoMarshalJSON(&apd))
+	return sdk.MustSortJSON(mustProtoMarshalJSON(&apd)) //nolint:staticcheck
 }

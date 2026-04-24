@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
@@ -197,7 +198,7 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 		msg.To,
 		clienttypes.NewHeight(0, 0),
 		// use default timeout 10 minutes
-		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp, //nolint:gosec
+		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+uint64((10*time.Minute).Nanoseconds()), //nolint:gosec
 		"forwarded from opchild module",
 	)
 
@@ -216,5 +217,5 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 
 // ibcDenom computes the IBC denom from the migration info and base denom
 func ibcDenom(migrationInfo types.MigrationInfo, baseDenom string) string {
-	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	return transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 }

@@ -6,7 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/pkg/errors"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
@@ -25,21 +25,22 @@ func InitializeOpBridge(
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("initializing OpBridge")
 
-		// scan all channels. This should give all IBC channels established before this step
-		// - assumes channels aren't longer than the default pagination limit
-		channels, err := ctx.App().GetIBCKeeper().Channels(
-			ctx.QueryContext(),
-			&ibctypes.QueryChannelsRequest{}, // assume there aren't many channels already open
+		// scan all channels. This should give all IBC channels established before
+		// this step, we iterate the channel store directly here.
+		rawChannels := ctx.App().GetIBCKeeper().ChannelKeeper.GetAllChannels(
+			sdk.UnwrapSDKContext(ctx.QueryContext()),
 		)
-		if err != nil {
-			return errors.Wrap(err, "failed to query client states")
+		channels := make([]*ibctypes.IdentifiedChannel, len(rawChannels))
+		for i := range rawChannels {
+			ch := rawChannels[i]
+			channels[i] = &ch
 		}
 
-		ctx.Logger().Info("found channels", "channels", channels.Channels)
+		ctx.Logger().Info("found channels", "channels", channels)
 
 		// create OpBridgeMessage
 		createOpBridgeMessage, err := createOpBridge(
-			channels.Channels,
+			channels,
 			config.SystemKeys.BridgeExecutor.L1Address,
 			config.SystemKeys.Challenger.L1Address,
 			config.SystemKeys.OutputSubmitter.L1Address,

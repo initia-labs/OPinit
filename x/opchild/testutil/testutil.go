@@ -55,14 +55,12 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctransfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 )
 
 var (
@@ -253,17 +251,11 @@ func createTestInput(
 ) (context.Context, TestKeepers) {
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, opchildtypes.StoreKey, oracletypes.StoreKey,
-		ibctransfertypes.StoreKey, exported.StoreKey, capabilitytypes.StoreKey,
+		ibctransfertypes.StoreKey, exported.StoreKey,
 	)
 	ms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	for _, v := range keys {
 		ms.MountStoreWithDB(v, storetypes.StoreTypeIAVL, db)
-	}
-	memKeys := storetypes.NewMemoryStoreKeys(
-		capabilitytypes.MemStoreKey,
-	)
-	for _, v := range memKeys {
-		ms.MountStoreWithDB(v, storetypes.StoreTypeMemory, db)
 	}
 
 	require.NoError(t, ms.LoadLatestVersion())
@@ -328,32 +320,23 @@ func createTestInput(
 		authtypes.NewModuleAddress(opchildtypes.ModuleName),
 	)
 
-	capabilityKeeper := capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
-
-	// grant capabilities for the ibc and ibc-transfer modules
-	scopedIBCKeeper := capabilityKeeper.ScopeToModule(exported.ModuleName)
-	scopedTransferKeeper := capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-
 	ibcKeeper := ibckeeper.NewKeeper(
 		appCodec,
-		keys[exported.StoreKey],
+		runtime.NewKVStoreService(keys[exported.StoreKey]),
 		nil,
-		&MockStakingKeeper{unbondingTime: time.Hour * 24 * 7},
 		&MockUpgradeKeeper{plan: upgradetypes.Plan{Name: "upgrade"}},
-		scopedIBCKeeper,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 	)
 
 	transferKeeper := ibctransferkeeper.NewKeeper(
 		appCodec,
-		keys[ibctransfertypes.StoreKey],
+		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
 		nil,
 		ibcKeeper.ChannelKeeper,
 		ibcKeeper.ChannelKeeper,
-		ibcKeeper.PortKeeper,
+		originMessageRouter,
 		&accountKeeper,
 		&bankKeeper,
-		scopedTransferKeeper,
 		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
 	)
 
@@ -411,9 +394,7 @@ func createTestInput(
 
 	// Set IBC keepers for opchild keeper
 	ibcClientKeeper := NewMockIBCClientKeeper()
-	portKeeper := &MockIBCPortKeeper{}
-	scopedKeeper := &MockIBCScopedKeeper{}
-	if err := opchildKeeper.SetIBCKeepers(ibcClientKeeper, portKeeper, scopedKeeper); err != nil {
+	if err := opchildKeeper.SetIBCKeepers(ibcClientKeeper); err != nil {
 		panic(err)
 	}
 
@@ -525,7 +506,7 @@ func (router *MockRouter) HandlerByTypeURL(typeURL string) baseapp.MsgServiceHan
 				return nil, err
 			}
 
-			if ibctransfertypes.SenderChainIsSource(msg.SourcePort, msg.SourceChannel, msg.Token.Denom) {
+			if denom := ibctransfertypes.ExtractDenomFromPath(msg.Token.Denom); !denom.HasPrefix(msg.SourcePort, msg.SourceChannel) {
 				escrowAddress := ibctransfertypes.GetEscrowAddress(msg.SourcePort, msg.SourceChannel)
 				if err := router.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(msg.Token)); err != nil {
 					return nil, err
@@ -575,9 +556,19 @@ func (router *MockRouter) SetShouldFail(shouldFail bool) {
 }
 
 type MockIBCClientKeeper struct {
-	stores    map[string]storetypes.KVStore
-	states    map[string]exported.ClientState
-	consensus map[string]exported.ConsensusState
+	stores             map[string]storetypes.KVStore
+	states             map[string]exported.ClientState
+	consensus          map[string]exported.ConsensusState
+	VerifyMembershipFn func(
+		ctx sdk.Context,
+		clientID string,
+		height exported.Height,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
+		proof []byte,
+		path exported.Path,
+		value []byte,
+	) error
 }
 
 func NewMockIBCClientKeeper() *MockIBCClientKeeper {
@@ -613,19 +604,19 @@ func (k *MockIBCClientKeeper) ClientStore(ctx sdk.Context, clientID string) stor
 	return kvStore
 }
 
-type MockIBCPortKeeper struct{}
-
-func (k *MockIBCPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
-	return &capabilitytypes.Capability{}
-}
-
-type MockIBCScopedKeeper struct{}
-
-func (k *MockIBCScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool) {
-	return &capabilitytypes.Capability{}, true
-}
-
-func (k *MockIBCScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+func (k *MockIBCClientKeeper) VerifyMembership(
+	ctx sdk.Context,
+	clientID string,
+	height exported.Height,
+	delayTimePeriod uint64,
+	delayBlockPeriod uint64,
+	proof []byte,
+	path exported.Path,
+	value []byte,
+) error {
+	if k.VerifyMembershipFn != nil {
+		return k.VerifyMembershipFn(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	}
 	return nil
 }
 

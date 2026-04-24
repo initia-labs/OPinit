@@ -2,7 +2,6 @@ package steps
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,8 +14,7 @@ import (
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/types"
@@ -237,17 +235,17 @@ func initializeRelayerKeyring(config *launchtools.Config) func(*Relayer) error {
 	}
 }
 
-func marshalIBCFeeMetadata(appVersion string) ([]byte, error) {
-	return json.Marshal(ibcfeetypes.Metadata{
-		FeeVersion: ibcfeetypes.Version,
-		AppVersion: appVersion,
-	})
+// marshalChannelVersion returns the raw app version bytes. In ibc-go v10, the 29-fee
+// middleware has been removed, so the channel version is no longer wrapped in a
+// fee Metadata envelope.
+func marshalChannelVersion(appVersion string) ([]byte, error) {
+	return []byte(appVersion), nil
 }
 
 // link creates a default transfer channel between the chains
 // it does all the heavy lifting of creating the channel, connection, and client
 func link(r *Relayer) error {
-	versionBz, err := marshalIBCFeeMetadata(ibctransfertypes.Version)
+	versionBz, err := marshalChannelVersion(ibctransfertypes.V1)
 	if err != nil {
 		return err
 	}
@@ -266,7 +264,7 @@ func link(r *Relayer) error {
 // channelWithPorts  create a channel reusing the same light client
 func channelWithPorts(srcPort string, dstPort string, version string) func(*Relayer) error {
 	return func(r *Relayer) error {
-		versionBz, err := marshalIBCFeeMetadata(version)
+		versionBz, err := marshalChannelVersion(version)
 		if err != nil {
 			return err
 		}

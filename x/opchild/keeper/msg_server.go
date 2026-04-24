@@ -16,7 +16,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -822,7 +822,7 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	}
 
 	// set the ibc to l2 denom map
-	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	ibcDenom := transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 	if err := ms.SetIBCToL2DenomMap(ctx, ibcDenom, req.MigrationInfo.Denom); err != nil {
 		return nil, err
 	}

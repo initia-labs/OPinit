@@ -7,8 +7,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
@@ -68,7 +68,7 @@ type TransferKeeper interface {
 }
 
 type ChannelKeeper interface {
-	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
+	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, connectiontypes.ConnectionEnd, error)
 }
 
 // ValidatorSet expected properties for the set of all validators (noalias)
@@ -89,15 +89,15 @@ type ClientKeeper interface {
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	// ClientStore returns the client-prefixed store for the given client ID
 	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
-}
-
-// PortKeeper defines the expected IBC port keeper
-type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
-}
-
-// ScopedKeeper defines the expected IBC scoped keeper for managing channel capabilities
-type ScopedKeeper interface {
-	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
-	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
+	// VerifyMembership routes the call to the underlying LightClientModule for the given clientID.
+	VerifyMembership(
+		ctx sdk.Context,
+		clientID string,
+		height exported.Height,
+		delayTimePeriod uint64,
+		delayBlockPeriod uint64,
+		proof []byte,
+		path exported.Path,
+		value []byte,
+	) error
 }
