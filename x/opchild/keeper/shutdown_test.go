@@ -14,9 +14,9 @@ import (
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 func TestShutdown(t *testing.T) {
@@ -96,17 +96,17 @@ func TestShutdown(t *testing.T) {
 		ConnectionHops: []string{"test-connection-id"},
 	})
 
-	denomTrace := transfertypes.DenomTrace{
-		Path:      "transfer/test-channel-id",
-		BaseDenom: "denom1",
+	denomTrace := transfertypes.Denom{
+		Base:  "denom1",
+		Trace: []transfertypes.Hop{transfertypes.NewHop("transfer", "test-channel-id")},
 	}
-	input.TransferKeeper.SetDenomTrace(sdk.UnwrapSDKContext(ctx), denomTrace)
+	input.TransferKeeper.SetDenom(sdk.UnwrapSDKContext(ctx), denomTrace)
 
-	denomTrace2 := transfertypes.DenomTrace{
-		Path:      "transfer/test-channel-id",
-		BaseDenom: "denom2",
+	denomTrace2 := transfertypes.Denom{
+		Base:  "denom2",
+		Trace: []transfertypes.Hop{transfertypes.NewHop("transfer", "test-channel-id")},
 	}
-	input.TransferKeeper.SetDenomTrace(sdk.UnwrapSDKContext(ctx), denomTrace2)
+	input.TransferKeeper.SetDenom(sdk.UnwrapSDKContext(ctx), denomTrace2)
 
 	ibcDenom := "ibc/" + denomTrace.Hash().String()
 	ibcDenom2 := "ibc/" + denomTrace2.Hash().String()

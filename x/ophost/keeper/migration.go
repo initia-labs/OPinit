@@ -10,8 +10,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 
 	"github.com/initia-labs/OPinit/x/ophost/types"
 )
@@ -79,7 +79,7 @@ func (k Keeper) HandleMigratedTokenDeposit(ctx context.Context, msg *types.MsgIn
 		msg.To,
 		clienttypes.NewHeight(0, 0),
 		// use default timeout 10 minutes
-		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+transfertypes.DefaultRelativePacketTimeoutTimestamp, //nolint:gosec
+		uint64(sdk.UnwrapSDKContext(ctx).BlockTime().UnixNano())+uint64(types.DefaultPacketTimeoutTimestamp), //nolint:gosec
 		memo,
 	)
 

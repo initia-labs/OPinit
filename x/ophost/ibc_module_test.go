@@ -6,8 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 
 	"github.com/initia-labs/OPinit/x/ophost"
 	"github.com/initia-labs/OPinit/x/ophost/testutil"
@@ -18,7 +17,6 @@ func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
 
 	ibcModule := ophost.NewIBCModule(input.OPHostKeeper)
-	capability := &capabilitytypes.Capability{}
 
 	// success case
 	version, err := ibcModule.OnChanOpenInit(
@@ -27,7 +25,6 @@ func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		ophosttypes.PortID,
 		"channel-0",
-		capability,
 		channeltypes.NewCounterparty(ophosttypes.PortID, "channel-1"),
 		ophosttypes.Version,
 	)
@@ -41,7 +38,6 @@ func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		ophosttypes.PortID,
 		"channel-1",
-		capability,
 		channeltypes.NewCounterparty(ophosttypes.PortID, "channel-2"),
 		ophosttypes.Version,
 	)
@@ -55,7 +51,6 @@ func Test_OPHostIBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		"invalid-port",
 		"channel-2",
-		capability,
 		channeltypes.NewCounterparty(ophosttypes.PortID, "channel-3"),
 		ophosttypes.Version,
 	)
@@ -93,7 +88,7 @@ func Test_OPHostIBCModule_OnRecvPacket(t *testing.T) {
 	}
 
 	// OPHost module on L1 should not receive packets
-	ack := ibcModule.OnRecvPacket(ctx, packet, nil)
+	ack := ibcModule.OnRecvPacket(ctx, ophosttypes.Version, packet, nil)
 	require.False(t, ack.Success())
 }
 
@@ -113,7 +108,7 @@ func Test_OPHostIBCModule_OnAcknowledgementPacket(t *testing.T) {
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 
-	err := ibcModule.OnAcknowledgementPacket(ctx, packet, ack.Acknowledgement(), nil)
+	err := ibcModule.OnAcknowledgementPacket(ctx, ophosttypes.Version, packet, ack.Acknowledgement(), nil)
 	require.NoError(t, err)
 }
 
@@ -133,7 +128,7 @@ func Test_OPHostIBCModule_OnAcknowledgementPacket_Error(t *testing.T) {
 
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("test error"))
 
-	err := ibcModule.OnAcknowledgementPacket(ctx, packet, ack.Acknowledgement(), nil)
+	err := ibcModule.OnAcknowledgementPacket(ctx, ophosttypes.Version, packet, ack.Acknowledgement(), nil)
 	require.NoError(t, err)
 
 	events := ctx.EventManager().Events()
@@ -165,6 +160,6 @@ func Test_OPHostIBCModule_OnTimeoutPacket(t *testing.T) {
 		Sequence:           1,
 	}
 
-	err := ibcModule.OnTimeoutPacket(ctx, packet, nil)
+	err := ibcModule.OnTimeoutPacket(ctx, ophosttypes.Version, packet, nil)
 	require.NoError(t, err)
 }

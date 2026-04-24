@@ -5,8 +5,7 @@ import (
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 )
@@ -54,7 +53,6 @@ type CommunityPoolKeeper interface {
 type ChannelKeeper interface {
 	SendPacket(
 		ctx sdk.Context,
-		channelCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
 		timeoutHeight clienttypes.Height,
@@ -62,17 +60,6 @@ type ChannelKeeper interface {
 		data []byte,
 	) (sequence uint64, err error)
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
-}
-
-// PortKeeper defines the expected IBC port keeper
-type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
-}
-
-// ScopedKeeper defines the expected IBC scoped keeper for managing channel capabilities
-type ScopedKeeper interface {
-	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
-	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
 }
 
 // OracleKeeper defines the expected oracle keeper for reading price data

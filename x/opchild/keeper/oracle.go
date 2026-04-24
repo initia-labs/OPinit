@@ -15,8 +15,9 @@ import (
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 	ics23 "github.com/cosmos/ics23/go"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
@@ -219,19 +220,17 @@ func (k Keeper) verifyOracleDataProof(
 
 	// path for verification: ophost store key + state key
 	// the merkle path should match how the data is stored in the iavl tree
-	merklePath := commitmenttypes.NewMerklePath(ophosttypes.StoreKey, string(stateKey))
+	merklePath := commitmenttypesv2.NewMerklePath([]byte(ophosttypes.StoreKey), stateKey)
 
-	clientState, found := k.ibcClientKeeper.GetClientState(sdkCtx, bridgeInfo.L1ClientId)
-	if !found {
+	if _, found := k.ibcClientKeeper.GetClientState(sdkCtx, bridgeInfo.L1ClientId); !found {
 		return errors.New("L1 IBC client state not found")
 	}
-	clientStore := k.ibcClientKeeper.ClientStore(sdkCtx, bridgeInfo.L1ClientId)
 
-	// verify the membership proof using the ibc light client
-	if err := clientState.VerifyMembership(
+	// verify the membership proof via the ibc client keeper, which routes
+	// the call to the registered LightClientModule for the client ID.
+	if err := k.ibcClientKeeper.VerifyMembership(
 		sdkCtx,
-		clientStore,
-		k.Codec(),
+		bridgeInfo.L1ClientId,
 		proofHeight,
 		0,
 		0,

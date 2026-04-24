@@ -48,9 +48,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 
 	ophost "github.com/initia-labs/OPinit/x/ophost"
 	ophostkeeper "github.com/initia-labs/OPinit/x/ophost/keeper"
@@ -303,8 +302,6 @@ func createTestInput(
 	bridgeHook := &BridgeHook{}
 	communityPoolKeeper := &MockCommunityPoolKeeper{}
 	channelKeeper := &MockChannelKeeper{}
-	portKeeper := &MockPortKeeper{}
-	scopedKeeper := &MockScopedKeeper{}
 	oracleKeeper := &MockOracleKeeper{}
 	transferKeeper := &MockTransferKeeper{}
 	ophostKeeper := ophostkeeper.NewKeeper(
@@ -315,8 +312,6 @@ func createTestInput(
 		bankKeeper,
 		communityPoolKeeper,
 		channelKeeper,
-		portKeeper,
-		scopedKeeper,
 		oracleKeeper,
 		transferKeeper,
 		bridgeHook,
@@ -442,7 +437,6 @@ type MockChannelKeeper struct{}
 
 func (k *MockChannelKeeper) SendPacket(
 	ctx sdk.Context,
-	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -454,22 +448,6 @@ func (k *MockChannelKeeper) SendPacket(
 
 func (k *MockChannelKeeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
 	return true
-}
-
-type MockPortKeeper struct{}
-
-func (k *MockPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
-	return &capabilitytypes.Capability{}
-}
-
-type MockScopedKeeper struct{}
-
-func (k *MockScopedKeeper) GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool) {
-	return &capabilitytypes.Capability{}, true
-}
-
-func (k *MockScopedKeeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
-	return nil
 }
 
 type MockOracleKeeper struct{}
