@@ -129,9 +129,6 @@ func (suite *AnteTestSuite) CreateTestTx(
 }
 
 func TestAnteTestSuite(t *testing.T) {
-	// TODO(ibc-v10/sdk-v0.53): cosmossdk.io/simapp has not published a release
-	// compatible with cosmos-sdk v0.53. Re-enable once it's available.
-	t.Skip("simapp not yet compatible with cosmos-sdk v0.53; see TODO above")
 	suite.Run(t, new(AnteTestSuite))
 }
 

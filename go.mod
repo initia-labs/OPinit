@@ -47,13 +47,13 @@ require (
 	cloud.google.com/go/iam v1.5.2 // indirect
 	cloud.google.com/go/monitoring v1.24.2 // indirect
 	cloud.google.com/go/storage v1.50.0 // indirect
-	cosmossdk.io/client/v2 v2.0.0-beta.7 // indirect
+	cosmossdk.io/client/v2 v2.0.0-beta.11 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
-	cosmossdk.io/x/circuit v0.1.1 // indirect
-	cosmossdk.io/x/evidence v0.1.1 // indirect
-	cosmossdk.io/x/feegrant v0.1.1 // indirect
-	cosmossdk.io/x/nft v0.1.0 // indirect
+	cosmossdk.io/x/circuit v0.2.0 // indirect
+	cosmossdk.io/x/evidence v0.2.0 // indirect
+	cosmossdk.io/x/feegrant v0.2.0 // indirect
+	cosmossdk.io/x/nft v0.2.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -248,3 +248,6 @@ replace github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.19
 
 // TODO: switch to a tagged release once initia-labs/connect#8 is merged.
 replace github.com/skip-mev/connect/v2 => github.com/initia-labs/connect/v2 v2.3.4-0.20260422211842-b8c2db5a2a15
+
+// TODO: switch to a tagged release once cosmossdk.io/simapp publishes one compatible with cosmos-sdk v0.53.
+replace cosmossdk.io/simapp => cosmossdk.io/simapp v0.0.0-20260414184924-147450a1f2fe
