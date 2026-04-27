@@ -617,7 +617,7 @@ func (k *MockIBCClientKeeper) VerifyMembership(
 	if k.VerifyMembershipFn != nil {
 		return k.VerifyMembershipFn(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 	}
-	return nil
+	return fmt.Errorf("MockIBCClientKeeper.VerifyMembershipFn not configured")
 }
 
 func GenPubKeys(n int) []cryptotypes.PubKey {

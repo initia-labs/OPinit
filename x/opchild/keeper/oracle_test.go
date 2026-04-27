@@ -28,6 +28,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	connectcodec "github.com/skip-mev/connect/v2/abci/strategies/codec"
@@ -524,6 +525,12 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 
 	input.ClientKeeper.SetClientState("test-client-id-1", clientState)
 	input.ClientKeeper.SetConsensusState("test-client-id-1", consensusState)
+	input.ClientKeeper.VerifyMembershipFn = func(
+		_ sdk.Context, _ string, _ exported.Height, _, _ uint64,
+		_ []byte, _ exported.Path, _ []byte,
+	) error {
+		return nil
+	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
