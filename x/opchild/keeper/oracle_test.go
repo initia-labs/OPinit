@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"cosmossdk.io/store/dbadapter"
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
@@ -27,8 +25,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	connectcodec "github.com/skip-mev/connect/v2/abci/strategies/codec"
@@ -490,10 +486,11 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	const clientID = "07-tendermint-1"
 	bridgeInfo := types.BridgeInfo{
 		BridgeId:   1,
 		L1ChainId:  "testchain-1",
-		L1ClientId: "test-client-id-1",
+		L1ClientId: clientID,
 		BridgeConfig: ophosttypes.BridgeConfig{
 			OracleEnabled: true,
 		},
@@ -523,40 +520,14 @@ func Test_BatchedOracleRelay_WithIBCSetup(t *testing.T) {
 		NextValidatorsHash: nextValidatorHash,
 	}
 
-	input.ClientKeeper.SetClientState("test-client-id-1", clientState)
-	input.ClientKeeper.SetConsensusState("test-client-id-1", consensusState)
-	input.ClientKeeper.VerifyMembershipFn = func(
-		_ sdk.Context, _ string, _ exported.Height, _, _ uint64,
-		_ []byte, _ exported.Path, _ []byte,
-	) error {
-		return nil
-	}
-
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	memDB := dbm.NewMemDB()
-	clientStore := dbadapter.Store{DB: memDB}
-
-	csBytes, err := clienttypes.MarshalClientState(input.Cdc, clientState)
+	csBytes, err := input.Cdc.Marshal(clientState)
 	require.NoError(t, err)
-	clientStore.Set(host.ClientStateKey(), csBytes)
-
-	height := clienttypes.NewHeight(1, 77)
-	bz, err := clienttypes.MarshalConsensusState(input.Cdc, consensusState)
+	consensusBytes, err := input.Cdc.Marshal(consensusState)
 	require.NoError(t, err)
-	clientStore.Set(host.ConsensusStateKey(height), bz)
 
-	clientStore.Set(tmclient.IterationKey(height), []byte{})
-
-	processedTime := uint64(consensusState.Timestamp.UnixNano())
-	processedTimeBz := sdk.Uint64ToBigEndian(processedTime)
-	clientStore.Set(tmclient.ProcessedTimeKey(height), processedTimeBz)
-
-	processedHeight := uint64(sdkCtx.BlockHeight())
-	processedHeightBz := sdk.Uint64ToBigEndian(processedHeight)
-	clientStore.Set(tmclient.ProcessedHeightKey(height), processedHeightBz)
-
-	input.ClientKeeper.SetClientStore("test-client-id-1", clientStore)
+	tmModule := tmclient.NewLightClientModule(input.Cdc, input.ClientKeeper.GetStoreProvider())
+	require.NoError(t, tmModule.Initialize(sdkCtx, clientID, csBytes, consensusBytes))
 
 	proofBytes, err := hex.DecodeString("0aae010a0a69637332333a6961766c1201a11a9c010a99010a01a1122e0a202426ac051cc798ba02498fea05d5339f9faec21636a86451fd385fefd0cbdcf0104c18e0f2ce80f6d2d6c0181a0c0801180120012a0400029801222a08011226020498012075596157e985487234ce2decc134457070eda3b58b91ae7650cae591d28c5e3420222a080112260406980120a8b6e260143cdc29339aaee80e08969a7aabb37b277a610a05b0929f4b498f7b200a96020a0c69637332333a73696d706c6512066f70686f73741afd010afa010a066f70686f737412206a3019435bcd8ff099cf7fdce28999492238c34861490ed43b291446e1a90e5d1a090801180120012a01002225080112210141c04a42e47994d4dbcb3060eedd792d7b623f1bf61f4f7498bd5e3e1119666a2225080112210164f8a73f872520985d0223e32e62c7b0abe1a4a5b28291971287e31d8d2018f222250801122101ca8b13c9a346351958db29e912ac6c6f077ca5daad31e42b24e0c1f2188279c8222708011201011a2051d6a3064852fb1c963e30cf47a449b53579124da7dcfe72fcd745c73467891e2225080112210158954f6c5b67cd1cd66210fe76713db5a80e8f96f36c357782c87bea6a22d86b")
 	require.NoError(t, err)

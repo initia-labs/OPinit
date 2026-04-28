@@ -59,8 +59,11 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v10/modules/core"
+	clientkeeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 var (
@@ -209,7 +212,7 @@ type TestKeepers struct {
 	BankKeeper           bankkeeper.Keeper
 	OPChildKeeper        opchildkeeper.Keeper
 	OracleKeeper         *oraclekeeper.Keeper
-	ClientKeeper         *MockIBCClientKeeper
+	ClientKeeper         *clientkeeper.Keeper
 	IBCKeeper            *ibckeeper.Keeper
 	TransferKeeper       *ibctransferkeeper.Keeper
 	EncodingConfig       EncodingConfig
@@ -392,9 +395,12 @@ func createTestInput(
 	}
 	ctx = sdkCtx.WithConsensusParams(consensusParams)
 
-	// Set IBC keepers for opchild keeper
-	ibcClientKeeper := NewMockIBCClientKeeper()
-	if err := opchildKeeper.SetIBCKeepers(ibcClientKeeper); err != nil {
+	tmclient.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	tmLightClientModule := tmclient.NewLightClientModule(appCodec, ibcKeeper.ClientKeeper.GetStoreProvider())
+	ibcKeeper.ClientKeeper.AddRoute(tmclient.ModuleName, &tmLightClientModule)
+	ibcKeeper.ClientKeeper.SetParams(sdk.UnwrapSDKContext(ctx), clienttypes.DefaultParams())
+
+	if err := opchildKeeper.SetIBCKeepers(ibcKeeper.ClientKeeper); err != nil {
 		panic(err)
 	}
 
@@ -403,7 +409,7 @@ func createTestInput(
 		AccountKeeper:        accountKeeper,
 		BankKeeper:           bankKeeper,
 		OPChildKeeper:        *opchildKeeper,
-		ClientKeeper:         ibcClientKeeper,
+		ClientKeeper:         ibcKeeper.ClientKeeper,
 		OracleKeeper:         &oracleKeeper,
 		IBCKeeper:            ibcKeeper,
 		TransferKeeper:       &transferKeeper,
@@ -553,71 +559,6 @@ func (router *MockRouter) Reset() {
 
 func (router *MockRouter) SetShouldFail(shouldFail bool) {
 	router.shouldFail = shouldFail
-}
-
-type MockIBCClientKeeper struct {
-	stores             map[string]storetypes.KVStore
-	states             map[string]exported.ClientState
-	consensus          map[string]exported.ConsensusState
-	VerifyMembershipFn func(
-		ctx sdk.Context,
-		clientID string,
-		height exported.Height,
-		delayTimePeriod uint64,
-		delayBlockPeriod uint64,
-		proof []byte,
-		path exported.Path,
-		value []byte,
-	) error
-}
-
-func NewMockIBCClientKeeper() *MockIBCClientKeeper {
-	return &MockIBCClientKeeper{
-		stores:    make(map[string]storetypes.KVStore),
-		states:    make(map[string]exported.ClientState),
-		consensus: make(map[string]exported.ConsensusState),
-	}
-}
-
-func (k *MockIBCClientKeeper) SetClientState(clientID string, cs exported.ClientState) {
-	k.states[clientID] = cs
-}
-
-func (k *MockIBCClientKeeper) SetConsensusState(clientID string, cs exported.ConsensusState) {
-	k.consensus[clientID] = cs
-}
-
-func (k *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
-	cs, ok := k.states[clientID]
-	return cs, ok
-}
-
-func (k *MockIBCClientKeeper) SetClientStore(key string, store storetypes.KVStore) {
-	k.stores[key] = store
-}
-
-func (k *MockIBCClientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
-	kvStore, ok := k.stores[clientID]
-	if !ok {
-		panic(fmt.Sprintf("client %s not found in store", clientID))
-	}
-	return kvStore
-}
-
-func (k *MockIBCClientKeeper) VerifyMembership(
-	ctx sdk.Context,
-	clientID string,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	proof []byte,
-	path exported.Path,
-	value []byte,
-) error {
-	if k.VerifyMembershipFn != nil {
-		return k.VerifyMembershipFn(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
-	}
-	return fmt.Errorf("MockIBCClientKeeper.VerifyMembershipFn not configured")
 }
 
 func GenPubKeys(n int) []cryptotypes.PubKey {

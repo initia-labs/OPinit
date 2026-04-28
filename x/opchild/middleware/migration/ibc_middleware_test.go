@@ -56,7 +56,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		DestinationChannel: "channel-1",
 	}
 
-	ack := middleware.OnRecvPacket(ctx, "", packet, relayer)
+	ack := middleware.OnRecvPacket(ctx, transfertypes.V1, packet, relayer)
 	require.True(t, ack.Success())
 
 	// check balance increased
@@ -72,7 +72,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		DestinationChannel: "channel-0",
 	}
 
-	ack = middleware.OnRecvPacket(ctx, "", packet, relayer)
+	ack = middleware.OnRecvPacket(ctx, transfertypes.V1, packet, relayer)
 	require.True(t, ack.Success())
 
 	// check balance increased
@@ -81,7 +81,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 
 	// case 3. migrated asset transfer
 	opchildKeeper.ibcToL2DenomMap[ibcDenom] = "uinit"
-	ack = middleware.OnRecvPacket(ctx, "", packet, relayer)
+	ack = middleware.OnRecvPacket(ctx, transfertypes.V1, packet, relayer)
 	require.True(t, ack.Success())
 
 	// check balance increased; we transferred IBC denom but received uinit due to the migration
