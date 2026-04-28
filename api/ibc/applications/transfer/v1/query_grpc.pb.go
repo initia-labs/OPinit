@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Query_DenomTraces_FullMethodName         = "/ibc.applications.transfer.v1.Query/DenomTraces"
-	Query_DenomTrace_FullMethodName          = "/ibc.applications.transfer.v1.Query/DenomTrace"
 	Query_Params_FullMethodName              = "/ibc.applications.transfer.v1.Query/Params"
+	Query_Denoms_FullMethodName              = "/ibc.applications.transfer.v1.Query/Denoms"
+	Query_Denom_FullMethodName               = "/ibc.applications.transfer.v1.Query/Denom"
 	Query_DenomHash_FullMethodName           = "/ibc.applications.transfer.v1.Query/DenomHash"
 	Query_EscrowAddress_FullMethodName       = "/ibc.applications.transfer.v1.Query/EscrowAddress"
 	Query_TotalEscrowForDenom_FullMethodName = "/ibc.applications.transfer.v1.Query/TotalEscrowForDenom"
@@ -33,12 +33,12 @@ const (
 //
 // Query provides defines the gRPC querier service.
 type QueryClient interface {
-	// DenomTraces queries all denomination traces.
-	DenomTraces(ctx context.Context, in *QueryDenomTracesRequest, opts ...grpc.CallOption) (*QueryDenomTracesResponse, error)
-	// DenomTrace queries a denomination trace information.
-	DenomTrace(ctx context.Context, in *QueryDenomTraceRequest, opts ...grpc.CallOption) (*QueryDenomTraceResponse, error)
 	// Params queries all parameters of the ibc-transfer module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// Denoms queries all denominations
+	Denoms(ctx context.Context, in *QueryDenomsRequest, opts ...grpc.CallOption) (*QueryDenomsResponse, error)
+	// Denom queries a denomination
+	Denom(ctx context.Context, in *QueryDenomRequest, opts ...grpc.CallOption) (*QueryDenomResponse, error)
 	// DenomHash queries a denomination hash information.
 	DenomHash(ctx context.Context, in *QueryDenomHashRequest, opts ...grpc.CallOption) (*QueryDenomHashResponse, error)
 	// EscrowAddress returns the escrow address for a particular port and channel id.
@@ -55,30 +55,30 @@ func NewQueryClient(cc grpc.ClientConnInterface) QueryClient {
 	return &queryClient{cc}
 }
 
-func (c *queryClient) DenomTraces(ctx context.Context, in *QueryDenomTracesRequest, opts ...grpc.CallOption) (*QueryDenomTracesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryDenomTracesResponse)
-	err := c.cc.Invoke(ctx, Query_DenomTraces_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) DenomTrace(ctx context.Context, in *QueryDenomTraceRequest, opts ...grpc.CallOption) (*QueryDenomTraceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryDenomTraceResponse)
-	err := c.cc.Invoke(ctx, Query_DenomTrace_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryParamsResponse)
 	err := c.cc.Invoke(ctx, Query_Params_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) Denoms(ctx context.Context, in *QueryDenomsRequest, opts ...grpc.CallOption) (*QueryDenomsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryDenomsResponse)
+	err := c.cc.Invoke(ctx, Query_Denoms_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) Denom(ctx context.Context, in *QueryDenomRequest, opts ...grpc.CallOption) (*QueryDenomResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryDenomResponse)
+	err := c.cc.Invoke(ctx, Query_Denom_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -121,12 +121,12 @@ func (c *queryClient) TotalEscrowForDenom(ctx context.Context, in *QueryTotalEsc
 //
 // Query provides defines the gRPC querier service.
 type QueryServer interface {
-	// DenomTraces queries all denomination traces.
-	DenomTraces(context.Context, *QueryDenomTracesRequest) (*QueryDenomTracesResponse, error)
-	// DenomTrace queries a denomination trace information.
-	DenomTrace(context.Context, *QueryDenomTraceRequest) (*QueryDenomTraceResponse, error)
 	// Params queries all parameters of the ibc-transfer module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// Denoms queries all denominations
+	Denoms(context.Context, *QueryDenomsRequest) (*QueryDenomsResponse, error)
+	// Denom queries a denomination
+	Denom(context.Context, *QueryDenomRequest) (*QueryDenomResponse, error)
 	// DenomHash queries a denomination hash information.
 	DenomHash(context.Context, *QueryDenomHashRequest) (*QueryDenomHashResponse, error)
 	// EscrowAddress returns the escrow address for a particular port and channel id.
@@ -143,14 +143,14 @@ type QueryServer interface {
 // pointer dereference when methods are called.
 type UnimplementedQueryServer struct{}
 
-func (UnimplementedQueryServer) DenomTraces(context.Context, *QueryDenomTracesRequest) (*QueryDenomTracesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DenomTraces not implemented")
-}
-func (UnimplementedQueryServer) DenomTrace(context.Context, *QueryDenomTraceRequest) (*QueryDenomTraceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DenomTrace not implemented")
-}
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) Denoms(context.Context, *QueryDenomsRequest) (*QueryDenomsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Denoms not implemented")
+}
+func (UnimplementedQueryServer) Denom(context.Context, *QueryDenomRequest) (*QueryDenomResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Denom not implemented")
 }
 func (UnimplementedQueryServer) DenomHash(context.Context, *QueryDenomHashRequest) (*QueryDenomHashResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DenomHash not implemented")
@@ -182,42 +182,6 @@ func RegisterQueryServer(s grpc.ServiceRegistrar, srv QueryServer) {
 	s.RegisterService(&Query_ServiceDesc, srv)
 }
 
-func _Query_DenomTraces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryDenomTracesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).DenomTraces(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_DenomTraces_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).DenomTraces(ctx, req.(*QueryDenomTracesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_DenomTrace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryDenomTraceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).DenomTrace(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_DenomTrace_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).DenomTrace(ctx, req.(*QueryDenomTraceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryParamsRequest)
 	if err := dec(in); err != nil {
@@ -232,6 +196,42 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_Denoms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDenomsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Denoms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_Denoms_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Denoms(ctx, req.(*QueryDenomsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_Denom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDenomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Denom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_Denom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Denom(ctx, req.(*QueryDenomRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -298,16 +298,16 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "DenomTraces",
-			Handler:    _Query_DenomTraces_Handler,
-		},
-		{
-			MethodName: "DenomTrace",
-			Handler:    _Query_DenomTrace_Handler,
-		},
-		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "Denoms",
+			Handler:    _Query_Denoms_Handler,
+		},
+		{
+			MethodName: "Denom",
+			Handler:    _Query_Denom_Handler,
 		},
 		{
 			MethodName: "DenomHash",
