@@ -6,8 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 
 	"github.com/initia-labs/OPinit/x/opchild"
 	"github.com/initia-labs/OPinit/x/opchild/testutil"
@@ -20,7 +19,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
-	capability := &capabilitytypes.Capability{}
 
 	// success case with valid parameters
 	version, err := ibcModule.OnChanOpenInit(
@@ -29,7 +27,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-0",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-1"),
 		opchildtypes.Version,
 	)
@@ -43,7 +40,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-1",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-2"),
 		"",
 	)
@@ -57,7 +53,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-2",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-3"),
 		opchildtypes.Version,
 	)
@@ -71,7 +66,6 @@ func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-4",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-5"),
 		"invalid-version",
 	)
@@ -84,7 +78,6 @@ func Test_IBCModule_OnChanOpenTry(t *testing.T) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
-	capability := &capabilitytypes.Capability{}
 
 	// success case
 	version, err := ibcModule.OnChanOpenTry(
@@ -93,7 +86,6 @@ func Test_IBCModule_OnChanOpenTry(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-0",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-1"),
 		opchildtypes.Version,
 	)
@@ -107,7 +99,6 @@ func Test_IBCModule_OnChanOpenTry(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-1",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-2"),
 		opchildtypes.Version,
 	)
@@ -120,7 +111,6 @@ func Test_IBCModule_OnChanOpenTry(t *testing.T) {
 		[]string{"connection-0"},
 		opchildtypes.PortID,
 		"channel-2",
-		capability,
 		channeltypes.NewCounterparty(opchildtypes.PortID, "channel-3"),
 		"invalid-version",
 	)
@@ -236,7 +226,7 @@ func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
 
 	// successful packet receipt
-	ack := ibcModule.OnRecvPacket(sdkCtx, packet, nil)
+	ack := ibcModule.OnRecvPacket(sdkCtx, opchildtypes.Version, packet, nil)
 	require.True(t, ack.Success())
 
 	// attestors were added
@@ -260,7 +250,7 @@ func Test_IBCModule_OnRecvPacket_InvalidData(t *testing.T) {
 		Sequence:           1,
 	}
 
-	ack := ibcModule.OnRecvPacket(sdkCtx, packet, nil)
+	ack := ibcModule.OnRecvPacket(sdkCtx, opchildtypes.Version, packet, nil)
 	require.False(t, ack.Success())
 }
 
@@ -281,7 +271,7 @@ func Test_IBCModule_OnAcknowledgementPacket(t *testing.T) {
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 
-	err := ibcModule.OnAcknowledgementPacket(sdkCtx, packet, ack.Acknowledgement(), nil)
+	err := ibcModule.OnAcknowledgementPacket(sdkCtx, opchildtypes.Version, packet, ack.Acknowledgement(), nil)
 	require.NoError(t, err)
 
 	events := sdkCtx.EventManager().Events()
@@ -310,7 +300,7 @@ func Test_IBCModule_OnTimeoutPacket(t *testing.T) {
 		Sequence:           1,
 	}
 
-	err := ibcModule.OnTimeoutPacket(sdkCtx, packet, nil)
+	err := ibcModule.OnTimeoutPacket(sdkCtx, opchildtypes.Version, packet, nil)
 	require.NoError(t, err)
 
 	events := sdkCtx.EventManager().Events()

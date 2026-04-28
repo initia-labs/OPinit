@@ -111,6 +111,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // RegisterInvariants registers the move module invariants.
+// sdk.InvariantRegistry is deprecated but kept for interface compatibility.
+//
+//nolint:staticcheck
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // InitGenesis performs genesis initialization for the move module. It returns

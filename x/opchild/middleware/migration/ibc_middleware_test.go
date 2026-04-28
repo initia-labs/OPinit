@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
@@ -56,7 +56,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		DestinationChannel: "channel-1",
 	}
 
-	ack := middleware.OnRecvPacket(ctx, packet, relayer)
+	ack := middleware.OnRecvPacket(ctx, transfertypes.V1, packet, relayer)
 	require.True(t, ack.Success())
 
 	// check balance increased
@@ -72,7 +72,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		DestinationChannel: "channel-0",
 	}
 
-	ack = middleware.OnRecvPacket(ctx, packet, relayer)
+	ack = middleware.OnRecvPacket(ctx, transfertypes.V1, packet, relayer)
 	require.True(t, ack.Success())
 
 	// check balance increased
@@ -81,7 +81,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 
 	// case 3. migrated asset transfer
 	opchildKeeper.ibcToL2DenomMap[ibcDenom] = "uinit"
-	ack = middleware.OnRecvPacket(ctx, packet, relayer)
+	ack = middleware.OnRecvPacket(ctx, transfertypes.V1, packet, relayer)
 	require.True(t, ack.Success())
 
 	// check balance increased; we transferred IBC denom but received uinit due to the migration
@@ -143,7 +143,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket_ErrorRefundsMigratedTokens(t *tes
 	}
 	ackBz := channeltypes.NewErrorAcknowledgement(errors.New("failed")).Acknowledgement()
 
-	err = middleware.OnAcknowledgementPacket(ctx, packet, ackBz, relayer)
+	err = middleware.OnAcknowledgementPacket(ctx, transfertypes.V1, packet, ackBz, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
@@ -230,7 +230,7 @@ func TestIBCMiddleware_OnTimeoutPacket_RefundsMigratedTokens(t *testing.T) {
 		DestinationChannel: "channel-1",
 	}
 
-	err = middleware.OnTimeoutPacket(ctx, packet, relayer)
+	err = middleware.OnTimeoutPacket(ctx, transfertypes.V1, packet, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
@@ -316,7 +316,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket_SenderChainSource_NoMigration(t *
 	}
 	ackBz := channeltypes.NewErrorAcknowledgement(errors.New("failed")).Acknowledgement()
 
-	err = middleware.OnAcknowledgementPacket(ctx, packet, ackBz, relayer)
+	err = middleware.OnAcknowledgementPacket(ctx, transfertypes.V1, packet, ackBz, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
@@ -378,7 +378,7 @@ func TestIBCMiddleware_OnTimeoutPacket_SenderChainSource_NoMigration(t *testing.
 		DestinationChannel: "channel-1",
 	}
 
-	err = middleware.OnTimeoutPacket(ctx, packet, relayer)
+	err = middleware.OnTimeoutPacket(ctx, transfertypes.V1, packet, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))

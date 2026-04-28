@@ -14,11 +14,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var _ porttypes.IBCModule = &MockTransferApp{}
@@ -105,11 +104,10 @@ func (im MockTransferApp) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	channelCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return transfertypes.Version, nil
+	return transfertypes.V1, nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -119,11 +117,10 @@ func (im MockTransferApp) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	channelCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return transfertypes.Version, nil
+	return transfertypes.V1, nil
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -167,6 +164,7 @@ func (im MockTransferApp) OnChanCloseConfirm(
 // OnAcknowledgementPacket implements the IBCMiddleware interface
 func (im MockTransferApp) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
@@ -180,6 +178,7 @@ func (im MockTransferApp) OnAcknowledgementPacket(
 // OnTimeoutPacket implements the IBCMiddleware interface
 func (im MockTransferApp) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
@@ -195,6 +194,7 @@ func (im MockTransferApp) OnTimeoutPacket(
 // mint IBC token if the token is not originated from the receiving chain
 func (im MockTransferApp) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {

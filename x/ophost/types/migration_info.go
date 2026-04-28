@@ -4,7 +4,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 )
 
 func (m MigrationInfo) Validate() error {

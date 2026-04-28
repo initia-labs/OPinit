@@ -14,7 +14,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types4 "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	types4 "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	types3 "github.com/initia-labs/OPinit/x/ophost/types"
 	io "io"
 	math "math"

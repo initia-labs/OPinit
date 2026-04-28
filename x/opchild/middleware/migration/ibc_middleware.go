@@ -4,30 +4,23 @@ import (
 	"fmt"
 
 	"cosmossdk.io/core/address"
-	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // Interface assertions to ensure IBCMiddleware implements required interfaces
 var _ porttypes.Middleware = &IBCMiddleware{}
-var _ porttypes.UpgradableModule = &IBCMiddleware{}
 
-// IBCMiddleware wraps an underlying IBC module and provides channel upgrade functionality by delegating upgrade callbacks to the rootModule.
-// The app field handles normal IBC callbacks while rootModule specifically handles upgrade-related callbacks.
-// The ics4Wrapper provides packet sending/receiving capabilities.
-//
-// This middleware is necessary because many custom ibc middlewares did not implement porttypes.UpgradableModule.
-// It acts as a compatibility layer that ensures upgrade functionality is available even when the underlying
-// IBC module doesn't support it directly.
+// IBCMiddleware wraps an underlying IBC module and intercepts fungible token
+// transfers in order to migrate legacy OP-tokens into their IBC-token equivalent
+// when a registered denom is received, acked, or timed out.
 type IBCMiddleware struct {
 	ac  address.Codec
 	cdc codec.Codec
@@ -76,11 +69,10 @@ func (im IBCMiddleware) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	channelCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version)
+	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -90,11 +82,10 @@ func (im IBCMiddleware) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	channelCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
+	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -136,10 +127,8 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // SendPacket implements the ICS4 Wrapper interface
-// Rate-limited SendPacket found in RateLimit Keeper
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -148,7 +137,6 @@ func (im IBCMiddleware) SendPacket(
 ) (sequence uint64, err error) {
 	return im.ics4Wrapper.SendPacket(
 		ctx,
-		chanCap,
 		sourcePort,
 		sourceChannel,
 		timeoutHeight,
@@ -160,11 +148,10 @@ func (im IBCMiddleware) SendPacket(
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	return im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 }
 
 // GetAppVersion returns the application version of the underlying application
@@ -172,49 +159,10 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
-// OnChanUpgradeInit implements types.UpgradableModule.
-func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID string, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return proposedVersion, errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-}
-
-// OnChanUpgradeTry implements types.UpgradableModule.
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID string, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return counterpartyVersion, errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
-}
-
-// OnChanUpgradeAck implements types.UpgradableModule.
-func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID string, channelID string, counterpartyVersion string) error {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
-}
-
-// OnChanUpgradeOpen implements types.UpgradableModule.
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID string, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
-	}
-
-	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-}
-
 // OnRecvPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
@@ -222,12 +170,12 @@ func (im IBCMiddleware) OnRecvPacket(
 	// without any further checks
 	data, ibcDenom, ok := lookupPacket(packet, true)
 	if !ok {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// if the token is not registered for migration, do nothing
 	if hasMigration, err := im.opChildKeeper.HasIBCToL2DenomMap(ctx, ibcDenom); err != nil || !hasMigration {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// get the receiver address
@@ -240,7 +188,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	beforeBalance := im.bankKeeper.GetBalance(ctx, receiver, ibcDenom)
 
 	// call the underlying IBC module
-	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	if !ack.Success() {
 		return ack
 	}
@@ -274,25 +222,26 @@ func (im IBCMiddleware) OnRecvPacket(
 // OnAcknowledgementPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
 	// if it is not an error ack, just pass through
 	if !isAckError(im.cdc, acknowledgement) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	// if it is not a transfer packet or sender chain is source, then execute inner app
 	// without any further checks
 	data, ibcDenom, ok := lookupPacket(packet, false)
 	if !ok {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	// if the token is not registered for migration, just pass through
 	if hasMigration, err := im.opChildKeeper.HasIBCToL2DenomMap(ctx, ibcDenom); err != nil || !hasMigration {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	// get the sender address
@@ -305,7 +254,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	beforeBalance := im.bankKeeper.GetBalance(ctx, sender, ibcDenom)
 
 	// call the underlying IBC module
-	if err := im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer); err != nil {
+	if err := im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer); err != nil {
 		return err
 	}
 
@@ -338,6 +287,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // OnTimeoutPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
@@ -345,12 +295,12 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	// without any further checks
 	data, ibcDenom, ok := lookupPacket(packet, false)
 	if !ok {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// if the token is not registered for migration, just pass through
 	if hasMigration, err := im.opChildKeeper.HasIBCToL2DenomMap(ctx, ibcDenom); err != nil || !hasMigration {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// get the sender address
@@ -363,7 +313,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	beforeBalance := im.bankKeeper.GetBalance(ctx, sender, ibcDenom)
 
 	// call the underlying IBC module
-	if err := im.app.OnTimeoutPacket(ctx, packet, relayer); err != nil {
+	if err := im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer); err != nil {
 		return err
 	}
 
@@ -401,27 +351,24 @@ func lookupPacket(packet channeltypes.Packet, receive bool) (data transfertypes.
 		return data, "", false
 	}
 
+	denom := transfertypes.ExtractDenomFromPath(data.Denom)
 	// if the token is originated from the receiving chain, do nothing
-	if receive && transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+	if receive && denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 		return data, "", false
 	}
 
 	// if the token is originated from the sending chain, do nothing
-	if !receive && transfertypes.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+	if !receive && !denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 		return data, "", false
 	}
 
 	// compute the prefixed ibc denom
-	prefixedDenom := data.Denom
 	if receive {
-		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-		prefixedDenom = sourcePrefix + data.Denom
+		destHop := transfertypes.NewHop(packet.GetDestPort(), packet.GetDestChannel())
+		denom = transfertypes.NewDenom(denom.Base, append([]transfertypes.Hop{destHop}, denom.Trace...)...)
 	}
 
-	// parse the denom and return IBCDenom()
-	ibcDenom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
-
-	return data, ibcDenom, true
+	return data, denom.IBCDenom(), true
 }
 
 // newEmitErrorAcknowledgement creates a new error acknowledgement after having emitted an event with the

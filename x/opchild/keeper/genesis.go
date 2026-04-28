@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -27,15 +27,6 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx = sdkCtx.WithBlockHeight(1 - sdk.ValidatorUpdateDelay)
 	ctx = sdkCtx
-
-	if bound, err := k.IsBound(ctx, types.PortID); err != nil {
-		panic(err)
-	} else if !bound {
-		err := k.BindPort(ctx, types.PortID)
-		if err != nil {
-			panic(fmt.Sprintf("could not bind port: %v", err))
-		}
-	}
 
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
@@ -117,7 +108,7 @@ func (k Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) (res 
 			panic(err)
 		}
 
-		ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+		ibcDenom := transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
 		if err := k.SetIBCToL2DenomMap(ctx, ibcDenom, migrationInfo.Denom); err != nil {
 			panic(err)
 		}

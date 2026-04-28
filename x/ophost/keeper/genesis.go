@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -10,13 +8,6 @@ import (
 )
 
 func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
-	if !k.IsBound(ctx, types.PortID) {
-		err := k.BindPort(ctx, types.PortID)
-		if err != nil {
-			panic(fmt.Sprintf("could not bind port: %v", err))
-		}
-	}
-
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
 	}
