@@ -143,7 +143,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket_ErrorRefundsMigratedTokens(t *tes
 	}
 	ackBz := channeltypes.NewErrorAcknowledgement(errors.New("failed")).Acknowledgement()
 
-	err = middleware.OnAcknowledgementPacket(ctx, "", packet, ackBz, relayer)
+	err = middleware.OnAcknowledgementPacket(ctx, transfertypes.V1, packet, ackBz, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
@@ -230,7 +230,7 @@ func TestIBCMiddleware_OnTimeoutPacket_RefundsMigratedTokens(t *testing.T) {
 		DestinationChannel: "channel-1",
 	}
 
-	err = middleware.OnTimeoutPacket(ctx, "", packet, relayer)
+	err = middleware.OnTimeoutPacket(ctx, transfertypes.V1, packet, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
@@ -316,7 +316,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket_SenderChainSource_NoMigration(t *
 	}
 	ackBz := channeltypes.NewErrorAcknowledgement(errors.New("failed")).Acknowledgement()
 
-	err = middleware.OnAcknowledgementPacket(ctx, "", packet, ackBz, relayer)
+	err = middleware.OnAcknowledgementPacket(ctx, transfertypes.V1, packet, ackBz, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
@@ -378,7 +378,7 @@ func TestIBCMiddleware_OnTimeoutPacket_SenderChainSource_NoMigration(t *testing.
 		DestinationChannel: "channel-1",
 	}
 
-	err = middleware.OnTimeoutPacket(ctx, "", packet, relayer)
+	err = middleware.OnTimeoutPacket(ctx, transfertypes.V1, packet, relayer)
 	require.NoError(t, err)
 
 	require.Equal(t, sdk.NewCoin(baseDenom, sdkmath.NewInt(100)), bankKeeper.GetBalance(ctx, senderAcc, baseDenom))
