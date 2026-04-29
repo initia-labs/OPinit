@@ -132,10 +132,10 @@ func (k Keeper) Codec() codec.Codec {
 // IsBound and BindPort are no-op keeping for backward compatibility with the
 // v1.4.5 upgrade handler in initia, which called these before ibc-go v10 dropped
 // the capability module. Port binding now happens via router registration.
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
+func (k Keeper) IsBound(ctx context.Context, portID string) bool {
 	return true
 }
 
-func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
+func (k Keeper) BindPort(ctx context.Context, portID string) error {
 	return nil
 }
