@@ -26,6 +26,7 @@ const (
 	Query_ConsensusStateHeights_FullMethodName  = "/ibc.core.client.v1.Query/ConsensusStateHeights"
 	Query_ClientStatus_FullMethodName           = "/ibc.core.client.v1.Query/ClientStatus"
 	Query_ClientParams_FullMethodName           = "/ibc.core.client.v1.Query/ClientParams"
+	Query_ClientCreator_FullMethodName          = "/ibc.core.client.v1.Query/ClientCreator"
 	Query_UpgradedClientState_FullMethodName    = "/ibc.core.client.v1.Query/UpgradedClientState"
 	Query_UpgradedConsensusState_FullMethodName = "/ibc.core.client.v1.Query/UpgradedConsensusState"
 	Query_VerifyMembership_FullMethodName       = "/ibc.core.client.v1.Query/VerifyMembership"
@@ -53,6 +54,8 @@ type QueryClient interface {
 	ClientStatus(ctx context.Context, in *QueryClientStatusRequest, opts ...grpc.CallOption) (*QueryClientStatusResponse, error)
 	// ClientParams queries all parameters of the ibc client submodule.
 	ClientParams(ctx context.Context, in *QueryClientParamsRequest, opts ...grpc.CallOption) (*QueryClientParamsResponse, error)
+	// ClientCreator queries the creator of a given client.
+	ClientCreator(ctx context.Context, in *QueryClientCreatorRequest, opts ...grpc.CallOption) (*QueryClientCreatorResponse, error)
 	// UpgradedClientState queries an Upgraded IBC light client.
 	UpgradedClientState(ctx context.Context, in *QueryUpgradedClientStateRequest, opts ...grpc.CallOption) (*QueryUpgradedClientStateResponse, error)
 	// UpgradedConsensusState queries an Upgraded IBC consensus state.
@@ -139,6 +142,16 @@ func (c *queryClient) ClientParams(ctx context.Context, in *QueryClientParamsReq
 	return out, nil
 }
 
+func (c *queryClient) ClientCreator(ctx context.Context, in *QueryClientCreatorRequest, opts ...grpc.CallOption) (*QueryClientCreatorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryClientCreatorResponse)
+	err := c.cc.Invoke(ctx, Query_ClientCreator_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) UpgradedClientState(ctx context.Context, in *QueryUpgradedClientStateRequest, opts ...grpc.CallOption) (*QueryUpgradedClientStateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryUpgradedClientStateResponse)
@@ -191,6 +204,8 @@ type QueryServer interface {
 	ClientStatus(context.Context, *QueryClientStatusRequest) (*QueryClientStatusResponse, error)
 	// ClientParams queries all parameters of the ibc client submodule.
 	ClientParams(context.Context, *QueryClientParamsRequest) (*QueryClientParamsResponse, error)
+	// ClientCreator queries the creator of a given client.
+	ClientCreator(context.Context, *QueryClientCreatorRequest) (*QueryClientCreatorResponse, error)
 	// UpgradedClientState queries an Upgraded IBC light client.
 	UpgradedClientState(context.Context, *QueryUpgradedClientStateRequest) (*QueryUpgradedClientStateResponse, error)
 	// UpgradedConsensusState queries an Upgraded IBC consensus state.
@@ -227,6 +242,9 @@ func (UnimplementedQueryServer) ClientStatus(context.Context, *QueryClientStatus
 }
 func (UnimplementedQueryServer) ClientParams(context.Context, *QueryClientParamsRequest) (*QueryClientParamsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ClientParams not implemented")
+}
+func (UnimplementedQueryServer) ClientCreator(context.Context, *QueryClientCreatorRequest) (*QueryClientCreatorResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClientCreator not implemented")
 }
 func (UnimplementedQueryServer) UpgradedClientState(context.Context, *QueryUpgradedClientStateRequest) (*QueryUpgradedClientStateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpgradedClientState not implemented")
@@ -384,6 +402,24 @@ func _Query_ClientParams_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_ClientCreator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryClientCreatorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ClientCreator(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_ClientCreator_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ClientCreator(ctx, req.(*QueryClientCreatorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_UpgradedClientState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryUpgradedClientStateRequest)
 	if err := dec(in); err != nil {
@@ -472,6 +508,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClientParams",
 			Handler:    _Query_ClientParams_Handler,
+		},
+		{
+			MethodName: "ClientCreator",
+			Handler:    _Query_ClientCreator_Handler,
 		},
 		{
 			MethodName: "UpgradedClientState",

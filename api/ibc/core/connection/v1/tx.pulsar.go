@@ -6178,27 +6178,31 @@ type MsgConnectionOpenTry struct {
 	//
 	// Deprecated: Do not use.
 	PreviousConnectionId string `protobuf:"bytes,2,opt,name=previous_connection_id,json=previousConnectionId,proto3" json:"previous_connection_id,omitempty"`
+	// Deprecated: this field is unused.
+	//
 	// Deprecated: Do not use.
 	ClientState          *anypb.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	Counterparty         *Counterparty `protobuf:"bytes,4,opt,name=counterparty,proto3" json:"counterparty,omitempty"`
 	DelayPeriod          uint64        `protobuf:"varint,5,opt,name=delay_period,json=delayPeriod,proto3" json:"delay_period,omitempty"`
 	CounterpartyVersions []*Version    `protobuf:"bytes,6,rep,name=counterparty_versions,json=counterpartyVersions,proto3" json:"counterparty_versions,omitempty"`
 	ProofHeight          *v1.Height    `protobuf:"bytes,7,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height,omitempty"`
-	// proof of the initialization the connection on Chain A: `UNITIALIZED ->
+	// proof of the initialization the connection on Chain A: `UNINITIALIZED ->
 	// INIT`
 	ProofInit []byte `protobuf:"bytes,8,opt,name=proof_init,json=proofInit,proto3" json:"proof_init,omitempty"`
-	// proof of client state included in message
+	// Deprecated: this field is unused.
 	//
 	// Deprecated: Do not use.
 	ProofClient []byte `protobuf:"bytes,9,opt,name=proof_client,json=proofClient,proto3" json:"proof_client,omitempty"`
-	// proof of client consensus state
+	// Deprecated: this field is unused.
 	//
 	// Deprecated: Do not use.
 	ProofConsensus []byte `protobuf:"bytes,10,opt,name=proof_consensus,json=proofConsensus,proto3" json:"proof_consensus,omitempty"`
+	// Deprecated: this field is unused.
+	//
 	// Deprecated: Do not use.
 	ConsensusHeight *v1.Height `protobuf:"bytes,11,opt,name=consensus_height,json=consensusHeight,proto3" json:"consensus_height,omitempty"`
 	Signer          string     `protobuf:"bytes,12,opt,name=signer,proto3" json:"signer,omitempty"`
-	// optional proof data for host state machines that are unable to introspect their own consensus state
+	// Deprecated: this field is unused.
 	//
 	// Deprecated: Do not use.
 	HostConsensusStateProof []byte `protobuf:"bytes,13,opt,name=host_consensus_state_proof,json=hostConsensusStateProof,proto3" json:"host_consensus_state_proof,omitempty"`
@@ -6358,24 +6362,28 @@ type MsgConnectionOpenAck struct {
 	ConnectionId             string   `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
 	CounterpartyConnectionId string   `protobuf:"bytes,2,opt,name=counterparty_connection_id,json=counterpartyConnectionId,proto3" json:"counterparty_connection_id,omitempty"`
 	Version                  *Version `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	// Deprecated: this field is unused.
+	//
 	// Deprecated: Do not use.
 	ClientState *anypb.Any `protobuf:"bytes,4,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	ProofHeight *v1.Height `protobuf:"bytes,5,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height,omitempty"`
-	// proof of the initialization the connection on Chain B: `UNITIALIZED ->
+	// proof of the initialization the connection on Chain B: `UNINITIALIZED ->
 	// TRYOPEN`
 	ProofTry []byte `protobuf:"bytes,6,opt,name=proof_try,json=proofTry,proto3" json:"proof_try,omitempty"`
-	// proof of client state included in message
+	// Deprecated: this field is unused.
 	//
 	// Deprecated: Do not use.
 	ProofClient []byte `protobuf:"bytes,7,opt,name=proof_client,json=proofClient,proto3" json:"proof_client,omitempty"`
-	// proof of client consensus state
+	// Deprecated: this field is unused.
 	//
 	// Deprecated: Do not use.
 	ProofConsensus []byte `protobuf:"bytes,8,opt,name=proof_consensus,json=proofConsensus,proto3" json:"proof_consensus,omitempty"`
+	// Deprecated: this field is unused.
+	//
 	// Deprecated: Do not use.
 	ConsensusHeight *v1.Height `protobuf:"bytes,9,opt,name=consensus_height,json=consensusHeight,proto3" json:"consensus_height,omitempty"`
 	Signer          string     `protobuf:"bytes,10,opt,name=signer,proto3" json:"signer,omitempty"`
-	// optional proof data for host state machines that are unable to introspect their own consensus state
+	// Deprecated: this field is unused.
 	//
 	// Deprecated: Do not use.
 	HostConsensusStateProof []byte `protobuf:"bytes,11,opt,name=host_consensus_state_proof,json=hostConsensusStateProof,proto3" json:"host_consensus_state_proof,omitempty"`

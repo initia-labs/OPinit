@@ -19,13 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Msg_CreateClient_FullMethodName       = "/ibc.core.client.v1.Msg/CreateClient"
-	Msg_UpdateClient_FullMethodName       = "/ibc.core.client.v1.Msg/UpdateClient"
-	Msg_UpgradeClient_FullMethodName      = "/ibc.core.client.v1.Msg/UpgradeClient"
-	Msg_SubmitMisbehaviour_FullMethodName = "/ibc.core.client.v1.Msg/SubmitMisbehaviour"
-	Msg_RecoverClient_FullMethodName      = "/ibc.core.client.v1.Msg/RecoverClient"
-	Msg_IBCSoftwareUpgrade_FullMethodName = "/ibc.core.client.v1.Msg/IBCSoftwareUpgrade"
-	Msg_UpdateClientParams_FullMethodName = "/ibc.core.client.v1.Msg/UpdateClientParams"
+	Msg_CreateClient_FullMethodName        = "/ibc.core.client.v1.Msg/CreateClient"
+	Msg_UpdateClient_FullMethodName        = "/ibc.core.client.v1.Msg/UpdateClient"
+	Msg_UpgradeClient_FullMethodName       = "/ibc.core.client.v1.Msg/UpgradeClient"
+	Msg_SubmitMisbehaviour_FullMethodName  = "/ibc.core.client.v1.Msg/SubmitMisbehaviour"
+	Msg_RecoverClient_FullMethodName       = "/ibc.core.client.v1.Msg/RecoverClient"
+	Msg_IBCSoftwareUpgrade_FullMethodName  = "/ibc.core.client.v1.Msg/IBCSoftwareUpgrade"
+	Msg_UpdateClientParams_FullMethodName  = "/ibc.core.client.v1.Msg/UpdateClientParams"
+	Msg_DeleteClientCreator_FullMethodName = "/ibc.core.client.v1.Msg/DeleteClientCreator"
 )
 
 // MsgClient is the client API for Msg service.
@@ -48,6 +49,8 @@ type MsgClient interface {
 	IBCSoftwareUpgrade(ctx context.Context, in *MsgIBCSoftwareUpgrade, opts ...grpc.CallOption) (*MsgIBCSoftwareUpgradeResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 	UpdateClientParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// DeleteClientCreator defines a rpc handler method for MsgDeleteClientCreator.
+	DeleteClientCreator(ctx context.Context, in *MsgDeleteClientCreator, opts ...grpc.CallOption) (*MsgDeleteClientCreatorResponse, error)
 }
 
 type msgClient struct {
@@ -128,6 +131,16 @@ func (c *msgClient) UpdateClientParams(ctx context.Context, in *MsgUpdateParams,
 	return out, nil
 }
 
+func (c *msgClient) DeleteClientCreator(ctx context.Context, in *MsgDeleteClientCreator, opts ...grpc.CallOption) (*MsgDeleteClientCreatorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MsgDeleteClientCreatorResponse)
+	err := c.cc.Invoke(ctx, Msg_DeleteClientCreator_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility.
@@ -148,6 +161,8 @@ type MsgServer interface {
 	IBCSoftwareUpgrade(context.Context, *MsgIBCSoftwareUpgrade) (*MsgIBCSoftwareUpgradeResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 	UpdateClientParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// DeleteClientCreator defines a rpc handler method for MsgDeleteClientCreator.
+	DeleteClientCreator(context.Context, *MsgDeleteClientCreator) (*MsgDeleteClientCreatorResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -178,6 +193,9 @@ func (UnimplementedMsgServer) IBCSoftwareUpgrade(context.Context, *MsgIBCSoftwar
 }
 func (UnimplementedMsgServer) UpdateClientParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateClientParams not implemented")
+}
+func (UnimplementedMsgServer) DeleteClientCreator(context.Context, *MsgDeleteClientCreator) (*MsgDeleteClientCreatorResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteClientCreator not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 func (UnimplementedMsgServer) testEmbeddedByValue()             {}
@@ -326,6 +344,24 @@ func _Msg_UpdateClientParams_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_DeleteClientCreator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeleteClientCreator)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DeleteClientCreator(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_DeleteClientCreator_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DeleteClientCreator(ctx, req.(*MsgDeleteClientCreator))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -360,6 +396,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateClientParams",
 			Handler:    _Msg_UpdateClientParams_Handler,
+		},
+		{
+			MethodName: "DeleteClientCreator",
+			Handler:    _Msg_DeleteClientCreator_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
