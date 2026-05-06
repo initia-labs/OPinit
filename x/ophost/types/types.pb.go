@@ -131,8 +131,7 @@ type BridgeConfig struct {
 	BridgeDisabledAt time.Time `protobuf:"bytes,10,opt,name=bridge_disabled_at,json=bridgeDisabledAt,proto3,stdtime" json:"bridge_disabled_at"`
 	// attestor_set is the set of attestors.
 	AttestorSet []Attestor `protobuf:"bytes,11,rep,name=attestor_set,json=attestorSet,proto3" json:"attestor_set"`
-	// channel_id is the IBC channel ID for the opinit port.
-	// This is used for relaying attestor set updates and oracle data to L2.
+	// channel_id is the IBC channel ID for the opinit port, used for relaying attestor set updates and oracle data to L2.
 	ChannelId string `protobuf:"bytes,12,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 }
 
