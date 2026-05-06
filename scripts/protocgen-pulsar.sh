@@ -24,7 +24,7 @@ echo "Generating API module"
 
 # clone dependency proto files
 IBC_URL=github.com/cosmos/ibc-go
-IBC_V=v8
+IBC_V=v10
 ICS23_URL=github.com/cosmos/ics23
 
 IBC_VERSION=$(cat ./go.mod | grep "$IBC_URL/$IBC_V v" | sed -nE 's/.* (v[0-9][^[:space:]]*).*/\1/p')
