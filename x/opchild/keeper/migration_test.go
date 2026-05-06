@@ -55,6 +55,101 @@ func Test_RegisterMigrationInfo_Success(t *testing.T) {
 	require.Equal(t, migrationInfo, storedInfo)
 }
 
+func Test_RegisterMigrationInfo_WithIBCBaseDenom(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	baseDenomPath := "transfer/channel-9/ufoo"
+	baseDenom := transfertypes.ParseDenomTrace(baseDenomPath).IBCDenom()
+	l2Denom := "test1"
+	err := input.OPChildKeeper.DenomPairs.Set(ctx, l2Denom, baseDenom)
+	require.NoError(t, err)
+
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+	migrationInfo := opchildtypes.MigrationInfo{
+		Denom:        l2Denom,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+	}
+
+	msg := opchildtypes.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
+		migrationInfo,
+	)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "base IBC denom path is required")
+
+	migrationInfo.BaseIbcDenomPath = baseDenomPath
+	msg = opchildtypes.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
+		migrationInfo,
+	)
+
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.NoError(t, err)
+
+	expectedIBCDenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenomPath)).IBCDenom()
+	mappedL2Denom, err := input.OPChildKeeper.GetIBCToL2DenomMap(ctx, expectedIBCDenom)
+	require.NoError(t, err)
+	require.Equal(t, l2Denom, mappedL2Denom)
+
+	rehashDenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	hasRehashDenom, err := input.OPChildKeeper.HasIBCToL2DenomMap(ctx, rehashDenom)
+	require.NoError(t, err)
+	require.False(t, hasRehashDenom)
+
+	hasBaseDenom, err := input.OPChildKeeper.HasIBCToL2DenomMap(ctx, baseDenom)
+	require.NoError(t, err)
+	require.False(t, hasBaseDenom)
+}
+
+func Test_RegisterMigrationInfo_OverwriteLegacyIBCBaseDenom(t *testing.T) {
+	ctx, input := testutil.CreateTestInput(t, false)
+
+	baseDenomPath := "transfer/channel-9/ufoo"
+	baseDenom := transfertypes.ParseDenomTrace(baseDenomPath).IBCDenom()
+	l2Denom := "test1"
+	err := input.OPChildKeeper.DenomPairs.Set(ctx, l2Denom, baseDenom)
+	require.NoError(t, err)
+
+	legacyMigrationInfo := opchildtypes.MigrationInfo{
+		Denom:        l2Denom,
+		IbcChannelId: "channel-0",
+		IbcPortId:    "transfer",
+	}
+	err = input.OPChildKeeper.SetMigrationInfo(ctx, legacyMigrationInfo)
+	require.NoError(t, err)
+
+	legacyIBCDenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(legacyMigrationInfo.IbcPortId, legacyMigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+	err = input.OPChildKeeper.SetIBCToL2DenomMap(ctx, legacyIBCDenom, l2Denom)
+	require.NoError(t, err)
+
+	migrationInfo := legacyMigrationInfo
+	migrationInfo.BaseIbcDenomPath = baseDenomPath
+	msg := opchildtypes.NewMsgRegisterMigrationInfo(
+		authtypes.NewModuleAddress(opchildtypes.ModuleName).String(),
+		migrationInfo,
+	)
+
+	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
+	_, err = ms.RegisterMigrationInfo(ctx, msg)
+	require.NoError(t, err)
+
+	storedInfo, err := input.OPChildKeeper.GetMigrationInfo(ctx, l2Denom)
+	require.NoError(t, err)
+	require.Equal(t, migrationInfo, storedInfo)
+
+	expectedIBCDenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenomPath)).IBCDenom()
+	mappedL2Denom, err := input.OPChildKeeper.GetIBCToL2DenomMap(ctx, expectedIBCDenom)
+	require.NoError(t, err)
+	require.Equal(t, l2Denom, mappedL2Denom)
+
+	hasLegacyIBCDenom, err := input.OPChildKeeper.HasIBCToL2DenomMap(ctx, legacyIBCDenom)
+	require.NoError(t, err)
+	require.False(t, hasLegacyIBCDenom)
+}
+
 // Test_RegisterMigrationInfo_InvalidAuthority tests registration with invalid authority
 func Test_RegisterMigrationInfo_InvalidAuthority(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
