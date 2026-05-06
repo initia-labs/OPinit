@@ -848,8 +848,7 @@ var xxx_messageInfo_MsgUpdateOracleConfigResponse proto.InternalMessageInfo
 
 // MsgUpdateChannelId is a message to update the opinit channel ID
 type MsgUpdateChannelId struct {
-	// authority is the address that controls the module (defaults to x/gov unless overwritten)
-	// or the current proposer address.
+	// authority is the address that controls the module (defaults to x/gov unless overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty" yaml:"authority"`
 	BridgeId  uint64 `protobuf:"varint,2,opt,name=bridge_id,json=bridgeId,proto3" json:"bridge_id,omitempty" yaml:"bridge_id"`
 	ChannelId string `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty" yaml:"channel_id"`
