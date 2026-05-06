@@ -17,8 +17,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
 
@@ -922,13 +920,28 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.authority, req.Authority)
 	}
 
-	// check if the migration info is already registered
-	if migrationInfo, err := ms.GetMigrationInfo(ctx, req.MigrationInfo.Denom); err == nil {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "migration info already registered: %s", migrationInfo.String())
-	}
-
 	// load the base denom from the denom pair
 	baseDenom, err := ms.GetBaseDenom(ctx, req.MigrationInfo.Denom)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if the migration info is already registered
+	if migrationInfo, err := ms.GetMigrationInfo(ctx, req.MigrationInfo.Denom); err == nil {
+		if !canOverwriteMigrationInfo(migrationInfo, baseDenom) {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "migration info already registered: %s", migrationInfo.String())
+		}
+
+		// remove previously incorrect ibc denom mapping
+		if err := ms.RemoveIBCToL2DenomMap(ctx, legacyIBCDenom(migrationInfo, baseDenom)); err != nil {
+			return nil, err
+		}
+	} else if !errors.Is(err, collections.ErrNotFound) {
+		return nil, err
+	}
+
+	// compute ibc denom
+	migrationIBCDenom, err := ibcDenom(req.MigrationInfo, baseDenom)
 	if err != nil {
 		return nil, err
 	}
@@ -939,8 +952,7 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 	}
 
 	// set the ibc to l2 denom map
-	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", req.MigrationInfo.IbcPortId, req.MigrationInfo.IbcChannelId, baseDenom)).IBCDenom()
-	if err := ms.SetIBCToL2DenomMap(ctx, ibcDenom, req.MigrationInfo.Denom); err != nil {
+	if err := ms.SetIBCToL2DenomMap(ctx, migrationIBCDenom, req.MigrationInfo.Denom); err != nil {
 		return nil, err
 	}
 
@@ -951,7 +963,7 @@ func (ms MsgServer) RegisterMigrationInfo(ctx context.Context, req *types.MsgReg
 		sdk.NewAttribute(types.AttributeKeyFrom, req.Authority),
 		sdk.NewAttribute(types.AttributeKeyBaseDenom, baseDenom),
 		sdk.NewAttribute(types.AttributeKeyDenom, req.MigrationInfo.Denom),
-		sdk.NewAttribute(types.AttributeKeyIbcDenom, ibcDenom),
+		sdk.NewAttribute(types.AttributeKeyIbcDenom, migrationIBCDenom),
 		sdk.NewAttribute(types.AttributeKeyIbcChannelId, req.MigrationInfo.IbcChannelId),
 		sdk.NewAttribute(types.AttributeKeyIbcPortId, req.MigrationInfo.IbcPortId),
 	))

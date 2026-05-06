@@ -3,15 +3,12 @@ package keeper
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cosmossdk.io/collections"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
-
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 )
@@ -125,6 +122,9 @@ func (q Querier) MigrationInfo(ctx context.Context, req *types.QueryMigrationInf
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	ibcDenom := transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
-	return &types.QueryMigrationInfoResponse{MigrationInfo: migrationInfo, IbcDenom: ibcDenom}, nil
+	migrationIBCDenom, err := ibcDenom(migrationInfo, baseDenom)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryMigrationInfoResponse{MigrationInfo: migrationInfo, IbcDenom: migrationIBCDenom}, nil
 }

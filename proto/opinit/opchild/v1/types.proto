@@ -147,6 +147,10 @@ message MigrationInfo {
 
   // ibc_port_id is the IBC port ID, which is allocated for l1 chain, in l2 chain state.
   string ibc_port_id = 3;
+
+  // base_ibc_denom_path is the full IBC denom path of the stored base denom.
+  // It is required when the stored base denom is an ibc/{hash} denom.
+  string base_ibc_denom_path = 4;
 }
 
 // ShutdownInfo defines the information of the shutdown.
