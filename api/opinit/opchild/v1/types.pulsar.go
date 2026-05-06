@@ -3729,10 +3729,11 @@ func (x *fastReflection_DenomPair) ProtoMethods() *protoiface.Methods {
 }
 
 var (
-	md_MigrationInfo                protoreflect.MessageDescriptor
-	fd_MigrationInfo_denom          protoreflect.FieldDescriptor
-	fd_MigrationInfo_ibc_channel_id protoreflect.FieldDescriptor
-	fd_MigrationInfo_ibc_port_id    protoreflect.FieldDescriptor
+	md_MigrationInfo                     protoreflect.MessageDescriptor
+	fd_MigrationInfo_denom               protoreflect.FieldDescriptor
+	fd_MigrationInfo_ibc_channel_id      protoreflect.FieldDescriptor
+	fd_MigrationInfo_ibc_port_id         protoreflect.FieldDescriptor
+	fd_MigrationInfo_base_ibc_denom_path protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -3741,6 +3742,7 @@ func init() {
 	fd_MigrationInfo_denom = md_MigrationInfo.Fields().ByName("denom")
 	fd_MigrationInfo_ibc_channel_id = md_MigrationInfo.Fields().ByName("ibc_channel_id")
 	fd_MigrationInfo_ibc_port_id = md_MigrationInfo.Fields().ByName("ibc_port_id")
+	fd_MigrationInfo_base_ibc_denom_path = md_MigrationInfo.Fields().ByName("base_ibc_denom_path")
 }
 
 var _ protoreflect.Message = (*fastReflection_MigrationInfo)(nil)
@@ -3826,6 +3828,12 @@ func (x *fastReflection_MigrationInfo) Range(f func(protoreflect.FieldDescriptor
 			return
 		}
 	}
+	if x.BaseIbcDenomPath != "" {
+		value := protoreflect.ValueOfString(x.BaseIbcDenomPath)
+		if !f(fd_MigrationInfo_base_ibc_denom_path, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -3847,6 +3855,8 @@ func (x *fastReflection_MigrationInfo) Has(fd protoreflect.FieldDescriptor) bool
 		return x.IbcChannelId != ""
 	case "opinit.opchild.v1.MigrationInfo.ibc_port_id":
 		return x.IbcPortId != ""
+	case "opinit.opchild.v1.MigrationInfo.base_ibc_denom_path":
+		return x.BaseIbcDenomPath != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.MigrationInfo"))
@@ -3869,6 +3879,8 @@ func (x *fastReflection_MigrationInfo) Clear(fd protoreflect.FieldDescriptor) {
 		x.IbcChannelId = ""
 	case "opinit.opchild.v1.MigrationInfo.ibc_port_id":
 		x.IbcPortId = ""
+	case "opinit.opchild.v1.MigrationInfo.base_ibc_denom_path":
+		x.BaseIbcDenomPath = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.MigrationInfo"))
@@ -3893,6 +3905,9 @@ func (x *fastReflection_MigrationInfo) Get(descriptor protoreflect.FieldDescript
 		return protoreflect.ValueOfString(value)
 	case "opinit.opchild.v1.MigrationInfo.ibc_port_id":
 		value := x.IbcPortId
+		return protoreflect.ValueOfString(value)
+	case "opinit.opchild.v1.MigrationInfo.base_ibc_denom_path":
+		value := x.BaseIbcDenomPath
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
@@ -3920,6 +3935,8 @@ func (x *fastReflection_MigrationInfo) Set(fd protoreflect.FieldDescriptor, valu
 		x.IbcChannelId = value.Interface().(string)
 	case "opinit.opchild.v1.MigrationInfo.ibc_port_id":
 		x.IbcPortId = value.Interface().(string)
+	case "opinit.opchild.v1.MigrationInfo.base_ibc_denom_path":
+		x.BaseIbcDenomPath = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.MigrationInfo"))
@@ -3946,6 +3963,8 @@ func (x *fastReflection_MigrationInfo) Mutable(fd protoreflect.FieldDescriptor) 
 		panic(fmt.Errorf("field ibc_channel_id of message opinit.opchild.v1.MigrationInfo is not mutable"))
 	case "opinit.opchild.v1.MigrationInfo.ibc_port_id":
 		panic(fmt.Errorf("field ibc_port_id of message opinit.opchild.v1.MigrationInfo is not mutable"))
+	case "opinit.opchild.v1.MigrationInfo.base_ibc_denom_path":
+		panic(fmt.Errorf("field base_ibc_denom_path of message opinit.opchild.v1.MigrationInfo is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: opinit.opchild.v1.MigrationInfo"))
@@ -3964,6 +3983,8 @@ func (x *fastReflection_MigrationInfo) NewField(fd protoreflect.FieldDescriptor)
 	case "opinit.opchild.v1.MigrationInfo.ibc_channel_id":
 		return protoreflect.ValueOfString("")
 	case "opinit.opchild.v1.MigrationInfo.ibc_port_id":
+		return protoreflect.ValueOfString("")
+	case "opinit.opchild.v1.MigrationInfo.base_ibc_denom_path":
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
@@ -4046,6 +4067,10 @@ func (x *fastReflection_MigrationInfo) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		l = len(x.BaseIbcDenomPath)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -4074,6 +4099,13 @@ func (x *fastReflection_MigrationInfo) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.BaseIbcDenomPath) > 0 {
+			i -= len(x.BaseIbcDenomPath)
+			copy(dAtA[i:], x.BaseIbcDenomPath)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.BaseIbcDenomPath)))
+			i--
+			dAtA[i] = 0x22
 		}
 		if len(x.IbcPortId) > 0 {
 			i -= len(x.IbcPortId)
@@ -4240,6 +4272,38 @@ func (x *fastReflection_MigrationInfo) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				x.IbcPortId = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BaseIbcDenomPath", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.BaseIbcDenomPath = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -6709,6 +6773,9 @@ type MigrationInfo struct {
 	IbcChannelId string `protobuf:"bytes,2,opt,name=ibc_channel_id,json=ibcChannelId,proto3" json:"ibc_channel_id,omitempty"`
 	// ibc_port_id is the IBC port ID, which is allocated for l1 chain, in l2 chain state.
 	IbcPortId string `protobuf:"bytes,3,opt,name=ibc_port_id,json=ibcPortId,proto3" json:"ibc_port_id,omitempty"`
+	// base_ibc_denom_path is the full IBC denom path of the stored base denom.
+	// It is required when the stored base denom is an ibc/{hash} denom.
+	BaseIbcDenomPath string `protobuf:"bytes,4,opt,name=base_ibc_denom_path,json=baseIbcDenomPath,proto3" json:"base_ibc_denom_path,omitempty"`
 }
 
 func (x *MigrationInfo) Reset() {
@@ -6748,6 +6815,13 @@ func (x *MigrationInfo) GetIbcChannelId() string {
 func (x *MigrationInfo) GetIbcPortId() string {
 	if x != nil {
 		return x.IbcPortId
+	}
+	return ""
+}
+
+func (x *MigrationInfo) GetBaseIbcDenomPath() string {
+	if x != nil {
+		return x.BaseIbcDenomPath
 	}
 	return ""
 }
@@ -7087,14 +7161,17 @@ var file_opinit_opchild_v1_types_proto_rawDesc = []byte{
 	0x6d, 0x50, 0x61, 0x69, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x1d, 0x0a, 0x0a, 0x62,
 	0x61, 0x73, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x09, 0x62, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0x6b, 0x0a, 0x0d, 0x4d, 0x69,
-	0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x14, 0x0a, 0x05, 0x64,
-	0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f,
-	0x6d, 0x12, 0x24, 0x0a, 0x0e, 0x69, 0x62, 0x63, 0x5f, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x69, 0x62, 0x63, 0x43, 0x68,
-	0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x64, 0x12, 0x1e, 0x0a, 0x0b, 0x69, 0x62, 0x63, 0x5f, 0x70,
-	0x6f, 0x72, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x69, 0x62,
-	0x63, 0x50, 0x6f, 0x72, 0x74, 0x49, 0x64, 0x22, 0xd6, 0x02, 0x0a, 0x0f, 0x4f, 0x72, 0x61, 0x63,
+	0x09, 0x62, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0x9a, 0x01, 0x0a, 0x0d, 0x4d,
+	0x69, 0x67, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x14, 0x0a, 0x05,
+	0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e,
+	0x6f, 0x6d, 0x12, 0x24, 0x0a, 0x0e, 0x69, 0x62, 0x63, 0x5f, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65,
+	0x6c, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x69, 0x62, 0x63, 0x43,
+	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x64, 0x12, 0x1e, 0x0a, 0x0b, 0x69, 0x62, 0x63, 0x5f,
+	0x70, 0x6f, 0x72, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x69,
+	0x62, 0x63, 0x50, 0x6f, 0x72, 0x74, 0x49, 0x64, 0x12, 0x2d, 0x0a, 0x13, 0x62, 0x61, 0x73, 0x65,
+	0x5f, 0x69, 0x62, 0x63, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18,
+	0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x10, 0x62, 0x61, 0x73, 0x65, 0x49, 0x62, 0x63, 0x44, 0x65,
+	0x6e, 0x6f, 0x6d, 0x50, 0x61, 0x74, 0x68, 0x22, 0xd6, 0x02, 0x0a, 0x0f, 0x4f, 0x72, 0x61, 0x63,
 	0x6c, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x12, 0x3d, 0x0a, 0x0d, 0x63,
 	0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x09, 0x42, 0x18, 0xf2, 0xde, 0x1f, 0x14, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x63, 0x75,

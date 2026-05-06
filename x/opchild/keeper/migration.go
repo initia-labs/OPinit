@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -49,6 +50,11 @@ func (k Keeper) SetIBCToL2DenomMap(ctx context.Context, ibcDenom, l2Denom string
 	return k.IBCToL2DenomMap.Set(ctx, ibcDenom, l2Denom)
 }
 
+// RemoveIBCToL2DenomMap removes the ibc to l2 denom map
+func (k Keeper) RemoveIBCToL2DenomMap(ctx context.Context, ibcDenom string) error {
+	return k.IBCToL2DenomMap.Remove(ctx, ibcDenom)
+}
+
 // GetIBCToL2DenomMap gets the ibc to l2 denom map
 func (k Keeper) GetIBCToL2DenomMap(ctx context.Context, ibcDenom string) (string, error) {
 	return k.IBCToL2DenomMap.Get(ctx, ibcDenom)
@@ -87,7 +93,11 @@ func (k Keeper) MigrateToken(ctx context.Context, migrationInfo types.MigrationI
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-	ibcCoin := sdk.NewCoin(ibcDenom(migrationInfo, baseDenom), amount.Amount)
+	migrationIBCDenom, err := ibcDenom(migrationInfo, baseDenom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	ibcCoin := sdk.NewCoin(migrationIBCDenom, amount.Amount)
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(ibcCoin))
 	if err != nil {
 		return sdk.Coin{}, err
@@ -212,7 +222,42 @@ func (k Keeper) HandleMigratedTokenWithdrawal(ctx context.Context, msg *types.Ms
 	return true, nil
 }
 
-// ibcDenom computes the IBC denom from the migration info and base denom
-func ibcDenom(migrationInfo types.MigrationInfo, baseDenom string) string {
+// ibcDenom computes the IBC denom from the migration info and stored base denom.
+func ibcDenom(migrationInfo types.MigrationInfo, baseDenom string) (string, error) {
+	if strings.HasPrefix(baseDenom, transfertypes.DenomPrefix+"/") {
+		if migrationInfo.BaseIbcDenomPath == "" {
+			return "", errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "base IBC denom path is required for IBC base denom")
+		}
+
+		baseDenomTrace := transfertypes.ExtractDenomFromPath(migrationInfo.BaseIbcDenomPath)
+		if err := baseDenomTrace.Validate(); err != nil {
+			return "", errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		}
+		if baseDenomTrace.IBCDenom() != baseDenom {
+			return "", errorsmod.Wrapf(
+				sdkerrors.ErrInvalidRequest,
+				"base IBC denom path does not match base denom; expected %s, got %s",
+				baseDenom,
+				baseDenomTrace.IBCDenom(),
+			)
+		}
+
+		return transfertypes.ExtractDenomFromPath(
+			fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, migrationInfo.BaseIbcDenomPath),
+		).IBCDenom(), nil
+	}
+
+	if migrationInfo.BaseIbcDenomPath != "" {
+		return "", errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "base IBC denom path is only allowed for IBC base denom")
+	}
+
+	return transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom(), nil
+}
+
+func legacyIBCDenom(migrationInfo types.MigrationInfo, baseDenom string) string {
 	return transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", migrationInfo.IbcPortId, migrationInfo.IbcChannelId, baseDenom)).IBCDenom()
+}
+
+func canOverwriteMigrationInfo(migrationInfo types.MigrationInfo, baseDenom string) bool {
+	return strings.HasPrefix(baseDenom, transfertypes.DenomPrefix+"/") && migrationInfo.BaseIbcDenomPath == ""
 }
