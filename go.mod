@@ -26,7 +26,7 @@ require (
 	github.com/initia-labs/OPinit/api v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/skip-mev/block-sdk/v2 v2.1.5
-	github.com/skip-mev/connect/v2 v2.3.0
+	github.com/skip-mev/connect/v2 v2.4.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.48.0
@@ -243,8 +243,8 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
-// use custom to make config update at launch time
-replace github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.19-minitia.24
-
-// TODO: switch to a tagged release once initia-labs/connect#8 is merged.
-replace github.com/skip-mev/connect/v2 => github.com/initia-labs/connect/v2 v2.3.4-0.20260422211842-b8c2db5a2a15
+replace (
+	// use custom to make config update at launch time
+	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.21-minitia.0
+	github.com/skip-mev/connect/v2 => github.com/initia-labs/connect/v2 v2.4.0
+)

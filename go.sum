@@ -1212,10 +1212,10 @@ github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANyt
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
-github.com/initia-labs/cometbft v0.38.19-minitia.24 h1:laacf9A9XgDLHeQEPrWZiG+rNa3somPPmzqBOrD5LG4=
-github.com/initia-labs/cometbft v0.38.19-minitia.24/go.mod h1:1Uhjm7cX6AImJAFnt4ttaf6FAu/qFA670NmouGi38sY=
-github.com/initia-labs/connect/v2 v2.3.4-0.20260422211842-b8c2db5a2a15 h1:UW/gFo5fboyG162r9UpqtpNAoaHBmv1YtsoO4MNdnRA=
-github.com/initia-labs/connect/v2 v2.3.4-0.20260422211842-b8c2db5a2a15/go.mod h1:OF8WmQ1ANSqXSUnIxM/1mMXPgPUNYUnP9z+Su2Bbw5A=
+github.com/initia-labs/cometbft v0.38.21-minitia.0 h1:Tie0OQ0uRnLbzs8nxZ/7SwNZ/ZqSR4lEUDqiruLs83I=
+github.com/initia-labs/cometbft v0.38.21-minitia.0/go.mod h1:1Uhjm7cX6AImJAFnt4ttaf6FAu/qFA670NmouGi38sY=
+github.com/initia-labs/connect/v2 v2.4.0 h1:zKVpemWjeBsOVPLu7PuB/JUSJfo4uX+V6r+fgT348Y4=
+github.com/initia-labs/connect/v2 v2.4.0/go.mod h1:OF8WmQ1ANSqXSUnIxM/1mMXPgPUNYUnP9z+Su2Bbw5A=
 github.com/jhump/protoreflect v1.17.0 h1:qOEr613fac2lOuTgWN4tPAtLL7fUSbuJL5X5XumQh94=
 github.com/jhump/protoreflect v1.17.0/go.mod h1:h9+vUUL38jiBzck8ck+6G/aeMX8Z4QUY/NiJPwPNi+8=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
