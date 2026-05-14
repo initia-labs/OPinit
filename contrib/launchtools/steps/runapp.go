@@ -75,10 +75,11 @@ func RunAppWithPostAction(postAction launchtools.PostAction) func(cfg *launchtoo
 			// set relevant context; this part is necessary to correctly set up the start command and their start-up flags
 			startCmd.SetContext(ctx.Context())
 
-			// Run PreRunE from startCmd. This step is necessary to correctly set up start-up flags,
-			// as it is done usually with cometbft start command.
-			if err := startCmd.PreRunE(startCmd, nil); err != nil {
-				return errors.Wrapf(err, "failed to prerun command")
+			// Bind start-cmd flags to the server context's viper so RunE can read them.
+			// On cosmos-sdk v0.50 this was done by startCmd.PreRunE, on v0.53 PreRunE was
+			// removed. So here we just bypass by constructing startCmd directly.
+			if err := ctx.ServerContext().Viper.BindPFlags(startCmd.Flags()); err != nil {
+				return errors.Wrapf(err, "failed to bind start flags to viper")
 			}
 
 			// Run RunE command - this part fires up the actual chain
