@@ -37,6 +37,7 @@ var (
 	ErrIBCKeepersNotInitialized        = errorsmod.Register(ModuleName, 31, "IBC keepers not initialized")
 	ErrIBCKeepersAlreadySet            = errorsmod.Register(ModuleName, 32, "IBC keepers already set, can only be called once")
 	ErrIBCKeepersNonNil                = errorsmod.Register(ModuleName, 33, "All IBC keepers must be non-nil")
+	ErrInvalidPacketOrigin             = errorsmod.Register(ModuleName, 34, "invalid packet origin")
 
 	// AnteHandler error
 	ErrRedundantTx = errorsmod.Register(ModuleName, 29, "tx messages are all redundant")

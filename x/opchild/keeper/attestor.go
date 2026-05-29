@@ -9,10 +9,77 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
+
+// ValidateAttestorSetUpdatePacketOrigin verifies that an attestor set update
+// packet arrived from the configured canonical L1 IBC channel and client.
+func (k Keeper) ValidateAttestorSetUpdatePacketOrigin(
+	ctx sdk.Context,
+	channelVersion string,
+	packet channeltypes.Packet,
+) error {
+	if channelVersion != types.Version {
+		return types.ErrInvalidPacketOrigin.Wrapf("expected channel version %s, got %s", types.Version, channelVersion)
+	}
+
+	if packet.GetSourcePort() != types.PortID {
+		return types.ErrInvalidPacketOrigin.Wrapf("expected source port %s, got %s", types.PortID, packet.GetSourcePort())
+	}
+
+	if packet.GetDestPort() != types.PortID {
+		return types.ErrInvalidPacketOrigin.Wrapf("expected destination port %s, got %s", types.PortID, packet.GetDestPort())
+	}
+
+	bridgeInfo, err := k.BridgeInfo.Get(ctx)
+	if err != nil {
+		return types.ErrBridgeInfoNotExists.Wrapf("failed to get bridge info: %v", err)
+	}
+
+	if bridgeInfo.BridgeConfig.ChannelId == "" {
+		return types.ErrInvalidPacketOrigin.Wrap("bridge channel_id is not configured")
+	}
+
+	if packet.GetSourceChannel() != bridgeInfo.BridgeConfig.ChannelId {
+		return types.ErrInvalidPacketOrigin.Wrapf(
+			"expected source channel %s, got %s",
+			bridgeInfo.BridgeConfig.ChannelId,
+			packet.GetSourceChannel(),
+		)
+	}
+
+	if bridgeInfo.L1ClientId == "" {
+		return types.ErrInvalidBridgeInfo.Wrap("l1 client id is not configured")
+	}
+
+	if k.channelKeeper == nil {
+		return types.ErrIBCKeepersNotInitialized.Wrap("channel keeper is not initialized")
+	}
+
+	connectionID, connection, err := k.channelKeeper.GetChannelConnection(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if err != nil {
+		return types.ErrInvalidPacketOrigin.Wrapf("failed to get destination channel connection: %v", err)
+	}
+
+	if connection.State != connectiontypes.OPEN {
+		return types.ErrInvalidPacketOrigin.Wrapf("connection %s is not open", connectionID)
+	}
+
+	if connection.ClientId != bridgeInfo.L1ClientId {
+		return types.ErrInvalidPacketOrigin.Wrapf(
+			"expected l1 client id %s, got %s on connection %s",
+			bridgeInfo.L1ClientId,
+			connection.ClientId,
+			connectionID,
+		)
+	}
+
+	return nil
+}
 
 // OnRecvAttestorSetUpdatePacket is called when an attestor set update packet is received via IBC.
 func (k Keeper) OnRecvAttestorSetUpdatePacket(

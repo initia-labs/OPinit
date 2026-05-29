@@ -65,6 +65,14 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
+	if len(connectionHops) != 1 {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "expected exactly one connection hop, got %d", len(connectionHops))
+	}
+
+	if counterparty.PortId != types.PortID {
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid counterparty port: %s, expected %s", counterparty.PortId, types.PortID)
+	}
+
 	if strings.TrimSpace(version) == "" {
 		version = types.Version
 	}
@@ -88,6 +96,14 @@ func (im IBCModule) OnChanOpenTry(
 ) (string, error) {
 	if err := ValidateOPChildChannelParams(ctx, im.keeper, order, portID); err != nil {
 		return "", err
+	}
+
+	if len(connectionHops) != 1 {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "expected exactly one connection hop, got %d", len(connectionHops))
+	}
+
+	if counterparty.PortId != types.PortID {
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid counterparty port: %s, expected %s", counterparty.PortId, types.PortID)
 	}
 
 	if counterpartyVersion != types.Version {
@@ -146,6 +162,10 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	if err := im.keeper.ValidateAttestorSetUpdatePacketOrigin(ctx, channelVersion, packet); err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+
 	ackBytes, err := im.keeper.OnRecvAttestorSetUpdatePacket(ctx, packet.GetData())
 	if err == nil {
 		return channeltypes.NewResultAcknowledgement(ackBytes)

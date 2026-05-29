@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 
 	"github.com/initia-labs/OPinit/x/opchild"
@@ -13,6 +14,31 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
+
+const (
+	testL1ClientID    = "test-client-id"
+	testConnectionID  = "connection-0"
+	testSourceChannel = "channel-0"
+	testDestChannel   = "channel-1"
+)
+
+func setupAttestorSetUpdateOrigin(t *testing.T, ctx sdk.Context, input testutil.TestKeepers, l1ClientID string) {
+	t.Helper()
+
+	input.IBCKeeper.ConnectionKeeper.SetClientConnectionPaths(ctx, l1ClientID, []string{testConnectionID})
+	input.IBCKeeper.ConnectionKeeper.SetConnection(ctx, testConnectionID, connectiontypes.ConnectionEnd{
+		State:    connectiontypes.OPEN,
+		ClientId: l1ClientID,
+	})
+	input.IBCKeeper.ChannelKeeper.SetChannel(ctx, opchildtypes.PortID, testDestChannel, channeltypes.Channel{
+		State: channeltypes.OPEN,
+		Counterparty: channeltypes.Counterparty{
+			PortId:    opchildtypes.PortID,
+			ChannelId: testSourceChannel,
+		},
+		ConnectionHops: []string{testConnectionID},
+	})
+}
 
 func Test_IBCModule_OnChanOpenInit(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
@@ -196,13 +222,15 @@ func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
 		BridgeId:   1,
 		BridgeAddr: testutil.AddrsStr[0],
 		L1ChainId:  "test-chain-1",
-		L1ClientId: "test-client-id",
+		L1ClientId: testL1ClientID,
 		BridgeConfig: ophosttypes.BridgeConfig{
 			AttestorSet: []ophosttypes.Attestor{},
+			ChannelId:   testSourceChannel,
 		},
 	}
 	err := input.OPChildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
 	require.NoError(t, err)
+	setupAttestorSetUpdateOrigin(t, sdkCtx, input, testL1ClientID)
 
 	// attestor set update packet
 	attestor1 := testutil.CreateAttestor(t, testutil.ValAddrsStr[1], testutil.PubKeys[1], "attestor1")
@@ -216,9 +244,9 @@ func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
 
 	packet := channeltypes.Packet{
 		SourcePort:         opchildtypes.PortID,
-		SourceChannel:      "channel-0",
+		SourceChannel:      testSourceChannel,
 		DestinationPort:    opchildtypes.PortID,
-		DestinationChannel: "channel-1",
+		DestinationChannel: testDestChannel,
 		Data:               packetData.GetBytes(),
 		Sequence:           1,
 	}
@@ -235,17 +263,131 @@ func Test_IBCModule_OnRecvPacket_AttestorSetUpdate(t *testing.T) {
 	require.Len(t, vals, 2)
 }
 
+func Test_IBCModule_OnRecvPacket_InvalidOrigin(t *testing.T) {
+	testCases := []struct {
+		name           string
+		channelVersion string
+		setupOrigin    func(t *testing.T, ctx sdk.Context, input testutil.TestKeepers)
+		mutatePacket   func(packet *channeltypes.Packet)
+		expErr         string
+	}{
+		{
+			name:           "invalid channel version",
+			channelVersion: "invalid-version",
+			setupOrigin: func(t *testing.T, ctx sdk.Context, input testutil.TestKeepers) {
+				setupAttestorSetUpdateOrigin(t, ctx, input, testL1ClientID)
+			},
+			expErr: "expected channel version",
+		},
+		{
+			name:           "invalid source port",
+			channelVersion: opchildtypes.Version,
+			setupOrigin: func(t *testing.T, ctx sdk.Context, input testutil.TestKeepers) {
+				setupAttestorSetUpdateOrigin(t, ctx, input, testL1ClientID)
+			},
+			mutatePacket: func(packet *channeltypes.Packet) {
+				packet.SourcePort = "attacker"
+			},
+			expErr: "expected source port",
+		},
+		{
+			name:           "invalid destination port",
+			channelVersion: opchildtypes.Version,
+			setupOrigin: func(t *testing.T, ctx sdk.Context, input testutil.TestKeepers) {
+				setupAttestorSetUpdateOrigin(t, ctx, input, testL1ClientID)
+			},
+			mutatePacket: func(packet *channeltypes.Packet) {
+				packet.DestinationPort = "attacker"
+			},
+			expErr: "expected destination port",
+		},
+		{
+			name:           "invalid source channel",
+			channelVersion: opchildtypes.Version,
+			setupOrigin: func(t *testing.T, ctx sdk.Context, input testutil.TestKeepers) {
+				setupAttestorSetUpdateOrigin(t, ctx, input, testL1ClientID)
+			},
+			mutatePacket: func(packet *channeltypes.Packet) {
+				packet.SourceChannel = "channel-99"
+			},
+			expErr: "expected source channel",
+		},
+		{
+			name:           "invalid l1 client",
+			channelVersion: opchildtypes.Version,
+			setupOrigin: func(t *testing.T, ctx sdk.Context, input testutil.TestKeepers) {
+				setupAttestorSetUpdateOrigin(t, ctx, input, "attacker-client-id")
+			},
+			expErr: "expected l1 client id",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, input := testutil.CreateTestInput(t, false)
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+			bridgeInfo := opchildtypes.BridgeInfo{
+				BridgeId:   1,
+				BridgeAddr: testutil.AddrsStr[0],
+				L1ChainId:  "test-chain-1",
+				L1ClientId: testL1ClientID,
+				BridgeConfig: ophosttypes.BridgeConfig{
+					ChannelId: testSourceChannel,
+				},
+			}
+			err := input.OPChildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
+			require.NoError(t, err)
+			tc.setupOrigin(t, sdkCtx, input)
+
+			packetData := ophosttypes.NewAttestorSetUpdatePacketData(1, nil, 100)
+			packet := channeltypes.Packet{
+				SourcePort:         opchildtypes.PortID,
+				SourceChannel:      testSourceChannel,
+				DestinationPort:    opchildtypes.PortID,
+				DestinationChannel: testDestChannel,
+				Data:               packetData.GetBytes(),
+				Sequence:           1,
+			}
+			if tc.mutatePacket != nil {
+				tc.mutatePacket(&packet)
+			}
+
+			originErr := input.OPChildKeeper.ValidateAttestorSetUpdatePacketOrigin(sdkCtx, tc.channelVersion, packet)
+			require.Error(t, originErr)
+			require.Contains(t, originErr.Error(), tc.expErr)
+
+			ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
+			ack := ibcModule.OnRecvPacket(sdkCtx, tc.channelVersion, packet, nil)
+			require.False(t, ack.Success())
+		})
+	}
+}
+
 func Test_IBCModule_OnRecvPacket_InvalidData(t *testing.T) {
 	ctx, input := testutil.CreateTestInput(t, false)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	bridgeInfo := opchildtypes.BridgeInfo{
+		BridgeId:   1,
+		BridgeAddr: testutil.AddrsStr[0],
+		L1ChainId:  "test-chain-1",
+		L1ClientId: testL1ClientID,
+		BridgeConfig: ophosttypes.BridgeConfig{
+			ChannelId: testSourceChannel,
+		},
+	}
+	err := input.OPChildKeeper.BridgeInfo.Set(ctx, bridgeInfo)
+	require.NoError(t, err)
+	setupAttestorSetUpdateOrigin(t, sdkCtx, input, testL1ClientID)
 
 	ibcModule := opchild.NewIBCModule(input.OPChildKeeper)
 
 	packet := channeltypes.Packet{
 		SourcePort:         opchildtypes.PortID,
-		SourceChannel:      "channel-0",
+		SourceChannel:      testSourceChannel,
 		DestinationPort:    opchildtypes.PortID,
-		DestinationChannel: "channel-1",
+		DestinationChannel: testDestChannel,
 		Data:               []byte("invalid-data"),
 		Sequence:           1,
 	}
