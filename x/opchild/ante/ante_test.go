@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -149,15 +150,19 @@ func TestRedundantTx(t *testing.T) {
 	ctx, input := createTestInput(t, true)
 	rbd := ante.NewRedundantBridgeDecorator(&input.OPChildKeeper)
 
+	// a deposit needs bridge info and carries the L2 denom of its base denom
+	require.NoError(t, input.OPChildKeeper.BridgeInfo.Set(ctx, types.BridgeInfo{BridgeId: 1}))
+	l2Denom := ophosttypes.L2Denom(1, "l1_test0")
+
 	// input.Faucet.Mint(ctx, addrs[0], sdk.NewCoin(testDenoms[0], math.NewInt(100000)))
 
 	tx := testTx{
 		msgs: []sdk.Msg{
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 1, 1, "l1_test0", nil,
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(l2Denom, math.NewInt(100)), 1, 1, "l1_test0", nil,
 			),
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", nil,
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(l2Denom, math.NewInt(100)), 2, 1, "l1_test0", nil,
 			),
 		},
 	}
@@ -172,10 +177,10 @@ func TestRedundantTx(t *testing.T) {
 	tx = testTx{
 		msgs: []sdk.Msg{
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 2, 1, "l1_test0", nil,
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(l2Denom, math.NewInt(100)), 2, 1, "l1_test0", nil,
 			),
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 3, 1, "l1_test0", nil,
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(l2Denom, math.NewInt(100)), 3, 1, "l1_test0", nil,
 			),
 		},
 	}
@@ -186,7 +191,7 @@ func TestRedundantTx(t *testing.T) {
 	tx = testTx{
 		msgs: []sdk.Msg{
 			types.NewMsgFinalizeTokenDeposit(
-				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(testDenoms[0], math.NewInt(100)), 4, 1, "l1_test0", nil,
+				addrsStr[0], addrsStr[0], addrsStr[1], sdk.NewCoin(l2Denom, math.NewInt(100)), 4, 1, "l1_test0", nil,
 			),
 		},
 	}

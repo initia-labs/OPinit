@@ -1,12 +1,10 @@
 package keeper_test
 
 import (
-	"encoding/hex"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/sha3"
 
 	testutilsims "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -120,8 +118,7 @@ func Test_QueryNextL2Sequence(t *testing.T) {
 func Test_QueryBaseDenom(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	bz := sha3.Sum256([]byte("base_denom"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "base_denom")
 
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 	_, err := ms.FinalizeTokenDeposit(ctx, &types.MsgFinalizeTokenDeposit{

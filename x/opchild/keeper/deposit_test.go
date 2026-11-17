@@ -1,11 +1,9 @@
 package keeper_test
 
 import (
-	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/sha3"
 
 	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -19,8 +17,7 @@ func Test_MsgServer_Deposit_HookEvents(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
 
