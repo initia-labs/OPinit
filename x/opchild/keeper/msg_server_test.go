@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"bytes"
-	"encoding/hex"
 	"math/big"
 	"slices"
 	"testing"
@@ -27,7 +26,6 @@ import (
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/sha3"
 
 	"github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/OPinit/x/opchild/types"
@@ -637,7 +635,7 @@ func Test_MsgServer_Withdraw(t *testing.T) {
 	baseDenom := "test_token"
 	denom := ophosttypes.L2Denom(1, baseDenom)
 
-	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], "anyformataddr", addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test/token", nil))
+	_, err = ms.FinalizeTokenDeposit(ctx, types.NewMsgFinalizeTokenDeposit(addrsStr[0], "anyformataddr", addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, baseDenom, nil))
 	require.NoError(t, err)
 
 	coins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(1_000_000_000)), sdk.NewCoin(denom, math.NewInt(1_000_000_000)))
@@ -728,8 +726,7 @@ func Test_MsgServer_Deposit_ToModuleAccount(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	opchildModuleAddress := authtypes.NewModuleAddress(types.ModuleName)
 
@@ -777,8 +774,7 @@ func Test_MsgServer_Deposit_InvalidAddress(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	beforeToBalance := input.BankKeeper.GetBalance(ctx, addrs[1], denom)
 	require.Equal(t, math.ZeroInt(), beforeToBalance.Amount)
@@ -818,8 +814,7 @@ func Test_MsgServer_Deposit_NoHook(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	// unauthorized deposit
 	msg := types.NewMsgFinalizeTokenDeposit(addrsStr[1], addrsStr[1], addrsStr[1], sdk.NewCoin(denom, math.NewInt(100)), 1, 1, "test_token", nil)
@@ -843,8 +838,7 @@ func Test_MsgServer_Deposit_HookSuccess(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
 
@@ -886,8 +880,7 @@ func Test_MsgServer_Deposit_HookFail(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
 
@@ -936,8 +929,7 @@ func Test_MsgServer_Deposit_HookFail_WithOutOfGas(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	ms := keeper.NewMsgServerImpl(&input.OPChildKeeper)
 
-	bz := sha3.Sum256([]byte("test_token"))
-	denom := "l2/" + hex.EncodeToString(bz[:])
+	denom := testL2Denom(t, ctx, input, "test_token")
 
 	require.Equal(t, math.ZeroInt(), input.BankKeeper.GetBalance(ctx, addrs[1], denom).Amount)
 

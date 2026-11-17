@@ -20,6 +20,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/initia-labs/OPinit/x/opchild/types"
+	ophosttypes "github.com/initia-labs/OPinit/x/ophost/types"
 )
 
 type MsgServer struct {
@@ -716,6 +717,25 @@ func (ms MsgServer) FinalizeTokenDeposit(ctx context.Context, req *types.MsgFina
 		return &types.MsgFinalizeTokenDepositResponse{Result: types.NOOP}, nil
 	} else if req.Sequence > finalizedL1Sequence {
 		return nil, types.ErrInvalidSequence
+	}
+
+	bridgeInfo, err := ms.BridgeInfo.Get(ctx)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, types.ErrBridgeInfoNotExists
+		}
+		return nil, err
+	}
+	if coin.Denom != ophosttypes.L2Denom(bridgeInfo.BridgeId, req.BaseDenom) {
+		return nil, types.ErrNonCanonicalDepositDenom.Wrapf("got %s for base denom %s on bridge %d", coin.Denom, req.BaseDenom, bridgeInfo.BridgeId)
+	}
+
+	// migrated denom never arrives through this message. l1 forwards such a deposit over ibc, so minting
+	// it here would be an instant claim on the ibc escrow on l1. refuse before anything happens
+	if migrated, err := ms.HasMigrationInfo(ctx, coin.Denom); err != nil {
+		return nil, err
+	} else if migrated {
+		return nil, types.ErrMigratedDenomDeposit.Wrap(coin.Denom)
 	}
 
 	// deposit token

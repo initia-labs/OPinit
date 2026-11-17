@@ -35,6 +35,9 @@ var (
 	ErrOracleDisabled                  = errorsmod.Register(ModuleName, 28, "oracle is disabled")
 	ErrValidatorNotAttestor            = errorsmod.Register(ModuleName, 30, "validator is not an attestor")
 
+	ErrNonCanonicalDepositDenom = errorsmod.Register(ModuleName, 51, "deposit denom is not the L2 denom of its base denom on this bridge")
+	ErrMigratedDenomDeposit     = errorsmod.Register(ModuleName, 52, "deposit of a migrated denom is refused: it arrives over IBC")
+
 	// AnteHandler error
 	ErrRedundantTx = errorsmod.Register(ModuleName, 29, "tx messages are all redundant")
 )
